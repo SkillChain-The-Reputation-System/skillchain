@@ -1,0 +1,23 @@
+{
+  "name": "skillchain",
+  "version": "1.0.0",
+  "description": "A Reputation System for Skill Assessment",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SkillChain-The-Reputation-System/SkillChain.git"
+  },
+  "author": "Nguyen Hai Tuyen, Tran Minh Dat",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SkillChain-The-Reputation-System/SkillChain/issues"
+  },
+  "homepage": "https://github.com/SkillChain-The-Reputation-System/SkillChain#readme",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
+    "hardhat": "^2.22.19"
+  }
+}

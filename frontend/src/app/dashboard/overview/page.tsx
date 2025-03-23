@@ -1,11 +1,20 @@
-import { Metadata } from 'next';
-import OverviewView from '@/features/dashboard/overview/overview-view';
+"use client";
 
-export const metadata: Metadata = {
-  title: 'Dashboard | Overview',
-  description: 'Dashboard overview page of SkillChain.'
-};
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAccount } from "wagmi";
 
-export default async function Overview() {
+export default function Overview() {
+  const { isDisconnected } = useAccount();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isDisconnected) {
+      router.push("/"); // Redirect to home if wallet is disconnected
+    } else {
+      router.push("/dashboard/overview");
+    }
+  }, [isDisconnected,  router]);
+
   return <></>
 }

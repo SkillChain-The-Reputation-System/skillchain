@@ -1,11 +1,20 @@
-import { Metadata } from 'next';
-import { redirect } from "next/navigation";
+"use client";
 
-export const metadata: Metadata = {
-  title: 'Dashboard',
-  description: 'Dashboard page of SkillChain.'
-};
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAccount } from "wagmi";
 
-export default async function Dashboard() {
-  redirect("/dashboard/overview");
+export default function DashboardView() {
+  const { isConnected } = useAccount();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isConnected) {
+      router.push("/"); // Redirect to home if wallet is disconnected
+    } else {
+      router.push("/dashboard/overview");
+    }
+  }, [isConnected, router]);
+
+  return <></>
 }

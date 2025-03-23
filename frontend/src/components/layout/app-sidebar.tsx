@@ -1,19 +1,10 @@
-'use client';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+"use client";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger
-} from '@/components/ui/collapsible';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+
 import {
   Sidebar,
   SidebarContent,
@@ -28,27 +19,23 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarRail,
-  useSidebar
-} from '@/components/ui/sidebar';
-import { navItems } from '@/constants/data';
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { navItems } from "@/constants/data";
 import {
-  BadgeCheck,
-  Bell,
   ChevronRight,
-  ChevronsUpDown,
-  CreditCard,
   GalleryVerticalEnd,
-  LogOut
-} from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import * as React from 'react';
-import { Icons } from '../icons';
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import * as React from "react";
+import { Icons } from "../icons";
+import { AccountButton } from "./account-button";
 
 export const company = {
-  name: 'SkillChain',
+  name: "SkillChain",
   logo: GalleryVerticalEnd,
-  plan: 'Enterprise'
+  plan: "Enterprise",
 };
 
 export default function AppSidebar() {
@@ -56,19 +43,19 @@ export default function AppSidebar() {
   const { state, isMobile } = useSidebar();
 
   return (
-    <Sidebar collapsible='icon'>
+    <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className='text-sidebar-accent-foreground flex gap-2 py-2'>
-          <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
-            <company.logo className='size-4' />
+        <div className="text-sidebar-accent-foreground flex gap-2 py-2">
+          <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+            <company.logo className="size-4" />
           </div>
-          <div className='grid flex-1 text-left text-sm leading-tight'>
-            <span className='truncate font-semibold'>{company.name}</span>
-            <span className='truncate text-xs'>{company.plan}</span>
+          <div className="grid flex-1 text-left text-sm leading-tight">
+            <span className="truncate font-semibold">{company.name}</span>
+            <span className="truncate text-xs">{company.plan}</span>
           </div>
         </div>
       </SidebarHeader>
-      <SidebarContent className='overflow-x-hidden'>
+      <SidebarContent className="overflow-x-hidden">
         <SidebarGroup>
           <SidebarGroupLabel>Overview</SidebarGroupLabel>
           <SidebarMenu>
@@ -79,7 +66,7 @@ export default function AppSidebar() {
                   key={item.title}
                   asChild
                   defaultOpen={item.isActive}
-                  className='group/collapsible'
+                  className="group/collapsible"
                 >
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
@@ -89,7 +76,7 @@ export default function AppSidebar() {
                       >
                         {item.icon && <Icon />}
                         <span>{item.title}</span>
-                        <ChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
+                        <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
@@ -131,82 +118,7 @@ export default function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  size='lg'
-                  className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
-                >
-                  <Avatar className='h-8 w-8 rounded-lg'>
-                    <AvatarImage
-                      src={'https://github.com/shadcn.png'}
-                      alt={'ShadCN Avartar'}
-                    />
-                    <AvatarFallback className='rounded-lg'>
-                      CN
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className='grid flex-1 text-left text-sm leading-tight'>
-                    <span className='truncate font-semibold'>
-                      Hai Tuyen
-                    </span>
-                    <span className='truncate text-xs'>
-                      21127474@student.hcmus.edu.vn
-                    </span>
-                  </div>
-                  <ChevronsUpDown className='ml-auto size-4' />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className='w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg'
-                side='bottom'
-                align='end'
-                sideOffset={4}
-              >
-                <DropdownMenuLabel className='p-0 font-normal'>
-                  <div className='flex items-center gap-2 px-1 py-1.5 text-left text-sm'>
-                    <Avatar className='h-8 w-8 rounded-lg'>
-                      <AvatarImage
-                        src={'https://github.com/shadcn.png'}
-                        alt={'ShadCN Avartar'}
-                      />
-                      <AvatarFallback className='rounded-lg'>
-                        CN
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className='grid flex-1 text-left text-sm leading-tight'>
-                      <span className='truncate font-semibold'>
-                        Hai Tuyen
-                      </span>
-                      <span className='truncate text-xs'>
-                        21127474@student.hcmus.edu.vn
-                      </span>
-                    </div>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-
-                <DropdownMenuGroup>
-                  <DropdownMenuItem>
-                    <BadgeCheck />
-                    Account
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <CreditCard />
-                    Billing
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Bell />
-                    Notifications
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => console.log("Logging Out")}>
-                  <LogOut />
-                  Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <AccountButton></AccountButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

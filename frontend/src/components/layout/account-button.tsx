@@ -31,6 +31,10 @@ export const AccountButton = () => {
     router.push("/");
   }
 
+  function handleDirectToAccountPage() {
+    router.push("/dashboard/account")
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -76,7 +80,7 @@ export const AccountButton = () => {
         <DropdownMenuSeparator />
 
         <DropdownMenuGroup>
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={handleDirectToAccountPage}>
             <BadgeCheck />
             Account
           </DropdownMenuItem>

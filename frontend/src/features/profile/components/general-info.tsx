@@ -9,24 +9,27 @@ import {
 } from "@/components/ui/card";
 
 interface GeneralInfoProps {
-  username: string | null;
+  username?: string | undefined;
   address: `0x${string}` | undefined; 
+  avatar?: string | undefined;
+  bio?: string | undefined;
 }
 
-export default function GeneralInfo({ username, address }: GeneralInfoProps) {
+export default function GeneralInfo({ username, address, avatar, bio }: GeneralInfoProps) {
   return (
     <Card>
       <CardContent className="flex flex-col items-center space-y-3">
         <Avatar className="h-20 w-20">
           <AvatarImage
-            src={"https://github.com/shadcn.png"}
-            alt={"ShadCN Avartar"}
+            src={avatar}
+            alt={"User's avatar"}
           />
-          <AvatarFallback className="">CN</AvatarFallback>
+          <AvatarFallback>SK</AvatarFallback>
         </Avatar>
 
-        <CardTitle className="text-center">{username ? (username) : ("Unnamed User")}</CardTitle>
-        <CardDescription>{address}</CardDescription>
+        <CardTitle className="text-center">{username || "Unnamed"}</CardTitle>
+        <CardDescription className="text-sm text-center break-all">{address}</CardDescription>
+        <CardDescription className="text-sm text-center italic max-w-xs line-clamp-3">{bio}</CardDescription>
       </CardContent>
     </Card>
   );

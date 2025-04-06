@@ -1,33 +1,36 @@
 import { expect } from "chai";
 import hre from "hardhat";
-import {
-  parseEventLogs,
-} from "viem";
+import { parseEventLogs } from "viem";
 
 describe("UserDataManager", () => {
   let publicClient: any; // Client used to peform read-only process to the contract
   let ownerClient: any,
-    addr1Client: any,
-    addr2Client: any,
-    addr3Client: any;
-  let ownerAddress: any,
-    addr1Address: any,
-    addr2Address: any,
-    addr3Address: any;
+    client1: any,
+    client2: any,
+    client3: any;
+  let owner_address: any,
+    client1_address: any,
+    client2_address: any,
+    client3_address: any;
   let contract: any;
   let publicContract: any;
 
   beforeEach(async () => {
     // Get clients from Hardhat Viem plugin
     publicClient = await hre.viem.getPublicClient();
-    [ownerClient, addr1Client, addr2Client, addr3Client] =
+    [ownerClient, client1, client2, client3] =
       await hre.viem.getWalletClients();
 
     // Extract addresses from wallet clients
-    ownerAddress = ownerClient.account.address;
-    addr1Address = addr1Client.account.address;
-    addr2Address = addr2Client.account.address;
-    addr3Address = addr3Client.account.address;
+    owner_address = ownerClient.account.address;
+    client1_address = client1.account.address;
+    client2_address = client2.account.address;
+    client3_address = client3.account.address;
+
+    console.log("Owner Address:", owner_address);
+    console.log("Client 1 Address:", client1_address);
+    console.log("Client 2 Address:", client2_address);
+    console.log("Client 3 Address:", client3_address);
 
     // Deploy the contract
     contract = await hre.viem.deployContract("UserDataManager", [], {
@@ -39,124 +42,221 @@ describe("UserDataManager", () => {
     publicContract = await hre.viem.getContractAt(
       "UserDataManager",
       contract.address,
-      { client: publicClient}
+      { client: {wallet: publicClient}}
     );
   });
 
   /** Helper function to get a contract instance for a specific client */
   const getContractForClient = async (_client: any) => {
     return await hre.viem.getContractAt("UserDataManager", contract.address, {
-      client: _client,
+      client: {wallet: _client},
     });
   };
 
-  describe("registerUsername", () => {
-    it("should allow a user to set their username and emit UsernameRegistered event", async () => {
-      const contractForAddr1 = await getContractForClient(addr1Client);
-      const tx = await contractForAddr1.write.registerUsername(["alice"]);
+  describe("setUserPersonalData", () => {
+    it("should return empty strings for everything if no data is set", async () => {
+      const client1_username = await publicContract.read.getUsername([client1_address]);
+      const client1_avatar = await publicContract.read.getAvatar([client1_address]);
+      const client1_bio = await publicContract.read.getBio([client1_address]);
+
+      expect(client1_username).to.equal("");
+      expect(client1_avatar).to.equal("");
+      expect(client1_bio).to.equal("");
+
+      const client2_username = await publicContract.read.getUsername([client2_address]);
+      const client2_avatar = await publicContract.read.getAvatar([client2_address]);
+      const client2_bio = await publicContract.read.getBio([client2_address]);
+
+      expect(client2_username).to.equal("");
+      expect(client2_avatar).to.equal("");
+      expect(client2_bio).to.equal("");
+
+      const client3_username = await publicContract.read.getUsername([client3_address]);
+      const client3_avatar = await publicContract.read.getAvatar([client3_address]);
+      const client3_bio = await publicContract.read.getBio([client3_address]);
+
+      expect(client3_username).to.equal("");
+      expect(client3_avatar).to.equal("");
+      expect(client3_bio).to.equal("");
+    });
+
+    it("should allow a user to set personal data", async () => {
+      const contractForAddr1 = await getContractForClient(client1);
+      const new_username = "alice";
+      const new_avatar = "avatar";
+      const new_bio = "bio";
+
+      // console.log("Contract1:", contractForAddr1.address);
+      // console.log("Address 1 Client:", client1);
+
+      await contractForAddr1.write.setUserPersonalData([new_username, new_avatar, new_bio]);
+
+      const username_read_by_public = await publicContract.read.getUsername([client1_address]);
+      const avatar_read_by_public = await publicContract.read.getAvatar([client1_address]);
+      const bio_read_by_public = await publicContract.read.getBio([client1_address]);
+
+      expect(username_read_by_public).to.equal(new_username);
+      expect(avatar_read_by_public).to.equal(new_avatar);
+      expect(bio_read_by_public).to.equal(new_bio);
+
+      const username_read_by_client1 = await contractForAddr1.read.getUsername([client1_address]);
+      const avatar_read_by_client1 = await contractForAddr1.read.getAvatar([client1_address]);
+      const bio_read_by_client1 = await contractForAddr1.read.getBio([client1_address]);
+
+      expect(username_read_by_client1).to.equal(new_username);
+      expect(avatar_read_by_client1).to.equal(new_avatar);
+      expect(bio_read_by_client1).to.equal(new_bio);
+
+    });
+
+    it("should allow a user to update personal data partially (empty username)", async () => {
+      const contractForAddr1 = await getContractForClient(client1);
+      const new_username = "";
+      const new_avatar = "avatar";
+      const new_bio = "bio";
+
+      const tx = await contractForAddr1.write.setUserPersonalData([new_username, new_avatar, new_bio]);
       const receipt = await publicClient.getTransactionReceipt({ hash: tx });
       const events = parseEventLogs({
         abi: contractForAddr1.abi,
         logs: receipt.logs,
       }) as any[];
 
-      expect(events).to.have.lengthOf(1);
-      expect(events[0].eventName).to.equal("UsernameRegistered");
-      expect(events[0].args.user_address).to.equal(addr1Address);
-      expect(events[0].args.username).to.equal("alice");
+      // console.log("Events:", events);
 
-      const username = await publicContract.read.getUsername([addr1Address]);
-      expect(username).to.equal("alice");
+      const username = await publicContract.read.getUsername([client1_address]);
+      const avatar = await publicContract.read.getAvatar([client1_address]);
+      const bio = await publicContract.read.getBio([client1_address]);
+      
+      expect(username).to.equal(new_username);
+      expect(avatar).to.equal(new_avatar);
+      expect(bio).to.equal(new_bio);
     });
 
-    it("should not allow a user to update their username", async () => {
-      const contractForAddr1 = await getContractForClient(addr1Client);
-      await contractForAddr1.write.registerUsername(["alice"]);
+    it("should allow a user to update personal data partially (empty avatar)", async () => {
+      const contractForAddr1 = await getContractForClient(client1);
+      const new_username = "alice";
+      const new_avatar = "";
+      const new_bio = "bio";
 
-      await expect(
-        await contractForAddr1.write.registerUsername(["bob"])
-      ).to.be.rejectedWith("Username already registered");
+      const tx = await contractForAddr1.write.setUserPersonalData([new_username, new_avatar, new_bio]);
+      const receipt = await publicClient.getTransactionReceipt({ hash: tx });
+      const events = parseEventLogs({
+        abi: contractForAddr1.abi,
+        logs: receipt.logs,
+      }) as any[];
+
+      // console.log("Events:", events);
+
+      const username = await publicContract.read.getUsername([client1_address]);
+      const avatar = await publicContract.read.getAvatar([client1_address]);
+      const bio = await publicContract.read.getBio([client1_address]);
+      
+      expect(username).to.equal(new_username);
+      expect(avatar).to.equal(new_avatar);
+      expect(bio).to.equal(new_bio);
+    });
+
+    it("should allow a user to update personal data partially (empty bio)", async () => {
+      const contractForAddr1 = await getContractForClient(client1);
+      const new_username = "alice";
+      const new_avatar = "avatar";
+      const new_bio = "";
+
+      const tx = await contractForAddr1.write.setUserPersonalData([new_username, new_avatar, new_bio]);
+      const receipt = await publicClient.getTransactionReceipt({ hash: tx });
+      const events = parseEventLogs({
+        abi: contractForAddr1.abi,
+        logs: receipt.logs,
+      }) as any[];
+
+      // console.log("Events:", events);
+
+      const username = await publicContract.read.getUsername([client1_address]);
+      const avatar = await publicContract.read.getAvatar([client1_address]);
+      const bio = await publicContract.read.getBio([client1_address]);
+      
+      expect(username).to.equal(new_username);
+      expect(avatar).to.equal(new_avatar);
+      expect(bio).to.equal(new_bio);
+    });
+
+    it("should not allow a user to update personal data when all input is empty", async () => {
+      const contractForAddr1 = await getContractForClient(client1);
+      const new_username = "";
+      const new_avatar = "";
+      const new_bio = "";
+
+      try {
+        await contractForAddr1.write.setUserPersonalData([new_username, new_avatar, new_bio]);
+      }
+      catch (error:any) {
+        expect(error.message).to.include("No data to update");
+      }
+    });
+
+    it("should allow a user to update their username multiple times", async () => {
+      const contractForAddr1 = await getContractForClient(client1);
+      const new_username_1 = "alice";
+      const new_username_2 = "bob";
+      const new_username_3 = "charlie";
+
+      await contractForAddr1.write.setUserPersonalData([new_username_1, "", ""]);
+      expect(await publicContract.read.getUsername([client1_address])).to.equal(new_username_1);
+
+      await contractForAddr1.write.setUserPersonalData([new_username_2, "", ""]);
+      expect(await publicContract.read.getUsername([client1_address])).to.equal(new_username_2);
+      
+      await contractForAddr1.write.setUserPersonalData([new_username_3, "", ""]);
+      expect(await publicContract.read.getUsername([client1_address])).to.equal(new_username_3);
     });
 
     it("should not allow a user to set a username that is already taken", async () => {
-      const contractForAddr1 = await getContractForClient(addr1Client);
-      await contractForAddr1.write.registerUsername(["alice"]);
+      const contractForAddr1 = await getContractForClient(client1);
+      const contractForAddr2 = await getContractForClient(client2);
+      const new_username_1 = "alice";
+      const new_avatar_1 = "avatar1";
+      const new_bio_1 = "bio1";
+      const new_username_2 = "bob";
+      const new_avatar_2 = "avatar2";
+      const new_bio_2 = "bio2";
 
-      const contractForAddr2 = await getContractForClient(addr2Client);
-      await expect(
-        contractForAddr2.write.registerUsername(["alice"])
-      ).to.be.rejectedWith("Username already taken");
-    });
+      await contractForAddr1.write.setUserPersonalData([new_username_1, new_avatar_1, new_bio_1]);
+      expect(await publicContract.read.getUsername([client1_address])).to.equal(new_username_1);
+      expect(await publicContract.read.getAvatar([client1_address])).to.equal(new_avatar_1);
+      expect(await publicContract.read.getBio([client1_address])).to.equal(new_bio_1);
 
-    it("should not allow setting an empty username", async () => {
-      const contractForAddr1 = await getContractForClient(addr1Client);
-      await expect(
-        await contractForAddr1.write.registerUsername([""])
-      ).to.be.rejectedWith("Username cannot be empty");
-    });
-  });
+      await contractForAddr2.write.setUserPersonalData([new_username_1, new_avatar_2, new_bio_2]);
+      expect(await publicContract.read.getUsername([client2_address])).to.equal("");
+      expect(await publicContract.read.getAvatar([client2_address])).to.equal(new_avatar_2);
+      expect(await publicContract.read.getBio([client2_address])).to.equal(new_bio_2);
 
-  describe("updateAvatar", () => {
-    it("should allow a user to update their avatar and emit AvatarUpdated event", async () => {
-      const contractForAddr1 = await getContractForClient(addr1Client);
-      const tx = await contractForAddr1.write.updateAvatar(["cid1"]);
+      await contractForAddr2.write.setUserPersonalData([new_username_2, new_avatar_2, new_bio_2]);
+      expect(await publicContract.read.getUsername([client2_address])).to.equal(new_username_2);
+      expect(await publicContract.read.getAvatar([client2_address])).to.equal(new_avatar_2);
+      expect(await publicContract.read.getBio([client2_address])).to.equal(new_bio_2);
+    })
+
+    it("should not update a field if the new value is the same as the old value", async () => {
+      const contractForAddr1 = await getContractForClient(client1);
+      const new_username = "alice";
+      const new_avatar = "avatar";
+      const new_bio = "bio";
+
+      await contractForAddr1.write.setUserPersonalData([new_username, new_avatar, new_bio]);
+
+      const tx = await contractForAddr1.write.setUserPersonalData([new_username, new_avatar, new_bio]);
       const receipt = await publicClient.getTransactionReceipt({ hash: tx });
       const events = parseEventLogs({
         abi: contractForAddr1.abi,
         logs: receipt.logs,
       }) as any[];
 
-      expect(events).to.have.lengthOf(1);
-      expect(events[0].eventName).to.equal("AvatarUpdated");
-      expect(events[0].args.user_address).to.equal(addr1Address);
-      expect(events[0].args.cid_avatar).to.equal("cid1");
+      // console.log(events);
 
-      const avatar = await publicContract.read.getAvatar([addr1Address]);
-      expect(avatar).to.equal("cid1");
+      // console.log("Events:", events);
+      expect(events.length).to.equal(0); // No events should be emitted
     });
 
-    it("should allow updating avatar multiple times", async () => {
-      const contractForAddr1 = await getContractForClient(addr1Client);
-
-      await contractForAddr1.write.updateAvatar(["cid2"]);
-      let avatar1 = await publicContract.read.getAvatar([addr1Address]);
-      expect(avatar1).to.equal("cid2");
-      
-      await contractForAddr1.write.updateAvatar(["cid3"]);
-      let avatar2 = await publicContract.read.getAvatar([addr1Address]);
-      expect(avatar2).to.equal("cid3");
-    });
-
-    it("should allow different users to have the same avatar", async () => {
-      const contractForAddr1 = await getContractForClient(addr1Client);
-      const contractForAddr2 = await getContractForClient(addr2Client);
-      await contractForAddr1.write.updateAvatar(["cid4"]);
-      await contractForAddr2.write.updateAvatar(["cid4"]);
-
-      const avatar1 = await publicContract.read.getAvatar([addr1Address]);
-      const avatar2 = await publicContract.read.getAvatar([addr2Address]);
-      expect(avatar1).to.equal("cid4");
-      expect(avatar2).to.equal("cid4");
-    });
-  });
-
-  describe("getUsername and getAvatar", () => {
-    it("should return empty strings for a new user", async () => {
-      const username = await publicContract.read.getUsername([addr1Address]);
-      const avatar = await publicContract.read.getAvatar([addr1Address]);
-      expect(username).to.equal("");
-      expect(avatar).to.equal("");
-    });
-
-    it("should return correct values after setting", async () => {
-      const contractForAddr1 = await getContractForClient(addr1Client);
-      await contractForAddr1.write.registerUsername(["alice"]);
-      await contractForAddr1.write.updateAvatar(["cid5"]);
-
-      const username = await publicContract.read.getUsername([addr1Address]);
-      const avatar = await publicContract.read.getAvatar([addr1Address]);
-      expect(username).to.equal("alice");
-      expect(avatar).to.equal("cid5");
-    });
   });
 });

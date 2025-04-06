@@ -1,7 +1,7 @@
 "use client";
 
 import { WagmiProvider, createConfig, http } from "wagmi";
-import { polygon } from "wagmi/chains";
+import { polygon, hardhat } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConnectKitProvider, getDefaultConfig } from "connectkit";
 
@@ -19,16 +19,25 @@ if (!NEXT_PUBLIC_ALCHEMY_API_KEY) {
   throw new Error(`${NEXT_PUBLIC_ALCHEMY_API_KEY} environment variable is not defined.`);
 }
 
+declare module 'wagmi' {
+  interface Register {
+    config: typeof config
+  }
+}
+
 const config = createConfig(
   getDefaultConfig({
     // Your dApps chains
-    chains: [polygon],
+    chains: [hardhat],
     transports: {
       // RPC URL for each chain
-      [polygon.id]: http(
-        `https://polygon-mainnet.g.alchemy.com/v2/${NEXT_PUBLIC_ALCHEMY_API_KEY}`
-      ),
+      // [polygon.id]: http(
+      //   `https://polygon-mainnet.g.alchemy.com/v2/${NEXT_PUBLIC_ALCHEMY_API_KEY}`
+      // ),
+      [hardhat.id]: http('http://127.0.0.1:8545/'),
     },
+    ssr: true,  // Enable SSR for wagmi  -> https://wagmi.sh/react/guides/ssr#ssr 
+                // When set this, Wagmi adjusts its behavior to play nicely with SSR frameworks. Specifically, it delays accessing or relying on data from client-only stores (like localStorage) until after the initial mount happens on the client side. -> Prevent the mismatch error between server and client rendering.
 
     // Required API Keys
     walletConnectProjectId: NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
@@ -58,3 +67,5 @@ export const Web3Provider = ({
     </WagmiProvider>
   );
 };
+
+export const wagmiConfig = config;

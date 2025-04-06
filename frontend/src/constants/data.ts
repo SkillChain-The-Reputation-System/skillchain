@@ -53,6 +53,30 @@ export const navItems: NavItem[] = [
 
 ];
 
+export const sidebarNavItemsProfileSettings = [
+  {
+    title: "Profile",
+    href: "#"
+  },
+  {
+    title: "Account",
+    href: "##"
+  },
+  // {
+  //   title: "Appearance",
+  //   href: "##"
+  // },
+  // {
+  //   title: "Notifications",
+  //   href: "###"
+  // },
+  // {
+  //   title: "Display",
+  //   href: "####"
+  // }
+];
+
+
 export interface SaleUser {
   id: number;
   name: string;

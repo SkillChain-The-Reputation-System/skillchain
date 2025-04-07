@@ -28,7 +28,6 @@ export const AccountButton = () => {
 
   function handleDisconnectWallet() {
     disconnect();
-    router.push("/");
   }
 
   function handleDirectToAccountPage() {

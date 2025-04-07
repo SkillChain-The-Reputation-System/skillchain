@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Providers from "@/components/layout/providers";
+import ThemeProviders from "@/components/layout/theme-providers";
 import { Web3Provider } from "@/features/wallet/Web3Provider";
+import ProtectedRoute from "@/components/layout/protected-route";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,7 +31,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Web3Provider>
-          <Providers>{children}</Providers>
+          <ProtectedRoute>
+            <ThemeProviders>{children}</ThemeProviders>
+          </ProtectedRoute>
         </Web3Provider>
       </body>
     </html>

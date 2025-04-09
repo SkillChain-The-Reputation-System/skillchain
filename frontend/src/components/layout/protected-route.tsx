@@ -8,16 +8,16 @@ export default function ProtectedRoute({
 }: {
     children: React.ReactNode;
 }) {
-    const { address, isConnected, isConnecting, isReconnecting, isDisconnected } = useAccount();
+    const { address, isConnecting, isReconnecting, isDisconnected } = useAccount();
     const router = useRouter();
     const pathname = usePathname();
 
     useEffect(() => {
-        if (pathname !== '/' && !isConnected && !isConnecting && isDisconnected && !isReconnecting && address) { 
+        if (pathname !== '/' && address && !isConnecting && !isReconnecting && isDisconnected) {
             // If the user is not authenticated and is trying to access a protected route, redirect to login page
             router.push('/'); 
         }
-    }, [isConnected, isConnecting, isReconnecting, isDisconnected]);
+    }, [address]);
 
     return (
         <>

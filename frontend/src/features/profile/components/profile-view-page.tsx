@@ -31,8 +31,10 @@ export default function ProfileViewPage() {
 
   // Fetch user data when the component mounts
   useEffect(() => {
-    handleFetchingUserData();
-  }, []);
+    if (address) {
+      handleFetchingUserData();
+    }
+  }, [address]);
 
   return (
     <>

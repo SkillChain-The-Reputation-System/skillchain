@@ -33,7 +33,7 @@ import { useRouter } from "next/navigation";
 // Create a Zod schema for the form validation
 const profileFormSchema = z.object({
   username: z.string().optional(),
-  bio: z.string().max(160).optional(),
+  bio: z.string().max(2000).optional(),
   avatar: z.instanceof(Blob)
     .refine((file) => file.type.startsWith('image/'), {
       message: 'File must be an image',

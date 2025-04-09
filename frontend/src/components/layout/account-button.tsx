@@ -37,7 +37,7 @@ export const AccountButton = () => {
   }
 
   function handleDirectToAccountPage() {
-    router.push("/dashboard/account")
+    router.push("/dashboard/account/profile");
   }
 
   // Fetch user data when the component mounts

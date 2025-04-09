@@ -29,7 +29,7 @@ export default function GeneralInfo({ username, address, avatar, bio }: GeneralI
 
         <CardTitle className="text-center">{username || "Unnamed"}</CardTitle>
         <CardDescription className="text-sm text-center break-all">{address}</CardDescription>
-        <CardDescription className="text-sm text-center italic max-w-xs line-clamp-3">{bio}</CardDescription>
+        <CardDescription className="text-sm text-center italic max-w-xs break-words">{bio}</CardDescription>
       </CardContent>
     </Card>
   );

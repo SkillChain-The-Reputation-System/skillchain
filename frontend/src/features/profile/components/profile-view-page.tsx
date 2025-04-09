@@ -1,11 +1,11 @@
 "use client";
 import { useAccount } from "wagmi";
 import GeneralInfo from "./general-info";
-import { ContractConfig_UserDataManager } from "@/constants/contracts-config";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { readContract } from '@wagmi/core';
-import { wagmiConfig } from "@/features/wallet/Web3Provider";
+import { fetchStringDataOffChain } from "@/lib/fetching-offchain-data-utils";
+import { fetchUserDataOnChain } from "@/lib/fetching-onchain-data-utils";
+import { toast } from "react-toastify";
 
 
 export default function ProfileViewPage() {
@@ -14,46 +14,29 @@ export default function ProfileViewPage() {
   const [avatar, setAvatar] = useState<string | undefined>(undefined);
   const [bio, setBio] = useState<string | undefined>(undefined);
 
-  async function fetchUserData () {
-    const username = await readContract(wagmiConfig, {
-      address: ContractConfig_UserDataManager.address as `0x${string}`,
-      abi: ContractConfig_UserDataManager.abi,
-      functionName: 'getUsername',
-      args: [address],
-    }) as string;
-
-    const avatar = await readContract(wagmiConfig, {
-      address: ContractConfig_UserDataManager.address as `0x${string}`,
-      abi: ContractConfig_UserDataManager.abi,
-      functionName: 'getAvatar',
-      args: [address],
-    }) as string;
-
-    const bio = await readContract(wagmiConfig, {
-      address: ContractConfig_UserDataManager.address as `0x${string}`,
-      abi: ContractConfig_UserDataManager.abi,
-      functionName: 'getBio',
-      args: [address],
-    }) as string;
-
-    setUsername(username);
-    setAvatar(avatar);
-    setBio(bio);
+  async function handleFetchingUserData() {
+    await fetchUserDataOnChain(address as `0x${string}`)
+      .then(async ({ username, avatar_url, bio_url }) => {
+        if (bio_url && bio_url?.length > 0) {
+          const bio = await fetchStringDataOffChain(bio_url);
+          setBio(bio);
+        }
+        setUsername(username);
+        setAvatar(avatar_url);
+      })
+      .catch((error) => {
+        toast.error(`Error fetching user data: ${error.message}`)
+      });
   }
-
-  console.log("address", address);
-  console.log("username", username);
-  console.log("avatar", avatar);
 
   // Fetch user data when the component mounts
   useEffect(() => {
-    fetchUserData();
+    handleFetchingUserData();
   }, []);
 
   return (
     <>
       <GeneralInfo username={username} address={address} avatar={avatar} bio={bio}></GeneralInfo>
-      <Button onClick={fetchUserData}> Refresh</Button>
     </>
   );
 }

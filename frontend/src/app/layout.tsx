@@ -4,6 +4,7 @@ import "./globals.css";
 import ThemeProviders from "@/components/layout/theme-providers";
 import { Web3Provider } from "@/features/wallet/Web3Provider";
 import ProtectedRoute from "@/components/layout/protected-route";
+import { ToastContainer } from 'react-toastify';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({
       >
         <Web3Provider>
           <ProtectedRoute>
+            <ToastContainer/>
             <ThemeProviders>{children}</ThemeProviders>
           </ProtectedRoute>
         </Web3Provider>

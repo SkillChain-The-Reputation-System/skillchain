@@ -5,34 +5,34 @@ import { UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ImageUploadFieldProps {
+  previewAvatarURL?: string | undefined;
   field: {
-    value: string | undefined;
-    onChange: (value: string) => void;
+    value: Blob | undefined;
+    onChange: (value: Blob | undefined) => void;
   };
 }
 
-export function ImageUploadField({ field }: ImageUploadFieldProps) {
-  const [preview, setPreview] = useState<string>(field.value || "");
+export function ImageUploadField({ previewAvatarURL, field }: ImageUploadFieldProps) {
+  const [preview, setPreview] = useState<string|undefined>(previewAvatarURL);
   const { isDragActive, getRootProps, getInputProps } = useDropzone({
     accept: {
       "image/*": [],
     },
-    onDrop: (acceptedFiles) => {
+    maxFiles: 1,
+    onDrop: (acceptedFiles:Blob[]) => {
       const file = acceptedFiles[0];
-      const previewUrl = URL.createObjectURL(file);
-      setPreview(previewUrl);
-      field.onChange(previewUrl); // Update form field value
+      const file_url = URL.createObjectURL(file);
+      setPreview(file_url);
+      field.onChange(file); // Update form field value
     },
   });
 
-  // Clean up preview URL when component unmounts
+  // Set the preview URL when the component mounts or when the previewAvatarURL changes
   useEffect(() => {
-    return () => {
-      if (preview) {
-        URL.revokeObjectURL(preview);
-      }
-    };
-  }, [preview]);
+    if (previewAvatarURL) {
+      setPreview(previewAvatarURL);
+    }
+  }, [previewAvatarURL]);
 
   return (
     <section className="container mx-auto px-4 py-8">

@@ -46,6 +46,19 @@ contract UserDataManager {
             _bio
         );
 
+        console.log("Input data");
+        console.log("username: %s", _username);
+        console.log("avatar CID: %s", _cid_avatar);
+        console.log("bio: %s", _bio);
+
+        console.log("is_username_requested_not_empty: %s", is_username_requested_not_empty);
+        console.log("is_username_available: %s", is_username_available);
+        console.log("is_avartar_cid_not_empty: %s", is_avartar_cid_not_empty);
+        console.log("is_bio_not_empty: %s", is_bio_not_empty);
+        console.log("is_username_not_duplicated: %s", is_username_not_duplicated);
+        console.log("is_avatar_cid_not_duplicated: %s", is_avatar_cid_not_duplicated);
+        console.log("is_bio_not_duplicated: %s", is_bio_not_duplicated);
+
         // If all conditions are not met, revert the transaction since no update is needed
         if (
             !is_username_requested_not_empty &&

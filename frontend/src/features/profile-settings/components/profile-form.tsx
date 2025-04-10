@@ -4,49 +4,38 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Form } from "@/components/ui/form";
 
-import { Textarea } from "@/components/ui/textarea";
 import { ImageUploadField } from "./image-input";
-import { useWriteContract } from 'wagmi'
+import { useWriteContract } from "wagmi";
 import { ContractConfig_UserDataManager } from "@/constants/contracts-config";
 import { useEffect, useState } from "react";
-import { readContract } from '@wagmi/core'
-import { wagmiConfig } from "@/features/wallet/Web3Provider";
 import axios from "axios";
 import { IrysUploadResponseInterface } from "@/lib/interfaces";
-import { useAccount } from 'wagmi';
+import { useAccount } from "wagmi";
 import { fetchUserDataOnChain } from "@/lib/fetching-onchain-data-utils";
 import { fetchStringDataOffChain } from "@/lib/fetching-offchain-data-utils";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import UsernameField from "./username-input";
+import { BioField } from "./bio-input";
 
 // Create a Zod schema for the form validation
 const profileFormSchema = z.object({
   username: z.string().optional(),
   bio: z.string().max(2000).optional(),
-  avatar: z.instanceof(Blob)
-    .refine((file) => file.type.startsWith('image/'), {
-      message: 'File must be an image',
+  avatar: z
+    .instanceof(Blob)
+    .refine((file) => file.type.startsWith("image/"), {
+      message: "File must be an image",
     })
     .refine((file) => file.size <= 5 * 1024 * 1024, {
-      message: 'Image must be less than 5MB',
+      message: "Image must be less than 5MB",
     })
     .optional(),
 });
 
 export type ProfileFormValues = z.infer<typeof profileFormSchema>;
-
 
 // Default values for the form fields
 const defaultValues: Partial<ProfileFormValues> = {
@@ -55,12 +44,7 @@ const defaultValues: Partial<ProfileFormValues> = {
   avatar: undefined,
 };
 
-
 export function ProfileForm() {
-  // State to manage the availability message and loading state
-  const [availabilityMessage, setAvailabilityMessage] = useState<string | null>(null);
-  // State to manage the loading state of the username availability check
-  const [isCheckingUsernameAvailable, setIsCheckingUsernameAvailable] = useState(false);
   // State to mange the disabled state of the submit button
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(false);
   // State to manage the avatar URL
@@ -77,7 +61,7 @@ export function ProfileForm() {
     mode: "onChange",
   });
 
-  const { data: hash, writeContract, isPending } = useWriteContract()
+  const { data: hash, writeContract, isPending } = useWriteContract();
 
   // Disable the submit button when the transaction is pending
   useEffect(() => {
@@ -98,7 +82,9 @@ export function ProfileForm() {
       if (!address) return;
 
       // Fetch user data from the smart contract
-      const { username, avatar_url, bio_url } = await fetchUserDataOnChain(address);
+      const { username, avatar_url, bio_url } = await fetchUserDataOnChain(
+        address
+      );
 
       // Get the bio data from the URL if it exists
       let bio = undefined;
@@ -121,131 +107,44 @@ export function ProfileForm() {
     fetchUserData();
   }, [address]);
 
-
   async function onSubmit(data: ProfileFormValues) {
     setIsSubmitDisabled(true);
     // Upload image to Irys and get the URL
-    const { data: image_upload_res_data } = await axios.post<IrysUploadResponseInterface>('/api/irys/upload/upload-file', data.avatar);
-    console.log(image_upload_res_data);
 
-    // Upload bio to Irys and get the URL
-    const { data: bio_upload_res_data } = await axios.post<IrysUploadResponseInterface>('/api/irys/upload/upload-string', data.bio);
-    console.log(bio_upload_res_data);
+    // No worry about the data duplicated on Irys because it will be handled by Irys itself
+    // Upload data to Irys parallelly
+    const [{data:image_upload_res_data}, {data:bio_upload_res_data}] = await Promise.all([
+      axios.post<IrysUploadResponseInterface>(
+        "/api/irys/upload/upload-file",
+        data.avatar
+      ),
+      axios.post<IrysUploadResponseInterface>(
+        "/api/irys/upload/upload-string",
+        data.bio
+      )
+    ]);
+
+    console.log("Image upload response:", image_upload_res_data);
+    console.log("Bio upload response:", bio_upload_res_data);
 
     // Update contract with the new data
     writeContract({
       address: ContractConfig_UserDataManager.address as `0x${string}`,
       abi: ContractConfig_UserDataManager.abi,
-      functionName: 'setUserPersonalData',
+      functionName: "setUserPersonalData",
       args: [data.username, image_upload_res_data.url, bio_upload_res_data.url],
-    })
-  }
-
-  // Function to handle username availability check
-  const handleCheckAvailability = async () => {
-    const username = form.getValues("username");
-    if (!username) {
-      setAvailabilityMessage("Please enter a valid username.");
-      return;
-    }
-
-    setIsCheckingUsernameAvailable(true);
-    setAvailabilityMessage("Checking...");
-
-    const isAvailable = await readContract(wagmiConfig, {
-      address: ContractConfig_UserDataManager.address as `0x${string}`,
-      abi: ContractConfig_UserDataManager.abi,
-      functionName: 'checkUsernameAvailable',
-      args: [username],
-    }) as boolean;
-    setAvailabilityMessage(
-      isAvailable ? "Username is available!" : "Username is taken."
-    );
-    setIsCheckingUsernameAvailable(false);
-  };
-
-  // Watch for changes in the username field and check availability
-  useEffect(() => {
-    const subscription = form.watch(async (value) => {
-      if (value.username) {
-        await handleCheckAvailability();
-      }
     });
-    return () => subscription.unsubscribe(); // Cleanup subscription on unmount
-  }, [form.watch])
+  }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        {/* <FormField
-          control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <FormControl>
-                <Input placeholder="SkillChain_User_123" {...field}/>
-              </FormControl>
-              {availabilityMessage && (
-                <p
-                  className={`text-sm ${availabilityMessage.includes("available")
-                    ? "text-green-600"
-                    : "text-red-600"
-                    }`}
-                >
-                  {availabilityMessage}
-                </p>
-              )}
-              <FormDescription>
-                This is your public display name. It can be your real name or a
-                pseudonym. <br />
-                Username is unique across the system, check if it is available before submitting.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        /> */}
-        <UsernameField form={form} ></UsernameField>
-        <FormField
-          control={form.control}
-          name="bio"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Bio</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="I am a software engineer with a passion for blockchain technology."
-                  className="resize-none"
-                  {...field}
-                />
-              </FormControl>
-              <FormDescription>
-                Describe yourself in a few sentences. This will be visible to
-                other users.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="avatar"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Avatar</FormLabel>
-              <FormControl>
-                <ImageUploadField field={field} previewAvatarURL={avatarUrl} />
-              </FormControl>
-              <FormDescription>
-                Add a profile picture. This will be visible to other users.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button type="submit" disabled={isSubmitDisabled} >Update profile</Button>
+        <UsernameField form={form}></UsernameField>
+        <BioField form={form}></BioField>
+        <ImageUploadField form={form} avatarURL={avatarUrl}></ImageUploadField>
+        <Button type="submit" disabled={isSubmitDisabled}>
+          Update profile
+        </Button>
       </form>
     </Form>
   );

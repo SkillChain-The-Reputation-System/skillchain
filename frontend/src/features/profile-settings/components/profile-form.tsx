@@ -29,6 +29,7 @@ import { fetchUserDataOnChain } from "@/lib/fetching-onchain-data-utils";
 import { fetchStringDataOffChain } from "@/lib/fetching-offchain-data-utils";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import UsernameField from "./username-input";
 
 // Create a Zod schema for the form validation
 const profileFormSchema = z.object({
@@ -44,7 +45,7 @@ const profileFormSchema = z.object({
     .optional(),
 });
 
-type ProfileFormValues = z.infer<typeof profileFormSchema>;
+export type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 
 // Default values for the form fields
@@ -163,31 +164,28 @@ export function ProfileForm() {
     setIsCheckingUsernameAvailable(false);
   };
 
+  // Watch for changes in the username field and check availability
+  useEffect(() => {
+    const subscription = form.watch(async (value) => {
+      if (value.username) {
+        await handleCheckAvailability();
+      }
+    });
+    return () => subscription.unsubscribe(); // Cleanup subscription on unmount
+  }, [form.watch])
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
+        {/* <FormField
           control={form.control}
           name="username"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Username</FormLabel>
               <FormControl>
-                <Input placeholder="SkillChain_User_123" {...field} />
+                <Input placeholder="SkillChain_User_123" {...field}/>
               </FormControl>
-              <FormDescription>
-                This is your public display name. It can be your real name or a
-                pseudonym. <br />
-                Username is unique across the system, check if it is available before submitting.
-              </FormDescription>
-              <FormMessage />
-              <Button
-                type="button" // Prevent form submission
-                onClick={handleCheckAvailability}
-                disabled={isCheckingUsernameAvailable}
-              >
-                {isCheckingUsernameAvailable ? "Checking..." : "Check Availability"}
-              </Button>
               {availabilityMessage && (
                 <p
                   className={`text-sm ${availabilityMessage.includes("available")
@@ -198,9 +196,16 @@ export function ProfileForm() {
                   {availabilityMessage}
                 </p>
               )}
+              <FormDescription>
+                This is your public display name. It can be your real name or a
+                pseudonym. <br />
+                Username is unique across the system, check if it is available before submitting.
+              </FormDescription>
+              <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
+        <UsernameField form={form} ></UsernameField>
         <FormField
           control={form.control}
           name="bio"

@@ -4,7 +4,8 @@ import "./globals.css";
 import ThemeProviders from "@/components/layout/theme-providers";
 import { Web3Provider } from "@/features/wallet/Web3Provider";
 import ProtectedRoute from "@/components/layout/protected-route";
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer } from "react-toastify";
+import Head from "next/head";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,7 +19,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "SkillChain",
-  description: "A Reputation System For Resume Verification And Skill Assessment",
+  description:
+    "A Reputation System For Resume Verification And Skill Assessment",
 };
 
 export default function RootLayout({
@@ -28,12 +30,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Web3Provider>
           <ProtectedRoute>
-            <ToastContainer/>
+            <ToastContainer />
             <ThemeProviders>{children}</ThemeProviders>
           </ProtectedRoute>
         </Web3Provider>

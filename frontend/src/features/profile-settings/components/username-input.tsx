@@ -13,11 +13,13 @@ import { ProfileFormValues } from "./profile-form";
 import { checkUsernameAvailable } from "@/lib/fetching-onchain-data-utils";
 
 interface UsernameFieldProps {
+  registerUsername: string | undefined,
   form: any;
 }
 
 export default function UsernameField({
-  form,
+  registerUsername,
+  form
 }: UsernameFieldProps) {
   // State to manage the availability message and loading state
   const [availabilityMessage, setAvailabilityMessage] = useState<string | null>(
@@ -27,8 +29,14 @@ export default function UsernameField({
   // Function to handle username availability check
   const handleCheckAvailability = async () => {
     const username = form.getValues("username");
+
     if (!username) {
       setAvailabilityMessage("Please enter a valid username.");
+      return;
+    }
+
+    if (username === registerUsername) {
+      setAvailabilityMessage("");
       return;
     }
 
@@ -43,9 +51,7 @@ export default function UsernameField({
   // Watch for changes in the username field and check availability
   useEffect(() => {
     const subscription = form.watch(async (value:ProfileFormValues) => {
-      if (value.username) {
-        await handleCheckAvailability();
-      }
+      await handleCheckAvailability();
     });
     return () => subscription.unsubscribe(); // Cleanup subscription on unmount
   }, [form.watch]);
@@ -60,7 +66,7 @@ export default function UsernameField({
           <FormControl>
             <Input placeholder="SkillChain_User_123" {...field} />
           </FormControl>
-          {availabilityMessage && (
+          {availabilityMessage && form.getValues("username") !== registerUsername && (
             <p
               className={`text-sm ${
                 availabilityMessage.includes("available")

@@ -49,6 +49,8 @@ export function ProfileForm() {
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(false);
   // State to manage the avatar URL
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
+  // State to mange registered username
+  const [registeredUsername, setRegisteredUsername] = useState<string | undefined>(undefined)
   // Router for navigation and refreshing the page
   const router = useRouter();
 
@@ -97,6 +99,11 @@ export function ProfileForm() {
         setAvatarUrl(avatar_url);
       }
 
+      // Set registerd username
+      if (username && username.length > 0) {
+        setRegisteredUsername(username);
+      }
+
       // Set the form values with the fetched data
       form.reset({
         username: username,
@@ -139,7 +146,7 @@ export function ProfileForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <UsernameField form={form}></UsernameField>
+        <UsernameField form={form} registerUsername={registeredUsername}></UsernameField>
         <BioField form={form}></BioField>
         <ImageUploadField form={form} avatarURL={avatarUrl}></ImageUploadField>
         <Button type="submit" disabled={isSubmitDisabled}>

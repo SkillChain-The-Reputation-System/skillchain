@@ -12,7 +12,7 @@ export default function SignInViewPage() {
             src="/advertising-picture.png"
             alt="Background image"
             fill
-            className="object-cover brightness-80"
+            className="object-cover"
             priority
           />
         </div>

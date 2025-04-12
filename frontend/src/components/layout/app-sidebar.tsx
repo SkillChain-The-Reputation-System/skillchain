@@ -40,10 +40,10 @@ export const company = {
 
 export default function AppSidebar() {
   const pathname = usePathname();
-  const { state, isMobile } = useSidebar();
+  const { toggleSidebar } = useSidebar();
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" onDoubleClick={toggleSidebar}>
       <SidebarHeader>
         <div className="text-sidebar-accent-foreground flex gap-2 py-2">
           <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">

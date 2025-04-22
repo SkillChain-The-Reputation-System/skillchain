@@ -1,6 +1,7 @@
 import {
   AlertTriangle,
   ArrowRight,
+  BookOpenText,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -45,6 +46,7 @@ export const Icons = {
   kanban: CircuitBoardIcon,
   chevronLeft: ChevronLeft,
   chevronRight: ChevronRight,
+  challenge: BookOpenText,
   trash: Trash,
   employee: UserX2Icon,
   post: FileText,

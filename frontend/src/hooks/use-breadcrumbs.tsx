@@ -33,6 +33,26 @@ const routeMapping: Record<string, BreadcrumbItem[]> = {
     { title: "Account", link: "/dashboard/account" },
     { title: "Settings", link: "/dashboard/account/settings" },
   ],
+  "/dashboard/challenge/explore": [
+    { title: "Dashboard", link: "/dashboard" },
+    { title: "Challenge", link: "/dashboard/challenge" },
+    { title: "Explore", link: "/dashboard/challenge/explore" },
+  ],
+  "/dashboard/challenge/my-participation": [
+    { title: "Dashboard", link: "/dashboard" },
+    { title: "Challenge", link: "/dashboard/challenge" },
+    { title: "My Participation", link: "/dashboard/challenge/my-participation" },
+  ],
+  "/dashboard/challenge/contribute": [
+    { title: "Dashboard", link: "/dashboard" },
+    { title: "Challenge", link: "/dashboard/challenge" },
+    { title: "Contribute", link: "/dashboard/challenge/contribute" },
+  ],
+  "/dashboard/challenge/my-contributions": [
+    { title: "Dashboard", link: "/dashboard" },
+    { title: "Challenge", link: "/dashboard/challenge" },
+    { title: "My Contributions", link: "/dashboard/challenge/my-contributions" },
+  ]
   // Add more custom mappings as needed
 };
 

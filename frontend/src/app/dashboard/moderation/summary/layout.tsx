@@ -6,8 +6,8 @@ import type { Metadata } from "next";
 import { pageUrlMapping } from "@/constants/navigation";
 
 export const metadata: Metadata = {
-  title: "Profile",
-  description: "Profile page",
+  title: "Moderation | Summary",
+  description: "Track your moderation activity history, view decisions, and analyze your moderation statistics such as agreement rate and most-reviewed categories.",
 };
 
 export default async function DashboardLayout({
@@ -19,8 +19,8 @@ export default async function DashboardLayout({
     <div>
       <div className="flex flex-col px-4">
         <AccountPageHeader
-          title="Profile"
-          description="View your profile information and your activity on SkillChain."
+          title="Moderation Summary"
+          description="Track moderation activity history, view decisions, and analyze moderation statistics."
         ></AccountPageHeader>
 
         <Separator className="my-6" />

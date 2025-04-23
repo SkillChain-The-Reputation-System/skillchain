@@ -25,6 +25,7 @@ import {
   Pizza,
   Plus,
   Settings,
+  ShieldUser,
   SunMedium,
   Trash,
   Twitter,
@@ -85,6 +86,6 @@ export const Icons = {
       ></path>
     </svg>
   ),
-  twitter: Twitter,
-  check: Check
+  check: Check,
+  ShieldUser: ShieldUser,
 };

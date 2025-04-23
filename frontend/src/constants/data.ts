@@ -50,6 +50,38 @@ export const navItems: NavItem[] = [
       }
     ]
   },
+  {
+    title: 'Moderation',
+    url: '/dashboard/moderate',
+    icon: 'ShieldUser',
+    isActive: true,
+    items: [
+      {
+        title: 'Summary',
+        url: '/dashboard/moderation/summary',
+        icon: 'userPen',
+        shortcut: ['m', 'm']
+      },
+      {
+        title: 'Pending Challenges',
+        url: '/dashboard/moderation/pending-challenges',
+        icon: 'userPen',
+        shortcut: ['m', 'm']
+      },
+      {
+        title: 'Review Challenges',
+        url: '/dashboard/moderation/review-challenges',
+        icon: 'userPen',
+        shortcut: ['m', 'm']
+      },
+      {
+        title: 'Settings',
+        url: '/dashboard/moderation/settings',
+        icon: 'userPen',
+        shortcut: ['m', 'm']
+      }
+    ]
+  },
 
   {
     title: 'Contribution',

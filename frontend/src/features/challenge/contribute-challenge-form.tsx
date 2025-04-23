@@ -1,11 +1,10 @@
 'use client';
 
+// Import hooks
 import { useForm } from "react-hook-form";
-import { useAccount } from "wagmi";
+import { useAccount, useWriteContract } from "wagmi";
 
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-
+// Import external UI components
 import {
   Form,
   FormField,
@@ -25,6 +24,15 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 
+// Import utils
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { IrysUploadResponseInterface } from "@/lib/interfaces";
+import axios from "axios";
+
+import { ContractConfig_ChallengeManager } from "@/constants/contracts-config";
+
+
 const contributeChallengeSchema = z.object({
   title: z.string().
     min(1, "Title is required").
@@ -32,7 +40,6 @@ const contributeChallengeSchema = z.object({
   description: z.string().
     min(1, "Description is required").
     max(2000, "Description must be less than 2000 characters"),
-
   category: z.enum([
     "algorithms",
     "software-development",
@@ -44,7 +51,6 @@ const contributeChallengeSchema = z.object({
   ], {
     errorMap: () => ({ message: "Category is required" }),
   }),
-
   owner: z.string(),
   date: z.string()
 })
@@ -54,20 +60,34 @@ export type ChallengeFormValues = z.infer<typeof contributeChallengeSchema>;
 export default function ContributeChallengeForm() {
   const { address } = useAccount();
 
+  const { data: hash, writeContract } = useWriteContract()
+
   const form = useForm<ChallengeFormValues>({
     resolver: zodResolver(contributeChallengeSchema),
     defaultValues: {
       title: "",
       description: "",
       category: undefined,
-
       owner: address,
       date: new Date().toISOString().split('T')[0],
     },
   });
 
   async function onSubmit(data: ChallengeFormValues) {
-    alert(JSON.stringify(data, null, 2));
+
+    const [{ data: title_upload_res_data }] = await Promise.all([
+      axios.post<IrysUploadResponseInterface>(
+        "/api/irys/upload/upload-string",
+        data.title
+      )
+    ]);
+
+    writeContract({
+      address: ContractConfig_ChallengeManager.address as `0x${string}`,
+      abi: ContractConfig_ChallengeManager.abi,
+      functionName: "contributeChallenge",
+      args: [title_upload_res_data.url],
+    });
   }
 
   return (

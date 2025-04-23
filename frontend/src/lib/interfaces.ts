@@ -11,11 +11,17 @@ export interface FetchUserDataOnChainOutput {
     bio_url: string | undefined;
 }
 
+export enum ChallengeStatus {
+    Pending = "Pending",
+    Approved = "Approved",
+    Rejected = "Rejected",
+}
+
 export interface ChallengeInterface {
     contributor: string | undefined;
     title: string | undefined;
     description: string | undefined;
     category: string | undefined;
     date: string | undefined;
-    isApproved: boolean | undefined;
+    status: string | undefined;
 }

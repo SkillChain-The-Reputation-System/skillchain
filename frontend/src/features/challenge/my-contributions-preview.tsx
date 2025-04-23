@@ -42,7 +42,7 @@ export function MyContributionsPreview() {
               <p><strong>Description:</strong> {challenge.description}</p>
               <p><strong>Category:</strong> {challenge.category}</p>
               <p><strong>Created at:</strong> {challenge.date}</p>
-              <p><strong>Status:</strong> {challenge.isApproved ? "Approved" : "Pending"}</p>
+              <p><strong>Status:</strong> {challenge.status}</p>
             </li>
           ))}
         </ul>

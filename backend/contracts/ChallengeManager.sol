@@ -3,17 +3,24 @@ pragma solidity ^0.8.0;
 import "hardhat/console.sol";
 
 contract ChallengeManager {
+    enum ChallengeStatus {
+        Pending,
+        Approved,
+        Rejected
+    }
+
     struct Challenge {
         address contributor;
         string titleUrl;
         string descriptionUrl;
         string category;
         string contributeAt;
-        bool isApproved;
+        ChallengeStatus status;
     }
 
     mapping(uint256 => Challenge) public challenges;
     uint256 public totalChallenges = 0;
+    uint256 public pendingChallenges = 0;
 
     mapping(address => uint256[]) public contributorToChallenges;
 
@@ -39,10 +46,11 @@ contract ChallengeManager {
             descriptionUrl: descriptionUrl,
             category: category,
             contributeAt: contributeAt,
-            isApproved: false
+            status: ChallengeStatus.Pending
         });
 
         contributorToChallenges[msg.sender].push(challengeId);
+        pendingChallenges++;
 
         console.log(
             "Challenge #%s contributed by %s with:",
@@ -82,5 +90,18 @@ contract ChallengeManager {
         );
 
         return contributorChallenges;
+    }
+
+    function getPendingChallenges() public view returns (Challenge[] memory) {
+        Challenge[] memory pendingChallengeList = new Challenge[](
+            pendingChallenges
+        );
+
+        for (uint256 i = 0; i < totalChallenges; i++) {
+            if (challenges[i].status == ChallengeStatus.Pending)
+                pendingChallengeList[i] = challenges[i];
+        }
+
+        return pendingChallengeList;
     }
 }

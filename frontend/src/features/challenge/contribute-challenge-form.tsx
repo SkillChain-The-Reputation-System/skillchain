@@ -3,6 +3,8 @@
 // Import hooks
 import { useForm } from "react-hook-form";
 import { useAccount, useWriteContract } from "wagmi";
+// import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 // Import external UI components
 import {
@@ -25,13 +27,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 
 // Import utils
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IrysUploadResponseInterface } from "@/lib/interfaces";
 import axios from "axios";
+import { toast } from "react-toastify";
 
+// Import contracts config
 import { ContractConfig_ChallengeManager } from "@/constants/contracts-config";
-
 
 const contributeChallengeSchema = z.object({
   title: z.string().
@@ -49,7 +53,7 @@ const contributeChallengeSchema = z.object({
     "data-engineering",
     "soft-skills",
   ], {
-    errorMap: () => ({ message: "Category is required" }),
+    errorMap: () => ({ message: "Category is required" })
   }),
   owner: z.string(),
   date: z.string()
@@ -57,10 +61,11 @@ const contributeChallengeSchema = z.object({
 
 export type ChallengeFormValues = z.infer<typeof contributeChallengeSchema>;
 
-export default function ContributeChallengeForm() {
+export function ContributeChallengeForm() {
   const { address } = useAccount();
-
-  const { data: hash, writeContract } = useWriteContract()
+  const [isSubmitDisabled, setIsSubmitDisabled] = useState(false)
+  const { data: hash, writeContract, isPending } = useWriteContract()
+  // const router = useRouter();
 
   const form = useForm<ChallengeFormValues>({
     resolver: zodResolver(contributeChallengeSchema),
@@ -73,12 +78,29 @@ export default function ContributeChallengeForm() {
     },
   });
 
-  async function onSubmit(data: ChallengeFormValues) {
+  useEffect(() => {
+    setIsSubmitDisabled(isPending);
+    if (isPending) {
+      toast.info("Transaction is pending. Please wait...");
+    }
+    if (!isPending && hash) {
+      toast.success("Contributed successfully!");
 
-    const [{ data: title_upload_res_data }] = await Promise.all([
+      redirect("/dashboard/challenge/contribute");
+    }
+  }, [isPending]);
+
+  async function onSubmit(data: ChallengeFormValues) {
+    setIsSubmitDisabled(true);
+
+    const [{ data: title_upload_res_data }, { data: description_upload_res_data }] = await Promise.all([
       axios.post<IrysUploadResponseInterface>(
         "/api/irys/upload/upload-string",
         data.title
+      ),
+      axios.post<IrysUploadResponseInterface>(
+        "/api/irys/upload/upload-string",
+        data.description
       )
     ]);
 
@@ -86,7 +108,7 @@ export default function ContributeChallengeForm() {
       address: ContractConfig_ChallengeManager.address as `0x${string}`,
       abi: ContractConfig_ChallengeManager.abi,
       functionName: "contributeChallenge",
-      args: [title_upload_res_data.url],
+      args: [title_upload_res_data.url, description_upload_res_data.url, data.category, data.date],
     });
   }
 
@@ -143,11 +165,12 @@ export default function ContributeChallengeForm() {
                   <SelectItem value="soft-skills">Soft Skills</SelectItem>
                 </SelectContent>
               </Select>
+              <FormMessage />
             </FormItem>
           )}
         />
 
-        <Button type="submit">
+        <Button type="submit" disabled={isSubmitDisabled}>
           Contribute
         </Button>
       </form>

@@ -2,23 +2,24 @@
 pragma solidity ^0.8.0;
 import "hardhat/console.sol";
 
+// TODO: Think about store participants, voting mechanics, linking solutions, fee... | Moderation: verify challenge and upload to Explore
 contract ChallengeManager {
     enum ChallengeStatus {
-        Pending,
-        Approved,
-        Rejected
+        pending,
+        approved,
+        rejected
     }
 
     struct Challenge {
         address contributor;
         string titleUrl;
         string descriptionUrl;
-        string category;
+        uint256 category;
         string contributeAt;
         ChallengeStatus status;
     }
 
-    mapping(uint256 => Challenge) public challenges;
+    mapping(uint256 => Challenge) public challenges; // TODO: optizime storing challenges
     uint256 public totalChallenges = 0;
     uint256 public pendingChallenges = 0;
 
@@ -28,14 +29,14 @@ contract ChallengeManager {
         address indexed contributor,
         string titleUrl,
         string descriptionUrl,
-        string category,
+        uint256 category,
         string contributeAt
     );
 
     function contributeChallenge(
         string calldata titleUrl,
         string calldata descriptionUrl,
-        string calldata category,
+        uint256 category,
         string calldata contributeAt
     ) external {
         uint256 challengeId = totalChallenges++;
@@ -46,7 +47,7 @@ contract ChallengeManager {
             descriptionUrl: descriptionUrl,
             category: category,
             contributeAt: contributeAt,
-            status: ChallengeStatus.Pending
+            status: ChallengeStatus.pending
         });
 
         contributorToChallenges[msg.sender].push(challengeId);
@@ -98,9 +99,15 @@ contract ChallengeManager {
         );
 
         for (uint256 i = 0; i < totalChallenges; i++) {
-            if (challenges[i].status == ChallengeStatus.Pending)
+            if (challenges[i].status == ChallengeStatus.pending)
                 pendingChallengeList[i] = challenges[i];
         }
+
+        console.log(
+            "User %s had fetch %s pending contributed challenges",
+            msg.sender,
+            pendingChallengeList.length
+        );
 
         return pendingChallengeList;
     }

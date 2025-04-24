@@ -3,7 +3,6 @@
 // Import hooks
 import { useForm } from "react-hook-form";
 import { useAccount, useWriteContract } from "wagmi";
-// import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 // Import external UI components
@@ -33,9 +32,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { IrysUploadResponseInterface } from "@/lib/interfaces";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { ChallengeCategory, ChallengeCategoryLabels } from "@/lib/interfaces";
 
 // Import contracts config
 import { ContractConfig_ChallengeManager } from "@/constants/contracts-config";
+import { Label } from "@radix-ui/react-dropdown-menu";
 
 const contributeChallengeSchema = z.object({
   title: z.string().
@@ -44,15 +45,7 @@ const contributeChallengeSchema = z.object({
   description: z.string().
     min(1, "Description is required").
     max(2000, "Description must be less than 2000 characters"),
-  category: z.enum([
-    "algorithms",
-    "software-development",
-    "system-design",
-    "cybersecurity",
-    "devops",
-    "data-engineering",
-    "soft-skills",
-  ], {
+  category: z.nativeEnum(ChallengeCategory, {
     errorMap: () => ({ message: "Category is required" })
   }),
   owner: z.string(),
@@ -61,11 +54,12 @@ const contributeChallengeSchema = z.object({
 
 export type ChallengeFormValues = z.infer<typeof contributeChallengeSchema>;
 
+// TODO: improve UI (maybe)
 export function ContributeChallengeForm() {
   const { address } = useAccount();
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(false)
+  const [contributionFee, setContributionFee] = useState(0);
   const { data: hash, writeContract, isPending } = useWriteContract()
-  // const router = useRouter();
 
   const form = useForm<ChallengeFormValues>({
     resolver: zodResolver(contributeChallengeSchema),
@@ -86,7 +80,7 @@ export function ContributeChallengeForm() {
     if (!isPending && hash) {
       toast.success("Contributed successfully!");
 
-      redirect("/dashboard/challenge/contribute");
+      redirect("/dashboard/contribution/contribute");
     }
   }, [isPending]);
 
@@ -108,7 +102,7 @@ export function ContributeChallengeForm() {
       address: ContractConfig_ChallengeManager.address as `0x${string}`,
       abi: ContractConfig_ChallengeManager.abi,
       functionName: "contributeChallenge",
-      args: [title_upload_res_data.url, description_upload_res_data.url, data.category, data.date],
+      args: [title_upload_res_data.url, description_upload_res_data.url, Number(data.category), data.date],
     });
   }
 
@@ -129,6 +123,7 @@ export function ContributeChallengeForm() {
           )}
         />
 
+        // TODO: Add tooltip editor from https://github.com/Aslam97/shadcn-minimal-tiptap.git
         <FormField
           control={form.control}
           name="description"
@@ -156,13 +151,11 @@ export function ContributeChallengeForm() {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent className="w-[300px]">
-                  <SelectItem value="algorithms">Algorithms</SelectItem>
-                  <SelectItem value="software-development">Software Development</SelectItem>
-                  <SelectItem value="system-design">System Design</SelectItem>
-                  <SelectItem value="cybersecurity">Cybersecurity</SelectItem>
-                  <SelectItem value="devops">DevOps</SelectItem>
-                  <SelectItem value="data-engineering">Data Engineering</SelectItem>
-                  <SelectItem value="soft-skills">Soft Skills</SelectItem>
+                  {Object.entries(ChallengeCategory).map(([value, label]) => (
+                    <SelectItem key={value} value={label}>
+                      {ChallengeCategoryLabels[label as ChallengeCategory]}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <FormMessage />

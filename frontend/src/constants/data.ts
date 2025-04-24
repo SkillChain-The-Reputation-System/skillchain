@@ -52,37 +52,45 @@ export const navItems: NavItem[] = [
   },
 
   {
-    title: 'Challenge',
-    url: '/dashboard/challenge',
-    icon: 'challenge',
+    title: 'Contribution',
+    url: '/dashboard/contribution',
+    icon: 'contribution',
     isActive: false,
     items: [
       {
-        title: 'Explore',
-        url: '/dashboard/challenge/explore',
-        icon: 'userPen',
-        shortcut: ['m', 'm']
-      },
-      {
-        title: 'My Participation',
-        url: '/dashboard/challenge/my-participation',
-        icon: 'userPen',
-        shortcut: ['m', 'm']
-      },
-      {
         title: 'Contribute',
-        url: '/dashboard/challenge/contribute',
+        url: '/dashboard/contribution/contribute',
         icon: 'userPen',
         shortcut: ['m', 'm']
       },
       {
         title: 'My Contributions',
-        url: '/dashboard/challenge/my-contributions',
+        url: '/dashboard/contribution/my-contributions',
         icon: 'userPen',
         shortcut: ['m', 'm']
       }
     ]
   },
+  {
+    title: 'Participation',
+    url: '/dashboard/participation',
+    icon: 'participation',
+    isActive: false,
+    items: [
+      {
+        title: 'Explore',
+        url: '/dashboard/participation/explore',
+        icon: 'userPen',
+        shortcut: ['m', 'm']
+      },
+      {
+        title: 'My Participation',
+        url: '/dashboard/participation/my-participation',
+        icon: 'userPen',
+        shortcut: ['m', 'm']
+      },
+    ]
+  }
 ];
 
 export const sidebarNavItemsProfileSettings = [

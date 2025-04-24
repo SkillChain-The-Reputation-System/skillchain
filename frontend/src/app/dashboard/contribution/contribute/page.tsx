@@ -1,5 +1,5 @@
 import { Separator } from "@/components/ui/separator";
-import { ContributeChallengeForm } from "@/features/challenge/contribute-challenge-form";
+import { ContributeChallengeForm } from "@/features/contribution/contribute-challenge-form";
 
 export default async function Page() {
   return (

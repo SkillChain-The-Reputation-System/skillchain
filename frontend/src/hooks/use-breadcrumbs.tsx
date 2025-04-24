@@ -33,26 +33,26 @@ const routeMapping: Record<string, BreadcrumbItem[]> = {
     { title: "Account", link: "/dashboard/account" },
     { title: "Settings", link: "/dashboard/account/settings" },
   ],
-  "/dashboard/challenge/explore": [
+  "/dashboard/contribution/contribute": [
     { title: "Dashboard", link: "/dashboard" },
-    { title: "Challenge", link: "/dashboard/challenge" },
-    { title: "Explore", link: "/dashboard/challenge/explore" },
+    { title: "Contribution", link: "/dashboard/contribution" },
+    { title: "Contribute", link: "/dashboard/contribution/contribute" },
   ],
-  "/dashboard/challenge/my-participation": [
+  "/dashboard/contribution/my-contributions": [
     { title: "Dashboard", link: "/dashboard" },
-    { title: "Challenge", link: "/dashboard/challenge" },
-    { title: "My Participation", link: "/dashboard/challenge/my-participation" },
+    { title: "Contribution", link: "/dashboard/contribution" },
+    { title: "My Contributions", link: "/dashboard/contribution/my-contributions" },
   ],
-  "/dashboard/challenge/contribute": [
+  "/dashboard/participation/explore": [
     { title: "Dashboard", link: "/dashboard" },
-    { title: "Challenge", link: "/dashboard/challenge" },
-    { title: "Contribute", link: "/dashboard/challenge/contribute" },
+    { title: "Participation", link: "/dashboard/participation" },
+    { title: "Explore", link: "/dashboard/participation/explore" },
   ],
-  "/dashboard/challenge/my-contributions": [
+  "/dashboard/participation/my-participation": [
     { title: "Dashboard", link: "/dashboard" },
-    { title: "Challenge", link: "/dashboard/challenge" },
-    { title: "My Contributions", link: "/dashboard/challenge/my-contributions" },
-  ]
+    { title: "Participation", link: "/dashboard/participation" },
+    { title: "My Participation", link: "/dashboard/participation/my-participation" },
+  ],
   // Add more custom mappings as needed
 };
 

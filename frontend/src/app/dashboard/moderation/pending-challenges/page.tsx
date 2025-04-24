@@ -1,7 +1,9 @@
-import ProfileViewPage from '@/features/profile/components/profile-view-page';
+import PendingChallengesView from "@/features/moderation/pending-challenges-view";
 
 export default async function Page() {
   return (
-    <div>Pending Challenges Page</div>
+    <div>
+      <PendingChallengesView></PendingChallengesView>
+    </div>
   );
 }

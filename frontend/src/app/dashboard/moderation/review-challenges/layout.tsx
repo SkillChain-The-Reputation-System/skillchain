@@ -24,9 +24,9 @@ export default async function DashboardLayout({
         ></AccountPageHeader>
 
         <Separator className="my-6" />
+        <div className="flex-1">{children}</div>
       </div>
-      
-      <PageContainer>{children}</PageContainer>
+  
     </div>
   );
 }

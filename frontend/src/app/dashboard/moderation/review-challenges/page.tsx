@@ -1,6 +1,9 @@
+import JoinedChallengesView from "@/features/moderation/joined-challenges-view";
 
 export default async function Page() {
   return (
-    <div>Review Challenge Page</div>
+    <div>
+      <JoinedChallengesView />
+    </div>
   );
 }

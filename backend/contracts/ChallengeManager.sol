@@ -15,8 +15,12 @@ contract ChallengeManager {
         string titleUrl;
         string descriptionUrl;
         uint256 category;
-        string contributeAt;
+        uint256 contributeAt;
         ChallengeStatus status;
+        // // Predefined attributes that might use in future
+        // uint256 upVotes;
+        // uint256 downVotes;
+        // uint256 participants;
     }
 
     mapping(uint256 => Challenge) public challenges; // TODO: optizime storing challenges
@@ -30,14 +34,14 @@ contract ChallengeManager {
         string titleUrl,
         string descriptionUrl,
         uint256 category,
-        string contributeAt
+        uint256 contributeAt
     );
 
     function contributeChallenge(
         string calldata titleUrl,
         string calldata descriptionUrl,
         uint256 category,
-        string calldata contributeAt
+        uint256 contributeAt
     ) external {
         uint256 challengeId = totalChallenges++;
 
@@ -54,9 +58,10 @@ contract ChallengeManager {
         pendingChallenges++;
 
         console.log(
-            "Challenge #%s contributed by %s with:",
+            "Challenge #%s contributed by %s at %s with:",
             challengeId,
-            msg.sender
+            msg.sender,
+            contributeAt
         );
         console.log("- Title url        : %s", titleUrl);
         console.log("- Description url  : %s", descriptionUrl);
@@ -85,7 +90,7 @@ contract ChallengeManager {
         }
 
         console.log(
-            "User %s had fetch %s contributed challenges",
+            "User %s had fetched %s contributed challenges",
             contributor_address,
             challengeIds.length
         );

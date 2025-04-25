@@ -42,6 +42,6 @@ export interface ChallengeInterface {
     title: string | undefined;
     description: string | undefined;
     category: string | ChallengeCategory;
-    date: string | Date;
+    contributeAt: number;
     status: string | ChallengeStatus;
 }

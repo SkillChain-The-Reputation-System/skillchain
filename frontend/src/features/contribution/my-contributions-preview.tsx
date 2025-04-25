@@ -9,6 +9,7 @@ import { ChallengeSkeleton } from './my-contributions-skeleton'
 import { ChallengeCard } from "./challenge-card";
 import { EmptyChallenge } from "./empty-challenge";
 import { redirect } from "next/navigation";
+import { number } from "zod";
 
 export function MyContributionsPreview() {
   const { address } = useAccount();
@@ -40,7 +41,7 @@ export function MyContributionsPreview() {
 
   return (
     isLoading ? (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl mx-auto">
         {[...Array(4)].map((_, index) => (
           <ChallengeSkeleton key={index} />
         ))}
@@ -50,7 +51,7 @@ export function MyContributionsPreview() {
         <ChallengeCard challenge={challenges[0]} />
       </div>
     ) : challenges.length > 1 ? (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl mx-auto">
         {challenges.map((challenge, index) => (
           <ChallengeCard key={index} challenge={challenge} />
         ))}

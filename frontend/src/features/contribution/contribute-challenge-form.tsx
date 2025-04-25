@@ -5,14 +5,14 @@ import { useForm } from "react-hook-form";
 import { useAccount, useWriteContract } from "wagmi";
 import { useEffect, useState } from "react";
 
-// Import external UI components
+// Import UI components
 import {
   Form,
   FormField,
   FormControl,
   FormLabel,
   FormMessage,
-  FormItem
+  FormItem,
 } from "@/components/ui/form";
 import {
   Select,
@@ -22,8 +22,8 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import RichTextEditor from "@/components/rich-text-editor";
 
 // Import utils
 import { redirect } from "next/navigation";
@@ -36,29 +36,25 @@ import { ChallengeCategory, ChallengeCategoryLabels } from "@/lib/interfaces";
 
 // Import contracts config
 import { ContractConfig_ChallengeManager } from "@/constants/contracts-config";
-import { Label } from "@radix-ui/react-dropdown-menu";
 
 const contributeChallengeSchema = z.object({
   title: z.string().
-    min(1, "Title is required").
+    min(10, "Title must be at least 10 characters").
     max(100, "Title must be less than 100 characters"),
   description: z.string().
-    min(1, "Description is required").
-    max(2000, "Description must be less than 2000 characters"),
+    min(18, "Description must be at least 10 characters").
+    max(4000, "Description must be less than 2000 characters"),
   category: z.nativeEnum(ChallengeCategory, {
     errorMap: () => ({ message: "Category is required" })
   }),
-  owner: z.string(),
-  date: z.string()
+  owner: z.string()
 })
 
 export type ChallengeFormValues = z.infer<typeof contributeChallengeSchema>;
 
-// TODO: improve UI (maybe)
 export function ContributeChallengeForm() {
   const { address } = useAccount();
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(false)
-  const [contributionFee, setContributionFee] = useState(0);
   const { data: hash, writeContract, isPending } = useWriteContract()
 
   const form = useForm<ChallengeFormValues>({
@@ -68,7 +64,6 @@ export function ContributeChallengeForm() {
       description: "",
       category: undefined,
       owner: address,
-      date: new Date().toISOString().split('T')[0],
     },
   });
 
@@ -102,13 +97,13 @@ export function ContributeChallengeForm() {
       address: ContractConfig_ChallengeManager.address as `0x${string}`,
       abi: ContractConfig_ChallengeManager.abi,
       functionName: "contributeChallenge",
-      args: [title_upload_res_data.url, description_upload_res_data.url, Number(data.category), data.date],
+      args: [title_upload_res_data.url, description_upload_res_data.url, Number(data.category), Date.now()],
     });
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 w-5xl self-center">
         <FormField
           control={form.control}
           name="title"
@@ -123,7 +118,6 @@ export function ContributeChallengeForm() {
           )}
         />
 
-        // TODO: Add tooltip editor from https://github.com/Aslam97/shadcn-minimal-tiptap.git
         <FormField
           control={form.control}
           name="description"
@@ -131,7 +125,7 @@ export function ContributeChallengeForm() {
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea placeholder="Challenge is about what and its goal" {...field} />
+                <RichTextEditor value={field.value} onChange={field.onChange} placeholder="Challenge is about what and its goal" />
               </FormControl>
               <FormMessage />
             </FormItem>

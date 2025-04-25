@@ -26,7 +26,7 @@ function formatDate(date: string | Date): string {
 export function ChallengeCard({ challenge }: ChallengeCardProps) {
   const [showDetails, setShowDetails] = useState(false)
 
-  const formattedDate = formatDate(challenge.date);
+  const formattedContributeDate = formatDate(new Date(Number(challenge.contributeAt)));
 
   const statusStyles = {
     Pending: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-200 dark:hover:bg-yellow-900/30",
@@ -45,7 +45,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
               {challenge.status}
             </Badge>
           </div>
-          <CardDescription className="line-clamp-2 mt-1">{challenge.description}</CardDescription>
+          <div className="line-clamp-2 mt-1 text-muted-foreground text-sm" dangerouslySetInnerHTML={{ __html: challenge.description || "" }}></div>
         </CardHeader>
 
         <CardContent className="pb-2">
@@ -61,7 +61,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
         <CardFooter className="pt-2 text-xs text-muted-foreground flex items-center justify-between">
           <div className="flex items-center">
             <Calendar className="h-3.5 w-3.5 mr-1" />
-            Created on {formattedDate}
+            Created on {formattedContributeDate}
           </div>
           <div className="flex items-center text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
             <span className="mr-1">Details</span>
@@ -71,7 +71,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
       </Card >
 
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="min-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-between mt-3.5">
               <DialogTitle className="text-2xl">{challenge.title}</DialogTitle>
@@ -88,15 +88,15 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
             </div>
 
             <div className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-muted-foreground">Cost</span>
-              <span>0 Tokens</span>
+              <span className="text-sm font-medium text-muted-foreground">Contribution fee</span>
+              <span>0 ETHs</span>
             </div>
 
             <div className="flex flex-col gap-1">
               <span className="text-sm font-medium text-muted-foreground">Created On</span>
               <div className="flex items-center">
                 <Calendar className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                <span>{formattedDate}</span>
+                <span>{formattedContributeDate}</span>
               </div>
             </div>
 
@@ -117,13 +117,12 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
             </div>
           </div>
 
-          // TODO: re-display description after using tiptap
           {challenge.description && (
             <>
               <Separator />
               <div className="py-4">
                 <h3 className="font-medium mb-2">Challenge Details</h3>
-                <p className="text-sm text-muted-foreground">{challenge.description}</p>
+                <div className="text-sm text-muted-foreground" dangerouslySetInnerHTML={{ __html: challenge.description }}></div>
               </div>
             </>
           )}

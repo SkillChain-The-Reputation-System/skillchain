@@ -2,7 +2,7 @@ import { readContract } from "@wagmi/core";
 import { ContractConfig_ChallengeManager } from "@/constants/contracts-config";
 import { wagmiConfig } from "@/features/wallet/Web3Provider";
 import { fetchStringDataOffChain } from "./fetching-offchain-data-utils";
-import { ChallengeInterface, ChallengeStatus, ChallengeCategoryLabels } from "./interfaces";
+import { ChallengeInterface, ChallengeStatus } from "./interfaces";
 
 // Fetch contributed challenges of an user
 export const fetchContributedChallenges = async (
@@ -25,7 +25,7 @@ export const fetchContributedChallenges = async (
         title,
         description,
         category: challenge.category.toString(),
-        date: challenge.contributeAt,
+        contributeAt: challenge.contributeAt,
         status: ChallengeStatus[Object.keys(ChallengeStatus)[challenge.status] as keyof typeof ChallengeStatus],
       };
     })
@@ -53,7 +53,7 @@ export const fetchPendingChallenges = async (): Promise<ChallengeInterface[]> =>
         title,
         description,
         category: challenge.category.toString(),
-        date: challenge.contributeAt,
+        contributeAt: challenge.contributeAt,
         status: ChallengeStatus[Object.keys(ChallengeStatus)[challenge.status] as keyof typeof ChallengeStatus],
       };
     })

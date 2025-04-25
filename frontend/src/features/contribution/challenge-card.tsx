@@ -1,19 +1,38 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+// Import hooks
+import { useState } from "react"
+
+// Import UI components
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+
+// Import Lucide-react Icons
 import { Calendar, Tag, ArrowUpRight, Clock, Users } from "lucide-react"
+
+// Import utils
 import { cn } from "@/lib/utils"
-import { useState } from "react"
 import { ChallengeInterface, ChallengeCategory, ChallengeCategoryLabels } from "@/lib/interfaces";
 
 interface ChallengeCardProps {
   challenge: ChallengeInterface
 }
 
+// Format as US date from Date object
 function formatDate(date: string | Date): string {
   const d = typeof date === "string" ? new Date(date) : date
   return d.toLocaleDateString("en-US", {
@@ -28,6 +47,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
 
   const formattedContributeDate = formatDate(new Date(Number(challenge.contributeAt)));
 
+  // Styles of status badge (light and dark mode)
   const statusStyles = {
     Pending: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-200 dark:hover:bg-yellow-900/30",
     Approved: "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-200 dark:hover:bg-green-900/30",
@@ -70,6 +90,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
         </CardFooter>
       </Card >
 
+      {/* Dialog pop ups when user click on challenge card */}
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
         <DialogContent className="min-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>

@@ -17,15 +17,15 @@ export const fetchContributedChallenges = async (
 
   const challengesWithMeaningfulData = await Promise.all(
     (challenges as any[]).map(async (challenge) => {
-      const title = await fetchStringDataOffChain(challenge.titleUrl); // Fetch title from URL
-      const description = await fetchStringDataOffChain(challenge.descriptionUrl); // Fetch description from URL
+      const title = await fetchStringDataOffChain(challenge.title_url); // Fetch title from URL
+      const description = await fetchStringDataOffChain(challenge.description_url); // Fetch description from URL
 
       return {
         contributor: challenge.contributor,
         title,
         description,
         category: challenge.category.toString(),
-        contributeAt: challenge.contributeAt,
+        contributeAt: challenge.contribute_at,
         status: ChallengeStatus[Object.keys(ChallengeStatus)[challenge.status] as keyof typeof ChallengeStatus],
       };
     })
@@ -45,15 +45,15 @@ export const fetchPendingChallenges = async (): Promise<ChallengeInterface[]> =>
 
   const meaningPendingChallenges = await Promise.all(
     (pendingChallenges as any[]).map(async (challenge) => {
-      const title = await fetchStringDataOffChain(challenge.titleUrl);
-      const description = await fetchStringDataOffChain(challenge.descriptionUrl);
+      const title = await fetchStringDataOffChain(challenge.title_url);
+      const description = await fetchStringDataOffChain(challenge.description_url);
 
       return {
         contributor: challenge.contributor,
         title,
         description,
         category: challenge.category.toString(),
-        contributeAt: challenge.contributeAt,
+        contributeAt: challenge.contribute_at,
         status: ChallengeStatus[Object.keys(ChallengeStatus)[challenge.status] as keyof typeof ChallengeStatus],
       };
     })

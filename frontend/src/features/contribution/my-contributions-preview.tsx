@@ -1,21 +1,25 @@
 'use client';
 
+// Import hooks
 import { useAccount } from "wagmi";
 import { useState, useEffect } from "react";
 
-import { fetchContributedChallenges } from "@/lib/fetching-onchain-challenge";
-import { ChallengeInterface } from "@/lib/interfaces";
+// Import UI components
 import { ChallengeSkeleton } from './my-contributions-skeleton'
 import { ChallengeCard } from "./challenge-card";
 import { EmptyChallenge } from "./empty-challenge";
+
+// Import utils
+import { ChallengeInterface } from "@/lib/interfaces";
+import { fetchContributedChallenges } from "@/lib/fetching-onchain-challenge";
 import { redirect } from "next/navigation";
-import { number } from "zod";
 
 export function MyContributionsPreview() {
-  const { address } = useAccount();
-  const [challenges, setChallenges] = useState<ChallengeInterface[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { address } = useAccount(); // get user's current address
+  const [challenges, setChallenges] = useState<ChallengeInterface[]>([]); // track array of challenges
+  const [isLoading, setIsLoading] = useState(false); // for skeleton while loading data
 
+  // Loading challenges information
   async function handleFetchingContributedChallenges() {
     setIsLoading(true);
 
@@ -35,6 +39,7 @@ export function MyContributionsPreview() {
     }
   }, [address]);
 
+  // Button redirect to contribute page if there's no contributed challenges
   const handleCreateNew = () => {
     redirect('contribute');
   }

@@ -1,6 +1,13 @@
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
+// Import UI components
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader
+} from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 
+// Contributed challenges skeleton display when loading data
 export function ChallengeSkeleton() {
   return (
     <Card className="w-full overflow-hidden h-full">

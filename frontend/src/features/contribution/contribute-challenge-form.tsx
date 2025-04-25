@@ -37,6 +37,7 @@ import { ChallengeCategory, ChallengeCategoryLabels } from "@/lib/interfaces";
 // Import contracts config
 import { ContractConfig_ChallengeManager } from "@/constants/contracts-config";
 
+// Set up challenge schema input
 const contributeChallengeSchema = z.object({
   title: z.string().
     min(10, "Title must be at least 10 characters").
@@ -53,9 +54,9 @@ const contributeChallengeSchema = z.object({
 export type ChallengeFormValues = z.infer<typeof contributeChallengeSchema>;
 
 export function ContributeChallengeForm() {
-  const { address } = useAccount();
-  const [isSubmitDisabled, setIsSubmitDisabled] = useState(false)
-  const { data: hash, writeContract, isPending } = useWriteContract()
+  const { address } = useAccount(); // get user's current address
+  const [isSubmitDisabled, setIsSubmitDisabled] = useState(false) // for enable/disable submit button
+  const { data: hash, writeContract, isPending } = useWriteContract() // for writing contract
 
   const form = useForm<ChallengeFormValues>({
     resolver: zodResolver(contributeChallengeSchema),
@@ -82,6 +83,7 @@ export function ContributeChallengeForm() {
   async function onSubmit(data: ChallengeFormValues) {
     setIsSubmitDisabled(true);
 
+    // Upload title and description to Irys and get their URLs
     const [{ data: title_upload_res_data }, { data: description_upload_res_data }] = await Promise.all([
       axios.post<IrysUploadResponseInterface>(
         "/api/irys/upload/upload-string",
@@ -93,6 +95,7 @@ export function ContributeChallengeForm() {
       )
     ]);
 
+    // Write contract
     writeContract({
       address: ContractConfig_ChallengeManager.address as `0x${string}`,
       abi: ContractConfig_ChallengeManager.abi,

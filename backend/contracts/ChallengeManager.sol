@@ -12,22 +12,23 @@ contract ChallengeManager {
 
     struct Challenge {
         address contributor;
-        string titleUrl;
-        string descriptionUrl;
+        string title_url;
+        string description_url;
         uint256 category;
-        uint256 contributeAt;
+        uint256 contribute_at;
         ChallengeStatus status;
-        // // Predefined attributes that might use in future
-        // uint256 upVotes;
-        // uint256 downVotes;
-        // uint256 participants;
+        // Predefined attributes that might use in future
+        // uint256 quality_score;
+        // ChallengeDifficulty difficulty_level;
+        // uint256 solve_time [in ms | s | minutes | hours ... ?]
+        // string[] tags;
     }
 
     mapping(uint256 => Challenge) public challenges; // TODO: optizime storing challenges
-    uint256 public totalChallenges = 0;
-    uint256 public pendingChallenges = 0;
+    uint256 public total_challenges = 0;
+    uint256 public pending_challenges = 0;
 
-    mapping(address => uint256[]) public contributorToChallenges;
+    mapping(address => uint256[]) public contributor_to_challenges;
 
     event ChallengeContributed(
         address indexed contributor,
@@ -38,48 +39,48 @@ contract ChallengeManager {
     );
 
     function contributeChallenge(
-        string calldata titleUrl,
-        string calldata descriptionUrl,
-        uint256 category,
-        uint256 contributeAt
+        string calldata _title_url,
+        string calldata _description_url,
+        uint256 _category,
+        uint256 _contribute_at
     ) external {
-        uint256 challengeId = totalChallenges++;
+        uint256 challengeId = total_challenges++;
 
         challenges[challengeId] = Challenge({
             contributor: msg.sender,
-            titleUrl: titleUrl,
-            descriptionUrl: descriptionUrl,
-            category: category,
-            contributeAt: contributeAt,
+            title_url: _title_url,
+            description_url: _description_url,
+            category: _category,
+            contribute_at: _contribute_at,
             status: ChallengeStatus.pending
         });
 
-        contributorToChallenges[msg.sender].push(challengeId);
-        pendingChallenges++;
+        contributor_to_challenges[msg.sender].push(challengeId);
+        pending_challenges++;
 
         console.log(
             "Challenge #%s contributed by %s at %s with:",
             challengeId,
             msg.sender,
-            contributeAt
+            _contribute_at
         );
-        console.log("- Title url        : %s", titleUrl);
-        console.log("- Description url  : %s", descriptionUrl);
+        console.log("- Title url        : %s", _title_url);
+        console.log("- Description url  : %s", _description_url);
 
         emit ChallengeContributed(
             msg.sender,
-            titleUrl,
-            descriptionUrl,
-            category,
-            contributeAt
+            _title_url,
+            _description_url,
+            _category,
+            _contribute_at
         );
     }
 
     function getChallengesByContributor(
-        address contributor_address
+        address _contributor_address
     ) public view returns (Challenge[] memory) {
-        uint256[] memory challengeIds = contributorToChallenges[
-            contributor_address
+        uint256[] memory challengeIds = contributor_to_challenges[
+            _contributor_address
         ];
         Challenge[] memory contributorChallenges = new Challenge[](
             challengeIds.length
@@ -91,7 +92,7 @@ contract ChallengeManager {
 
         console.log(
             "User %s had fetched %s contributed challenges",
-            contributor_address,
+            _contributor_address,
             challengeIds.length
         );
 
@@ -100,10 +101,10 @@ contract ChallengeManager {
 
     function getPendingChallenges() public view returns (Challenge[] memory) {
         Challenge[] memory pendingChallengeList = new Challenge[](
-            pendingChallenges
+            pending_challenges
         );
 
-        for (uint256 i = 0; i < totalChallenges; i++) {
+        for (uint256 i = 0; i < total_challenges; i++) {
             if (challenges[i].status == ChallengeStatus.pending)
                 pendingChallengeList[i] = challenges[i];
         }

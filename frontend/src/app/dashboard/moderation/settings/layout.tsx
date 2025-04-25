@@ -2,7 +2,7 @@ import { AccountPageHeader } from "@/components/layout/account-page-header";
 import { Separator } from "@/components/ui/separator";
 import { sidebarNavItemsProfileSettings } from "@/constants/data";
 import { pageUrlMapping } from "@/constants/navigation";
-import { SidebarNav } from "@/features/profile-settings/components/sidebar-nav";
+import { SidebarNav } from "@/features/account/profile-settings/sidebar-nav";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

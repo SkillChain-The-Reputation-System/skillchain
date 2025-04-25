@@ -4,7 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { ShieldUser } from "lucide-react";
 import type { Metadata } from "next";
 import { pageUrlMapping } from "@/constants/navigation";
-import { SidebarNav } from "@/features/profile-settings/components/sidebar-nav";
+import { SidebarNav } from "@/features/account/profile-settings/sidebar-nav";
 import { sidebarNavItemsProfileSettings } from "@/constants/data";
 
 export const metadata: Metadata = {

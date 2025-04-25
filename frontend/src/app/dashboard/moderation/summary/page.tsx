@@ -1,4 +1,4 @@
-import ProfileViewPage from '@/features/profile/components/profile-view-page';
+import ProfileViewPage from '@/features/account/profile/profile-view-page';
 
 export default async function Page() {
   return (

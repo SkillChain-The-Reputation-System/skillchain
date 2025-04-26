@@ -97,7 +97,9 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
           <DialogHeader>
             <div className="flex items-center justify-between mt-3.5">
               <DialogTitle className="text-2xl">{challenge.title}</DialogTitle>
-              <Badge className={cn("font-normal capitalize", statusStyles[challenge.status as keyof typeof statusStyles])}>{challenge.status}</Badge>
+              <Badge className={cn("font-normal capitalize", statusStyles[challenge.status as keyof typeof statusStyles])}>
+                {ChallengeStatusLabels[challenge.status as keyof typeof ChallengeStatusLabels]}
+              </Badge>
             </div>
           </DialogHeader>
 

@@ -5,7 +5,6 @@ import ThemeProviders from "@/components/layout/theme-providers";
 import { Web3Provider } from "@/features/wallet/Web3Provider";
 import ProtectedRoute from "@/components/layout/protected-route";
 import { ToastContainer } from "react-toastify";
-import Head from "next/head";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

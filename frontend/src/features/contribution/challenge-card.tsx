@@ -26,7 +26,8 @@ import { Calendar, Tag, ArrowUpRight, Clock, Users } from "lucide-react"
 
 // Import utils
 import { cn } from "@/lib/utils"
-import { ChallengeInterface, ChallengeCategory, ChallengeCategoryLabels } from "@/lib/interfaces";
+import { ChallengeStatus, ChallengeStatusLabels, Domain, DomainLabels } from "@/constants/system";
+import { ChallengeInterface } from "@/lib/interfaces"
 
 interface ChallengeCardProps {
   challenge: ChallengeInterface
@@ -49,9 +50,9 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
 
   // Styles of status badge (light and dark mode)
   const statusStyles = {
-    Pending: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-200 dark:hover:bg-yellow-900/30",
-    Approved: "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-200 dark:hover:bg-green-900/30",
-    Rejected: "bg-red-100 text-red-800 hover:bg-red-100 dark:text-red-200 dark:hover:bg-red-900/30",
+    [ChallengeStatus.PENDING]: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-200 dark:hover:bg-yellow-900/30",
+    [ChallengeStatus.APPROVED]: "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-200 dark:hover:bg-green-900/30",
+    [ChallengeStatus.REJECTED]: "bg-red-100 text-red-800 hover:bg-red-100 dark:text-red-200 dark:hover:bg-red-900/30",
   }
 
   return (
@@ -62,7 +63,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
           <div className="flex justify-between items-start">
             <CardTitle className="text-xl font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{challenge.title}</CardTitle>
             <Badge className={cn("ml-2 font-normal capitalize", statusStyles[challenge.status as keyof typeof statusStyles])}>
-              {challenge.status}
+              {ChallengeStatusLabels[challenge.status as keyof typeof ChallengeStatusLabels]}
             </Badge>
           </div>
           <div className="line-clamp-2 mt-1 text-muted-foreground text-sm" dangerouslySetInnerHTML={{ __html: challenge.description || "" }}></div>
@@ -73,7 +74,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
             <Tag className="h-3.5 w-3.5" />
             <span>Category:</span>
             <Badge variant="outline" className="ml-1 font-normal border-black dark:border-blue-700">
-              {ChallengeCategoryLabels[challenge.category as ChallengeCategory]}
+              {DomainLabels[challenge.category as Domain]}
             </Badge>
           </div>
         </CardContent>
@@ -104,7 +105,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
             <div className="flex flex-col gap-1">
               <span className="text-sm font-medium text-muted-foreground">Category</span>
               <Badge variant="outline" className="w-fit">
-                {ChallengeCategoryLabels[challenge.category as ChallengeCategory]}
+                {DomainLabels[challenge.category as Domain]}
               </Badge>
             </div>
 

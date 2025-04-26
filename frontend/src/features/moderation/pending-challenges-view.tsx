@@ -15,6 +15,8 @@ import { useAccount } from "wagmi";
 import { fetchPendingChallenges } from "@/lib/fetching-onchain-challenge";
 import { ChallengeInterface } from "@/lib/interfaces";
 import { toast } from "react-toastify";
+import { ChallengeCard } from "./challenge-card";
+import { Domain, DomainLabels } from "@/constants/system";
 
 export default function PendingChallengesView() {
   const [search, setSearch] = useState("");
@@ -22,6 +24,7 @@ export default function PendingChallengesView() {
   const [sortOption, setSortOption] = useState("date-desc");
   const [allPendingChallenges, setAllPendingChallenges] =
     useState<ChallengeInterface[]>();
+
   const { address } = useAccount();
 
   async function handleFetchingAllPendingChallenges() {
@@ -60,9 +63,9 @@ export default function PendingChallengesView() {
         )
         .sort((a, b) => {
           if (sortOption === "date-desc")
-            return (b.date || "").localeCompare(a.date || "");
+            return Number(b.contributeAt) - Number(a.contributeAt);
           if (sortOption === "date-asc")
-            return (a.date || "").localeCompare(b.date || "");
+            return Number(a.contributeAt) - Number(b.contributeAt);
           return 0;
         })
     : [];
@@ -82,15 +85,13 @@ export default function PendingChallengesView() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="All">All Categories</SelectItem>
-            <SelectItem value="algorithms">Algorithms</SelectItem>
-            <SelectItem value="software-development">
-              Software Development
-            </SelectItem>
-            <SelectItem value="system-design">System Design</SelectItem>
-            <SelectItem value="cybersecurity">Cybersecurity</SelectItem>
-            <SelectItem value="devops">DevOps</SelectItem>
-            <SelectItem value="data-engineering">Data Engineering</SelectItem>
-            <SelectItem value="soft-skills">Soft Skills</SelectItem>
+            {(Object.values(Domain) as unknown as number[])
+              .filter((v) => typeof v === "number")
+              .map((num) => (
+                <SelectItem key={num} value={num.toString()}>
+                  {DomainLabels[num as Domain]}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
         <Select onValueChange={setSortOption} defaultValue="date-desc">
@@ -104,28 +105,9 @@ export default function PendingChallengesView() {
         </Select>
       </div>
 
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         {filtered.map((challenge) => (
-          <Card key={challenge.title} className="hover:shadow-lg transition">
-            <CardContent className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">{challenge.title}</h2>
-                <Badge>{challenge.status}</Badge>
-              </div>
-              <div className="text-sm text-gray-500">
-                {challenge.category} | By {challenge.contributor}
-              </div>
-              <div className="text-sm">Submitted: {challenge.date}</div>
-              <Button
-                variant="outline"
-                className="mt-2"
-                // TODO: Change this to the challenge ID
-                onClick={() => handleJoiningReviewPool(challenge.title)}
-              >
-                Join Review Pool
-              </Button>
-            </CardContent>
-          </Card>
+         <ChallengeCard key={challenge.title} challenge={challenge} handleJoiningReviewPool={handleJoiningReviewPool}></ChallengeCard>
         ))}
       </div>
     </div>

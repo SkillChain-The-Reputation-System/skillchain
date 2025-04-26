@@ -17,6 +17,7 @@ import { toast } from "react-toastify";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { Loader2 } from "lucide-react";
+import { Domain, DomainLabels } from "@/constants/system";
 
 // Placeholder function - replace with actual implementation to fetch joined challenges
 async function fetchJoinedChallenges(address: `0x${string}`) {
@@ -62,9 +63,9 @@ export default function JoinedChallengesView() {
     )
     .sort((a, b) => {
       if (sortOption === "date-desc")
-        return new Date(b.date || "").getTime() - new Date(a.date || "").getTime();
+        return new Date(b.contributeAt || "").getTime() - new Date(a.contributeAt || "").getTime();
       if (sortOption === "date-asc")
-        return new Date(a.date || "").getTime() - new Date(b.date || "").getTime();
+        return new Date(a.contributeAt || "").getTime() - new Date(b.contributeAt || "").getTime();
       return 0;
     });
 
@@ -91,15 +92,13 @@ export default function JoinedChallengesView() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="All">All Categories</SelectItem>
-            <SelectItem value="algorithms">Algorithms</SelectItem>
-            <SelectItem value="software-development">
-              Software Development
-            </SelectItem>
-            <SelectItem value="system-design">System Design</SelectItem>
-            <SelectItem value="cybersecurity">Cybersecurity</SelectItem>
-            <SelectItem value="devops">DevOps</SelectItem>
-            <SelectItem value="data-engineering">Data Engineering</SelectItem>
-            <SelectItem value="soft-skills">Soft Skills</SelectItem>
+            {(Object.values(Domain) as unknown as number[])
+              .filter((v) => typeof v === "number")
+              .map((num) => (
+                <SelectItem key={num} value={num.toString()}>
+                  {DomainLabels[num as Domain]}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
         <Select onValueChange={setSortOption} defaultValue="date-desc">
@@ -135,7 +134,7 @@ export default function JoinedChallengesView() {
                   </Badge>
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  {formatCategory(challenge.category || "Undefined")} • Added {formatDistanceToNow(new Date(challenge.date || ""), { addSuffix: true })}
+                  {formatCategory(challenge.category || "Undefined")} • Added {formatDistanceToNow(new Date(challenge.contributeAt || ""), { addSuffix: true })}
                 </div>
                 <div className="flex justify-end mt-4">
                   <Link href={`/dashboard/moderation/review-challenges/${challenge.title}`} passHref>

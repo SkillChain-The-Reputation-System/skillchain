@@ -56,53 +56,89 @@ import { quality_factors_questions } from "@/constants/data";
 
 // Schema for the review form
 const reviewChallengeSchema = z.object({
-  relevance: z.coerce.number().pipe(
-    z.nativeEnum(QualityFactorAnswer, {
-      errorMap: () => ({ message: "Answer is required" }),
+  relevance: z.coerce
+    .number({
+      required_error: "Answer is required",
+      invalid_type_error: "Answer is required",
     })
-  ),
-  correctness: z.coerce.number().pipe(
-    z.nativeEnum(QualityFactorAnswer, {
-      errorMap: () => ({ message: "Answer is required" }),
+    .pipe(
+      z.nativeEnum(QualityFactorAnswer)
+    ),
+  correctness: z.coerce
+    .number({
+      required_error: "Answer is required",
+      invalid_type_error: "Answer is required",
     })
-  ),
-  completeness: z.coerce.number().pipe(
-    z.nativeEnum(QualityFactorAnswer, {
-      errorMap: () => ({ message: "Answer is required" }),
+    .pipe(
+      z.nativeEnum(QualityFactorAnswer)
+    ),
+  completeness: z.coerce
+    .number({
+      required_error: "Answer is required",
+      invalid_type_error: "Answer is required",
     })
-  ),
-  clarity: z.coerce.number().pipe(
-    z.nativeEnum(QualityFactorAnswer, {
-      errorMap: () => ({ message: "Answer is required" }),
+    .pipe(
+      z.nativeEnum(QualityFactorAnswer)
+    ),
+  clarity: z.coerce
+    .number({
+      required_error: "Answer is required",
+      invalid_type_error: "Answer is required",
     })
-  ),
-  originality: z.coerce.number().pipe(
-    z.nativeEnum(QualityFactorAnswer, {
-      errorMap: () => ({ message: "Answer is required" }),
+    .pipe(
+      z.nativeEnum(QualityFactorAnswer)
+    ),
+  originality: z.coerce
+    .number({
+      required_error: "Answer is required",
+      invalid_type_error: "Answer is required",
     })
-  ),
-  absenceBias: z.coerce.number().pipe(
-    z.nativeEnum(QualityFactorAnswer, {
-      errorMap: () => ({ message: "Answer is required" }),
+    .pipe(
+      z.nativeEnum(QualityFactorAnswer)
+    ),
+  absenceBias: z.coerce
+    .number({
+      required_error: "Answer is required",
+      invalid_type_error: "Answer is required",
     })
-  ),
-  noPlagiarism: z.coerce.number().pipe(
-    z.nativeEnum(QualityFactorAnswer, {
-      errorMap: () => ({ message: "Answer is required" }),
+    .pipe(
+      z.nativeEnum(QualityFactorAnswer)
+    ),
+  noPlagiarism: z.coerce
+    .number({
+      required_error: "Answer is required",
+      invalid_type_error: "Answer is required",
     })
-  ),
+    .pipe(
+      z.nativeEnum(QualityFactorAnswer)
+    ),
 
-  difficulty: z.coerce.number().pipe(
-    z.nativeEnum(ChallengeDifficultyLevel, {
-      errorMap: () => ({ message: "Select difficulty level" }),
+  difficulty: z.coerce
+    .number({
+      required_error: "Answer is required",
+      invalid_type_error: "Answer is required",
     })
-  ),
-  category: z.coerce.number().pipe(
-    z.nativeEnum(Domain, {
-      errorMap: () => ({ message: "Category is required" }),
+    .pipe(
+      z.nativeEnum(ChallengeDifficultyLevel, {
+        errorMap: () => ({ message: "Select difficulty level" }),
+      })
+    ),
+  category: z.coerce
+    .number({
+      required_error: "Answer is required",
+      invalid_type_error: "Answer is required",
     })
-  ),
-  estimatedSolveTime: z.coerce.number().min(1, "Must be at least 1 minute"),
+    .pipe(
+      z.nativeEnum(Domain, {
+        errorMap: () => ({ message: "Category is required" }),
+      })
+    ),
+  estimatedSolveTime: z.coerce
+    .number({
+      required_error: "Answer is required",
+      invalid_type_error: "Answer is required",
+    })
+    .min(1, "Must be at least 1 minute"),
 });
 
 export type ReviewFormValues = z.infer<typeof reviewChallengeSchema>;
@@ -282,14 +318,15 @@ export function ReviewChallengeForm({
           {/* Quality Factors Group */}
           <div className="space-y-6">
             <h3 className="text-lg font-medium">Quality Factors</h3>
-            {quality_factors_questions.map((q) => (
+            {quality_factors_questions.map((q, index) => (
               <FormField
                 key={q.name}
                 control={form.control}
                 name={q.name as keyof ReviewFormValues}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{q.label}</FormLabel>
+                    <FormLabel>{index+1}. {q.label}</FormLabel>
+                    <FormDescription>{q.description}</FormDescription>
                     <FormControl>
                       <RadioGroup
                         value={field.value?.toString()}
@@ -308,7 +345,6 @@ export function ReviewChallengeForm({
                         <Label htmlFor={`${q.name}-no`}>No</Label>
                       </RadioGroup>
                     </FormControl>
-                    <FormDescription>{q.description}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

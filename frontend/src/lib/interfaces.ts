@@ -1,4 +1,4 @@
-import { Domain, ChallengeStatus } from "@/constants/system";
+import { Domain, ChallengeStatus, QualityFactorAnswer, ChallengeDifficultyLevel } from "@/constants/system";
 
 export interface IrysUploadResponseInterface {
     success: boolean;
@@ -28,5 +28,17 @@ export interface GetCurrentTimeResponse {
 }
 
 export interface ModeratorReview {
-    
+    moderator: string;
+    challenge_id: number;
+    review_time: number;
+    relevance: QualityFactorAnswer;
+    technical_correctness: QualityFactorAnswer;
+    completeness: QualityFactorAnswer;
+    clarity: QualityFactorAnswer;
+    originality: QualityFactorAnswer;
+    unbiased: QualityFactorAnswer;
+    plagiarism_free: QualityFactorAnswer;
+    suggested_difficulty: ChallengeDifficultyLevel;
+    suggested_category: Domain;
+    suggested_solve_time: number;
 }

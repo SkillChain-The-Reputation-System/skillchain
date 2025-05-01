@@ -311,6 +311,24 @@ contract ChallengeManager {
         return review_pool[challenge_id].moderator_reviews[_moderator_address];
     }
 
+    /**
+     * @notice Returns the review submitted by the caller for a given challenge
+     * @param _challenge_id The ID of the challenge to fetch the review for
+     * @return The ModeratorReview struct for the caller
+     */
+    function getMyModeratorReview(uint256 _challenge_id) public view returns (ModeratorReview memory) {
+        require(
+            review_pool[_challenge_id].moderator_to_join_status[msg.sender],
+            "You have not joined this review pool."
+        );
+        console.log(
+            "User %s had fetched own review of challenge #%s",
+            msg.sender,
+            _challenge_id
+        );
+        return review_pool[_challenge_id].moderator_reviews[msg.sender];
+    }
+
     function getChallengeById(
         uint256 _challenge_id
     ) public view returns (Challenge memory) {

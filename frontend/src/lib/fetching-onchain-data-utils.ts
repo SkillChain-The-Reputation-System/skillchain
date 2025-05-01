@@ -1,8 +1,20 @@
 import { readContract } from "@wagmi/core";
-import { ContractConfig_ChallengeManager, ContractConfig_UserDataManager } from "@/constants/contracts-config";
+import {
+  ContractConfig_ChallengeManager,
+  ContractConfig_UserDataManager,
+} from "@/constants/contracts-config";
 import { wagmiConfig } from "@/features/wallet/Web3Provider";
-import { ChallengeInterface, FetchUserDataOnChainOutput } from "./interfaces";
+import {
+  ChallengeInterface,
+  FetchUserDataOnChainOutput,
+  ModeratorReview,
+} from "./interfaces";
 import { fetchStringDataOffChain } from "./fetching-offchain-data-utils";
+import {
+  QualityFactorAnswer,
+  ChallengeDifficultyLevel,
+  Domain,
+} from "@/constants/system";
 
 export const fetchUserDataOnChain = async (
   address: `0x${string}`
@@ -60,7 +72,7 @@ export const getJoinReviewPoolStatus = async (
   })) as boolean;
 
   return is_joined;
-}
+};
 
 export const fetchJoinedReviewPoolChallenges = async (
   address: `0x${string}`
@@ -73,24 +85,26 @@ export const fetchJoinedReviewPoolChallenges = async (
   })) as ChallengeInterface[];
 
   const meaning_joined_review_pool_challenges = await Promise.all(
-      (joined_review_pool_challenges as any[]).map(async (challenge) => {
-        const title = await fetchStringDataOffChain(challenge.title_url);
-        const description = await fetchStringDataOffChain(challenge.description_url);
-  
-        return {
-          id: challenge.id.toString(),
-          contributor: challenge.contributor,
-          title,
-          description,
-          category: challenge.category.toString(),
-          contributeAt: challenge.contribute_at,
-          status: challenge.status,
-        };
-      })
-    );
+    (joined_review_pool_challenges as any[]).map(async (challenge) => {
+      const title = await fetchStringDataOffChain(challenge.title_url);
+      const description = await fetchStringDataOffChain(
+        challenge.description_url
+      );
+
+      return {
+        id: challenge.id.toString(),
+        contributor: challenge.contributor,
+        title,
+        description,
+        category: challenge.category.toString(),
+        contributeAt: challenge.contribute_at,
+        status: challenge.status,
+      };
+    })
+  );
 
   return meaning_joined_review_pool_challenges;
-}
+};
 
 export const getChallengeById = async (
   challenge_id: number
@@ -116,4 +130,43 @@ export const getChallengeById = async (
     contributeAt: challenge.contribute_at,
     status: challenge.status,
   };
-}
+};
+
+export const getMyModeratorReview = async (
+  challenge_id: number,
+  address: `0x${string}`
+): Promise<ModeratorReview | null> => {
+  try {
+    const review = (await readContract(wagmiConfig, {
+      address: ContractConfig_ChallengeManager.address as `0x${string}`,
+      abi: ContractConfig_ChallengeManager.abi,
+      functionName: "getModeratorReviewOfChallenge",
+      args: [challenge_id, address],
+    })) as any;
+
+    // Build a strongly-typed ModeratorReview object to force TS validation
+    const moderatorReview: ModeratorReview = {
+      moderator: review.moderator as string,
+      challenge_id: Number(review.challenge_id),
+      review_time: Number(review.review_time),
+      relevance: Number(review.relevance) as QualityFactorAnswer,
+      technical_correctness: Number(
+        review.technical_correctness
+      ) as QualityFactorAnswer,
+      completeness: Number(review.completeness) as QualityFactorAnswer,
+      clarity: Number(review.clarity) as QualityFactorAnswer,
+      originality: Number(review.originality) as QualityFactorAnswer,
+      unbiased: Number(review.unbiased) as QualityFactorAnswer,
+      plagiarism_free: Number(review.plagiarism_free) as QualityFactorAnswer,
+      suggested_difficulty: Number(
+        review.suggested_difficulty
+      ) as ChallengeDifficultyLevel,
+      suggested_category: Number(review.suggested_category) as Domain,
+      suggested_solve_time: Number(review.suggested_solve_time),
+    };
+    return moderatorReview;
+  } catch (error) {
+    console.error("Error fetching my moderator review:", error);
+    return null;
+  }
+};

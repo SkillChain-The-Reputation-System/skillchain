@@ -34,8 +34,21 @@ export async function updateModeratorReview(
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
     abi: ContractConfig_ChallengeManager.abi,
     functionName: "updateModeratorReview",
-    args: [challengeId, data.relevance, data.correctness, data.completeness, data.clarity, data.originality, data.absenceBias, data.noPlagiarism, data.difficulty, data.category, data.estimatedSolveTime],
+    args: [
+      challengeId,
+      data.relevance,
+      data.technical_correctness,
+      data.completeness,
+      data.clarity,
+      data.originality,
+      data.unbiased,
+      data.plagiarism_free,
+      data.suggested_difficulty,
+      data.suggested_category,
+      data.suggested_solve_time,
+    ],
     account: address,
   });
   return txHash;
 }
+

@@ -144,7 +144,7 @@ export const quality_factors_questions = [
     description: "Does the challenge relate to the marked domain?",
   },
   {
-    name: "correctness",
+    name: "technical_correctness",
     label: "Correctness of technical content",
     description: "Is the content technically accurate?",
   },
@@ -164,12 +164,12 @@ export const quality_factors_questions = [
     description: "Does it introduce a new twist?",
   },
   {
-    name: "absenceBias",
+    name: "unbiased",
     label: "Absence of bias or sensitive content",
     description: "Is it free from inappropriate biases?",
   },
   {
-    name: "noPlagiarism",
+    name: "plagiarism_free",
     label: "No plagiarism",
     description: "Is the content original or properly cited?",
   },

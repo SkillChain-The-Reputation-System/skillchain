@@ -47,11 +47,13 @@ import { epochToDateString } from "@/lib/time-utils";
 
 interface ChallengeCardProps {
   challenge: ChallengeInterface;
+  reload: boolean;
   handleJoiningReviewPool: (challenge_id: string | undefined) => void;
 }
 
 export function ChallengeCard({
   challenge,
+  reload,
   handleJoiningReviewPool,
 }: ChallengeCardProps) {
   const { address } = useAccount();
@@ -80,7 +82,7 @@ export function ChallengeCard({
   // check if current user already joined review pool
   useEffect(() => {
     handleGetJoinReviewPoolStatus();
-  }, [address, challenge.id]);
+  }, [address, challenge.id, reload]);
 
   const formattedContributeDate = epochToDateString(challenge.contributeAt);
 

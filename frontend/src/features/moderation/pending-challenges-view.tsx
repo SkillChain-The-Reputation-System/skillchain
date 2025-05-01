@@ -22,6 +22,7 @@ export default function PendingChallengesView() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [sortOption, setSortOption] = useState("date-desc");
+  const [reload, setReload] = useState(false);
 
   const [allPendingChallenges, setAllPendingChallenges] =
     useState<ChallengeInterface[]>();
@@ -49,7 +50,7 @@ export default function PendingChallengesView() {
       const txHash = await joinReviewPool(Number(challenge_id), address);
       toast.success(`Review pool join transaction sent: ${txHash}`);
       await waitForTransaction(txHash);
-      window.location.reload(); // Reload the page to reflect the changes
+      setReload((prev) => !prev); // Trigger a reload to fetch updated data
     } catch (error: any) {
       toast.error(`Failed to join review pool: ${error.message}`);
     }
@@ -115,7 +116,7 @@ export default function PendingChallengesView() {
 
       <div className="grid grid-cols-2 gap-4">
         {filtered.map((challenge) => (
-         <ChallengeCard key={challenge.title} challenge={challenge} handleJoiningReviewPool={handleJoiningReviewPool}></ChallengeCard>
+         <ChallengeCard key={challenge.title} challenge={challenge} reload={reload} handleJoiningReviewPool={handleJoiningReviewPool}></ChallengeCard>
         ))}
       </div>
     </div>

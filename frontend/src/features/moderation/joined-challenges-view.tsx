@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -68,7 +67,6 @@ export default function JoinedChallengesView() {
   return (
     <div className="space-y-4">
       <div className="flex gap-4 items-center">
-        <Button onClick={handleFetchingJoinedChallenges}>Reload</Button>
         <Input
           placeholder="Search challenges..."
           value={search}

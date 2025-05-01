@@ -69,15 +69,27 @@ export function ChallengeCard({
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [showDetails, setShowDetails] = useState(false);
 
-  // check if current user already joined review pool
-  useEffect(() => {
+  async function handleGetJoinReviewPoolStatus() {
     if (!address) {
       setLoadingStatus(false);
       return;
     }
-    getJoinReviewPoolStatus(address, Number(challenge.id))
-      .then(joined => setIsJoined(joined))
-      .finally(() => setLoadingStatus(false));
+    try {
+      const joined = await getJoinReviewPoolStatus(
+        address,
+        Number(challenge.id)
+      );
+      setIsJoined(joined);
+    } catch (error) {
+      toast.error(`Error fetching join review pool status: ${error}`);
+    } finally {
+      setLoadingStatus(false);
+    }
+  }
+
+  // check if current user already joined review pool
+  useEffect(() => {
+    handleGetJoinReviewPoolStatus();
   }, [address, challenge.id]);
 
   const formattedContributeDate = formatDate(
@@ -93,8 +105,6 @@ export function ChallengeCard({
     [ChallengeStatus.REJECTED]:
       "bg-red-100 text-red-800 hover:bg-red-100 dark:text-red-200 dark:hover:bg-red-900/30",
   };
-
-  
 
   return (
     <>
@@ -155,11 +165,10 @@ export function ChallengeCard({
             className={cn(
               "flex items-center text-xs text-blue-600 dark:text-blue-400 transition-opacity cursor-pointer",
               {
-                "pointer-events-none opacity-50": loadingStatus || !isJoined,
-                "opacity-0 group-hover:opacity-100": !loadingStatus && isJoined,
+                "opacity-0 group-hover:opacity-100": !loadingStatus,
               }
             )}
-            onClick={() => isJoined && setShowDetails(true)}
+            onClick={() => setShowDetails(true)}
           >
             <span className="mr-1">Details</span>
             <ArrowUpRight className="h-3.5 w-3.5" />

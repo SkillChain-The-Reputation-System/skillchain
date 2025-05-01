@@ -12,7 +12,7 @@ import { useAccount } from "wagmi";
 import { fetchPendingChallenges } from "@/lib/fetching-onchain-challenge";
 import { ChallengeInterface } from "@/lib/interfaces";
 import { toast } from "react-toastify";
-import { joinReviewPool } from "@/lib/write-onchain-utils";
+import { joinReviewPool, waitForTransaction } from "@/lib/write-onchain-utils";
 import { ChallengeCard } from "./pending-challenge-card";
 import { Domain, DomainLabels } from "@/constants/system";
 
@@ -48,6 +48,8 @@ export default function PendingChallengesView() {
     try {
       const txHash = await joinReviewPool(Number(challenge_id), address);
       toast.success(`Review pool join transaction sent: ${txHash}`);
+      await waitForTransaction(txHash);
+      window.location.reload(); // Reload the page to reflect the changes
     } catch (error: any) {
       toast.error(`Failed to join review pool: ${error.message}`);
     }

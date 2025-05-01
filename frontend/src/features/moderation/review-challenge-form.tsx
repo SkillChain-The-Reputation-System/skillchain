@@ -45,10 +45,13 @@ import {
   DomainLabels,
   QualityFactorAnswer,
 } from "@/constants/system";
-import { Calendar, Clock, Loader2, Users } from "lucide-react";
+import { Calendar, Clock, Loader2, ShieldUser, Users } from "lucide-react";
 import {
   getChallengeById,
+  getChallengeFinalizedStatus,
   getModeratorReviewOfChallenge,
+  getReviewPoolSize,
+  getReviewQuorum,
 } from "@/lib/fetching-onchain-data-utils";
 import { epochToDateString } from "@/lib/time-utils";
 import { quality_factors_questions } from "@/constants/data";
@@ -140,7 +143,9 @@ export function ReviewChallengeForm({
   const router = useRouter();
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [poolSize, setPoolSize] = useState<number | null>(null);
+  const [quorum, setQuorum] = useState<number | null>(null);
+  const [isChallengeFinalized, setIsChallengeFinalized] = useState(false);
   const { data: hash, isPending } = useWriteContract();
 
   const form = useForm<ModeratorReviewValues>({
@@ -213,6 +218,25 @@ export function ReviewChallengeForm({
       router.push("/dashboard/moderation"); // Redirect to moderation dashboard
     }
   }, [isPending, hash, router]);
+
+    // Fetch review pool size and quorum when the details dialog is opened, or when the challenge ID changes
+    useEffect(() => {
+      async function fetchPoolInfo() {
+        try {
+          const [size, q, is_finalized] = await Promise.all([
+            getReviewPoolSize(Number(challenge_id)),
+            getReviewQuorum(),
+            getChallengeFinalizedStatus(Number(challenge_id))
+          ]);
+          setPoolSize(size);
+          setQuorum(q);
+          setIsChallengeFinalized(is_finalized);
+        } catch (error) {
+          toast.error(`Error fetching review pool info: ${error}`);
+        }
+      }
+      fetchPoolInfo();
+    }, [address, challenge_id, form]);
 
   async function onSubmit(data: ModeratorReviewValues) {
     setIsSubmitDisabled(true);
@@ -302,6 +326,20 @@ export function ReviewChallengeForm({
                   <div className="flex items-center">
                     <Users className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
                     <span>0 enrolled</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Moderators
+                  </span>
+                  <div className="flex items-center">
+                    <ShieldUser className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                    <span>
+                      {poolSize !== null && quorum !== null
+                        ? `${poolSize} / ${quorum} joined`
+                        : "Loading..."}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -453,7 +491,7 @@ export function ReviewChallengeForm({
               <div className="flex space-x-4">
                 <Button
                   type="submit"
-                  disabled={isSubmitDisabled}
+                  disabled={isSubmitDisabled || isChallengeFinalized}
                   className="flex-1"
                 >
                   Submit Review

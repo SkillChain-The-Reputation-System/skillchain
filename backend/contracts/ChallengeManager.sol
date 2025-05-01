@@ -169,9 +169,14 @@ contract ChallengeManager {
     }
 
     // ================= MODERATION METHODS=================
-    function joinReviewPool(uint256 _challenge_id) public onlyBeforeFinalized(_challenge_id) {
+    function joinReviewPool(
+        uint256 _challenge_id
+    ) public onlyBeforeFinalized(_challenge_id) {
         // Prevent joining the review pool if maximum number of moderators is reached
-        require(review_pool[_challenge_id].moderator_list.length < REVIEW_QUORUM, "Max moderators reached");
+        require(
+            review_pool[_challenge_id].moderator_list.length < REVIEW_QUORUM,
+            "Max moderators reached"
+        );
 
         // Prevent duplicate joining of the same review pool
         require(
@@ -288,7 +293,8 @@ contract ChallengeManager {
                 uint256(review.unbiased) +
                 uint256(review.plagiarism_free);
         }
-        uint256 average_score = (total_score * 100) / (NUMBER_OF_QUALITY_FACTORS * _pool.review_count);
+        uint256 average_score = (total_score * 100) /
+            (NUMBER_OF_QUALITY_FACTORS * _pool.review_count);
         console.log(
             "Average score for challenge #%s: %s",
             _challenge_id,
@@ -414,5 +420,21 @@ contract ChallengeManager {
             review_pool[_challenge_id].moderator_to_join_status[
                 _moderator_address
             ];
+    }
+
+    function getReviewQuorum() public pure returns (uint256) {
+        return REVIEW_QUORUM;
+    }
+
+    function getReviewPoolSize(
+        uint256 _challenge_id
+    ) public view returns (uint256) {
+        return review_pool[_challenge_id].moderator_list.length;
+    }
+
+    function getChallengeFinalizedStatus(
+        uint256 _challenge_id
+    ) public view returns (bool) {
+        return review_pool[_challenge_id].is_finalized;
     }
 }

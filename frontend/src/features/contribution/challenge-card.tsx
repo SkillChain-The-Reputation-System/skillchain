@@ -26,9 +26,10 @@ import { Calendar, Tag, ArrowUpRight, Clock, Users } from "lucide-react"
 
 // Import utils
 import { cn } from "@/lib/utils"
-import { ChallengeStatus, ChallengeStatusLabels, Domain, DomainLabels } from "@/constants/system";
+import { ChallengeStatusLabels, Domain, DomainLabels } from "@/constants/system";
 import { ChallengeInterface } from "@/lib/interfaces"
 import { epochToDateString } from "@/lib/time-utils"
+import { statusStyles } from "@/constants/styles"
 
 interface ChallengeCardProps {
   challenge: ChallengeInterface
@@ -37,13 +38,6 @@ interface ChallengeCardProps {
 export function ChallengeCard({ challenge }: ChallengeCardProps) {
   const [showDetails, setShowDetails] = useState(false)
   const formattedContributeDate = epochToDateString(challenge.contributeAt);
-
-  // Styles of status badge (light and dark mode)
-  const statusStyles = {
-    [ChallengeStatus.PENDING]: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-200 dark:hover:bg-yellow-900/30",
-    [ChallengeStatus.APPROVED]: "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-200 dark:hover:bg-green-900/30",
-    [ChallengeStatus.REJECTED]: "bg-red-100 text-red-800 hover:bg-red-100 dark:text-red-200 dark:hover:bg-red-900/30",
-  }
 
   return (
     <>

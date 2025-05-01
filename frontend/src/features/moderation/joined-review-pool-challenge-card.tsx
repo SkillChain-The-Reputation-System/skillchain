@@ -1,7 +1,7 @@
 "use client";
 
 // Import hooks
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 // Import UI components
@@ -30,6 +30,7 @@ import {
   Clock,
   Users,
   UserRoundPen,
+  ShieldUser,
 } from "lucide-react";
 
 // Import utils
@@ -41,20 +42,41 @@ import {
   DomainLabels,
 } from "@/constants/system";
 import { statusStyles } from "@/constants/styles";
-import { useRouter } from "next/navigation";  
+import { useRouter } from "next/navigation";
 import { pageUrlMapping } from "@/constants/navigation";
 import { epochToDateString } from "@/lib/time-utils";
+import {
+  getReviewPoolSize,
+  getReviewQuorum,
+} from "@/lib/fetching-onchain-data-utils";
 
 interface ChallengeCardProps {
   challenge: ChallengeInterface;
 }
 
-export function ChallengeCard({
-  challenge
-}: ChallengeCardProps) {
+export function ChallengeCard({ challenge }: ChallengeCardProps) {
   const [showDetails, setShowDetails] = useState(false);
   const router = useRouter();
   const formattedContributeDate = epochToDateString(challenge.contributeAt);
+  const [poolSize, setPoolSize] = useState<number | null>(null);
+  const [quorum, setQuorum] = useState<number | null>(null);
+
+  // Fetch review pool size and quorum when the details dialog is opened, or when the challenge ID changes
+  useEffect(() => {
+    async function fetchPoolInfo() {
+      try {
+        const [size, q] = await Promise.all([
+          getReviewPoolSize(Number(challenge.id)),
+          getReviewQuorum(),
+        ]);
+        setPoolSize(size);
+        setQuorum(q);
+      } catch (error) {
+        toast.error(`Error fetching review pool info: ${error}`);
+      }
+    }
+    fetchPoolInfo();
+  }, [showDetails, challenge.id]);
 
   return (
     <>
@@ -99,6 +121,15 @@ export function ChallengeCard({
             <Calendar className="h-3.5 w-3.5 mr-1" />
             Created on {formattedContributeDate}
           </div>
+
+          <div className="flex items-center">
+            <ShieldUser className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+            <span>
+              {poolSize !== null && quorum !== null
+                ? `${poolSize} / ${quorum} joined`
+                : "Loading..."}
+            </span>
+          </div>
         </CardContent>
 
         <CardFooter className="flex justify-between mt-2">
@@ -106,11 +137,13 @@ export function ChallengeCard({
             variant="default"
             className="cursor-pointer"
             onClick={() => {
-              router.push(pageUrlMapping.moderation_reviewchallenges + `/${challenge.id}`);
+              router.push(
+                pageUrlMapping.moderation_reviewchallenges + `/${challenge.id}`
+              );
               toast.info(`Redirect to review page: ${challenge.id}`);
             }}
           >
-            Review
+            Edit review
           </Button>
 
           <div
@@ -190,6 +223,20 @@ export function ChallengeCard({
               <div className="flex items-center">
                 <Users className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
                 <span>0 enrolled</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-muted-foreground">
+                Moderators
+              </span>
+              <div className="flex items-center">
+                <ShieldUser className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                <span>
+                  {poolSize !== null && quorum !== null
+                    ? `${poolSize} / ${quorum} joined`
+                    : "Loading..."}
+                </span>
               </div>
             </div>
           </div>

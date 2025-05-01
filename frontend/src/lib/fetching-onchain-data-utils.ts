@@ -170,3 +170,37 @@ export const getModeratorReviewOfChallenge = async (
     return null;
   }
 };
+
+export const getReviewQuorum = async (): Promise<number> => {
+  const quorum = (await readContract(wagmiConfig, {
+    address: ContractConfig_ChallengeManager.address as `0x${string}`,
+    abi: ContractConfig_ChallengeManager.abi,
+    functionName: "getReviewQuorum",
+    args: [],
+  })) as number | bigint;
+  return Number(quorum);
+};
+
+export const getReviewPoolSize = async (
+  challenge_id: number
+): Promise<number> => {
+  const size = (await readContract(wagmiConfig, {
+    address: ContractConfig_ChallengeManager.address as `0x${string}`,
+    abi: ContractConfig_ChallengeManager.abi,
+    functionName: "getReviewPoolSize",
+    args: [challenge_id],
+  })) as number | bigint;
+  return Number(size);
+};
+
+export const getChallengeFinalizedStatus = async (
+  challenge_id: number
+): Promise<boolean> => {
+  const is_finalized = (await readContract(wagmiConfig, {
+    address: ContractConfig_ChallengeManager.address as `0x${string}`,
+    abi: ContractConfig_ChallengeManager.abi,
+    functionName: "getChallengeFinalizedStatus",
+    args: [challenge_id],
+  })) as boolean;
+  return is_finalized;
+}

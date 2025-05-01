@@ -4,7 +4,12 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useAccount } from "wagmi";
-import { getJoinReviewPoolStatus } from "@/lib/fetching-onchain-data-utils";
+import {
+  getChallengeFinalizedStatus,
+  getJoinReviewPoolStatus,
+  getReviewPoolSize,
+  getReviewQuorum,
+} from "@/lib/fetching-onchain-data-utils";
 
 // Import UI components
 import {
@@ -32,6 +37,7 @@ import {
   Clock,
   Users,
   UserRoundPen,
+  ShieldUser,
 } from "lucide-react";
 
 // Import utils
@@ -44,6 +50,7 @@ import {
   DomainLabels,
 } from "@/constants/system";
 import { epochToDateString } from "@/lib/time-utils";
+import { statusStyles } from "@/constants/styles";
 
 interface ChallengeCardProps {
   challenge: ChallengeInterface;
@@ -60,6 +67,10 @@ export function ChallengeCard({
   const [isJoined, setIsJoined] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [showDetails, setShowDetails] = useState(false);
+  const [poolSize, setPoolSize] = useState<number | null>(null);
+  const [quorum, setQuorum] = useState<number | null>(null);
+  const [isChallengeFinalized, setIsChallengeFinalized] = useState(false);
+  const [isFullReviewPool, setIsFullReviewPool] = useState(false);
 
   async function handleGetJoinReviewPoolStatus() {
     if (!address) {
@@ -84,17 +95,27 @@ export function ChallengeCard({
     handleGetJoinReviewPoolStatus();
   }, [address, challenge.id, reload]);
 
-  const formattedContributeDate = epochToDateString(challenge.contributeAt);
+  // Fetch review pool size and quorum when the details dialog is opened, or when the challenge ID changes
+  useEffect(() => {
+    async function fetchPoolInfo() {
+      try {
+        const [size, q, is_finalized] = await Promise.all([
+          getReviewPoolSize(Number(challenge.id)),
+          getReviewQuorum(),
+          getChallengeFinalizedStatus(Number(challenge.id)),
+        ]);
+        setPoolSize(size);
+        setQuorum(q);
+        setIsChallengeFinalized(is_finalized);
+        setIsFullReviewPool(size >= q);
+      } catch (error) {
+        toast.error(`Error fetching review pool info: ${error}`);
+      }
+    }
+    fetchPoolInfo();
+  }, [showDetails, challenge.id, reload]);
 
-  // Styles of status badge (light and dark mode)
-  const statusStyles = {
-    [ChallengeStatus.PENDING]:
-      "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-200 dark:hover:bg-yellow-900/30",
-    [ChallengeStatus.APPROVED]:
-      "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-200 dark:hover:bg-green-900/30",
-    [ChallengeStatus.REJECTED]:
-      "bg-red-100 text-red-800 hover:bg-red-100 dark:text-red-200 dark:hover:bg-red-900/30",
-  };
+  const formattedContributeDate = epochToDateString(challenge.contributeAt);
 
   return (
     <>
@@ -139,6 +160,15 @@ export function ChallengeCard({
             <Calendar className="h-3.5 w-3.5 mr-1" />
             Created on {formattedContributeDate}
           </div>
+
+          <div className="flex items-center">
+            <ShieldUser className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+            <span>
+              {poolSize !== null && quorum !== null
+                ? `${poolSize} / ${quorum} joined`
+                : "Loading..."}
+            </span>
+          </div>
         </CardContent>
 
         <CardFooter className="flex justify-between mt-2">
@@ -146,7 +176,7 @@ export function ChallengeCard({
             variant="default"
             className="cursor-pointer"
             onClick={() => handleJoiningReviewPool(challenge.id)}
-            disabled={loadingStatus || isJoined}
+            disabled={loadingStatus || isJoined || isChallengeFinalized || isFullReviewPool}
           >
             {isJoined ? "Joined" : "Join Review Pool"}
           </Button>
@@ -231,6 +261,20 @@ export function ChallengeCard({
               <div className="flex items-center">
                 <Users className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
                 <span>0 enrolled</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-muted-foreground">
+                Moderators
+              </span>
+              <div className="flex items-center">
+                <ShieldUser className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                <span>
+                  {poolSize !== null && quorum !== null
+                    ? `${poolSize} / ${quorum} joined`
+                    : "Loading..."}
+                </span>
               </div>
             </div>
           </div>

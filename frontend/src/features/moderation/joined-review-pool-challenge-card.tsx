@@ -43,20 +43,10 @@ import {
 import { statusStyles } from "@/constants/styles";
 import { useRouter } from "next/navigation";  
 import { pageUrlMapping } from "@/constants/navigation";
+import { epochToDateString } from "@/lib/time-utils";
 
 interface ChallengeCardProps {
   challenge: ChallengeInterface;
-}
-
-// Format as US date from Date object
-function formatDate(date: string | Date): string {
-  const d = typeof date === "string" ? new Date(date) : date;
-  const options: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  };
-  return d.toLocaleDateString("en-US", options);
 }
 
 export function ChallengeCard({
@@ -64,10 +54,7 @@ export function ChallengeCard({
 }: ChallengeCardProps) {
   const [showDetails, setShowDetails] = useState(false);
   const router = useRouter();
-
-  const formattedContributeDate = formatDate(
-    new Date(Number(challenge.contributeAt))
-  );
+  const formattedContributeDate = epochToDateString(challenge.contributeAt);
 
   return (
     <>

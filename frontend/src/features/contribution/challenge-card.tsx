@@ -28,25 +28,15 @@ import { Calendar, Tag, ArrowUpRight, Clock, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ChallengeStatus, ChallengeStatusLabels, Domain, DomainLabels } from "@/constants/system";
 import { ChallengeInterface } from "@/lib/interfaces"
+import { epochToDateString } from "@/lib/time-utils"
 
 interface ChallengeCardProps {
   challenge: ChallengeInterface
 }
 
-// Format as US date from Date object
-function formatDate(date: string | Date): string {
-  const d = typeof date === "string" ? new Date(date) : date
-  return d.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  })
-}
-
 export function ChallengeCard({ challenge }: ChallengeCardProps) {
   const [showDetails, setShowDetails] = useState(false)
-
-  const formattedContributeDate = formatDate(new Date(Number(challenge.contributeAt)));
+  const formattedContributeDate = epochToDateString(challenge.contributeAt);
 
   // Styles of status badge (light and dark mode)
   const statusStyles = {

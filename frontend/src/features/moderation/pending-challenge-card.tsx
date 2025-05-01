@@ -43,21 +43,11 @@ import {
   Domain,
   DomainLabels,
 } from "@/constants/system";
+import { epochToDateString } from "@/lib/time-utils";
 
 interface ChallengeCardProps {
   challenge: ChallengeInterface;
   handleJoiningReviewPool: (challenge_id: string | undefined) => void;
-}
-
-// Format as US date from Date object
-function formatDate(date: string | Date): string {
-  const d = typeof date === "string" ? new Date(date) : date;
-  const options: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  };
-  return d.toLocaleDateString("en-US", options);
 }
 
 export function ChallengeCard({
@@ -92,9 +82,7 @@ export function ChallengeCard({
     handleGetJoinReviewPoolStatus();
   }, [address, challenge.id]);
 
-  const formattedContributeDate = formatDate(
-    new Date(Number(challenge.contributeAt))
-  );
+  const formattedContributeDate = epochToDateString(challenge.contributeAt);
 
   // Styles of status badge (light and dark mode)
   const statusStyles = {

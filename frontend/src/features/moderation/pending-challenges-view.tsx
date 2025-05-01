@@ -1,9 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -15,17 +12,19 @@ import { useAccount } from "wagmi";
 import { fetchPendingChallenges } from "@/lib/fetching-onchain-challenge";
 import { ChallengeInterface } from "@/lib/interfaces";
 import { toast } from "react-toastify";
-import { ChallengeCard } from "./challenge-card";
+import { joinReviewPool } from "@/lib/write-onchain-utils";
+import { ChallengeCard } from "./pending-challenge-card";
 import { Domain, DomainLabels } from "@/constants/system";
 
 export default function PendingChallengesView() {
+  const { address } = useAccount();
+
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [sortOption, setSortOption] = useState("date-desc");
+
   const [allPendingChallenges, setAllPendingChallenges] =
     useState<ChallengeInterface[]>();
-
-  const { address } = useAccount();
 
   async function handleFetchingAllPendingChallenges() {
     await fetchPendingChallenges()
@@ -42,9 +41,16 @@ export default function PendingChallengesView() {
       toast.error("Cannot join review pool: Challenge ID is undefined.");
       return;
     }
-    // Implement the logic to join the review pool for the challenge
-    // This could involve calling a smart contract function or an API endpoint
-    toast.success(`Joining review pool for challenge: ${challenge_id}`);
+    if (!address) {
+      toast.error("Connect wallet first to join review pool.");
+      return;
+    }
+    try {
+      const txHash = await joinReviewPool(Number(challenge_id), address);
+      toast.success(`Review pool join transaction sent: ${txHash}`);
+    } catch (error: any) {
+      toast.error(`Failed to join review pool: ${error.message}`);
+    }
   }
 
   // Fetch user data when the component mounts

@@ -13,6 +13,7 @@ export interface FetchUserDataOnChainOutput {
 }
 
 export interface ChallengeInterface {
+    id: string | undefined;
     contributor: string | undefined;
     title: string | undefined;
     description: string | undefined;

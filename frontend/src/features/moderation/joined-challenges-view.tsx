@@ -1,8 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -14,35 +12,33 @@ import {
 import { useAccount } from "wagmi";
 import { ChallengeInterface } from "@/lib/interfaces";
 import { toast } from "react-toastify";
-import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { Domain, DomainLabels } from "@/constants/system";
-
-// Placeholder function - replace with actual implementation to fetch joined challenges
-async function fetchJoinedChallenges(address: `0x${string}`) {
-  // This is a placeholder - implement the actual API call
-  // For example: return from API or contract call that returns challenges the user has joined
-  return []; // You'll implement the actual fetching logic
-}
+import { fetchJoinedReviewPoolChallenges } from "@/lib/fetching-onchain-data-utils";
+import { ChallengeCard } from "./joined-review-pool-challenge-card";
 
 export default function JoinedChallengesView() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [sortOption, setSortOption] = useState("date-desc");
-  const [joinedChallenges, setJoinedChallenges] = useState<ChallengeInterface[]>([]);
+  const [joinedChallenges, setJoinedChallenges] = useState<
+    ChallengeInterface[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const { address } = useAccount();
 
   async function handleFetchingJoinedChallenges() {
     if (!address) return;
-    
+
     setIsLoading(true);
     try {
-      const challenges = await fetchJoinedChallenges(address);
+      const challenges = await fetchJoinedReviewPoolChallenges(address);
       setJoinedChallenges(challenges);
+      console.log("Fetched joined challenges:", challenges);
     } catch (error) {
-      toast.error(`Error fetching joined challenges: ${(error as Error).message}`);
+      toast.error(
+        `Error fetching joined challenges: ${(error as Error).message}`
+      );
     } finally {
       setIsLoading(false);
     }
@@ -63,23 +59,16 @@ export default function JoinedChallengesView() {
     )
     .sort((a, b) => {
       if (sortOption === "date-desc")
-        return new Date(b.contributeAt || "").getTime() - new Date(a.contributeAt || "").getTime();
+        return Number(b.contributeAt) - Number(a.contributeAt);
       if (sortOption === "date-asc")
-        return new Date(a.contributeAt || "").getTime() - new Date(b.contributeAt || "").getTime();
+        return Number(a.contributeAt) - Number(b.contributeAt);
       return 0;
     });
-
-  // Format the category for display (e.g., "software-development" -> "Software Development")
-  const formatCategory = (category: string) => {
-    return category
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  };
 
   return (
     <div className="space-y-4">
       <div className="flex gap-4 items-center">
+        <Button onClick={handleFetchingJoinedChallenges}>Reload</Button>
         <Input
           placeholder="Search challenges..."
           value={search}
@@ -123,28 +112,9 @@ export default function JoinedChallengesView() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           {filtered.map((challenge) => (
-            <Card key={challenge.title} className="hover:shadow-lg transition">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold">{challenge.title}</h2>
-                  <Badge variant={challenge.status === "Pending" ? "outline" : "default"}>
-                    {challenge.status}
-                  </Badge>
-                </div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  {formatCategory(challenge.category || "Undefined")} • Added {formatDistanceToNow(new Date(challenge.contributeAt || ""), { addSuffix: true })}
-                </div>
-                <div className="flex justify-end mt-4">
-                  <Link href={`/dashboard/moderation/review-challenges/${challenge.title}`} passHref>
-                    <Button variant="outline">
-                      Review Challenge
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
+            <ChallengeCard challenge={challenge} key={challenge.id}></ChallengeCard>
           ))}
         </div>
       )}

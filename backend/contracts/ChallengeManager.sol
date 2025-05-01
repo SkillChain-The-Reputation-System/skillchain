@@ -6,36 +6,37 @@ import "hardhat/console.sol";
 contract ChallengeManager {
     // ================= ENUMS =================
     enum ChallengeStatus {
-        PENDING,  // 0
+        PENDING, // 0
         APPROVED, // 1
-        REJECTED  // 2
+        REJECTED // 2
     }
 
     enum DifficultyLevel {
-        EASY,   // 0
+        EASY, // 0
         MEDIUM, // 1
-        HARD    // 2
+        HARD // 2
     }
 
     enum Domain {
         COMPUTER_SCIENCE_FUNDAMENTALS, // 0
-        SOFTWARE_DEVELOPMENT,          // 1
-        SYSTEMS_AND_NETWORKING,        // 2
-        CYBERSECURITY,                 // 3
-        DATA_SCIENCE_AND_ANALYTICS,    // 4
-        DATABASE_ADMINISTRATION,       // 5
+        SOFTWARE_DEVELOPMENT, // 1
+        SYSTEMS_AND_NETWORKING, // 2
+        CYBERSECURITY, // 3
+        DATA_SCIENCE_AND_ANALYTICS, // 4
+        DATABASE_ADMINISTRATION, // 5
         QUALITY_ASSURANCE_AND_TESTING, // 6
-        PROJECT_MANAGEMENT,            // 7
-        USER_EXPERIENCE_AND_DESIGN,    // 8
-        BUSINESS_ANALYSIS,             // 9
-        ARTFIFICIAL_INTELLIGENCE,      // 10
+        PROJECT_MANAGEMENT, // 7
+        USER_EXPERIENCE_AND_DESIGN, // 8
+        BUSINESS_ANALYSIS, // 9
+        ARTIFICIAL_INTELLIGENCE, // 10
         BLOCKCHAIN_AND_CRYPTOCURRENCY, // 11
-        NETWORK_ADMINISTRATION,        // 12
-        CLOUD_COMPUTING                // 13
+        NETWORK_ADMINISTRATION, // 12
+        CLOUD_COMPUTING // 13
     }
 
     // ================= STRUCTS =================
     struct Challenge {
+        uint256 id;
         address contributor;
         string title_url;
         string description_url;
@@ -68,33 +69,39 @@ contract ChallengeManager {
 
     struct ReviewPool {
         address[] moderator_list;
-        uint256 total_review;
-        ModeratorReview[] moderator_reviews;
-        mapping(address => uint256) moderator_to_review_pool_id;
+        // Mapping: Moderator address -> Moderator review
+        mapping(address => ModeratorReview) moderator_reviews;
+        // Mapping: Moderator address -> Joined status
+        mapping(address => bool) moderator_to_join_status;
     }
 
     // ================= STATE VARIABLES =================
     // Mapping: Challenge ID -> Challenge
-    mapping(uint256 => Challenge) public challenges; // TODO: optizime storing challenges
+    mapping(uint256 => Challenge) private challenges; // TODO: optizime storing challenges
     // Mapping: Challenge ID -> Review Pool
-    mapping(uint256 => ReviewPool) public review_pool;
+    mapping(uint256 => ReviewPool) private review_pool;
     // Mapping: Contributor address -> Challenge IDs
-    mapping(address => uint256[]) public contributor_to_challenges;
-    // Mapping: Moderator address -> Review Pool IDs
-    mapping(address => uint256[]) public moderator_to_review_pools;
+    mapping(address => uint256[]) private contributor_to_challenges;
+    // Mapping: Moderator address -> Challenge IDs
+    mapping(address => uint256[]) private moderator_to_challenges;
 
     uint256 public total_challenges = 0;
     uint256 public pending_challenges = 0;
-    uint256 public quorum = 3; // The maximum number of moderators needed to approve a challenge
+    uint256 public quorum = 3; // The number of moderators needed to approve a challenge
     uint256 public pass_threshold = 80; // The threshold of quality score for a challenge to be approved
 
     // ================= EVENTS =================
     event ChallengeContributed(
         address indexed contributor,
-        string titleUrl,
-        string descriptionUrl,
+        string title_url,
+        string description_url,
         Domain category,
-        uint256 contributeAt
+        uint256 contribute_at
+    );
+    // Emitted when a moderator joins a review pool
+    event ReviewPoolJoined(
+        uint256 indexed challenge_id,
+        address indexed moderator
     );
 
     // ================= CONTRIBUTION METHODS =================
@@ -107,6 +114,7 @@ contract ChallengeManager {
         uint256 challengeId = total_challenges++;
 
         challenges[challengeId] = Challenge({
+            id: challengeId,
             contributor: msg.sender,
             title_url: _title_url,
             description_url: _description_url,
@@ -138,8 +146,26 @@ contract ChallengeManager {
 
     // ================= MODERATION METHODS=================
     function joinReviewPool(uint256 _challenge_id) public {
-        review_pool[_challenge_id].moderator_list.push(msg.sender);
-        moderator_to_review_pools[msg.sender].push(_challenge_id);
+        // Prevent duplicate joining of the same review pool
+        require(
+            review_pool[_challenge_id].moderator_to_join_status[msg.sender] ==
+                false,
+            "You have already joined this review pool."
+        );
+
+        // Add new challenge to the moderator's list of challenges
+        moderator_to_challenges[msg.sender].push(_challenge_id);
+        // Use a storage reference for cleaner access
+        ReviewPool storage pool = review_pool[_challenge_id];
+        pool.moderator_list.push(msg.sender);
+        pool.moderator_to_join_status[msg.sender] = true;
+
+        emit ReviewPoolJoined(_challenge_id, msg.sender);
+        console.log(
+            "Moderator %s joined review pool for challenge #%s",
+            msg.sender,
+            _challenge_id
+        );
     }
 
     // ================= GETTER METHODS =================
@@ -183,5 +209,61 @@ contract ChallengeManager {
         );
 
         return pendingChallengeList;
+    }
+
+    function getChallengesByModerator(
+        address _moderator_address
+    ) public view returns (Challenge[] memory) {
+        uint256[] memory challenge_ids = moderator_to_challenges[
+            _moderator_address
+        ];
+        Challenge[] memory moderator_challenges = new Challenge[](
+            challenge_ids.length
+        );
+
+        for (uint256 i = 0; i < challenge_ids.length; i++) {
+            moderator_challenges[i] = challenges[challenge_ids[i]];
+        }
+
+        console.log(
+            "User %s had fetched %s moderated challenges",
+            _moderator_address,
+            challenge_ids.length
+        );
+
+        return moderator_challenges;
+    }
+
+    function getModeratorReviewOfChallenge(
+        uint256 challenge_id,
+        address _moderator_address
+    ) public view returns (ModeratorReview memory) {
+        console.log(
+            "User %s had fetched review of challenge #%s",
+            _moderator_address,
+            challenge_id
+        );
+        return review_pool[challenge_id].moderator_reviews[_moderator_address];
+    }
+
+    function getChallengeById(
+        uint256 _challenge_id
+    ) public view returns (Challenge memory) {
+        console.log(
+            "User %s had fetched challenge #%s",
+            msg.sender,
+            _challenge_id
+        );
+        return challenges[_challenge_id];
+    }
+
+    function getJoinReviewPoolStatus(
+        uint256 _challenge_id,
+        address _moderator_address
+    ) public view returns (bool) {
+        return
+            review_pool[_challenge_id].moderator_to_join_status[
+                _moderator_address
+            ];
     }
 }

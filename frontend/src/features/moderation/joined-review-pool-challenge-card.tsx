@@ -36,46 +36,38 @@ import {
 import { cn } from "@/lib/utils";
 import { ChallengeInterface } from "@/lib/interfaces";
 import {
-  ChallengeStatus,
   ChallengeStatusLabels,
   Domain,
   DomainLabels,
 } from "@/constants/system";
+import { statusStyles } from "@/constants/styles";
+import { useRouter } from "next/navigation";  
+import { pageUrlMapping } from "@/constants/navigation";
 
 interface ChallengeCardProps {
   challenge: ChallengeInterface;
-  handleJoiningReviewPool: (challenge_id: string | undefined) => void;
 }
 
 // Format as US date from Date object
 function formatDate(date: string | Date): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleDateString("en-US", {
+  const options: Intl.DateTimeFormatOptions = {
     year: "numeric",
     month: "short",
     day: "numeric",
-  });
+  };
+  return d.toLocaleDateString("en-US", options);
 }
 
 export function ChallengeCard({
-  challenge,
-  handleJoiningReviewPool,
+  challenge
 }: ChallengeCardProps) {
   const [showDetails, setShowDetails] = useState(false);
+  const router = useRouter();
 
   const formattedContributeDate = formatDate(
     new Date(Number(challenge.contributeAt))
   );
-
-  // Styles of status badge (light and dark mode)
-  const statusStyles = {
-    [ChallengeStatus.PENDING]:
-      "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-200 dark:hover:bg-yellow-900/30",
-    [ChallengeStatus.APPROVED]:
-      "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-200 dark:hover:bg-green-900/30",
-    [ChallengeStatus.REJECTED]:
-      "bg-red-100 text-red-800 hover:bg-red-100 dark:text-red-200 dark:hover:bg-red-900/30",
-  };
 
   return (
     <>
@@ -126,14 +118,18 @@ export function ChallengeCard({
           <Button
             variant="default"
             className="cursor-pointer"
-            // TODO: Change this to the challenge ID
-            onClick={() => handleJoiningReviewPool(challenge.title)}
+            onClick={() => {
+              router.push(pageUrlMapping.moderation_reviewchallenges + `/${challenge.id}`);
+              toast.info(`Redirect to review page: ${challenge.id}`);
+            }}
           >
-            Join Review Pool
+            Review
           </Button>
 
           <div
-            className="flex items-center text-xs text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+            className={cn(
+              "flex items-center text-xs text-blue-600 dark:text-blue-400 transition-opacity cursor-pointer"
+            )}
             onClick={() => setShowDetails(true)}
           >
             <span className="mr-1">Details</span>

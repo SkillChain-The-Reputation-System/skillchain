@@ -21,6 +21,17 @@ export enum ChallengeStatus {
   REJECTED = 2,
 }
 
+export enum QualityFactorAnswer  {
+  YES = 0,
+  NO = 1,
+}
+
+export enum ChallengeDifficultyLevel {
+  EASY = 0,
+  MEDIUM = 1,
+  HARD = 2,
+}
+
 export const DomainLabels: Record<Domain, string> = {
   [Domain.COMPUTER_SCIENCE_FUNDAMENTALS]: "Computer Science Fundamentals",
   [Domain.SOFTWARE_DEVELOPMENT]: "Software Development",
@@ -42,4 +53,16 @@ export const ChallengeStatusLabels: Record<ChallengeStatus, string> = {
   [ChallengeStatus.PENDING]: "Pending",
   [ChallengeStatus.APPROVED]: "Approved",
   [ChallengeStatus.REJECTED]: "Rejected",
+};
+
+
+export const QualityFactorAnswerLabels: Record<QualityFactorAnswer, string> = {
+  [QualityFactorAnswer.YES]: "Yes",
+  [QualityFactorAnswer.NO]: "No",
+};
+
+export const ChallengeDifficultyLevelLabels: Record<ChallengeDifficultyLevel, string> = {
+  [ChallengeDifficultyLevel.EASY]: "Easy",
+  [ChallengeDifficultyLevel.MEDIUM]: "Medium",
+  [ChallengeDifficultyLevel.HARD]: "Hard",
 };

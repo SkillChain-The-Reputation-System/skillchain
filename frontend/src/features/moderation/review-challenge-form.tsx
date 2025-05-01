@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 // Import hooks
 import { useForm } from "react-hook-form";
@@ -14,19 +14,20 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
+  FormMessage,
 } from "@/components/ui/form";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 
@@ -34,45 +35,88 @@ import { Badge } from "@/components/ui/badge";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
-
-// Import contracts config
-import { ContractConfig_ChallengeManager } from "@/constants/contracts-config";
-import { fetchStringDataOffChain } from "@/lib/fetching-offchain-data-utils";
 import axios from "axios";
-import { IrysUploadResponseInterface } from "@/lib/interfaces";
+import {
+  ChallengeInterface,
+  IrysUploadResponseInterface,
+} from "@/lib/interfaces";
+import { cn } from "@/lib/utils";
+import { statusStyles } from "@/constants/styles";
+import {
+  ChallengeDifficultyLevel,
+  ChallengeStatusLabels,
+  Domain,
+  DomainLabels,
+  QualityFactorAnswer,
+} from "@/constants/system";
+import { Calendar, Clock, Users } from "lucide-react";
+import { getChallengeById } from "@/lib/fetching-onchain-data-utils";
+import { epochToDateString } from "@/lib/time-utils";
+import { quality_factors_questions } from "@/constants/data";
 
 // Schema for the review form
 const reviewChallengeSchema = z.object({
-  decision: z.enum(["approve", "reject"], {
-    required_error: "You need to make a decision",
-  }),
-  reason: z.string()
-    .min(1, "Reason is required")
-    .max(1000, "Reason must be less than 1000 characters"),
+  relevance: z.coerce.number().pipe(
+    z.nativeEnum(QualityFactorAnswer, {
+      errorMap: () => ({ message: "Answer is required" }),
+    })
+  ),
+  correctness: z.coerce.number().pipe(
+    z.nativeEnum(QualityFactorAnswer, {
+      errorMap: () => ({ message: "Answer is required" }),
+    })
+  ),
+  completeness: z.coerce.number().pipe(
+    z.nativeEnum(QualityFactorAnswer, {
+      errorMap: () => ({ message: "Answer is required" }),
+    })
+  ),
+  clarity: z.coerce.number().pipe(
+    z.nativeEnum(QualityFactorAnswer, {
+      errorMap: () => ({ message: "Answer is required" }),
+    })
+  ),
+  originality: z.coerce.number().pipe(
+    z.nativeEnum(QualityFactorAnswer, {
+      errorMap: () => ({ message: "Answer is required" }),
+    })
+  ),
+  absenceBias: z.coerce.number().pipe(
+    z.nativeEnum(QualityFactorAnswer, {
+      errorMap: () => ({ message: "Answer is required" }),
+    })
+  ),
+  noPlagiarism: z.coerce.number().pipe(
+    z.nativeEnum(QualityFactorAnswer, {
+      errorMap: () => ({ message: "Answer is required" }),
+    })
+  ),
+
+  difficulty: z.coerce.number().pipe(
+    z.nativeEnum(ChallengeDifficultyLevel, {
+      errorMap: () => ({ message: "Select difficulty level" }),
+    })
+  ),
+  category: z.coerce.number().pipe(
+    z.nativeEnum(Domain, {
+      errorMap: () => ({ message: "Category is required" }),
+    })
+  ),
+  estimatedSolveTime: z.coerce.number().min(1, "Must be at least 1 minute"),
 });
 
 export type ReviewFormValues = z.infer<typeof reviewChallengeSchema>;
 
 interface ReviewChallengeFormProps {
-  challengeId: string;
-  titleUrl: string;
-  descriptionUrl: string;
-  category: string;
-  submissionDate: string;
+  challenge_id: number;
 }
 
 export function ReviewChallengeForm({
-  challengeId,
-  titleUrl,
-  descriptionUrl,
-  category,
-  submissionDate
+  challenge_id,
 }: ReviewChallengeFormProps) {
   const { address } = useAccount();
   const router = useRouter();
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(false);
-  const [challengeTitle, setChallengeTitle] = useState<string>('Loading...');
-  const [challengeDescription, setChallengeDescription] = useState<string>('Loading...');
   const [isLoading, setIsLoading] = useState(true);
 
   const { data: hash, writeContract, isPending } = useWriteContract();
@@ -80,33 +124,34 @@ export function ReviewChallengeForm({
   const form = useForm<ReviewFormValues>({
     resolver: zodResolver(reviewChallengeSchema),
     defaultValues: {
-      decision: undefined,
-      reason: "",
+      relevance: undefined,
+      correctness: undefined,
+      completeness: undefined,
+      clarity: undefined,
+      originality: undefined,
+      absenceBias: undefined,
+      noPlagiarism: undefined,
+      difficulty: undefined,
+      category: undefined,
+      estimatedSolveTime: 1,
     },
   });
 
-  // Fetch challenge content
+  const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
+
   useEffect(() => {
-    async function fetchChallengeData() {
-      setIsLoading(true);
-      try {
-        const [title, description] = await Promise.all([
-          fetchStringDataOffChain(titleUrl),
-          fetchStringDataOffChain(descriptionUrl)
-        ]);
-        
-        setChallengeTitle(title || "No title available");
-        setChallengeDescription(description || "No description available");
-      } catch (error) {
-        console.error("Error fetching challenge data:", error);
-        toast.error("Failed to load challenge data");
-      } finally {
-        setIsLoading(false);
+    async function fetchChallenge() {
+      const challenge = await getChallengeById(challenge_id);
+      if (challenge) {
+        setChallenge(challenge);
+      } else {
+        toast.error("Failed to fetch challenge data.");
       }
+      setIsLoading(false);
     }
 
-    fetchChallengeData();
-  }, [titleUrl, descriptionUrl]);
+    fetchChallenge();
+  }, []);
 
   // Handle transaction status
   useEffect(() => {
@@ -120,151 +165,251 @@ export function ReviewChallengeForm({
     }
   }, [isPending, hash, router]);
 
-  // Format category for display
-  const formatCategory = (category: string) => {
-    return category
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  };
-
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  };
-
   async function onSubmit(data: ReviewFormValues) {
     setIsSubmitDisabled(true);
-    
+
     try {
-      // Upload review reason to Irys
-      const { data: reasonUploadData } = await axios.post<IrysUploadResponseInterface>(
-        "/api/irys/upload/upload-string",
-        data.reason
-      );
-
-      console.log("Uploaded reason data: ", reasonUploadData);
-
-    //   // Call smart contract to update challenge status
-    //   writeContract({
-    //     address: ContractConfig_ChallengeManager.address as `0x${string}`,
-    //     abi: ContractConfig_ChallengeManager.abi,
-    //     functionName: "moderateChallenge",
-    //     args: [
-    //       challengeId, 
-    //       data.decision === "approve", 
-    //       reasonUploadData.url
-    //     ],
-    //   });
+      // // Upload review reason to Irys
+      // const { data: reasonUploadData } =
+      //   await axios.post<IrysUploadResponseInterface>(
+      //     "/api/irys/upload/upload-string",
+      //     data.reason
+      //   );
+      console.log("Data:", data);
+      toast.success("Upload data: " + data);
     } catch (error) {
       console.error("Error submitting review:", error);
       toast.error("Failed to submit review");
-      setIsSubmitDisabled(false);
     }
+    setIsSubmitDisabled(false);
   }
 
   if (isLoading) {
     return <div className="text-center py-10">Loading challenge data...</div>;
   }
 
+  const createdOnDate = challenge?.contributeAt
+    ? epochToDateString(challenge.contributeAt)
+    : "N/A";
+
   return (
-    <div className="space-y-8">
+    <div className="container space-y-8">
       <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="text-2xl">{challengeTitle}</CardTitle>
-              <CardDescription>Challenge ID: {challengeId}</CardDescription>
+        <CardContent className="overflow-y-auto">
+          <CardHeader>
+            <div className="flex items-center justify-between mt-3.5">
+              <CardTitle className="text-2xl">{challenge?.title}</CardTitle>
+              <Badge
+                className={cn(
+                  "font-normal capitalize",
+                  statusStyles[challenge?.status as keyof typeof statusStyles]
+                )}
+              >
+                {
+                  ChallengeStatusLabels[
+                    challenge?.status as keyof typeof ChallengeStatusLabels
+                  ]
+                }
+              </Badge>
             </div>
-            <Badge variant="outline" className="text-sm">
-              {formatCategory(category)}
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <h3 className="text-sm font-medium leading-none mb-2">Submission Date</h3>
-            <p className="text-sm text-muted-foreground">{formatDate(submissionDate)}</p>
-          </div>
-          
-          <Separator className="my-4" />
-          
-          <div>
-            <h3 className="text-sm font-medium leading-none mb-2">Description</h3>
-            <div className="bg-muted p-4 rounded-md whitespace-pre-wrap">
-              {challengeDescription}
+          </CardHeader>
+
+          <div className="grid grid-cols-2 gap-4 py-4">
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-muted-foreground">
+                Category
+              </span>
+              <Badge variant="outline" className="w-fit">
+                {DomainLabels[challenge?.category as Domain]}
+              </Badge>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-muted-foreground">
+                Contribution fee
+              </span>
+              <span>0 ETHs</span>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-muted-foreground">
+                Created On
+              </span>
+              <div className="flex items-center">
+                <Calendar className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                <span>{createdOnDate}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-muted-foreground">
+                Expected verification date
+              </span>
+              <div className="flex items-center">
+                <Clock className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                <span>Feb 31, 2077</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-muted-foreground">
+                Participants
+              </span>
+              <div className="flex items-center">
+                <Users className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                <span>0 enrolled</span>
+              </div>
             </div>
           </div>
+
+          {challenge?.description && (
+            <>
+              <Separator />
+              <div className="py-4">
+                <h3 className="font-medium mb-2">Challenge Details</h3>
+                <div
+                  className="text-sm text-muted-foreground"
+                  dangerouslySetInnerHTML={{ __html: challenge.description }}
+                ></div>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <FormField
-            control={form.control}
-            name="decision"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel>Review Decision</FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="flex flex-col space-y-1"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="approve" id="approve" />
-                      <Label htmlFor="approve">Approve this challenge</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="reject" id="reject" />
-                      <Label htmlFor="reject">Reject this challenge</Label>
-                    </div>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Quality Factors Group */}
+          <div className="space-y-6">
+            <h3 className="text-lg font-medium">Quality Factors</h3>
+            {quality_factors_questions.map((q) => (
+              <FormField
+                key={q.name}
+                control={form.control}
+                name={q.name as keyof ReviewFormValues}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{q.label}</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        value={field.value?.toString()}
+                        onValueChange={field.onChange}
+                        className="flex space-x-4"
+                      >
+                        <RadioGroupItem
+                          value={QualityFactorAnswer.YES.toString()}
+                          id={QualityFactorAnswer.YES.toString()}
+                        />
+                        <Label htmlFor={`${q.name}-yes`}>Yes</Label>
+                        <RadioGroupItem
+                          value={QualityFactorAnswer.NO.toString()}
+                          id={QualityFactorAnswer.NO.toString()}
+                        />
+                        <Label htmlFor={`${q.name}-no`}>No</Label>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormDescription>{q.description}</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ))}
+          </div>
 
-          <FormField
-            control={form.control}
-            name="reason"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Reason</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Please provide a reason for your decision..."
-                    className="resize-none min-h-[100px]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Explain why you are approving or rejecting this challenge.
-                  This feedback will be visible to the contributor.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Suggestion Group */}
+          <div className="space-y-6">
+            <h3 className="text-lg font-medium">Suggestions</h3>
+            {/* Difficulty Level */}
+            <FormField
+              control={form.control}
+              name="difficulty"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Difficulty Level</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      value={field.value?.toString()}
+                      onValueChange={field.onChange}
+                      className="flex space-x-4"
+                    >
+                      <RadioGroupItem
+                        value={ChallengeDifficultyLevel.EASY.toString()}
+                        id={ChallengeDifficultyLevel.EASY.toString()}
+                      />
+                      <Label htmlFor="difficulty-easy">Easy</Label>
+                      <RadioGroupItem
+                        value={ChallengeDifficultyLevel.MEDIUM.toString()}
+                        id={ChallengeDifficultyLevel.MEDIUM.toString()}
+                      />
+                      <Label htmlFor="difficulty-medium">Medium</Label>
+                      <RadioGroupItem
+                        value={ChallengeDifficultyLevel.HARD.toString()}
+                        id={ChallengeDifficultyLevel.HARD.toString()}
+                      />
+                      <Label htmlFor="difficulty-hard">Hard</Label>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {/* Category */}
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={""}>
+                    <FormControl>
+                      <SelectTrigger className="w-[300px]">
+                        <SelectValue placeholder="Select category of your challenge" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="w-[300px]">
+                      {
+                        // get the numeric enum members
+                        (Object.values(Domain) as unknown as number[])
+                          .filter((v) => typeof v === "number")
+                          .map((num) => (
+                            <SelectItem key={num} value={num.toString()}>
+                              {DomainLabels[num as Domain]}
+                            </SelectItem>
+                          ))
+                      }
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {/* Estimated Solve Time */}
+            <FormField
+              control={form.control}
+              name="estimatedSolveTime"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Estimated Solve Time (minutes)</FormLabel>
+                  <FormControl>
+                    <Input type="number" min={1} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <div className="flex space-x-4">
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={isSubmitDisabled}
               className="flex-1"
             >
               Submit Review
             </Button>
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => router.back()}
               className="flex-1"
             >

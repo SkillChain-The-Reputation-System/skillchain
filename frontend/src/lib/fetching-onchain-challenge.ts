@@ -3,7 +3,6 @@ import { ContractConfig_ChallengeManager } from "@/constants/contracts-config";
 import { wagmiConfig } from "@/features/wallet/Web3Provider";
 import { fetchStringDataOffChain } from "./fetching-offchain-data-utils";
 import { ChallengeInterface } from "./interfaces";
-import { ChallengeStatus, ChallengeStatusLabels } from "@/constants/system";
 
 // Fetch contributed challenges of an user
 export const fetchContributedChallenges = async (
@@ -18,10 +17,11 @@ export const fetchContributedChallenges = async (
 
   const challengesWithMeaningfulData = await Promise.all(
     (challenges as any[]).map(async (challenge) => {
-      const title = await fetchStringDataOffChain(challenge.title_url); // Fetch title from URL
-      const description = await fetchStringDataOffChain(challenge.description_url); // Fetch description from URL
+      const title = await fetchStringDataOffChain(challenge.title_url);
+      const description = await fetchStringDataOffChain(challenge.description_url);
 
       return {
+        id: challenge.id.toString(),
         contributor: challenge.contributor,
         title,
         description,
@@ -50,6 +50,7 @@ export const fetchPendingChallenges = async (): Promise<ChallengeInterface[]> =>
       const description = await fetchStringDataOffChain(challenge.description_url);
 
       return {
+        id: challenge.id.toString(),
         contributor: challenge.contributor,
         title,
         description,

@@ -53,6 +53,7 @@ import { Calendar, Clock, Users } from "lucide-react";
 import { getChallengeById } from "@/lib/fetching-onchain-data-utils";
 import { epochToDateString } from "@/lib/time-utils";
 import { quality_factors_questions } from "@/constants/data";
+import { updateModeratorReview } from "@/lib/write-onchain-utils";
 
 // Schema for the review form
 const reviewChallengeSchema = z.object({
@@ -127,7 +128,7 @@ const reviewChallengeSchema = z.object({
     .min(1, "Must be at least 1 minute"),
 });
 
-export type ReviewFormValues = z.infer<typeof reviewChallengeSchema>;
+export type ModeratorReviewValues = z.infer<typeof reviewChallengeSchema>;
 
 interface ReviewChallengeFormProps {
   challenge_id: number;
@@ -143,7 +144,7 @@ export function ReviewChallengeForm({
 
   const { data: hash, writeContract, isPending } = useWriteContract();
 
-  const form = useForm<ReviewFormValues>({
+  const form = useForm<ModeratorReviewValues>({
     resolver: zodResolver(reviewChallengeSchema),
     defaultValues: {
       relevance: undefined,
@@ -187,16 +188,11 @@ export function ReviewChallengeForm({
     }
   }, [isPending, hash, router]);
 
-  async function onSubmit(data: ReviewFormValues) {
+  async function onSubmit(data: ModeratorReviewValues) {
     setIsSubmitDisabled(true);
 
     try {
-      // // Upload review reason to Irys
-      // const { data: reasonUploadData } =
-      //   await axios.post<IrysUploadResponseInterface>(
-      //     "/api/irys/upload/upload-string",
-      //     data.reason
-      //   );
+      await updateModeratorReview(challenge_id, address as `0x${string}`, data);
       console.log("Data:", data);
       toast.success("Upload data: " + data);
     } catch (error) {
@@ -307,7 +303,7 @@ export function ReviewChallengeForm({
               <FormField
                 key={q.name}
                 control={form.control}
-                name={q.name as keyof ReviewFormValues}
+                name={q.name as keyof ModeratorReviewValues}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>

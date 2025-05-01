@@ -26,3 +26,7 @@ export interface GetCurrentTimeResponse {
     success: boolean;
     time: number;
 }
+
+export interface ModeratorReview {
+    
+}

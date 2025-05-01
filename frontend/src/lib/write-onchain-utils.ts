@@ -1,6 +1,7 @@
 import { writeContract, waitForTransactionReceipt } from "@wagmi/core";
 import { ContractConfig_ChallengeManager } from "@/constants/contracts-config";
 import { wagmiConfig } from "@/features/wallet/Web3Provider";
+import { ModeratorReviewValues } from "@/features/moderation/review-challenge-form";
 
 export async function joinReviewPool(
   challengeId: number,
@@ -21,4 +22,20 @@ export async function waitForTransaction(txHash: `0x${string}`): Promise<void> {
   await waitForTransactionReceipt(wagmiConfig, {
     hash: txHash,
   });
+}
+
+
+export async function updateModeratorReview(
+  challengeId: number,
+  address: `0x${string}`,
+  data: ModeratorReviewValues
+) {
+  const txHash = await writeContract(wagmiConfig, {
+    address: ContractConfig_ChallengeManager.address as `0x${string}`,
+    abi: ContractConfig_ChallengeManager.abi,
+    functionName: "updateModeratorReview",
+    args: [challengeId, data.relevance, data.correctness, data.completeness, data.clarity, data.originality, data.absenceBias, data.noPlagiarism, data.difficulty, data.category, data.estimatedSolveTime],
+    account: address,
+  });
+  return txHash;
 }

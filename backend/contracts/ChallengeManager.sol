@@ -17,6 +17,11 @@ contract ChallengeManager {
         HARD // 2
     }
 
+    enum QualityFactorAnswer {
+        YES, // 0
+        NO // 1
+    }
+
     enum Domain {
         COMPUTER_SCIENCE_FUNDAMENTALS, // 0
         SOFTWARE_DEVELOPMENT, // 1
@@ -54,17 +59,16 @@ contract ChallengeManager {
         address moderator;
         uint256 challenge_id;
         uint256 review_time;
-        bool relevance;
-        bool technical_correctness;
-        bool completeness;
-        bool clarity;
-        bool originality;
-        bool unbiased;
-        bool plagiarism_free;
+        QualityFactorAnswer relevance;
+        QualityFactorAnswer technical_correctness;
+        QualityFactorAnswer completeness;
+        QualityFactorAnswer clarity;
+        QualityFactorAnswer originality;
+        QualityFactorAnswer unbiased;
+        QualityFactorAnswer plagiarism_free;
         DifficultyLevel suggested_difficulty;
         Domain suggested_category;
         uint256 suggested_solve_time;
-        string[] suggested_tags;
     }
 
     struct ReviewPool {
@@ -166,6 +170,67 @@ contract ChallengeManager {
             msg.sender,
             _challenge_id
         );
+    }
+
+    function updateModeratorReview(
+        uint256 _challenge_id,
+        QualityFactorAnswer _relevance,
+        QualityFactorAnswer _technical_correctness,
+        QualityFactorAnswer _completeness,
+        QualityFactorAnswer _clarity,
+        QualityFactorAnswer _originality,
+        QualityFactorAnswer _unbiased,
+        QualityFactorAnswer _plagiarism_free,
+        DifficultyLevel _suggested_difficulty,
+        Domain _suggested_category,
+        uint256 _suggested_solve_time
+    ) public {
+        // Check if the moderator has joined the review pool
+        require(
+            review_pool[_challenge_id].moderator_to_join_status[msg.sender] ==
+                true,
+            "You have not joined this review pool."
+        );
+
+        // Update the moderator's review in the review pool
+        ReviewPool storage pool = review_pool[_challenge_id];
+        pool.moderator_reviews[msg.sender] = ModeratorReview({
+            moderator: msg.sender,
+            challenge_id: _challenge_id,
+            review_time: block.timestamp,
+            relevance: _relevance,
+            technical_correctness: _technical_correctness,
+            completeness: _completeness,
+            clarity: _clarity,
+            originality: _originality,
+            unbiased: _unbiased,
+            plagiarism_free: _plagiarism_free,
+            suggested_difficulty: _suggested_difficulty,
+            suggested_category: _suggested_category,
+            suggested_solve_time: _suggested_solve_time
+        });
+
+        console.log(
+            "Moderator %s updated review for challenge #%s",
+            msg.sender,
+            _challenge_id
+        );
+        console.log("- Relevance: %s", uint((_relevance)));
+        console.log(
+            "- Technical correctness: %s",
+            uint((_technical_correctness))
+        );
+        console.log("- Completeness: %s", uint((_completeness)));
+        console.log("- Clarity: %s", uint((_clarity)));
+        console.log("- Originality: %s", uint((_originality)));
+        console.log("- Unbiased: %s", uint((_unbiased)));
+        console.log("- Plagiarism free: %s", uint((_plagiarism_free)));
+        console.log(
+            "- Suggested difficulty: %s",
+            uint((_suggested_difficulty))
+        );
+        console.log("- Suggested category: %s", uint((_suggested_category)));
+        console.log("- Suggested solve time: %s", _suggested_solve_time);
     }
 
     // ================= GETTER METHODS =================

@@ -61,7 +61,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Write s
   }, [value])
 
   return (
-    <div>
+    <div className='overflow-hidden'>
       <MenuBar editor={editor} />
       <EditorContent editor={editor} />
     </div>);

@@ -15,6 +15,7 @@ import { toast } from "react-toastify";
 import { joinReviewPool, waitForTransaction } from "@/lib/write-onchain-utils";
 import { ChallengeCard } from "./pending-challenge-card";
 import { Domain, DomainLabels } from "@/constants/system";
+import { Loader2 } from "lucide-react";
 
 export default function PendingChallengesView() {
   const { address } = useAccount();
@@ -23,17 +24,22 @@ export default function PendingChallengesView() {
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [sortOption, setSortOption] = useState("date-desc");
   const [reload, setReload] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [allPendingChallenges, setAllPendingChallenges] =
     useState<ChallengeInterface[]>();
 
   async function handleFetchingAllPendingChallenges() {
+    setIsLoading(true);
     await fetchPendingChallenges()
       .then((pending_challenges_array: ChallengeInterface[]) => {
         setAllPendingChallenges(pending_challenges_array);
       })
       .catch((error) => {
         toast.error(`Error fetching user data: ${error.message}`);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   }
 
@@ -114,11 +120,28 @@ export default function PendingChallengesView() {
         </Select>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        {filtered.map((challenge) => (
-         <ChallengeCard key={challenge.title} challenge={challenge} reload={reload} handleJoiningReviewPool={handleJoiningReviewPool}></ChallengeCard>
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-lg text-muted-foreground">
+            No pending challenges available.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-4">
+          {filtered.map((challenge) => (
+            <ChallengeCard
+              key={challenge.title}
+              challenge={challenge}
+              reload={reload}
+              handleJoiningReviewPool={handleJoiningReviewPool}
+            ></ChallengeCard>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -22,8 +22,8 @@ export enum ChallengeStatus {
 }
 
 export enum QualityFactorAnswer  {
-  YES = 0,
-  NO = 1,
+  NO = 0,
+  YES = 1,
 }
 
 export enum ChallengeDifficultyLevel {

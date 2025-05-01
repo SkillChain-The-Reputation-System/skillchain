@@ -132,7 +132,7 @@ export const getChallengeById = async (
   };
 };
 
-export const getMyModeratorReview = async (
+export const getModeratorReviewOfChallenge = async (
   challenge_id: number,
   address: `0x${string}`
 ): Promise<ModeratorReview | null> => {

@@ -18,8 +18,8 @@ contract ChallengeManager {
     }
 
     enum QualityFactorAnswer {
-        YES, // 0
-        NO // 1
+        NO, // 0
+        YES // 1
     }
 
     enum Domain {
@@ -48,11 +48,9 @@ contract ChallengeManager {
         Domain category;
         uint256 contribute_at;
         ChallengeStatus status;
-        // Predefined attributes that might use in future
-        // uint256 quality_score;
-        // ChallengeDifficulty difficulty_level;
-        // uint256 solve_time [in ms | s | minutes | hours ... ?]
-        // string[] tags;
+        uint256 quality_score;
+        DifficultyLevel difficulty_level;
+        uint256 solve_time;
     }
 
     struct ModeratorReview {
@@ -73,6 +71,8 @@ contract ChallengeManager {
 
     struct ReviewPool {
         address[] moderator_list;
+        bool is_finalized;
+        uint256 review_count;
         // Mapping: Moderator address -> Moderator review
         mapping(address => ModeratorReview) moderator_reviews;
         // Mapping: Moderator address -> Joined status
@@ -91,8 +91,9 @@ contract ChallengeManager {
 
     uint256 public total_challenges = 0;
     uint256 public pending_challenges = 0;
-    uint256 public quorum = 3; // The number of moderators needed to approve a challenge
-    uint256 public pass_threshold = 80; // The threshold of quality score for a challenge to be approved
+    uint256 public constant REVIEW_QUORUM = 3; // The number of moderators needed to start a finalizing process
+    uint256 public constant REVIEW_THRESHOLD = 80; // The threshold of quality score for a challenge to be approved
+    uint256 public constant NUMBER_OF_QUALITY_FACTORS = 7; // The number of quality factors used in the review process
 
     // ================= EVENTS =================
     event ChallengeContributed(
@@ -107,6 +108,22 @@ contract ChallengeManager {
         uint256 indexed challenge_id,
         address indexed moderator
     );
+
+    event ChallengeFinalized(
+        uint256 indexed challengeId,
+        ChallengeStatus status,
+        uint256 averagePercent
+    );
+
+    // ================= MODIFIER =================
+    // Modifier to check if the challenge is finalized
+    modifier onlyBeforeFinalized(uint256 challenge_id) {
+        require(
+            !review_pool[challenge_id].is_finalized,
+            "Challenge already finalised"
+        );
+        _;
+    }
 
     // ================= CONTRIBUTION METHODS =================
     function contributeChallenge(
@@ -124,7 +141,10 @@ contract ChallengeManager {
             description_url: _description_url,
             category: _category,
             contribute_at: _contribute_at,
-            status: ChallengeStatus.PENDING
+            status: ChallengeStatus.PENDING,
+            quality_score: 0,
+            difficulty_level: DifficultyLevel.EASY,
+            solve_time: 0
         });
 
         contributor_to_challenges[msg.sender].push(challengeId);
@@ -149,7 +169,10 @@ contract ChallengeManager {
     }
 
     // ================= MODERATION METHODS=================
-    function joinReviewPool(uint256 _challenge_id) public {
+    function joinReviewPool(uint256 _challenge_id) public onlyBeforeFinalized(_challenge_id) {
+        // Prevent joining the review pool if maximum number of moderators is reached
+        require(review_pool[_challenge_id].moderator_list.length < REVIEW_QUORUM, "Max moderators reached");
+
         // Prevent duplicate joining of the same review pool
         require(
             review_pool[_challenge_id].moderator_to_join_status[msg.sender] ==
@@ -172,7 +195,7 @@ contract ChallengeManager {
         );
     }
 
-    function updateModeratorReview(
+    function submitModeratorReview(
         uint256 _challenge_id,
         QualityFactorAnswer _relevance,
         QualityFactorAnswer _technical_correctness,
@@ -184,7 +207,7 @@ contract ChallengeManager {
         DifficultyLevel _suggested_difficulty,
         Domain _suggested_category,
         uint256 _suggested_solve_time
-    ) public {
+    ) public onlyBeforeFinalized(_challenge_id) {
         // Check if the moderator has joined the review pool
         require(
             review_pool[_challenge_id].moderator_to_join_status[msg.sender] ==
@@ -192,8 +215,13 @@ contract ChallengeManager {
             "You have not joined this review pool."
         );
 
-        // Update the moderator's review in the review pool
         ReviewPool storage pool = review_pool[_challenge_id];
+        // Add review_count if the moderator is submitting a review for the first time
+        if (pool.moderator_reviews[msg.sender].review_time == 0) {
+            pool.review_count++;
+        }
+
+        // Update the moderator's review in the review pool
         pool.moderator_reviews[msg.sender] = ModeratorReview({
             moderator: msg.sender,
             challenge_id: _challenge_id,
@@ -231,6 +259,62 @@ contract ChallengeManager {
         );
         console.log("- Suggested category: %s", uint((_suggested_category)));
         console.log("- Suggested solve time: %s", _suggested_solve_time);
+
+        // Automatically finalize the review pool if the number of reviews reaches the quorum
+        if (pool.review_count >= REVIEW_QUORUM) {
+            finalizeChallenge(_challenge_id, pool);
+        }
+    }
+
+    function finalizeChallenge(
+        uint256 _challenge_id,
+        ReviewPool storage _pool
+    ) internal {
+        // Check if the challenge is already finalized
+        require(!_pool.is_finalized, "Challenge already finalized");
+
+        // Calculate the average score from the moderator reviews
+        uint256 total_score = 0;
+        for (uint256 i = 0; i < _pool.moderator_list.length; i++) {
+            ModeratorReview storage review = _pool.moderator_reviews[
+                _pool.moderator_list[i]
+            ];
+            total_score +=
+                uint256(review.relevance) +
+                uint256(review.technical_correctness) +
+                uint256(review.completeness) +
+                uint256(review.clarity) +
+                uint256(review.originality) +
+                uint256(review.unbiased) +
+                uint256(review.plagiarism_free);
+        }
+        uint256 average_score = (total_score * 100) / (NUMBER_OF_QUALITY_FACTORS * _pool.review_count);
+        console.log(
+            "Average score for challenge #%s: %s",
+            _challenge_id,
+            average_score
+        );
+
+        // Update the challenge status based on the average score
+        if (average_score >= REVIEW_THRESHOLD) {
+            challenges[_challenge_id].status = ChallengeStatus.APPROVED;
+            pending_challenges--;
+        } else {
+            challenges[_challenge_id].status = ChallengeStatus.REJECTED;
+            pending_challenges--;
+        }
+
+        // Update the challenge quality score
+        challenges[_challenge_id].quality_score = average_score;
+
+        // Mark the review pool as finalized
+        _pool.is_finalized = true;
+
+        emit ChallengeFinalized(
+            _challenge_id,
+            challenges[_challenge_id].status,
+            challenges[_challenge_id].quality_score
+        );
     }
 
     // ================= GETTER METHODS =================
@@ -309,24 +393,6 @@ contract ChallengeManager {
             challenge_id
         );
         return review_pool[challenge_id].moderator_reviews[_moderator_address];
-    }
-
-    /**
-     * @notice Returns the review submitted by the caller for a given challenge
-     * @param _challenge_id The ID of the challenge to fetch the review for
-     * @return The ModeratorReview struct for the caller
-     */
-    function getMyModeratorReview(uint256 _challenge_id) public view returns (ModeratorReview memory) {
-        require(
-            review_pool[_challenge_id].moderator_to_join_status[msg.sender],
-            "You have not joined this review pool."
-        );
-        console.log(
-            "User %s had fetched own review of challenge #%s",
-            msg.sender,
-            _challenge_id
-        );
-        return review_pool[_challenge_id].moderator_reviews[msg.sender];
     }
 
     function getChallengeById(

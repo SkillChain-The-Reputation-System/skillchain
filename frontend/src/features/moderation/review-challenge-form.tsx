@@ -48,11 +48,11 @@ import {
 import { Calendar, Clock, Loader2, Users } from "lucide-react";
 import {
   getChallengeById,
-  getMyModeratorReview,
+  getModeratorReviewOfChallenge,
 } from "@/lib/fetching-onchain-data-utils";
 import { epochToDateString } from "@/lib/time-utils";
 import { quality_factors_questions } from "@/constants/data";
-import { updateModeratorReview } from "@/lib/write-onchain-utils";
+import { submitModeratorReview } from "@/lib/write-onchain-utils";
 
 // Schema for the review form
 const reviewChallengeSchema = z.object({
@@ -179,7 +179,7 @@ export function ReviewChallengeForm({
   useEffect(() => {
     async function fetchReview() {
       if (!address) return;
-      const review = await getMyModeratorReview(
+      const review = await getModeratorReviewOfChallenge(
         challenge_id,
         address as `0x${string}`
       );
@@ -218,7 +218,7 @@ export function ReviewChallengeForm({
     setIsSubmitDisabled(true);
 
     try {
-      await updateModeratorReview(challenge_id, address as `0x${string}`, data);
+      await submitModeratorReview(challenge_id, address as `0x${string}`, data);
       toast.success("Review submitted successfully!");
       router.back(); // Go back to the previous page
     } catch (error) {

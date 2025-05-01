@@ -25,7 +25,7 @@ export async function waitForTransaction(txHash: `0x${string}`): Promise<void> {
 }
 
 
-export async function updateModeratorReview(
+export async function submitModeratorReview(
   challengeId: number,
   address: `0x${string}`,
   data: ModeratorReviewValues
@@ -33,7 +33,7 @@ export async function updateModeratorReview(
   const txHash = await writeContract(wagmiConfig, {
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
     abi: ContractConfig_ChallengeManager.abi,
-    functionName: "updateModeratorReview",
+    functionName: "submitModeratorReview",
     args: [
       challengeId,
       data.relevance,

@@ -61,57 +61,43 @@ const reviewChallengeSchema = z.object({
       required_error: "Answer is required",
       invalid_type_error: "Answer is required",
     })
-    .pipe(
-      z.nativeEnum(QualityFactorAnswer)
-    ),
+    .pipe(z.nativeEnum(QualityFactorAnswer)),
   correctness: z.coerce
     .number({
       required_error: "Answer is required",
       invalid_type_error: "Answer is required",
     })
-    .pipe(
-      z.nativeEnum(QualityFactorAnswer)
-    ),
+    .pipe(z.nativeEnum(QualityFactorAnswer)),
   completeness: z.coerce
     .number({
       required_error: "Answer is required",
       invalid_type_error: "Answer is required",
     })
-    .pipe(
-      z.nativeEnum(QualityFactorAnswer)
-    ),
+    .pipe(z.nativeEnum(QualityFactorAnswer)),
   clarity: z.coerce
     .number({
       required_error: "Answer is required",
       invalid_type_error: "Answer is required",
     })
-    .pipe(
-      z.nativeEnum(QualityFactorAnswer)
-    ),
+    .pipe(z.nativeEnum(QualityFactorAnswer)),
   originality: z.coerce
     .number({
       required_error: "Answer is required",
       invalid_type_error: "Answer is required",
     })
-    .pipe(
-      z.nativeEnum(QualityFactorAnswer)
-    ),
+    .pipe(z.nativeEnum(QualityFactorAnswer)),
   absenceBias: z.coerce
     .number({
       required_error: "Answer is required",
       invalid_type_error: "Answer is required",
     })
-    .pipe(
-      z.nativeEnum(QualityFactorAnswer)
-    ),
+    .pipe(z.nativeEnum(QualityFactorAnswer)),
   noPlagiarism: z.coerce
     .number({
       required_error: "Answer is required",
       invalid_type_error: "Answer is required",
     })
-    .pipe(
-      z.nativeEnum(QualityFactorAnswer)
-    ),
+    .pipe(z.nativeEnum(QualityFactorAnswer)),
 
   difficulty: z.coerce
     .number({
@@ -229,27 +215,26 @@ export function ReviewChallengeForm({
     : "N/A";
 
   return (
-    <div className="container space-y-8">
+    <div className="space-y-8">
       <Card>
-        <CardContent className="overflow-y-auto">
-          <CardHeader>
-            <div className="flex items-center justify-between mt-3.5">
-              <CardTitle className="text-2xl">{challenge?.title}</CardTitle>
-              <Badge
-                className={cn(
-                  "font-normal capitalize",
-                  statusStyles[challenge?.status as keyof typeof statusStyles]
-                )}
-              >
-                {
-                  ChallengeStatusLabels[
-                    challenge?.status as keyof typeof ChallengeStatusLabels
-                  ]
-                }
-              </Badge>
-            </div>
-          </CardHeader>
-
+        <CardHeader>
+          <div className="flex items-center justify-between mt-3.5">
+            <CardTitle className="text-2xl">{challenge?.title}</CardTitle>
+            <Badge
+              className={cn(
+                "font-normal capitalize",
+                statusStyles[challenge?.status as keyof typeof statusStyles]
+              )}
+            >
+              {
+                ChallengeStatusLabels[
+                  challenge?.status as keyof typeof ChallengeStatusLabels
+                ]
+              }
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="overflow-auto">
           <div className="grid grid-cols-2 gap-4 py-4">
             <div className="flex flex-col gap-1">
               <span className="text-sm font-medium text-muted-foreground">
@@ -325,7 +310,9 @@ export function ReviewChallengeForm({
                 name={q.name as keyof ReviewFormValues}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{index+1}. {q.label}</FormLabel>
+                    <FormLabel>
+                      {index + 1}. {q.label}
+                    </FormLabel>
                     <FormDescription>{q.description}</FormDescription>
                     <FormControl>
                       <RadioGroup

@@ -16,7 +16,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -28,24 +27,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
+import { ChallengeContent } from "@/components/challenge-content";
 
 // Import utils
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import { ChallengeInterface } from "@/lib/interfaces";
-import { cn } from "@/lib/utils";
-import { statusStyles } from "@/constants/styles";
-import {
+import { 
   ChallengeDifficultyLevel,
-  ChallengeStatusLabels,
   Domain,
   DomainLabels,
   QualityFactorAnswer,
 } from "@/constants/system";
-import { Calendar, Clock, Loader2, ShieldUser, Users } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import {
   getChallengeById,
   getChallengeFinalizedStatus,
@@ -53,7 +48,6 @@ import {
   getReviewPoolSize,
   getReviewQuorum,
 } from "@/lib/fetching-onchain-data-utils";
-import { epochToDateString } from "@/lib/time-utils";
 import { quality_factors_questions } from "@/constants/data";
 import { submitModeratorReview } from "@/lib/write-onchain-utils";
 
@@ -143,8 +137,6 @@ export function ReviewChallengeForm({
   const router = useRouter();
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [poolSize, setPoolSize] = useState<number | null>(null);
-  const [quorum, setQuorum] = useState<number | null>(null);
   const [isChallengeFinalized, setIsChallengeFinalized] = useState(false);
   const { data: hash, isPending } = useWriteContract();
 
@@ -228,8 +220,6 @@ export function ReviewChallengeForm({
             getReviewQuorum(),
             getChallengeFinalizedStatus(Number(challenge_id))
           ]);
-          setPoolSize(size);
-          setQuorum(q);
           setIsChallengeFinalized(is_finalized);
         } catch (error) {
           toast.error(`Error fetching review pool info: ${error}`);
@@ -251,10 +241,6 @@ export function ReviewChallengeForm({
     setIsSubmitDisabled(false);
   }
 
-  const createdOnDate = challenge?.contributeAt
-    ? epochToDateString(challenge.contributeAt)
-    : "N/A";
-
   return (
     <div>
       {isLoading ? (
@@ -263,103 +249,10 @@ export function ReviewChallengeForm({
         </div>
       ) : (
         <div className="space-y-8">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between mt-3.5">
-                <CardTitle className="text-2xl">{challenge?.title}</CardTitle>
-                <Badge
-                  className={cn(
-                    "font-normal capitalize",
-                    statusStyles[challenge?.status as keyof typeof statusStyles]
-                  )}
-                >
-                  {
-                    ChallengeStatusLabels[
-                      challenge?.status as keyof typeof ChallengeStatusLabels
-                    ]
-                  }
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="overflow-auto">
-              <div className="grid grid-cols-2 gap-4 py-4">
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Category
-                  </span>
-                  <Badge variant="outline" className="w-fit">
-                    {DomainLabels[challenge?.category as Domain]}
-                  </Badge>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Contribution fee
-                  </span>
-                  <span>0 ETHs</span>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Created On
-                  </span>
-                  <div className="flex items-center">
-                    <Calendar className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                    <span>{createdOnDate}</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Expected verification date
-                  </span>
-                  <div className="flex items-center">
-                    <Clock className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                    <span>Feb 31, 2077</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Participants
-                  </span>
-                  <div className="flex items-center">
-                    <Users className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                    <span>0 enrolled</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Moderators
-                  </span>
-                  <div className="flex items-center">
-                    <ShieldUser className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                    <span>
-                      {poolSize !== null && quorum !== null
-                        ? `${poolSize} / ${quorum} joined`
-                        : "Loading..."}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {challenge?.description && (
-                <>
-                  <Separator />
-                  <div className="py-4">
-                    <h3 className="font-medium mb-2">Challenge Details</h3>
-                    <div
-                      className="text-sm text-muted-foreground"
-                      dangerouslySetInnerHTML={{
-                        __html: challenge.description,
-                      }}
-                    ></div>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
+          <ChallengeContent
+            challenge={challenge}
+            reload={isPending}
+          />
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">

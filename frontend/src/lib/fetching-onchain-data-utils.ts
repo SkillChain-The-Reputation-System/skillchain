@@ -99,6 +99,9 @@ export const fetchJoinedReviewPoolChallenges = async (
         category: challenge.category.toString(),
         contributeAt: challenge.contribute_at,
         status: challenge.status,
+        qualityScore: challenge.quality_score,
+        difficultyLevel: challenge.difficulty_level,
+        solveTime: challenge.solve_time,
       };
     })
   );
@@ -129,6 +132,9 @@ export const getChallengeById = async (
     category: challenge.category.toString(),
     contributeAt: challenge.contribute_at,
     status: challenge.status,
+    qualityScore: challenge.quality_score,
+    difficultyLevel: challenge.difficulty_level,
+    solveTime: challenge.solve_time,
   };
 };
 
@@ -203,4 +209,72 @@ export const getChallengeFinalizedStatus = async (
     args: [challenge_id],
   })) as boolean;
   return is_finalized;
-}
+};
+
+export const fetchContributedChallenges = async (
+  address: `0x${string}`
+): Promise<ChallengeInterface[]> => {
+  const challenges = await readContract(wagmiConfig, {
+    address: ContractConfig_ChallengeManager.address as `0x${string}`,
+    abi: ContractConfig_ChallengeManager.abi,
+    functionName: "getChallengesByContributor",
+    args: [address],
+  });
+
+  const challengesWithMeaningfulData = await Promise.all(
+    (challenges as any[]).map(async (challenge) => {
+      const title = await fetchStringDataOffChain(challenge.title_url);
+      const description = await fetchStringDataOffChain(
+        challenge.description_url
+      );
+
+      return {
+        id: challenge.id.toString(),
+        contributor: challenge.contributor,
+        title,
+        description,
+        category: challenge.category.toString(),
+        contributeAt: challenge.contribute_at,
+        status: challenge.status,
+        qualityScore: challenge.quality_score,
+        difficultyLevel: challenge.difficulty_level,
+        solveTime: challenge.solve_time,
+      };
+    })
+  );
+
+  return challengesWithMeaningfulData;
+};
+
+export const fetchPendingChallenges = async (): Promise<ChallengeInterface[]> => {
+  const pendingChallenges = await readContract(wagmiConfig, {
+    address: ContractConfig_ChallengeManager.address as `0x${string}`,
+    abi: ContractConfig_ChallengeManager.abi,
+    functionName: "getPendingChallenges",
+    args: [],
+  });
+
+  const meaningPendingChallenges = await Promise.all(
+    (pendingChallenges as any[]).map(async (challenge) => {
+      const title = await fetchStringDataOffChain(challenge.title_url);
+      const description = await fetchStringDataOffChain(
+        challenge.description_url
+      );
+
+      return {
+        id: challenge.id.toString(),
+        contributor: challenge.contributor,
+        title,
+        description,
+        category: challenge.category.toString(),
+        contributeAt: challenge.contribute_at,
+        status: challenge.status,
+        qualityScore: challenge.quality_score,
+        difficultyLevel: challenge.difficulty_level,
+        solveTime: challenge.solve_time,
+      };
+    })
+  );
+
+  return meaningPendingChallenges;
+};

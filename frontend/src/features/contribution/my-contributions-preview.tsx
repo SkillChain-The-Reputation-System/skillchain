@@ -11,7 +11,7 @@ import { EmptyChallenge } from "./empty-challenge";
 
 // Import utils
 import { ChallengeInterface } from "@/lib/interfaces";
-import { fetchContributedChallenges } from "@/lib/fetching-onchain-challenge";
+import { fetchContributedChallenges } from "@/lib/fetching-onchain-data-utils";
 import { redirect } from "next/navigation";
 
 export function MyContributionsPreview() {

@@ -20,6 +20,9 @@ export interface ChallengeInterface {
     category: string | Domain;
     contributeAt: number;
     status: string | ChallengeStatus;
+    qualityScore: number;
+    difficultyLevel: ChallengeDifficultyLevel;
+    solveTime: number;
 }
 
 export interface GetCurrentTimeResponse {

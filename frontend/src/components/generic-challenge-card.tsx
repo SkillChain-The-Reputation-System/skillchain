@@ -210,16 +210,6 @@ export function GenericChallengeCard({
 
             <div className="flex flex-col gap-1">
               <span className="text-sm font-medium text-muted-foreground">
-                Expected verification date
-              </span>
-              <div className="flex items-center">
-                <Clock className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                <span>Feb 31, 2077</span>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-muted-foreground">
                 Participants
               </span>
               <div className="flex items-center">
@@ -238,6 +228,17 @@ export function GenericChallengeCard({
                   {poolSize !== null && quorum !== null
                     ? `${poolSize} / ${quorum} joined`
                     : "Loading..."}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-muted-foreground">
+                Quality Score
+              </span>
+              <div className="flex items-center">
+                <span>
+                  {challenge.qualityScore}
                 </span>
               </div>
             </div>

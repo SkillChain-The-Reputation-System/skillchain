@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAccount } from "wagmi";
-import { fetchPendingChallenges } from "@/lib/fetching-onchain-challenge";
+import { fetchPendingChallenges } from "@/lib/fetching-onchain-data-utils";
 import { ChallengeInterface } from "@/lib/interfaces";
 import { toast } from "react-toastify";
 import { joinReviewPool, waitForTransaction } from "@/lib/write-onchain-utils";

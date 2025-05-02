@@ -4,6 +4,13 @@ import "hardhat/console.sol";
 
 // TODO: Think about store participants, voting mechanics, linking solutions, fee... | Moderation: verify challenge and upload to Explore
 contract ChallengeManager {
+    // ================= CONSTANTS =================
+    uint256 public constant REVIEW_QUORUM = 3; // The number of moderators needed to start a finalizing process
+    uint256 public constant REVIEW_THRESHOLD = 80; // The threshold of quality score for a challenge to be approved
+    uint256 public constant NUMBER_OF_QUALITY_FACTORS = 7; // The number of quality factors used in the review process
+    uint256 public constant MAX_DOMAIN = 14; // Maximum number of domains
+    uint256 public constant MAX_DIFFICULTY_LEVEL = 3; // Maximum number of difficulty levels
+
     // ================= ENUMS =================
     enum ChallengeStatus {
         PENDING, // 0
@@ -79,6 +86,13 @@ contract ChallengeManager {
         mapping(address => bool) moderator_to_join_status;
     }
 
+    // Struct for aggregated metadata
+    struct AggregatedMeta {
+        uint256[MAX_DIFFICULTY_LEVEL] difficulty_weight;
+        uint256[MAX_DOMAIN] category_weight;
+        uint256 estimated_solve_time;
+    }
+
     // ================= STATE VARIABLES =================
     // Mapping: Challenge ID -> Challenge
     mapping(uint256 => Challenge) private challenges; // TODO: optizime storing challenges
@@ -88,12 +102,11 @@ contract ChallengeManager {
     mapping(address => uint256[]) private contributor_to_challenges;
     // Mapping: Moderator address -> Challenge IDs
     mapping(address => uint256[]) private moderator_to_challenges;
+    // Mapping: Challenge ID -> Aggregated metadata
+    mapping(uint256 => AggregatedMeta) private challenge_to_aggregated_meta;
 
     uint256 public total_challenges = 0;
     uint256 public pending_challenges = 0;
-    uint256 public constant REVIEW_QUORUM = 3; // The number of moderators needed to start a finalizing process
-    uint256 public constant REVIEW_THRESHOLD = 80; // The threshold of quality score for a challenge to be approved
-    uint256 public constant NUMBER_OF_QUALITY_FACTORS = 7; // The number of quality factors used in the review process
 
     // ================= EVENTS =================
     event ChallengeContributed(

@@ -4,7 +4,8 @@
   "description": "A Reputation System for Skill Assessment",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy:local": "hardhat run scripts/deploy_and_copy.ts --network localhost"
   },
   "repository": {
     "type": "git",

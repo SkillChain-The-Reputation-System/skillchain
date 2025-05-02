@@ -1,39 +1,32 @@
 import { NavItem } from "types";
+import { pageUrlMapping } from "./navigation";
 
 //Info: The following data is used for the sidebar navigation and Cmd K bar.
 export const navItems: NavItem[] = [
   {
     title: "Dashboard",
-    url: "/dashboard/overview",
+    url: pageUrlMapping.dashboard,
     icon: "dashboard",
     isActive: false,
     shortcut: ["d", "d"],
-    items: [], // Empty array as there are no child items for Dashboard
-  },
-  {
-    title: "Product",
-    url: "/dashboard/product",
-    icon: "product",
-    shortcut: ["p", "p"],
-    isActive: false,
-    items: [], // No child items
+    items: [], 
   },
   {
     title: "Account",
-    url: "/dashboard/account",
+    url: pageUrlMapping.account,
     icon: "billing",
     isActive: true,
 
     items: [
       {
         title: "Profile",
-        url: "/dashboard/account/profile",
+        url: pageUrlMapping.account_profile,
         icon: "userPen",
         shortcut: ["m", "m"],
       },
       {
         title: "Settings",
-        url: "/dashboard/account/settings",
+        url: pageUrlMapping.account_settings,
         icon: "userPen",
         shortcut: ["m", "m"],
       },
@@ -41,52 +34,40 @@ export const navItems: NavItem[] = [
   },
   {
     title: "Moderation",
-    url: "/dashboard/moderate",
+    url: pageUrlMapping.moderation,
     icon: "ShieldUser",
     isActive: true,
     items: [
       {
-        title: "Summary",
-        url: "/dashboard/moderation/summary",
-        icon: "userPen",
-        shortcut: ["m", "m"],
-      },
-      {
         title: "Pending Challenges",
-        url: "/dashboard/moderation/pending-challenges",
+        url: pageUrlMapping.moderation_pendingchallenges,
         icon: "userPen",
         shortcut: ["m", "m"],
       },
       {
-        title: "Review Challenges",
-        url: "/dashboard/moderation/review-challenges",
+        title: "My Reviews",
+        url: pageUrlMapping.moderation_reviewchallenges,
         icon: "userPen",
         shortcut: ["m", "m"],
-      },
-      {
-        title: "Settings",
-        url: "/dashboard/moderation/settings",
-        icon: "userPen",
-        shortcut: ["m", "m"],
-      },
+      }
     ],
   },
 
   {
     title: "Contribution",
-    url: "/dashboard/contribution",
+    url: pageUrlMapping.contribution,
     icon: "contribution",
     isActive: false,
     items: [
       {
         title: "Contribute",
-        url: "/dashboard/contribution/contribute",
+        url: pageUrlMapping.contribution_contribute,
         icon: "userPen",
         shortcut: ["m", "m"],
       },
       {
         title: "My Contributions",
-        url: "/dashboard/contribution/my-contributions",
+        url: pageUrlMapping.contribution_my_contributions,
         icon: "userPen",
         shortcut: ["m", "m"],
       },
@@ -94,19 +75,19 @@ export const navItems: NavItem[] = [
   },
   {
     title: "Participation",
-    url: "/dashboard/participation",
+    url: pageUrlMapping.participation,
     icon: "participation",
     isActive: false,
     items: [
       {
         title: "Explore",
-        url: "/dashboard/participation/explore",
+        url: pageUrlMapping.participation_explore,
         icon: "userPen",
         shortcut: ["m", "m"],
       },
       {
         title: "My Participation",
-        url: "/dashboard/participation/my-participation",
+        url: pageUrlMapping.participation_my_participation,
         icon: "userPen",
         shortcut: ["m", "m"],
       },

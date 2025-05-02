@@ -1,10 +1,18 @@
 export const pageUrlMapping = {
     home: "/",
     dashboard: "/dashboard",
+    account: "/dashboard/account",
     account_profile: "/dashboard/account/profile",
     account_settings: "/dashboard/account/settings",
+    contribution: "/dashboard/contribution",
+    contribution_contribute: "/dashboard/contribution/contribute",
+    contribution_my_contributions: "/dashboard/contribution/my-contributions",
+    moderation: "/dashboard/moderate",
     moderation_summary: "/dashboard/moderation/summary",
     moderation_pendingchallenges: "/dashboard/moderation/pending-challenges",
     moderation_reviewchallenges: "/dashboard/moderation/review-challenges",
-    moderation_settings: "/dashboard/moderation/settings"
+    moderation_settings: "/dashboard/moderation/settings",
+    participation: "/dashboard/participation",
+    participation_explore: "/dashboard/participation/explore",
+    participation_my_participation: "/dashboard/participation/my-participation",
 }

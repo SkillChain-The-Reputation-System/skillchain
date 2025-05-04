@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wdth,wght@112.5,200..900&display=swap');
 @import 'tailwindcss';
 
 @plugin 'tailwindcss-animate';
@@ -107,6 +108,7 @@
   If we ever want to remove these styles, we need to add an explicit border
   color utility to any element that depends on these defaults.
 */
+
 @layer base {
 
   *,
@@ -260,27 +262,90 @@
     @apply bg-background text-foreground;
   }
 
-  h1 {
-    @apply text-2xl font-bold;
+  .editor {
+    h1 {
+      @apply text-2xl font-bold mb-2;
+    }
+
+    h2 {
+      @apply text-xl font-bold mb-2;
+    }
+
+    h3 {
+      @apply text-lg font-bold mb-2;
+    }
+
+    p {
+      margin-bottom: 0.5rem;
+    }
+
+    p.is-editor-empty:first-child::before {
+      color: var(--color-gray-500);
+      content: attr(data-placeholder);
+      float: left;
+      height: 0;
+      pointer-events: none;
+    }
+
+    a {
+      color: var(--color-blue-700);
+      cursor: pointer;
+
+      &:hover {
+        color: var(--color-purple-800);
+      }
+    }
+
+    blockquote {
+      border-left: 3px solid var(--color-gray-500);
+      margin: 1.5rem 0;
+      padding-left: 1rem;
+    }
+
+    pre {
+      background-color: var(--color-gray-200);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      overflow-x: auto;
+      font-family: "Inconsolata", monospace;
+      margin: 1.5rem 0;
+      padding: 0.75rem 1rem;
+    }
+
+    pre code {
+      background-color: none;
+      color: inherit;
+      font-size: 0.9rem;
+      padding: 0;
+    }
+
+    img {
+      display: block;
+      height: auto;
+      margin: 1.5rem 0;
+      max-width: 250px;
+
+      &.ProseMirror-selectednode {
+        outline: 3px solid var(--purple);
+      }
+    }
   }
 
-  h2 {
-    @apply text-xl font-bold;
-  }
+  .dark .editor {
+    p.is-editor-empty:first-child::before {
+      color: var(--color-gray-400);
+    }
 
-  h3 {
-    @apply text-lg font-bold;
-  }
+    a {
+      color: var(--color-blue-400);
 
-  p.is-editor-empty:first-child::before {
-    color: var(--color-gray-700);
-    content: attr(data-placeholder);
-    float: left;
-    height: 0;
-    pointer-events: none;
-  }
+      &:hover {
+        color: var(--color-purple-500);
+      }
+    }
 
-  .dark p.is-editor-empty:first-child::before {
-    color: var(--color-gray-400);
+    pre {
+      background-color: var(--color-indigo-950);
+    }
   }
 }

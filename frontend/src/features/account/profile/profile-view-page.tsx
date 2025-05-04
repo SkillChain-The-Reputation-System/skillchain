@@ -2,7 +2,6 @@
 import { useAccount } from "wagmi";
 import GeneralInfo from "./general-info";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { fetchStringDataOffChain } from "@/lib/fetching-offchain-data-utils";
 import { fetchUserDataOnChain } from "@/lib/fetching-onchain-data-utils";
 import { toast } from "react-toastify";

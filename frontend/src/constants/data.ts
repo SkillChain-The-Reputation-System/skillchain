@@ -1,66 +1,108 @@
-import { NavItem } from 'types';
-
-export type Product = {
-  photo_url: string;
-  name: string;
-  description: string;
-  created_at: string;
-  price: number;
-  id: number;
-  category: string;
-  updated_at: string;
-};
+import { NavItem } from "types";
+import { pageUrlMapping } from "./navigation";
 
 //Info: The following data is used for the sidebar navigation and Cmd K bar.
 export const navItems: NavItem[] = [
   {
-    title: 'Dashboard',
-    url: '/dashboard/overview',
-    icon: 'dashboard',
+    title: "Dashboard",
+    url: pageUrlMapping.dashboard,
+    icon: "dashboard",
     isActive: false,
-    shortcut: ['d', 'd'],
-    items: [] // Empty array as there are no child items for Dashboard
+    shortcut: ["d", "d"],
+    items: [], 
   },
   {
-    title: 'Product',
-    url: '/dashboard/product',
-    icon: 'product',
-    shortcut: ['p', 'p'],
-    isActive: false,
-    items: [] // No child items
-  },
-  {
-    title: 'Account',
-    url: '/dashboard/account',
-    icon: 'billing',
+    title: "Account",
+    url: pageUrlMapping.account,
+    icon: "billing",
     isActive: true,
 
     items: [
       {
-        title: 'Profile',
-        url: '/dashboard/account/profile',
-        icon: 'userPen',
-        shortcut: ['m', 'm']
+        title: "Profile",
+        url: pageUrlMapping.account_profile,
+        icon: "userPen",
+        shortcut: ["m", "m"],
       },
       {
-        title: 'Settings',
-        url: '/dashboard/account/settings',
-        icon: 'userPen',
-        shortcut: ['m', 'm']
+        title: "Settings",
+        url: pageUrlMapping.account_settings,
+        icon: "userPen",
+        shortcut: ["m", "m"],
+      },
+    ],
+  },
+  {
+    title: "Moderation",
+    url: pageUrlMapping.moderation,
+    icon: "ShieldUser",
+    isActive: true,
+    items: [
+      {
+        title: "Pending Challenges",
+        url: pageUrlMapping.moderation_pendingchallenges,
+        icon: "userPen",
+        shortcut: ["m", "m"],
+      },
+      {
+        title: "My Reviews",
+        url: pageUrlMapping.moderation_reviewchallenges,
+        icon: "userPen",
+        shortcut: ["m", "m"],
       }
-    ]
+    ],
   },
 
+  {
+    title: "Contribution",
+    url: pageUrlMapping.contribution,
+    icon: "contribution",
+    isActive: false,
+    items: [
+      {
+        title: "Contribute",
+        url: pageUrlMapping.contribution_contribute,
+        icon: "userPen",
+        shortcut: ["m", "m"],
+      },
+      {
+        title: "My Contributions",
+        url: pageUrlMapping.contribution_my_contributions,
+        icon: "userPen",
+        shortcut: ["m", "m"],
+      },
+    ],
+  },
+  {
+    title: "Participation",
+    url: pageUrlMapping.participation,
+    icon: "participation",
+    isActive: false,
+    items: [
+      {
+        title: "Explore",
+        url: pageUrlMapping.participation_explore,
+        icon: "userPen",
+        shortcut: ["m", "m"],
+      },
+      {
+        title: "My Participation",
+        url: pageUrlMapping.participation_my_participation,
+        icon: "userPen",
+        shortcut: ["m", "m"],
+      },
+    ],
+  },
 ];
 
 export const sidebarNavItemsProfileSettings = [
   {
     title: "Profile",
-    href: "#"
+    href: "#",
   },
   {
     title: "Account",
-    href: "##"
+    href: "##",
   },
   // {
   //   title: "Appearance",
@@ -76,55 +118,40 @@ export const sidebarNavItemsProfileSettings = [
   // }
 ];
 
-
-export interface SaleUser {
-  id: number;
-  name: string;
-  email: string;
-  amount: string;
-  image: string;
-  initials: string;
-}
-
-export const recentSalesData: SaleUser[] = [
+export const quality_factors_questions = [
   {
-    id: 1,
-    name: 'Olivia Martin',
-    email: 'olivia.martin@email.com',
-    amount: '+$1,999.00',
-    image: 'https://api.slingacademy.com/public/sample-users/1.png',
-    initials: 'OM'
+    name: "relevance",
+    label: "Relevance to the registered domain",
+    description: "Does the challenge relate to the marked domain?",
   },
   {
-    id: 2,
-    name: 'Jackson Lee',
-    email: 'jackson.lee@email.com',
-    amount: '+$39.00',
-    image: 'https://api.slingacademy.com/public/sample-users/2.png',
-    initials: 'JL'
+    name: "technical_correctness",
+    label: "Correctness of technical content",
+    description: "Is the content technically accurate?",
   },
   {
-    id: 3,
-    name: 'Isabella Nguyen',
-    email: 'isabella.nguyen@email.com',
-    amount: '+$299.00',
-    image: 'https://api.slingacademy.com/public/sample-users/3.png',
-    initials: 'IN'
+    name: "completeness",
+    label: "Completeness of problem statement",
+    description: "Does it state problem, inputs, and outputs clearly?",
   },
   {
-    id: 4,
-    name: 'William Kim',
-    email: 'will@email.com',
-    amount: '+$99.00',
-    image: 'https://api.slingacademy.com/public/sample-users/4.png',
-    initials: 'WK'
+    name: "clarity",
+    label: "Clarity and language quality",
+    description: "Is the statement clear and unambiguous?",
   },
   {
-    id: 5,
-    name: 'Sofia Davis',
-    email: 'sofia.davis@email.com',
-    amount: '+$39.00',
-    image: 'https://api.slingacademy.com/public/sample-users/5.png',
-    initials: 'SD'
-  }
+    name: "originality",
+    label: "Originality and creativity",
+    description: "Does it introduce a new twist?",
+  },
+  {
+    name: "unbiased",
+    label: "Absence of bias or sensitive content",
+    description: "Is it free from inappropriate biases?",
+  },
+  {
+    name: "plagiarism_free",
+    label: "No plagiarism",
+    description: "Is the content original or properly cited?",
+  },
 ];

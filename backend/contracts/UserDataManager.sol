@@ -7,8 +7,8 @@ contract UserDataManager {
     // Struct to hold user data
     struct User {
         string username;
-        string cid_avatar;
-        string bio;
+        string avartar_url;
+        string bio_url;
     }
 
     // Mapping to store user data by their wallet address
@@ -18,56 +18,56 @@ contract UserDataManager {
 
     // Events for user management activities
     event UsernameUpdated(address indexed user_address, string username);
-    event AvatarUpdated(address indexed user_address, string cid_avatar);
-    event BioUpdated(address indexed user_address, string bio);
+    event AvatarUpdated(address indexed user_address, string avatar_url);
+    event BioUpdated(address indexed user_address, string bio_url);
     event NoDataUpdated(address indexed user_address);
 
     // Set all user data at once
     function setUserPersonalData(
         string calldata _username,
-        string calldata _cid_avatar,
-        string calldata _bio
+        string calldata _avatar_url,
+        string calldata _bio_url
     ) external {
         bool is_username_requested_not_empty = bytes(_username).length > 0;
         bool is_username_available = checkUsernameAvailable(_username);
-        bool is_avartar_cid_not_empty = bytes(_cid_avatar).length > 0;
-        bool is_bio_not_empty = bytes(_bio).length > 0;
+        bool is_avartar_url_not_empty = bytes(_avatar_url).length > 0;
+        bool is_bio_url_not_empty = bytes(_bio_url).length > 0;
         // Check if new data is not the same as existing data
         bool is_username_not_duplicated = !Strings.equal(
             users[msg.sender].username,
             _username
         );
-        bool is_avatar_cid_not_duplicated = !Strings.equal(
-            users[msg.sender].cid_avatar,
-            _cid_avatar
+        bool is_avatar_url_not_duplicated = !Strings.equal(
+            users[msg.sender].avartar_url,
+            _avatar_url
         );
-        bool is_bio_not_duplicated = !Strings.equal(
-            users[msg.sender].bio,
-            _bio
+        bool is_bio_url_not_duplicated = !Strings.equal(
+            users[msg.sender].bio_url,
+            _bio_url
         );
 
         console.log("Input data");
         console.log("username: %s", _username);
-        console.log("avatar CID: %s", _cid_avatar);
-        console.log("bio: %s", _bio);
+        console.log("avatar CID: %s", _avatar_url);
+        console.log("bio: %s", _bio_url);
 
         console.log("is_username_requested_not_empty: %s", is_username_requested_not_empty);
         console.log("is_username_available: %s", is_username_available);
-        console.log("is_avartar_cid_not_empty: %s", is_avartar_cid_not_empty);
-        console.log("is_bio_not_empty: %s", is_bio_not_empty);
+        console.log("is_avartar_cid_not_empty: %s", is_avartar_url_not_empty);
+        console.log("is_bio_not_empty: %s", is_bio_url_not_empty);
         console.log("is_username_not_duplicated: %s", is_username_not_duplicated);
-        console.log("is_avatar_cid_not_duplicated: %s", is_avatar_cid_not_duplicated);
-        console.log("is_bio_not_duplicated: %s", is_bio_not_duplicated);
+        console.log("is_avatar_url_not_duplicated: %s", is_avatar_url_not_duplicated);
+        console.log("is_bio_url_not_duplicated: %s", is_bio_url_not_duplicated);
 
         // If all conditions are not met, revert the transaction since no update is needed
         if (
             !is_username_requested_not_empty &&
             !is_username_available &&
-            !is_avartar_cid_not_empty &&
-            !is_bio_not_empty &&
+            !is_avartar_url_not_empty &&
+            !is_bio_url_not_empty &&
             !is_username_not_duplicated &&
-            !is_avatar_cid_not_duplicated &&
-            !is_bio_not_duplicated
+            !is_avatar_url_not_duplicated &&
+            !is_bio_url_not_duplicated
         ) {
             // Emit an event for no data update
             emit NoDataUpdated(msg.sender);
@@ -87,23 +87,23 @@ contract UserDataManager {
         }
 
         // Update avatar CID only if it is not empty and is not duplicated
-        if (is_avartar_cid_not_empty && is_avatar_cid_not_duplicated) {
+        if (is_avartar_url_not_empty && is_avatar_url_not_duplicated) {
             // console.log(
             //     "[Contract_Log] Client (%s) Updating avatar CID to: %s",
             //     msg.sender,
             //     _cid_avatar
             // );
-            setAvatar(_cid_avatar);
+            setAvatar(_avatar_url);
         }
 
         // Update bio only if it is not empty and is not duplicated
-        if (is_bio_not_empty && is_bio_not_duplicated) {
+        if (is_bio_url_not_empty && is_bio_url_not_duplicated) {
             // console.log(
             //     "[Contract_Log] Client (%s) Updating bio to: %s",
             //     msg.sender,
             //     _bio
             // );
-            setBio(_bio);
+            setBio(_bio_url);
         }
     }
 
@@ -127,28 +127,28 @@ contract UserDataManager {
         emit UsernameUpdated(msg.sender, users[msg.sender].username);
     }
 
-    function setAvatar(string calldata _cid_avatar) public {
+    function setAvatar(string calldata _avatar_url) public {
         // // Ensure the avatar CID is not empty
         // require(bytes(_cid_avatar).length > 0, "Avatar CID cannot be empty");
 
         // Update the avatar CID in the mapping
-        users[msg.sender].cid_avatar = _cid_avatar;
+        users[msg.sender].avartar_url = _avatar_url;
 
         // Emit an event for the avatar update
-        console.log("Avatar of (%s) updated to: %s", msg.sender, users[msg.sender].cid_avatar);
-        emit AvatarUpdated(msg.sender, _cid_avatar);
+        console.log("Avatar of (%s) updated to: %s", msg.sender, users[msg.sender].avartar_url);
+        emit AvatarUpdated(msg.sender, _avatar_url);
     }
 
-    function setBio(string calldata _bio) public {
+    function setBio(string calldata _bio_url) public {
         // // Ensure the bio is not empty
         // require(bytes(_bio).length > 0, "Bio cannot be empty");
 
         // Update the bio in the mapping
-        users[msg.sender].bio = _bio;
+        users[msg.sender].bio_url = _bio_url;
 
         // Emit an event for the bio update
-        console.log("Bio of (%s) updated to: %s", msg.sender, users[msg.sender].bio);
-        emit BioUpdated(msg.sender, _bio);
+        console.log("Bio of (%s) updated to: %s", msg.sender, users[msg.sender].bio_url);
+        emit BioUpdated(msg.sender, _bio_url);
     }
 
     // Get username
@@ -163,14 +163,14 @@ contract UserDataManager {
     function getAvatar(
         address user_address
     ) public view returns (string memory) {
-        console.log("Avatar of (%s) is: %s", user_address, users[user_address].cid_avatar);
-        return users[user_address].cid_avatar;
+        console.log("Avatar of (%s) is: %s", user_address, users[user_address].avartar_url);
+        return users[user_address].avartar_url;
     }
 
     // Get bio
     function getBio(address user_address) public view returns (string memory) {
-        console.log("Bio of (%s) is: %s", user_address, users[user_address].bio);
-        return users[user_address].bio;
+        console.log("Bio of (%s) is: %s", user_address, users[user_address].bio_url);
+        return users[user_address].bio_url;
     }
 
     // Check if a username is available

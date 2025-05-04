@@ -1,6 +1,8 @@
 import {
   AlertTriangle,
   ArrowRight,
+  BookOpenText,
+  BookPlus,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -23,6 +25,7 @@ import {
   Pizza,
   Plus,
   Settings,
+  ShieldUser,
   SunMedium,
   Trash,
   Twitter,
@@ -45,6 +48,8 @@ export const Icons = {
   kanban: CircuitBoardIcon,
   chevronLeft: ChevronLeft,
   chevronRight: ChevronRight,
+  participation: BookOpenText,
+  contribution: BookPlus,
   trash: Trash,
   employee: UserX2Icon,
   post: FileText,
@@ -81,6 +86,6 @@ export const Icons = {
       ></path>
     </svg>
   ),
-  twitter: Twitter,
-  check: Check
+  check: Check,
+  ShieldUser: ShieldUser,
 };

@@ -43,7 +43,7 @@ export default function AppSidebar() {
   const { toggleSidebar } = useSidebar();
 
   return (
-    <Sidebar collapsible="icon" onDoubleClick={toggleSidebar}>
+    <Sidebar collapsible="icon" onDoubleClick={toggleSidebar} className="select-none">
       <SidebarHeader>
         <div className="text-sidebar-accent-foreground flex gap-2 py-2">
           <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">

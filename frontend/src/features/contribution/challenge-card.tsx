@@ -12,5 +12,5 @@ interface ChallengeCardProps {
 
 export function ChallengeCard({ challenge }: ChallengeCardProps) {
   // Render using generic card with no primary action
-  return <GenericChallengeCard challenge={challenge} primaryButton={null} />
+  return <GenericChallengeCard challenge={challenge} primaryButton={null} showContributor={false} />
 }

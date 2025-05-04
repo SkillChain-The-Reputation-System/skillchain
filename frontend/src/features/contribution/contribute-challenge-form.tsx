@@ -36,6 +36,7 @@ import {
 import axios from "axios";
 import { toast } from "react-toastify";
 import { DomainLabels, Domain } from "@/constants/system";
+
 // Import contracts config
 import { ContractConfig_ChallengeManager } from "@/constants/contracts-config";
 
@@ -47,7 +48,7 @@ const contributeChallengeSchema = z.object({
     .max(100, "Title must be less than 100 characters"),
   description: z
     .string()
-    .min(10, "Description must be at least 10 characters")
+    .min(18, "Description must be at least 10 characters")
     .max(4000, "Description must be less than 4000 characters"),
   category: z.coerce.number().pipe(
     z.nativeEnum(Domain, {
@@ -131,16 +132,16 @@ export function ContributeChallengeForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-8"
+        className="w-full max-w-4xl self-center space-y-8"
       >
         <FormField
           control={form.control}
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Title</FormLabel>
+              <FormLabel className="text-lg font-bold">Title</FormLabel>
               <FormControl>
-                <Input placeholder="Enter challenge title" {...field} />
+                <Input placeholder="Enter challenge title" {...field} className="border-black dark:border-white border-1 h-10 !text-[15px]" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -152,7 +153,7 @@ export function ContributeChallengeForm() {
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel className="text-lg font-bold">Description</FormLabel>
               <FormControl>
                 <RichTextEditor
                   value={field.value}
@@ -170,14 +171,14 @@ export function ContributeChallengeForm() {
           name="category"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Category</FormLabel>
+              <FormLabel className="text-lg font-bold">Category</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={""}>
                 <FormControl>
-                  <SelectTrigger className="w-[300px]">
+                  <SelectTrigger className="w-[300px] border-black dark:border-white border-1 text-[15px]">
                     <SelectValue placeholder="Select category of your challenge" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent className="w-[300px]">
+                <SelectContent className="w-[300px] border-black dark:border-white border-1 text-[15px]">
                   {
                     // get the numeric enum members
                     (Object.values(Domain) as unknown as number[])

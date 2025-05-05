@@ -257,9 +257,7 @@ export const fetchPendingChallenges = async (): Promise<ChallengeInterface[]> =>
   const meaningPendingChallenges = await Promise.all(
     (pendingChallenges as any[]).map(async (challenge) => {
       const title = await fetchStringDataOffChain(challenge.title_url);
-      const description = await fetchStringDataOffChain(
-        challenge.description_url
-      );
+      const description = await fetchStringDataOffChain(challenge.description_url);
 
       return {
         id: challenge.id.toString(),
@@ -277,4 +275,35 @@ export const fetchPendingChallenges = async (): Promise<ChallengeInterface[]> =>
   );
 
   return meaningPendingChallenges;
+};
+
+export const fetchApprovedChallenges = async (): Promise<ChallengeInterface[]> => {
+  const approvedChallenges = await readContract(wagmiConfig, {
+    address: ContractConfig_ChallengeManager.address as `0x${string}`,
+    abi: ContractConfig_ChallengeManager.abi,
+    functionName: "getApprovedChallenges",
+    args: [],
+  });
+
+  const meaningApprovedChallenges = await Promise.all(
+    (approvedChallenges as any[]).map(async (challenge) => {
+      const title = await fetchStringDataOffChain(challenge.title_url);
+      const description = await fetchStringDataOffChain(challenge.description_url);
+
+      return {
+        id: challenge.id.toString(),
+        contributor: challenge.contributor,
+        title,
+        description,
+        category: challenge.category.toString(),
+        contributeAt: challenge.contribute_at,
+        status: challenge.status,
+        qualityScore: challenge.quality_score,
+        difficultyLevel: challenge.difficulty_level,
+        solveTime: challenge.solve_time,
+      };
+    })
+  );
+
+  return meaningApprovedChallenges;
 };

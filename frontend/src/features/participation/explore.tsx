@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import SearchBar from "./search-bar"
 import { ExploreChallengeCard } from "./explore-challenge-card";
 import { EmptyChallenge } from "./empty-challenge";
+import { ExploreSkeleton } from "./explore-skeleton";
 import { fetchApprovedChallenges } from "@/lib/fetching-onchain-data-utils"
 import { Button } from "@/components/ui/button";
 import { ChallengeInterface } from "@/lib/interfaces";
@@ -92,12 +93,14 @@ export default function Explore() {
 
       {
         isLoading ? (
-          <p>
-            Loading...
-          </p>
+          <div className="grid grid-cols-4 gap-4 w-full max-w-6xl mx-auto">
+            {[...Array(8)].map((_, index) => (
+              <ExploreSkeleton key={index} />
+            ))}
+          </div>
         ) : challenges.length > 0 ? (
           searchedChallenges.length > 0 ? (
-            <div className="grid grid-cols-4 gap-5 w-full max-w-6xl mx-auto">
+            <div className="grid grid-cols-4 gap-4 w-full max-w-6xl mx-auto">
               {searchedChallenges.map((challenge, index) => (
                 <ExploreChallengeCard key={index} challenge={challenge} />
               ))}

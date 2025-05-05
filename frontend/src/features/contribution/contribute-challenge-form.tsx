@@ -49,7 +49,7 @@ const contributeChallengeSchema = z.object({
   description: z
     .string()
     .min(18, "Description must be at least 10 characters")
-    .max(4000, "Description must be less than 4000 characters"),
+    .max(10000, "Description must be less than 4000 characters"),
   category: z.coerce.number().pipe(
     z.nativeEnum(Domain, {
       errorMap: () => ({ message: "Category is required" }),

@@ -13,6 +13,9 @@ import Placeholder from '@tiptap/extension-placeholder'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
+import { Mathematics } from '@tiptap-pro/extension-mathematics'
+
+import 'katex/dist/katex.min.css'
 
 interface RichTextEditorProps {
   value: string,
@@ -23,6 +26,7 @@ interface RichTextEditorProps {
 export default function RichTextEditor({ value, onChange, placeholder = "Write something..." }: RichTextEditorProps) {
   const editor = useEditor(
     {
+      shouldRerenderOnTransaction: true,
       extensions: [
         StarterKit.configure(
           {
@@ -107,7 +111,8 @@ export default function RichTextEditor({ value, onChange, placeholder = "Write s
         Placeholder.configure({
           placeholder: placeholder,
         }),
-        Image
+        Image,
+        Mathematics
       ],
       content: value,
       editorProps: {

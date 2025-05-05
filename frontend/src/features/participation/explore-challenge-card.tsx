@@ -1,5 +1,3 @@
-import { toast } from "react-toastify";
-
 import {
   Card,
   CardContent,
@@ -32,7 +30,7 @@ export function ExploreChallengeCard({ challenge }: ExploreChallengeCardProps) {
 
   return (
     <>
-      <Card className="w-full h-full group gap-2 overflow-hidden bg-blue-100 dark:bg-blue-950/60 transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-lg dark:hover:shadow-blue-900/20 border-transparent hover:border-blue-300 dark:hover:border-blue-700">
+      <Card className="w-full h-full group gap-2 overflow-hidden bg-blue-100 dark:bg-blue-950/60 transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-lg dark:hover:shadow-blue-900/20 border-transparent hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer">
         <CardHeader>
           <div className="flex justify-between items-start">
             <CardTitle className="text-sm font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
@@ -41,7 +39,7 @@ export function ExploreChallengeCard({ challenge }: ExploreChallengeCardProps) {
           </div>
 
           <div
-            className="line-clamp-2 mt-1 text-muted-foreground text-xs font-light"
+            className="line-clamp-2 mt-1 text-muted-foreground text-xs font-light disable-click-links"
             dangerouslySetInnerHTML={{ __html: challenge.description || "" }}
           />
         </CardHeader>
@@ -50,12 +48,7 @@ export function ExploreChallengeCard({ challenge }: ExploreChallengeCardProps) {
           <div className="flex items-center gap-1">
             <UserRoundPen className="h-full max-h-3.5 w-full max-w-3.5" />
             <span>By:</span>
-            <span
-              className="ml-1 text-blue-600 hover:text-blue-600/80 dark:text-blue-400 dark:hover:text-blue-400/80 cursor-pointer break-all"
-              onClick={() =>
-                toast(`Redirect to user profile: ${challenge.contributor}`)
-              }
-            >
+            <span className="ml-1 text-indigo-800 dark:text-indigo-300 break-all">
               {challenge.contributor}
             </span>
           </div>

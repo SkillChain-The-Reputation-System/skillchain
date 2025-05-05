@@ -262,6 +262,12 @@
     @apply bg-background text-foreground;
   }
 
+  .disable-click-links a {
+    pointer-events: none;
+    text-decoration: none;
+    color: inherit;
+  }
+
   .editor {
     :first-child {
       margin-top: 0;

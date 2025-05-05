@@ -67,7 +67,7 @@ export function ExploreChallengeCard({ challenge }: ExploreChallengeCardProps) {
             </p>
           </div>
 
-          <Separator className="my-1 bg-black" />
+          <Separator className="my-1 bg-black dark:bg-slate-400" />
 
           <div className="flex items-center justify-between">
             <div className="flex items-center">

@@ -99,7 +99,7 @@ export default function Explore() {
           searchedChallenges.length > 0 ? (
             <div className="grid grid-cols-4 gap-5 w-full max-w-6xl mx-auto">
               {searchedChallenges.map((challenge, index) => (
-                <ExploreChallengeCard key={index} challenge={challenge} primaryButton={null} showModerators={false} allowShowDetailDialog={false} showStatus={false} />
+                <ExploreChallengeCard key={index} challenge={challenge} />
               ))}
             </div>
           ) : (

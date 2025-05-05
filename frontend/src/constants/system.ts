@@ -21,7 +21,7 @@ export enum ChallengeStatus {
   REJECTED = 2,
 }
 
-export enum QualityFactorAnswer  {
+export enum QualityFactorAnswer {
   NO = 0,
   YES = 1,
 }
@@ -30,6 +30,13 @@ export enum ChallengeDifficultyLevel {
   EASY = 0,
   MEDIUM = 1,
   HARD = 2,
+}
+
+export enum ChallengeSortOption {
+  NEWEST = 0,
+  QUALITY = 1,
+  VOTES = 2,
+  PARTICIPANTS = 3,
 }
 
 export const DomainLabels: Record<Domain, string> = {
@@ -65,4 +72,11 @@ export const ChallengeDifficultyLevelLabels: Record<ChallengeDifficultyLevel, st
   [ChallengeDifficultyLevel.EASY]: "Easy",
   [ChallengeDifficultyLevel.MEDIUM]: "Medium",
   [ChallengeDifficultyLevel.HARD]: "Hard",
+};
+
+export const ChallengeSortOptionLabels: Record<ChallengeSortOption, string> = {
+  [ChallengeSortOption.NEWEST]: "Newest First",
+  [ChallengeSortOption.QUALITY]: "Highest Quality",
+  [ChallengeSortOption.VOTES]: "Most Votes",
+  [ChallengeSortOption.PARTICIPANTS]: "Most Participants",
 };

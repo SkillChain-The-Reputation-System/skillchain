@@ -25,12 +25,24 @@ export interface ExploreChallengeCardProps {
   challenge: ChallengeInterface;
 }
 
+import { useRouter } from "next/navigation";
+import { pageUrlMapping } from "@/constants/navigation";
+
 export function ExploreChallengeCard({ challenge }: ExploreChallengeCardProps) {
   const formattedContributeDate = epochToDateString(challenge.contributeAt);
+  const router = useRouter();
+
+  const cardOnClick = () => {
+    router.push(
+      pageUrlMapping.participation_explore + `/${challenge.id}`
+    );
+  }
 
   return (
     <>
-      <Card className="w-full h-full group gap-2 overflow-hidden bg-blue-100 dark:bg-blue-950/60 transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-lg dark:hover:shadow-blue-900/20 border-transparent hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer">
+      <Card
+        className="w-full h-full group gap-2 overflow-hidden bg-blue-100 dark:bg-blue-950/60 transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-lg dark:hover:shadow-blue-900/20 border-transparent hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer select-none"
+        onClick={cardOnClick}>
         <CardHeader>
           <div className="flex justify-between items-start">
             <CardTitle className="text-sm font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">

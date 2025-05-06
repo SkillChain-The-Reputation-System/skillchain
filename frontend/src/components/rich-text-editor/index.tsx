@@ -117,12 +117,11 @@ export default function RichTextEditor({ value, onChange, placeholder = "Write s
       content: value,
       editorProps: {
         attributes: {
-          class: "min-h-[250px] border-black dark:border-white border-1 rounded-md bg-slate-50 py-2 px-3 dark:bg-blue-950/15"
+          class: "min-h-[250px] border-black dark:border-white border-1 rounded-md bg-slate-50 py-2 px-3 dark:bg-blue-950/15 break-all"
         }
       },
       onUpdate: ({ editor }) => {
         onChange(editor.getHTML());
-        console.log(editor.getHTML())
       },
     }
   )

@@ -10,7 +10,7 @@ export function epochToDateString(
   const date = new Date(Number(epochMs));
   const options: Intl.DateTimeFormatOptions = {
     year: "numeric",
-    month: "short",
+    month: "long",
     day: "numeric",
   };
   return date.toLocaleString(locale, options);

@@ -32,6 +32,7 @@ export default function Explore() {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
+    setCurrentPage(1);
   }
 
   const handleSort = (sort: ChallengeSortOption) => {
@@ -44,6 +45,7 @@ export default function Explore() {
     // difficulty: DifficultyFilter
   }) => {
     setDomainFilter(filters.domain);
+    setCurrentPage(1);
   }
 
   const handlePageChange = (page: number) => {
@@ -66,7 +68,7 @@ export default function Explore() {
     const params = new URLSearchParams();
 
     if (searchQuery)
-      params.set("search", searchQuery);
+      params.set("query", searchQuery);
 
     params.set("sort", sortOption.toString());
 
@@ -80,7 +82,7 @@ export default function Explore() {
 
   // search challenges based on url
   useEffect(() => {
-    const query = searchParams.get("search") ?? "";
+    const query = searchParams.get("query") ?? "";
     const sort = (Number(searchParams.get("sort")) as ChallengeSortOption) ?? ChallengeSortOption.NEWEST;
     const domain = searchParams.has("domain") ? (Number(searchParams.get("domain")) as Domain) : null;
     const page = searchParams.has("page") ? Number(searchParams.get("page")) : 1;
@@ -90,11 +92,6 @@ export default function Explore() {
     setDomainFilter(domain);
     setCurrentPage(page)
   }, []);
-
-  // Reset to first page when filters change
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [searchQuery, sortOption, domainFilter]);
 
   // fetch data once
   useEffect(() => {

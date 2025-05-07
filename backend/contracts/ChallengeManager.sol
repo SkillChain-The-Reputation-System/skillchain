@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 import "hardhat/console.sol";
 import "./SolutionManager.sol";
+import "./Constants.sol";
 
 contract ChallengeManager {
     // ================= CONSTANTS =================
@@ -11,52 +12,17 @@ contract ChallengeManager {
     uint256 public constant MAX_DOMAIN = 14; // Maximum number of domains
     uint256 public constant MAX_DIFFICULTY_LEVEL = 3; // Maximum number of difficulty levels
 
-    // ================= ENUMS =================
-    enum ChallengeStatus {
-        PENDING, // 0
-        APPROVED, // 1
-        REJECTED // 2
-    }
-
-    enum DifficultyLevel {
-        EASY, // 0
-        MEDIUM, // 1
-        HARD // 2
-    }
-
-    enum QualityFactorAnswer {
-        NO, // 0
-        YES // 1
-    }
-
-    enum Domain {
-        COMPUTER_SCIENCE_FUNDAMENTALS, // 0
-        SOFTWARE_DEVELOPMENT, // 1
-        SYSTEMS_AND_NETWORKING, // 2
-        CYBERSECURITY, // 3
-        DATA_SCIENCE_AND_ANALYTICS, // 4
-        DATABASE_ADMINISTRATION, // 5
-        QUALITY_ASSURANCE_AND_TESTING, // 6
-        PROJECT_MANAGEMENT, // 7
-        USER_EXPERIENCE_AND_DESIGN, // 8
-        BUSINESS_ANALYSIS, // 9
-        ARTIFICIAL_INTELLIGENCE, // 10
-        BLOCKCHAIN_AND_CRYPTOCURRENCY, // 11
-        NETWORK_ADMINISTRATION, // 12
-        CLOUD_COMPUTING // 13
-    }
-
     // ================= STRUCTS =================
     struct Challenge {
         uint256 id;
         address contributor;
         string title_url;
         string description_url;
-        Domain category;
+        SystemEnums.Domain category;
         uint256 contribute_at;
-        ChallengeStatus status;
+        SystemEnums.ChallengeStatus status;
         uint256 quality_score;
-        DifficultyLevel difficulty_level;
+        SystemEnums.DifficultyLevel difficulty_level;
         uint256 solve_time;
     }
 
@@ -64,15 +30,15 @@ contract ChallengeManager {
         address moderator;
         uint256 challenge_id;
         uint256 review_time;
-        QualityFactorAnswer relevance;
-        QualityFactorAnswer technical_correctness;
-        QualityFactorAnswer completeness;
-        QualityFactorAnswer clarity;
-        QualityFactorAnswer originality;
-        QualityFactorAnswer unbiased;
-        QualityFactorAnswer plagiarism_free;
-        DifficultyLevel suggested_difficulty;
-        Domain suggested_category;
+        SystemEnums.QualityFactorAnswer relevance;
+        SystemEnums.QualityFactorAnswer technical_correctness;
+        SystemEnums.QualityFactorAnswer completeness;
+        SystemEnums.QualityFactorAnswer clarity;
+        SystemEnums.QualityFactorAnswer originality;
+        SystemEnums.QualityFactorAnswer unbiased;
+        SystemEnums.QualityFactorAnswer plagiarism_free;
+        SystemEnums.DifficultyLevel suggested_difficulty;
+        SystemEnums.Domain suggested_category;
         uint256 suggested_solve_time;
     }
 
@@ -127,7 +93,7 @@ contract ChallengeManager {
         address indexed contributor,
         string title_url,
         string description_url,
-        Domain category,
+        SystemEnums.Domain category,
         uint256 contribute_at
     );
     // Emitted when a moderator joins a review pool
@@ -138,7 +104,7 @@ contract ChallengeManager {
 
     event ChallengeFinalized(
         uint256 indexed challengeId,
-        ChallengeStatus status,
+        SystemEnums.ChallengeStatus status,
         uint256 averagePercent
     );
 
@@ -169,7 +135,8 @@ contract ChallengeManager {
     function contributeChallenge(
         string calldata _title_url,
         string calldata _description_url,
-        Domain _category
+        SystemEnums.Domain _category,
+        uint256 _contribute_at
     ) external {
         uint256 challengeId = total_challenges++;
         uint256 contributeAt = block.timestamp * 1000;
@@ -180,10 +147,10 @@ contract ChallengeManager {
             title_url: _title_url,
             description_url: _description_url,
             category: _category,
-            contribute_at: contributeAt,
-            status: ChallengeStatus.PENDING,
+            contribute_at: _contribute_at,
+            status: SystemEnums.ChallengeStatus.PENDING,
             quality_score: 0,
-            difficulty_level: DifficultyLevel.EASY,
+            difficulty_level: SystemEnums.DifficultyLevel.EASY,
             solve_time: 0
         });
 
@@ -242,15 +209,15 @@ contract ChallengeManager {
 
     function submitModeratorReview(
         uint256 _challenge_id,
-        QualityFactorAnswer _relevance,
-        QualityFactorAnswer _technical_correctness,
-        QualityFactorAnswer _completeness,
-        QualityFactorAnswer _clarity,
-        QualityFactorAnswer _originality,
-        QualityFactorAnswer _unbiased,
-        QualityFactorAnswer _plagiarism_free,
-        DifficultyLevel _suggested_difficulty,
-        Domain _suggested_category,
+        SystemEnums.QualityFactorAnswer _relevance,
+        SystemEnums.QualityFactorAnswer _technical_correctness,
+        SystemEnums.QualityFactorAnswer _completeness,
+        SystemEnums.QualityFactorAnswer _clarity,
+        SystemEnums.QualityFactorAnswer _originality,
+        SystemEnums.QualityFactorAnswer _unbiased,
+        SystemEnums.QualityFactorAnswer _plagiarism_free,
+        SystemEnums.DifficultyLevel _suggested_difficulty,
+        SystemEnums.Domain _suggested_category,
         uint256 _suggested_solve_time
     ) public onlyBeforeFinalized(_challenge_id) {
         // Check if the moderator has joined the review pool
@@ -343,11 +310,11 @@ contract ChallengeManager {
 
         // Update the challenge status based on the average score
         if (average_score >= REVIEW_THRESHOLD) {
-            challenges[_challenge_id].status = ChallengeStatus.APPROVED;
+            challenges[_challenge_id].status = SystemEnums.ChallengeStatus.APPROVED;
             pending_challenges--;
             approved_challenges++;
         } else {
-            challenges[_challenge_id].status = ChallengeStatus.REJECTED;
+            challenges[_challenge_id].status = SystemEnums.ChallengeStatus.REJECTED;
             pending_challenges--;
         }
 
@@ -433,7 +400,7 @@ contract ChallengeManager {
         uint256 count = 0;
 
         for (uint256 i = 0; i < total_challenges; i++) {
-            if (challenges[i].status == ChallengeStatus.PENDING) {
+            if (challenges[i].status == SystemEnums.ChallengeStatus.PENDING) {
                 pendingChallengeList[count] = challenges[i];
                 count++;
             }

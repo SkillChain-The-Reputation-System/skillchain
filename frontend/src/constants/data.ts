@@ -9,7 +9,7 @@ export const navItems: NavItem[] = [
     icon: "dashboard",
     isActive: false,
     shortcut: ["d", "d"],
-    items: [], 
+    items: [],
   },
   {
     title: "Account",
@@ -86,8 +86,8 @@ export const navItems: NavItem[] = [
         shortcut: ["m", "m"],
       },
       {
-        title: "My Participation",
-        url: pageUrlMapping.participation_my_participation,
+        title: "Workspace",
+        url: pageUrlMapping.participation_workspace,
         icon: "userPen",
         shortcut: ["m", "m"],
       },

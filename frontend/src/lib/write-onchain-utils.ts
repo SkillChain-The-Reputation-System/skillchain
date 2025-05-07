@@ -52,3 +52,20 @@ export async function submitModeratorReview(
   return txHash;
 }
 
+export async function joinChallenge(
+  challengeId: number,
+  address: `0x${string}`
+) {
+  const txHash = await writeContract(wagmiConfig, {
+    address: ContractConfig_ChallengeManager.address as `0x${string}`,
+    abi: ContractConfig_ChallengeManager.abi,
+    functionName: "userJoinChallenge",
+    args: [
+      address,
+      challengeId
+    ],
+    account: address,
+  });
+
+  return txHash;
+}

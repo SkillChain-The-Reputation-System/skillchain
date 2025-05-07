@@ -307,3 +307,49 @@ export const fetchApprovedChallenges = async (): Promise<ChallengeInterface[]> =
 
   return meaningApprovedChallenges;
 };
+
+export const fetchJoinedChallengesByUser = async (
+  address: `0x${string}`
+): Promise<ChallengeInterface[]> => {
+  const joinedChallenges = await readContract(wagmiConfig, {
+    address: ContractConfig_ChallengeManager.address as `0x${string}`,
+    abi: ContractConfig_ChallengeManager.abi,
+    functionName: "getJoinedChallengesByUser",
+    args: [address],
+  });
+
+  const meaningJoinedChallenges = await Promise.all(
+    (joinedChallenges as any[]).map(async (challenge) => {
+      const title = await fetchStringDataOffChain(challenge.title_url);
+      const description = await fetchStringDataOffChain(challenge.description_url);
+
+      return {
+        id: challenge.id.toString(),
+        contributor: challenge.contributor,
+        title,
+        description,
+        category: challenge.category.toString(),
+        contributeAt: challenge.contribute_at,
+        status: challenge.status,
+        qualityScore: challenge.quality_score,
+        difficultyLevel: challenge.difficulty_level,
+        solveTime: challenge.solve_time,
+      };
+    })
+  );
+
+  return meaningJoinedChallenges;
+}
+
+export const fetchUserHasJoinedChallenge = async (
+  challenge_id: number,
+  address: `0x${string}`
+): Promise<boolean> => {
+  const has_joined = (await readContract(wagmiConfig, {
+    address: ContractConfig_ChallengeManager.address as `0x${string}`,
+    abi: ContractConfig_ChallengeManager.abi,
+    functionName: "getUserHasJoinedChallenge",
+    args: [address, challenge_id],
+  })) as boolean;
+  return has_joined;
+};

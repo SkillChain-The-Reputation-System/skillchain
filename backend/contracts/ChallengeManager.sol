@@ -93,6 +93,11 @@ contract ChallengeManager {
         uint256 estimated_solve_time;
     }
 
+    struct ChallengeJoining {
+        bool hasJoined;
+        uint256 joinedAt;
+    }
+
     // ================= STATE VARIABLES =================
     // Mapping: Challenge ID -> Challenge
     mapping(uint256 => Challenge) private challenges;
@@ -104,6 +109,11 @@ contract ChallengeManager {
     mapping(address => uint256[]) private moderator_to_challenges;
     // Mapping: Challenge ID -> Aggregated metadata
     mapping(uint256 => AggregatedMeta) private challenge_to_aggregated_meta;
+    // Mapping: User address -> Joined challenge IDs
+    mapping(address => uint256[]) private user_to_joined_challenges;
+    // Mapping: User address + Challenge ID -> Joining Info)
+    mapping(address => mapping(uint256 => ChallengeJoining))
+        private user_to_joining_challenge_info;
 
     uint256 public total_challenges = 0;
     uint256 public pending_challenges = 0;
@@ -127,6 +137,12 @@ contract ChallengeManager {
         uint256 indexed challengeId,
         ChallengeStatus status,
         uint256 averagePercent
+    );
+
+    event ChallengeJoinedByUser(
+        address indexed user,
+        uint256 challengeId,
+        uint256 joinedAt
     );
 
     // ================= MODIFIER =================
@@ -338,6 +354,42 @@ contract ChallengeManager {
         );
     }
 
+    function userJoinChallenge(
+        address _user_address,
+        uint256 _challenge_id
+    ) external {
+        // Check if challenge id exists
+        require(_challenge_id < total_challenges, "Challenge does not exist");
+
+        ChallengeJoining
+            storage challenge_joining_info = user_to_joining_challenge_info[
+                _user_address
+            ][_challenge_id];
+
+        // Check if user has joined this challenge
+        require(
+            !challenge_joining_info.hasJoined,
+            "User already joined this challenge"
+        );
+
+        challenge_joining_info.hasJoined = true;
+        challenge_joining_info.joinedAt = block.timestamp;
+
+        user_to_joined_challenges[_user_address].push(_challenge_id);
+
+        console.log(
+            "User %s has joined challenge %s",
+            _user_address,
+            _challenge_id
+        );
+
+        emit ChallengeJoinedByUser(
+            _user_address,
+            _challenge_id,
+            challenge_joining_info.joinedAt
+        );
+    }
+
     // ================= GETTER METHODS =================
     function getChallengesByContributor(
         address _contributor_address
@@ -476,6 +528,30 @@ contract ChallengeManager {
         uint256 _challenge_id
     ) public view returns (bool) {
         return review_pool[_challenge_id].is_finalized;
+    }
+
+    function getJoinedChallengesByUser(
+        address _user_address
+    ) public view returns (Challenge[] memory) {
+        uint256[] memory joinedIds = user_to_joined_challenges[_user_address];
+        uint256 count = joinedIds.length;
+
+        Challenge[] memory joinedChallenges = new Challenge[](count);
+
+        for (uint256 i = 0; i < count; i++) {
+            joinedChallenges[i] = challenges[joinedIds[i]];
+        }
+
+        return joinedChallenges;
+    }
+
+    function getUserHasJoinedChallenge(
+        address _user_address,
+        uint256 _challenge_id
+    ) public view returns (bool) {
+        return
+            user_to_joining_challenge_info[_user_address][_challenge_id]
+                .hasJoined;
     }
 
     // ================= SEEDING METHODS =================

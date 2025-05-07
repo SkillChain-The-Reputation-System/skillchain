@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 // Import UI components
 import SearchBar from "./search-bar"
 import { Button } from "@/components/ui/button";
-import { ExploreChallengeCard } from "./explore-challenge-card";
+import { ChallengeCard } from "./challenge-card";
 import { Pagination } from './pagination'
 import { EmptyChallenge } from "./empty-challenge";
 import { ExploreSkeleton } from "./explore-skeleton";
@@ -16,6 +16,7 @@ import { ExploreSkeleton } from "./explore-skeleton";
 import { ChallengeInterface } from "@/lib/interfaces";
 import { ChallengeSortOption, Domain } from "@/constants/system"
 import { fetchApprovedChallenges } from "@/lib/fetching-onchain-data-utils"
+import { pageUrlMapping } from "@/constants/navigation";
 
 interface ExploreProps {
   query: string;
@@ -37,6 +38,12 @@ export default function Explore({ query, sort, domain, page }: ExploreProps) {
   // pagination state
   const [currentPage, setCurrentPage] = useState(page);
   const itemsPerPage = 8;  // number of challenges displayed per page
+
+  const cardOnClick = (id: string) => {
+    router.push(
+      pageUrlMapping.participation_explore + `/${id}`
+    );
+  }
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -162,7 +169,7 @@ export default function Explore({ query, sort, domain, page }: ExploreProps) {
             <div>
               <div className="grid grid-cols-4 gap-4 w-full max-w-6xl mx-auto">
                 {currentSearchedChallenges.map((challenge, index) => (
-                  <ExploreChallengeCard key={index} challenge={challenge} />
+                  <ChallengeCard key={index} challenge={challenge} onClick={cardOnClick} />
                 ))}
               </div>
 

@@ -1,33 +1,41 @@
 'use client'
 
+// Impork hooks
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+
+// Import UI components
 import SearchBar from "./search-bar"
+import { Button } from "@/components/ui/button";
 import { ExploreChallengeCard } from "./explore-challenge-card";
 import { Pagination } from './pagination'
 import { EmptyChallenge } from "./empty-challenge";
 import { ExploreSkeleton } from "./explore-skeleton";
-import { fetchApprovedChallenges } from "@/lib/fetching-onchain-data-utils"
-import { Button } from "@/components/ui/button";
+
+// Import utils
 import { ChallengeInterface } from "@/lib/interfaces";
 import { ChallengeSortOption, Domain } from "@/constants/system"
+import { fetchApprovedChallenges } from "@/lib/fetching-onchain-data-utils"
 
-export default function Explore() {
-  const firstLoad = useRef(true);           // avoiding replace url multiple times at first load 
+interface ExploreProps {
+  query: string;
+  sort: ChallengeSortOption;
+  domain: Domain | null;
+  page: number
+}
 
-  const searchParams = useSearchParams();   // read current url's query string
-  const router = useRouter();               // programmatically change routes
-
-  const [isLoading, setIsLoading] = useState(false);         // loading state while fetching data
+export default function Explore({ query, sort, domain, page }: ExploreProps) {
+  const firstLoad = useRef(true);   // avoiding replace url multiple times at first load 
+  const router = useRouter();       // programmatically change routes
+  const [isLoading, setIsLoading] = useState(false);      // loading state while fetching data
+  const [challenges, setChallenges] = useState<ChallengeInterface[]>([]);   // store fetched challenges
 
   // search and filter state
-  const [challenges, setChallenges] = useState<ChallengeInterface[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortOption, setSortOption] = useState<ChallengeSortOption>(ChallengeSortOption.NEWEST);
-  const [domainFilter, setDomainFilter] = useState<Domain | null | undefined>();
-
+  const [searchQuery, setSearchQuery] = useState(query);
+  const [sortOption, setSortOption] = useState<ChallengeSortOption>(sort);
+  const [domainFilter, setDomainFilter] = useState<Domain | null>(domain);
   // pagination state
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(page);
   const itemsPerPage = 8;  // number of challenges displayed per page
 
   const handleSearch = (query: string) => {
@@ -80,19 +88,6 @@ export default function Explore() {
     router.replace("?" + params.toString());
   }, [searchQuery, sortOption, domainFilter, currentPage]);
 
-  // search challenges based on url
-  useEffect(() => {
-    const query = searchParams.get("query") ?? "";
-    const sort = (Number(searchParams.get("sort")) as ChallengeSortOption) ?? ChallengeSortOption.NEWEST;
-    const domain = searchParams.has("domain") ? (Number(searchParams.get("domain")) as Domain) : null;
-    const page = searchParams.has("page") ? Number(searchParams.get("page")) : 1;
-
-    setSearchQuery(query);
-    setSortOption(sort);
-    setDomainFilter(domain);
-    setCurrentPage(page)
-  }, []);
-
   // fetch data once
   useEffect(() => {
     const fetchChallenges = async () => {
@@ -134,6 +129,7 @@ export default function Explore() {
       });
   }, [challenges, domainFilter, searchQuery, sortOption]);
 
+  // caculate total pages to display total searched challenges
   const totalPages = Math.ceil(searchedChallenges.length / itemsPerPage);
 
   // get current page challenges
@@ -157,7 +153,7 @@ export default function Explore() {
       {
         isLoading ? (
           <div className="grid grid-cols-4 gap-4 w-full max-w-6xl mx-auto">
-            {[...Array(8)].map((_, index) => (
+            {[...Array(itemsPerPage)].map((_, index) => (
               <ExploreSkeleton key={index} />
             ))}
           </div>

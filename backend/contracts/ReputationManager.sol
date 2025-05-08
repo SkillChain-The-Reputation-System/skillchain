@@ -2,7 +2,6 @@
 pragma solidity ^0.8.17;
 
 import "./Constants.sol";
-import "./MathUtils.sol";
 
 // TODO: add access control to the modules. Currently, anyone can call the update functions.
 contract ReputationManager {

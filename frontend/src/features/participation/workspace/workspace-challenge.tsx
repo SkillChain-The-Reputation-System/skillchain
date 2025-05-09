@@ -62,6 +62,7 @@ import { renderMathInElement } from "@/lib/katex-auto-render";
 import "katex/dist/katex.min.css";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { redirect } from "next/navigation";
 import { pageUrlMapping } from "@/constants/navigation";
 
 const solutionSchema = z.object({

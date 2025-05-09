@@ -3,6 +3,7 @@ import { ContractConfig_ChallengeManager, ContractConfig_SolutionManager } from 
 import { wagmiConfig } from "@/features/wallet/Web3Provider";
 import { ModeratorReviewValues } from "@/features/moderation/review-challenge-form";
 import axios from "axios";
+import { uploadImagesInHTML } from "@/lib/utils";
 import {
   IrysUploadResponseInterface,
 } from "@/lib/interfaces";
@@ -80,9 +81,11 @@ export async function submitSolution(
   address: `0x${string}`,
   solution: string,
 ) {
+  const handledSolution = await uploadImagesInHTML(solution);
+
   const { data: solution_upload_res } = await axios.post<IrysUploadResponseInterface>(
     "/api/irys/upload/upload-string",
-    solution
+    handledSolution
   );
 
   const txHash = await writeContract(wagmiConfig, {

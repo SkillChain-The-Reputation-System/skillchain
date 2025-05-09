@@ -36,6 +36,7 @@ import {
 import axios from "axios";
 import { toast } from "react-toastify";
 import { DomainLabels, Domain } from "@/constants/system";
+import { uploadImagesInHTML } from "@/lib/utils";
 
 // Import contracts config
 import { ContractConfig_ChallengeManager } from "@/constants/contracts-config";
@@ -97,6 +98,9 @@ export function ContributeChallengeForm() {
   async function onSubmit(data: ChallengeFormValues) {
     setIsSubmitDisabled(true);
 
+    // Upload images in description replace with URL
+    const description = await uploadImagesInHTML(data.description);
+
     // Upload title and description to Irys and get their URLs
     const [
       { data: title_upload_res_data },
@@ -108,7 +112,7 @@ export function ContributeChallengeForm() {
       ),
       axios.post<IrysUploadResponseInterface>(
         "/api/irys/upload/upload-string",
-        data.description
+        description
       ),
     ]);
 

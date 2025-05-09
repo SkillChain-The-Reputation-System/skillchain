@@ -28,6 +28,7 @@
     "@radix-ui/react-toggle": "^1.1.6",
     "@radix-ui/react-tooltip": "^1.1.8",
     "@tanstack/react-query": "^5.69.0",
+    "@tiptap-pro/extension-file-handler": "^2.18.0-beta.13",
     "@tiptap-pro/extension-mathematics": "^2.18.0-beta.13",
     "@tiptap-pro/extension-unique-id": "^2.18.0-beta.13",
     "@tiptap/extension-highlight": "^2.11.7",

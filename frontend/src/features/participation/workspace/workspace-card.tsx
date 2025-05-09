@@ -60,7 +60,7 @@ export function WorkspaceCard({ previewChallenge, onClick }: WorkspaceCardProps)
           </div>
 
           <div
-            className="line-clamp-2 text-muted-foreground text-xs font-light disable-click-links"
+            className="line-clamp-2 text-muted-foreground text-xs font-light disable-click-links no-images"
             dangerouslySetInnerHTML={{ __html: previewChallenge.description || "" }}
           />
         </CardHeader>

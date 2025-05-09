@@ -46,7 +46,7 @@ export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
           </div>
 
           <div
-            className="line-clamp-2 mt-1 text-muted-foreground text-xs font-light disable-click-links"
+            className="line-clamp-2 mt-1 text-muted-foreground text-xs font-light disable-click-links no-images"
             dangerouslySetInnerHTML={{ __html: challenge.description || "" }}
           />
         </CardHeader>

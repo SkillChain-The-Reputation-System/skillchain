@@ -14,6 +14,7 @@ import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
 import { Mathematics } from '@tiptap-pro/extension-mathematics'
+import FileHandler from '@tiptap-pro/extension-file-handler'
 
 import 'katex/dist/katex.min.css'
 
@@ -114,7 +115,47 @@ export default function RichTextEditor({ value, onChange, className = "", placeh
           placeholder: placeholder,
         }),
         Image,
-        Mathematics
+        Mathematics,
+        FileHandler.configure({
+          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
+          onDrop: (currentEditor, files, pos) => {
+            files.forEach(file => {
+              const fileReader = new FileReader()
+
+              fileReader.readAsDataURL(file)
+              fileReader.onload = () => {
+                currentEditor.chain().insertContentAt(pos, {
+                  type: 'image',
+                  attrs: {
+                    src: fileReader.result,
+                  },
+                }).focus().run()
+              }
+            })
+          },
+          onPaste: (currentEditor, files, htmlContent) => {
+            files.forEach(file => {
+              if (htmlContent) {
+                // if there is htmlContent, stop manual insertion & let other extensions handle insertion via inputRule
+                // you could extract the pasted file from this url string and upload it to a server for example
+                console.log(htmlContent) // eslint-disable-line no-console
+                return false
+              }
+
+              const fileReader = new FileReader()
+
+              fileReader.readAsDataURL(file)
+              fileReader.onload = () => {
+                currentEditor.chain().insertContentAt(currentEditor.state.selection.anchor, {
+                  type: 'image',
+                  attrs: {
+                    src: fileReader.result,
+                  },
+                }).focus().run()
+              }
+            })
+          },
+        }),
       ],
       content: value,
       editorProps: {
@@ -124,6 +165,7 @@ export default function RichTextEditor({ value, onChange, className = "", placeh
       },
       onUpdate: ({ editor }) => {
         onChange(editor.getHTML());
+        console.log(editor.getHTML())
       },
       editable: editable,
     }

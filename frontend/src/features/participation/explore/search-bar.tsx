@@ -1,8 +1,18 @@
 'use client'
 
-import type React from "react"
-
+// Import hooks
 import { useState, useEffect } from "react"
+
+// Import lucide-react icons
+import {
+  Search,
+  X,
+  Filter,
+  Check,
+  ArrowUpDown
+} from "lucide-react"
+
+// Import UI components
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
@@ -21,8 +31,15 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { Search, X, Filter, Check, ArrowUpDown } from "lucide-react"
-import { ChallengeSortOption, ChallengeSortOptionLabels, Domain, DomainLabels } from "@/constants/system"
+
+// Import utils
+import {
+  ChallengeSortOption,
+  ChallengeSortOptionLabels,
+  Domain,
+  DomainLabels
+} from "@/constants/system"
+import type React from "react"
 
 interface ChallengeSearchProps {
   onSearch: (query: string) => void,

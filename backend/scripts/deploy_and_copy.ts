@@ -46,6 +46,12 @@ async function main(): Promise<void> {
   );
   console.log(">>ChallengeManager.json copied");
 
+  fs.copyFileSync(
+    path.join(artifactDir, "SolutionManager.sol", "SolutionManager.json"),
+    path.join(outputDir, "SolutionManager.json")
+  );
+  console.log(">>SolutionManager.json copied");
+
   console.log("All done.");
 }
 

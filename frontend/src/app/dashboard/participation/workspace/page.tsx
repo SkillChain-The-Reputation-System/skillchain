@@ -1,4 +1,4 @@
-import Workspace from "@/features/participation/workspace";
+import Workspace from "@/features/participation/workspace/workspace";
 
 export default async function Page() {
   return (

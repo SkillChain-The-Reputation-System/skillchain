@@ -1,7 +1,16 @@
 'use client'
 
+// Import UI components
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
+
+// Import lucide-react icons
+import {
+  ChevronLeft,
+  ChevronRight,
+  MoreHorizontal
+} from "lucide-react"
+
+// Import utils
 import { cn } from "@/lib/utils"
 
 interface PaginationProps {

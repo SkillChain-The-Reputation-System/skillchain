@@ -1,7 +1,11 @@
 import { writeContract, waitForTransactionReceipt } from "@wagmi/core";
-import { ContractConfig_ChallengeManager } from "@/constants/contracts-config";
+import { ContractConfig_ChallengeManager, ContractConfig_SolutionManager } from "@/constants/contracts-config";
 import { wagmiConfig } from "@/features/wallet/Web3Provider";
 import { ModeratorReviewValues } from "@/features/moderation/review-challenge-form";
+import axios from "axios";
+import {
+  IrysUploadResponseInterface,
+} from "@/lib/interfaces";
 
 export async function joinReviewPool(
   challengeId: number,
@@ -52,7 +56,7 @@ export async function submitModeratorReview(
   return txHash;
 }
 
-export async function joinChallenge(
+export async function userJoinChallenge(
   challengeId: number,
   address: `0x${string}`
 ) {
@@ -62,7 +66,33 @@ export async function joinChallenge(
     functionName: "userJoinChallenge",
     args: [
       address,
-      challengeId
+      challengeId,
+      ContractConfig_SolutionManager.address
+    ],
+    account: address,
+  });
+
+  return txHash;
+}
+
+export async function submitSolution(
+  challengeId: number,
+  address: `0x${string}`,
+  solution: string,
+) {
+  const { data: solution_upload_res } = await axios.post<IrysUploadResponseInterface>(
+    "/api/irys/upload/upload-string",
+    solution
+  );
+
+  const txHash = await writeContract(wagmiConfig, {
+    address: ContractConfig_SolutionManager.address as `0x${string}`,
+    abi: ContractConfig_SolutionManager.abi,
+    functionName: "submitSolution",
+    args: [
+      address,
+      challengeId,
+      solution_upload_res.url,
     ],
     account: address,
   });

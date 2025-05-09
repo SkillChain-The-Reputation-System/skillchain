@@ -1,4 +1,4 @@
-import ExploreChallengeDetails from "@/features/participation/explore-challenge-details";
+import ExploreChallengeDetails from "@/features/participation/explore/explore-challenge-details";
 
 export default async function Page({
   params,

@@ -1,4 +1,4 @@
-import Explore from "@/features/participation/explore";
+import Explore from "@/features/participation/explore/explore";
 import { ChallengeSortOption, Domain } from "@/constants/system"
 
 export default async function Page(props: {

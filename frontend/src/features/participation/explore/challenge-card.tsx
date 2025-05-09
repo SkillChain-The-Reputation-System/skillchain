@@ -1,3 +1,4 @@
+// Import UI components
 import {
   Card,
   CardContent,
@@ -6,14 +7,16 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
+// Import ludide-react icons
 import {
-  Calendar,
+  CalendarArrowUp,
   Tag,
   Users,
   UserRoundPen,
   Star,
 } from "lucide-react";
 
+// Import utils
 import { ChallengeInterface } from "@/lib/interfaces";
 import {
   ChallengeStatus,
@@ -21,9 +24,10 @@ import {
   DomainLabels,
 } from "@/constants/system";
 import { epochToDateString } from "@/lib/time-utils";
+
 export interface ChallengeCardProps {
   challenge: ChallengeInterface;
-  onClick: (id: string) => void
+  onClick: (id: string) => void;
 }
 
 export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
@@ -35,7 +39,7 @@ export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
         className="w-full h-full group gap-2 overflow-hidden bg-blue-100 dark:bg-blue-950/60 transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-lg dark:hover:shadow-blue-900/20 border-transparent hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer select-none"
         onClick={() => onClick(challenge.id!)}>
         <CardHeader>
-          <div className="flex justify-between items-start">
+          <div className="space-y-1.5">
             <CardTitle className="text-sm font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
               {challenge.title}
             </CardTitle>
@@ -67,24 +71,25 @@ export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
 
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Calendar className="h-3.5 w-3.5 mr-1" />
+              <CalendarArrowUp className="h-full max-h-3.5 w-full max-w-3.5 mr-1" />
               {formattedContributeDate}
+
             </div>
 
             <div className="flex items-center gap-2">
               <div className="flex items-center text-amber-500 dark:text-amber-400">
-                <Star className="h-3.5 w-3.5 mr-1 fill-current" />
+                <Star className="h-full max-h-3.5 w-full max-w-3.5 mr-1 fill-current" />
                 <span>{challenge.status == ChallengeStatus.APPROVED ? challenge.qualityScore : "--"}</span>
               </div>
 
               <div className="flex items-center">
-                <Users className="h-3.5 w-3.5 mr-1" />
+                <Users className="h-full max-h-3.5 w-full max-w-3.5 mr-1" />
                 <span>{0} joined</span>
               </div>
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card >
     </>
   );
 }

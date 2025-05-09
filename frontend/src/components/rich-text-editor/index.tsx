@@ -19,11 +19,13 @@ import 'katex/dist/katex.min.css'
 
 interface RichTextEditorProps {
   value: string,
-  onChange: (value: string) => void
-  placeholder?: string
+  onChange: (value: string) => void,
+  className?: string,
+  placeholder?: string,
+  editable?: boolean
 }
 
-export default function RichTextEditor({ value, onChange, placeholder = "Write something..." }: RichTextEditorProps) {
+export default function RichTextEditor({ value, onChange, className = "", placeholder = "Write something...", editable = true }: RichTextEditorProps) {
   const editor = useEditor(
     {
       shouldRerenderOnTransaction: true,
@@ -117,12 +119,13 @@ export default function RichTextEditor({ value, onChange, placeholder = "Write s
       content: value,
       editorProps: {
         attributes: {
-          class: "min-h-[250px] border-black dark:border-white border-1 rounded-md bg-slate-50 py-2 px-3 dark:bg-blue-950/15 break-all"
+          class: className
         }
       },
       onUpdate: ({ editor }) => {
         onChange(editor.getHTML());
       },
+      editable: editable,
     }
   )
 
@@ -134,8 +137,8 @@ export default function RichTextEditor({ value, onChange, placeholder = "Write s
 
   return (
     <div>
-      <MenuBar editor={editor} />
-      <EditorContent editor={editor} className='editor' />
+      {editable && <MenuBar editor={editor} />}
+      <EditorContent editor={editor} className='editor' spellCheck={false} />
     </div>
   );
 }

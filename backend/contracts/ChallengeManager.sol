@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "hardhat/console.sol";
+import "./SolutionManager.sol";
 
-// TODO: Think about store participants, voting mechanics, linking solutions, fee... | Moderation: verify challenge and upload to Explore
 contract ChallengeManager {
     // ================= CONSTANTS =================
     uint256 public constant REVIEW_QUORUM = 3; // The number of moderators needed to start a finalizing process
@@ -93,9 +93,15 @@ contract ChallengeManager {
         uint256 estimated_solve_time;
     }
 
-    struct ChallengeJoining {
-        bool hasJoined;
-        uint256 joinedAt;
+    // Struct for joined challenges preview in workspace
+    struct JoinedChallengesPreview {
+        uint256 challenge_id;
+        string title_url;
+        string description_url;
+        Domain domain;
+        SolutionProgress progress;
+        uint256 joined_at;
+        uint256 score;
     }
 
     // ================= STATE VARIABLES =================
@@ -111,9 +117,6 @@ contract ChallengeManager {
     mapping(uint256 => AggregatedMeta) private challenge_to_aggregated_meta;
     // Mapping: User address -> Joined challenge IDs
     mapping(address => uint256[]) private user_to_joined_challenges;
-    // Mapping: User address + Challenge ID -> Joining Info)
-    mapping(address => mapping(uint256 => ChallengeJoining))
-        private user_to_joining_challenge_info;
 
     uint256 public total_challenges = 0;
     uint256 public pending_challenges = 0;
@@ -143,6 +146,13 @@ contract ChallengeManager {
         address indexed user,
         uint256 challengeId,
         uint256 joinedAt
+    );
+
+    event SolutionSubmitted(
+        address indexed user,
+        uint256 challengeId,
+        string solutionUrl,
+        uint256 submittedAt
     );
 
     // ================= MODIFIER =================
@@ -356,38 +366,39 @@ contract ChallengeManager {
 
     function userJoinChallenge(
         address _user_address,
-        uint256 _challenge_id
+        uint256 _challenge_id,
+        address _solution_address
     ) external {
         // Check if challenge id exists
-        require(_challenge_id < total_challenges, "Challenge does not exist");
+        require(_challenge_id < total_challenges);
 
-        ChallengeJoining
-            storage challenge_joining_info = user_to_joining_challenge_info[
-                _user_address
-            ][_challenge_id];
+        SolutionManager solution_manager = SolutionManager(_solution_address);
 
-        // Check if user has joined this challenge
         require(
-            !challenge_joining_info.hasJoined,
-            "User already joined this challenge"
+            !solution_manager.checkUserJoinedChallenge(
+                _user_address,
+                _challenge_id
+            )
         );
 
-        challenge_joining_info.hasJoined = true;
-        challenge_joining_info.joinedAt = block.timestamp;
+        uint256 _joined_at = block.timestamp * 1000;
+
+        solution_manager.createSolutionBase(
+            _user_address,
+            _challenge_id,
+            _joined_at
+        );
 
         user_to_joined_challenges[_user_address].push(_challenge_id);
 
         console.log(
-            "User %s has joined challenge %s",
-            _user_address,
-            _challenge_id
-        );
-
-        emit ChallengeJoinedByUser(
+            "User %s joined challenge %s at %s",
             _user_address,
             _challenge_id,
-            challenge_joining_info.joinedAt
+            _joined_at
         );
+
+        emit ChallengeJoinedByUser(_user_address, _challenge_id, _joined_at);
     }
 
     // ================= GETTER METHODS =================
@@ -530,28 +541,50 @@ contract ChallengeManager {
         return review_pool[_challenge_id].is_finalized;
     }
 
-    function getJoinedChallengesByUser(
-        address _user_address
-    ) public view returns (Challenge[] memory) {
-        uint256[] memory joinedIds = user_to_joined_challenges[_user_address];
-        uint256 count = joinedIds.length;
+    function getJoinedChallengesByUserForPreview(
+        address _user_address,
+        address _solution_address
+    ) public view returns (JoinedChallengesPreview[] memory) {
+        uint256[] memory challengeIds = user_to_joined_challenges[
+            _user_address
+        ];
 
-        Challenge[] memory joinedChallenges = new Challenge[](count);
+        SolutionManager solution_manager = SolutionManager(_solution_address);
 
-        for (uint256 i = 0; i < count; i++) {
-            joinedChallenges[i] = challenges[joinedIds[i]];
+        JoinedChallengesPreview[]
+            memory previewList = new JoinedChallengesPreview[](
+                challengeIds.length
+            );
+
+        for (uint256 i = 0; i < challengeIds.length; i++) {
+            uint256 id = challengeIds[i];
+            Challenge storage ch = challenges[id];
+            (
+                uint256 created_at,
+                SolutionProgress progress,
+                uint256 score
+            ) = solution_manager.getSolutionPreviewByUserAndChallengeId(
+                    _user_address,
+                    id
+                );
+
+            previewList[i] = JoinedChallengesPreview({
+                challenge_id: id,
+                title_url: ch.title_url,
+                description_url: ch.description_url,
+                domain: ch.category,
+                progress: progress,
+                joined_at: created_at,
+                score: score
+            });
         }
 
-        return joinedChallenges;
-    }
+        console.log(
+            "User %s had fetched preview of joined challenges",
+            _user_address
+        );
 
-    function getUserHasJoinedChallenge(
-        address _user_address,
-        uint256 _challenge_id
-    ) public view returns (bool) {
-        return
-            user_to_joining_challenge_info[_user_address][_challenge_id]
-                .hasJoined;
+        return previewList;
     }
 
     // ================= SEEDING METHODS =================

@@ -39,6 +39,13 @@ export enum ChallengeSortOption {
   PARTICIPANTS = 3,
 }
 
+export enum ChallengeSolutionProgress {
+  IN_PROGRESS = 0,
+  SUBMITTED = 1,
+  UNDER_REVIEW = 2,
+  REVIEWED = 3
+}
+
 export const DomainLabels: Record<Domain, string> = {
   [Domain.COMPUTER_SCIENCE_FUNDAMENTALS]: "Computer Science Fundamentals",
   [Domain.SOFTWARE_DEVELOPMENT]: "Software Development",
@@ -80,3 +87,10 @@ export const ChallengeSortOptionLabels: Record<ChallengeSortOption, string> = {
   [ChallengeSortOption.VOTES]: "Most Votes",
   [ChallengeSortOption.PARTICIPANTS]: "Most Participants",
 };
+
+export const ChallengeSolutionProgressLabels: Record<ChallengeSolutionProgress, string> = {
+  [ChallengeSolutionProgress.IN_PROGRESS]: "In Progress",
+  [ChallengeSolutionProgress.SUBMITTED]: "Submitted",
+  [ChallengeSolutionProgress.UNDER_REVIEW]: "Under Review",
+  [ChallengeSolutionProgress.REVIEWED]: "Reviewed",
+}

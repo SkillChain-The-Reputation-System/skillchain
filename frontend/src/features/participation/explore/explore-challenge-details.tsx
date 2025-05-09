@@ -1,25 +1,50 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react';
+// Import hooks
+import {
+  useState,
+  useEffect,
+  useRef
+} from 'react';
 import { useRouter } from "next/navigation";
+import { useAccount } from 'wagmi';
+
+// Import UI components
 import { Button } from '@/components/ui/button';
-import { Toaster, toast } from "sonner"
-import { ArrowLeft, Calendar, Clock, Star, Tag, UserRoundPen, Users, CheckCircle2 } from "lucide-react";
-import { ChallengeInterface } from '@/lib/interfaces';
-import { getChallengeById, fetchUserHasJoinedChallenge } from "@/lib/fetching-onchain-data-utils";
 import { Separator } from '@/components/ui/separator';
-import { DomainLabels, Domain, ChallengeDifficultyLevel, ChallengeDifficultyLevelLabels, ChallengeStatus } from '@/constants/system';
+import { Badge } from '@/components/ui/badge';
+import { Toaster, toast } from "sonner"
+import ChallengeDetailsSkeleton from '@/features/participation/challenge-details-skeleton'
+
+// Import lucide-react icons
+import {
+  ArrowLeft,
+  CalendarArrowUp,
+  Clock,
+  Star,
+  Tag,
+  UserRoundPen,
+  Users,
+  CheckCircle2
+} from "lucide-react";
+
+// Import utils
+import { ChallengeInterface } from '@/lib/interfaces';
+import { getChallengeById, fetchUserHasJoinedChallengeState } from "@/lib/fetching-onchain-data-utils";
+import {
+  DomainLabels,
+  Domain,
+  ChallengeDifficultyLevel,
+  ChallengeDifficultyLevelLabels,
+  ChallengeStatus
+} from '@/constants/system';
 import { difficultyStyles } from '@/constants/styles'
 import { epochToDateString } from "@/lib/time-utils";
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import ChallengeDetailsSkeleton from './challenge-details-skeleton'
 import { pageUrlMapping } from "@/constants/navigation";
-import { joinChallenge, waitForTransaction } from '@/lib/write-onchain-utils'
-
+import { userJoinChallenge, waitForTransaction } from '@/lib/write-onchain-utils'
 import { renderMathInElement } from "@/lib/katex-auto-render";
 import "katex/dist/katex.min.css";
-import { useAccount } from 'wagmi';
 
 interface ExploreChallengeDetailsProps {
   challenge_id: number;
@@ -29,9 +54,11 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
   const { address } = useAccount();
 
   const router = useRouter();
+
   const [isLoading, setIsLoading] = useState(true);
   const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
   const [hasJoined, setHasJoined] = useState(false);
+
   const katexRef = useRef<HTMLDivElement>(null);
 
   async function handleJoinChallenge() {
@@ -45,7 +72,7 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
     }
 
     try {
-      const txHash = await joinChallenge(Number(challenge_id), address);
+      const txHash = await userJoinChallenge(Number(challenge_id), address);
       await waitForTransaction(txHash);
       toast.success("You have joined this challenge");
       setHasJoined(true);
@@ -54,16 +81,25 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
     }
   }
 
+  const handleGoToWorkspace = (id: string) => {
+    router.push(
+      pageUrlMapping.participation_workspace + `/${id}`
+    );
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [fetchedChallenge, fetchHasJoinedResult] = await Promise.all([
+        const [
+          fetchedChallenge,
+          fetchHasJoinedState
+        ] = await Promise.all([
           getChallengeById(challenge_id),
-          address ? fetchUserHasJoinedChallenge(challenge_id, address) : Promise.resolve(false)
+          address ? fetchUserHasJoinedChallengeState(address, challenge_id) : Promise.resolve(false)
         ]);
 
         setChallenge(fetchedChallenge);
-        setHasJoined(fetchHasJoinedResult);
+        setHasJoined(fetchHasJoinedState);
       } catch (error: any) {
         console.error("Error during data fetching:", error);
       } finally {
@@ -80,7 +116,7 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
         if (katexRef.current) {
           renderMathInElement(katexRef.current);
         }
-      }, 0); // Delay for DOM
+      }, 100); // Delay for DOM
 
       return () => clearTimeout(timer);
     }
@@ -102,7 +138,7 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
                 variant="outline"
                 size="sm"
                 className="mb-6 gap-1 text-muted-foreground hover:text-foreground bg-gray-200 cursor-pointer"
-                onClick={() => router.back()}
+                onClick={() => router.push(pageUrlMapping.participation_explore)}
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Explore
@@ -170,7 +206,7 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
                   <div className="flex flex-col gap-1.5">
                     <span className="text-sm font-medium text-muted-foreground">Contributed date</span>
                     <div className="flex items-center gap-1.5">
-                      <Calendar className="h-full max-h-4 w-full max-w-4" />
+                      <CalendarArrowUp className="h-full max-h-4 w-full max-w-4" />
                       <span>{epochToDateString(challenge.contributeAt)}</span>
                     </div>
                   </div>
@@ -216,7 +252,11 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
                         <p className="text-sm text-muted-foreground">Start working on your solution now.</p>
                       </div>
 
-                      <Button size="lg" className="shrink-0 bg-green-600 hover:bg-green-700 text-white gap-2 cursor-pointer">
+                      <Button
+                        size="lg"
+                        className="shrink-0 bg-green-600 hover:bg-green-700 text-white gap-2 cursor-pointer"
+                        onClick={() => handleGoToWorkspace(challenge_id.toString())}
+                      >
                         <CheckCircle2 className="h-4 w-4" />
                         Go to Workspace
                       </Button>

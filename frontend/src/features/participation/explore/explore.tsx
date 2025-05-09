@@ -5,12 +5,12 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 // Import UI components
-import SearchBar from "./search-bar"
+import SearchBar from "@/features/participation/explore/search-bar"
 import { Button } from "@/components/ui/button";
-import { ChallengeCard } from "./challenge-card";
-import { Pagination } from './pagination'
-import { EmptyChallenge } from "./empty-challenge";
-import { ExploreSkeleton } from "./explore-skeleton";
+import { ChallengeCard } from "@/features/participation/explore/challenge-card";
+import { Pagination } from "@/features/participation/explore/pagination"
+import { ChallengeSkeleton } from "@/features/participation/challenge-skeleton";
+import { EmptyChallenge } from "@/features/participation/empty-challenge";
 
 // Import utils
 import { ChallengeInterface } from "@/lib/interfaces";
@@ -161,7 +161,7 @@ export default function Explore({ query, sort, domain, page }: ExploreProps) {
         isLoading ? (
           <div className="grid grid-cols-4 gap-4 w-full max-w-6xl mx-auto">
             {[...Array(itemsPerPage)].map((_, index) => (
-              <ExploreSkeleton key={index} />
+              <ChallengeSkeleton key={index} />
             ))}
           </div>
         ) : challenges.length > 0 ? (

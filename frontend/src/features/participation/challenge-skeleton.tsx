@@ -8,7 +8,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 
 // Contributed challenges skeleton display when loading data
-export function ExploreSkeleton() {
+export function ChallengeSkeleton() {
   return (
     <Card className="w-full overflow-hidden h-full">
       <CardHeader>

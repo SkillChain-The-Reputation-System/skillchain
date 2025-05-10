@@ -6,6 +6,7 @@ import { useAccount } from "wagmi";
 import { useRouter } from "next/navigation";
 
 // Import UI components
+import { Button } from "@/components/ui/button";
 import { WorkspaceCard } from "@/features/participation/workspace/workspace-card";
 import { ChallengeSkeleton } from "@/features/participation/challenge-skeleton";
 import { EmptyChallenge } from "@/features/participation/empty-challenge";
@@ -17,7 +18,6 @@ import { JoinedChallengePreview } from "@/lib/interfaces"
 import { fetchJoinedChallengesPreviewByUser } from "@/lib/fetching-onchain-data-utils";
 import { pageUrlMapping } from "@/constants/navigation";
 import { ChallengeSolutionProgress, Domain } from "@/constants/system"
-import { Button } from "@/components/ui/button";
 
 interface WorkspaceProps {
   query: string;

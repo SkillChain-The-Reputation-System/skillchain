@@ -47,7 +47,7 @@ import {
 import { ChallengeInterface, SolutionInterface } from '@/lib/interfaces';
 import { cn } from '@/lib/utils'
 import { solutionProgressStyles, difficultyStyles } from '@/constants/styles'
-import { epochToDateString } from "@/lib/time-utils";
+import { epochToDateString, epochToDateTimeString } from "@/lib/time-utils";
 import {
   Domain,
   DomainLabels,
@@ -62,8 +62,7 @@ import { renderMathInElement } from "@/lib/katex-auto-render";
 import "katex/dist/katex.min.css";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { redirect } from "next/navigation";
-import { pageUrlMapping } from "@/constants/navigation";
+import { pageUrlMapping } from "@/constants/navigation"
 
 const solutionSchema = z.object({
   solution: z
@@ -172,7 +171,7 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
               variant="outline"
               size="sm"
               className="mb-6 gap-1 text-muted-foreground hover:text-foreground bg-gray-200 cursor-pointer"
-              onClick={() => router.push(pageUrlMapping.participation_workspace)}
+              onClick={() => router.back()}
             >
               <ArrowLeft className="h-4 w-4" />
               Back to Workspace
@@ -197,9 +196,11 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                   <TabsTrigger value="description" className="cursor-pointer" onClick={() => setOnDescription(true)}>Description</TabsTrigger>
                   <TabsTrigger value="solution" className="cursor-pointer" onClick={() => setOnDescription(false)}>Solution</TabsTrigger>
                 </TabsList>
+                {/* Information section */}
                 <TabsContent value="information" className="space-y-8">
                   <Separator className='bg-black' />
 
+                  {/* About challenge section */}
                   <h1 className="text-xl font-bold">About challenge</h1>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-7">
@@ -267,14 +268,15 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
 
                   <Separator className='bg-black' />
 
+                  {/* About your work section */}
                   <h1 className="text-xl font-bold">About your work</h1>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-7">
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-sm font-medium text-muted-foreground">Joined date</span>
+                      <span className="text-sm font-medium text-muted-foreground">Joined on</span>
                       <div className="flex items-center gap-1.5">
                         <CalendarCheck className="h-full max-h-4 w-full max-w-4" />
-                        <span>{epochToDateString(solution.createdAt)}</span>
+                        <span>{epochToDateTimeString(solution.createdAt)}</span>
                       </div>
                     </div>
 
@@ -295,7 +297,7 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                     </div>
                   </div>
                 </TabsContent>
-
+                {/* Description of challenge section */}
                 <TabsContent value="description" className="space-y-8">
                   <Separator className='bg-black' />
 
@@ -307,7 +309,7 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                     />
                   </div>
                 </TabsContent>
-
+                {/* Solution section */}
                 <TabsContent value="solution">
                   <Separator className='bg-black' />
 
@@ -367,8 +369,12 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
             </div>
           </div>
         ) : (
-          <div>
-
+          <div className="text-center object-center py-12">
+            <h2 className="text-xl font-semibold mb-2">Work not found</h2>
+            <p className="text-muted-foreground mb-6">
+              The work you're looking for doesn't exist or you haven't joined this challenge.
+            </p>
+            <Button onClick={() => router.push(pageUrlMapping.participation_workspace)}>Return to Workspace</Button>
           </div>
         )
       )}

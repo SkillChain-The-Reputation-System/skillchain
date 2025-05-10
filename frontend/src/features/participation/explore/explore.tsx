@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import SearchBar from "@/features/participation/explore/search-bar"
 import { Button } from "@/components/ui/button";
 import { ChallengeCard } from "@/features/participation/explore/challenge-card";
-import { Pagination } from "@/features/participation/explore/pagination"
+import { Pagination } from "@/features/participation/pagination";
 import { ChallengeSkeleton } from "@/features/participation/challenge-skeleton";
 import { EmptyChallenge } from "@/features/participation/empty-challenge";
 

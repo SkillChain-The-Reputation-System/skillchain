@@ -24,7 +24,7 @@ import {
 } from "@/constants/system";
 import { solutionProgressStyles } from "@/constants/styles";
 import { JoinedChallengePreview } from "@/lib/interfaces";
-import { epochToDateString } from "@/lib/time-utils";
+import { epochToDateTimeString } from "@/lib/time-utils";
 import { cn } from "@/lib/utils";
 
 export interface WorkspaceCardProps {
@@ -33,7 +33,7 @@ export interface WorkspaceCardProps {
 }
 
 export function WorkspaceCard({ previewChallenge, onClick }: WorkspaceCardProps) {
-  const formattedJoinedDate = epochToDateString(previewChallenge.joinedAt);
+  const formattedJoinedDate = epochToDateTimeString(previewChallenge.joinedAt);
 
   return (
     <>
@@ -78,7 +78,7 @@ export function WorkspaceCard({ previewChallenge, onClick }: WorkspaceCardProps)
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <CalendarCheck className="h-full max-h-3.5 max-w-3.5 w-full mr-1" />
-              <p className="ml-1">Joined at {formattedJoinedDate}</p>
+              <p className="ml-1">Joined on {formattedJoinedDate}</p>
             </div>
 
             <div className="flex items-center gap-2">

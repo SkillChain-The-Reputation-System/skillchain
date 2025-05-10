@@ -138,7 +138,7 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
                 variant="outline"
                 size="sm"
                 className="mb-6 gap-1 text-muted-foreground hover:text-foreground bg-gray-200 cursor-pointer"
-                onClick={() => router.push(pageUrlMapping.participation_explore)}
+                onClick={() => router.back()}
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Explore

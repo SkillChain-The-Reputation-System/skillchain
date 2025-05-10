@@ -58,7 +58,7 @@ export default function Workspace() {
               ))}
             </div>
           ) : previewList.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4 w-full max-w-5xl mx-auto">
+            <div className="grid grid-cols-3 gap-4 w-full max-w-6xl mx-auto">
               {previewList.map((challengePreview, index) => (
                 <WorkspaceCard key={index} previewChallenge={challengePreview} onClick={cardOnClick} />
               ))}

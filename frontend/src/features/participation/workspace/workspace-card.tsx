@@ -41,7 +41,7 @@ export function WorkspaceCard({ previewChallenge, onClick }: WorkspaceCardProps)
         className="w-full h-full group gap-2 overflow-hidden bg-blue-100 dark:bg-blue-950/60 transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-lg dark:hover:shadow-blue-900/20 border-transparent hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer select-none"
         onClick={() => onClick(previewChallenge.challengeId)}>
         <CardHeader>
-          <div className="flex justify-between">
+          <div className="flex justify-between items-baseline">
             <CardTitle className="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
               <p className="text-normal font-bold leading-6">{previewChallenge.title}</p>
             </CardTitle>
@@ -86,6 +86,8 @@ export function WorkspaceCard({ previewChallenge, onClick }: WorkspaceCardProps)
                 <Trophy className="h-full max-h-3.5 max-w-3.5 w-full mr-1 fill-current" />
                 <span>{previewChallenge.progress == ChallengeSolutionProgress.REVIEWED ? previewChallenge.score : "--"}</span>
               </div>
+
+              {/* Display more details */}
             </div>
           </div>
         </CardContent>

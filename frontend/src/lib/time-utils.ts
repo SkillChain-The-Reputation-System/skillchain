@@ -15,3 +15,19 @@ export function epochToDateString(
   };
   return date.toLocaleString(locale, options);
 }
+
+export function epochToDateTimeString(
+  epochMs: number,
+  locale: string = "en-US"
+): string {
+  const date = new Date(Number(epochMs));
+  const options: Intl.DateTimeFormatOptions = {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  };
+  return date.toLocaleString(locale, options);
+}

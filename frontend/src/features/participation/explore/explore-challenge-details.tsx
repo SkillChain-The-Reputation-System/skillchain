@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Toaster, toast } from "sonner"
 import ChallengeDetailsSkeleton from '@/features/participation/challenge-details-skeleton'
+import RichTextEditor from "@/components/rich-text-editor";
 
 // Import lucide-react icons
 import {
@@ -43,8 +44,6 @@ import { epochToDateString } from "@/lib/time-utils";
 import { cn } from '@/lib/utils';
 import { pageUrlMapping } from "@/constants/navigation";
 import { userJoinChallenge, waitForTransaction } from '@/lib/write-onchain-utils'
-import { renderMathInElement } from "@/lib/katex-auto-render";
-import "katex/dist/katex.min.css";
 
 interface ExploreChallengeDetailsProps {
   challenge_id: number;
@@ -58,8 +57,6 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
   const [isLoading, setIsLoading] = useState(true);
   const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
   const [hasJoined, setHasJoined] = useState(false);
-
-  const katexRef = useRef<HTMLDivElement>(null);
 
   async function handleJoinChallenge() {
     if (!address || !challenge) {
@@ -109,18 +106,6 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
 
     fetchData();
   }, [address]);
-
-  useEffect(() => {
-    if (!isLoading) {
-      const timer = setTimeout(() => {
-        if (katexRef.current) {
-          renderMathInElement(katexRef.current);
-        }
-      }, 100); // Delay for DOM
-
-      return () => clearTimeout(timer);
-    }
-  }, [isLoading]);
 
   return (
     <>
@@ -236,11 +221,7 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
                 {/* Description Section */}
                 <div className="space-y-4">
                   <h2 className="text-xl font-bold">Challenge Description</h2>
-                  <div
-                    ref={katexRef}
-                    className="dark:text-gray-100 editor"
-                    dangerouslySetInnerHTML={{ __html: challenge.description || "" }}
-                  />
+                  <RichTextEditor value={challenge.description!} editable={false} />
                 </div>
 
                 {/* Action Section */}

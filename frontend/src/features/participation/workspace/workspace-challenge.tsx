@@ -58,8 +58,6 @@ import {
 } from '@/constants/system'
 import { submitSolution, waitForTransaction } from '@/lib/write-onchain-utils'
 import { getChallengeById, fetchSolutionByUserAndChallengeId } from "@/lib/fetching-onchain-data-utils";
-import { renderMathInElement } from "@/lib/katex-auto-render";
-import "katex/dist/katex.min.css";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { pageUrlMapping } from "@/constants/navigation"
@@ -80,12 +78,10 @@ interface WorkspaceChallengeDetailsProps {
 export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeDetailsProps) {
   const { address } = useAccount();
   const [isLoading, setIsLoading] = useState(false);
-  const [onDescription, setOnDescription] = useState(false);
   const router = useRouter();
   const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
   const [solution, setSolution] = useState<SolutionInterface | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const katexRef = useRef<HTMLDivElement>(null);
 
   const form = useForm<SolutionFormValues>({
     resolver: zodResolver(solutionSchema),
@@ -146,16 +142,6 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
     fetchData();
   }, [address]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (onDescription && katexRef.current) {
-        renderMathInElement(katexRef.current);
-      }
-    }, 100); // Delay for DOM
-
-    return () => clearTimeout(timer);
-  }, [onDescription]);
-
   return (
     <>
       {address && (
@@ -192,9 +178,9 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
               {/* Workspace section */}
               <Tabs defaultValue="information">
                 <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="information" className="cursor-pointer" onClick={() => setOnDescription(false)}>Information</TabsTrigger>
-                  <TabsTrigger value="description" className="cursor-pointer" onClick={() => setOnDescription(true)}>Description</TabsTrigger>
-                  <TabsTrigger value="solution" className="cursor-pointer" onClick={() => setOnDescription(false)}>Solution</TabsTrigger>
+                  <TabsTrigger value="information" className="cursor-pointer">Information</TabsTrigger>
+                  <TabsTrigger value="description" className="cursor-pointer">Description</TabsTrigger>
+                  <TabsTrigger value="solution" className="cursor-pointer">Solution</TabsTrigger>
                 </TabsList>
                 {/* Information section */}
                 <TabsContent value="information" className="space-y-8">
@@ -302,11 +288,7 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                   <Separator className='bg-black' />
 
                   <div className="space-y-4">
-                    <div
-                      ref={katexRef}
-                      className="dark:text-gray-100 editor"
-                      dangerouslySetInnerHTML={{ __html: challenge.description || "" }}
-                    />
+                    <RichTextEditor value={challenge.description!} editable={false} />
                   </div>
                 </TabsContent>
                 {/* Solution section */}

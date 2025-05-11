@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, ReactNode, useRef } from "react";
+import { useEffect, useState, ReactNode } from "react";
 import { toast } from "react-toastify";
 
 import {
@@ -19,6 +19,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import RichTextEditor from "@/components/rich-text-editor";
 
 import {
   Calendar,
@@ -79,7 +80,6 @@ export function GenericChallengeCard({
   const formattedContributeDate = epochToDateString(challenge.contributeAt);
   const [poolSize, setPoolSize] = useState<number | null>(null);
   const [quorum, setQuorum] = useState<number | null>(null);
-  const katexRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function fetchPoolInfo() {
@@ -96,18 +96,6 @@ export function GenericChallengeCard({
     }
     fetchPoolInfo();
   }, [showDetails, challenge.id, reload]);
-
-  useEffect(() => {
-    if (showDetails) {
-      const timer = setTimeout(() => {
-        if (katexRef.current) {
-          renderMathInElement(katexRef.current);
-        }
-      }, 0); // Delay for DOM
-
-      return () => clearTimeout(timer);
-    }
-  }, [showDetails]);
 
   return (
     <>
@@ -311,10 +299,7 @@ export function GenericChallengeCard({
               <Separator />
               <div className="py-4">
                 <h3 className="font-bold mb-2 text-xl">Challenge Details</h3>
-                <div ref={katexRef}
-                  className="text-sm text-muted-foreground editor"
-                  dangerouslySetInnerHTML={{ __html: challenge.description }}
-                />
+                <RichTextEditor value={challenge.description} editable={false} />
               </div>
             </>
           )}

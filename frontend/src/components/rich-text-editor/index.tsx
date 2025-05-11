@@ -13,14 +13,19 @@ import Placeholder from '@tiptap/extension-placeholder'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import { Mathematics } from '@tiptap-pro/extension-mathematics'
 import FileHandler from '@tiptap-pro/extension-file-handler'
+
+import { all, createLowlight } from 'lowlight'
+
+const lowlight = createLowlight(all)
 
 import 'katex/dist/katex.min.css'
 
 interface RichTextEditorProps {
   value: string,
-  onChange: (value: string) => void,
+  onChange?: (value: string) => void,
   className?: string,
   placeholder?: string,
   editable?: boolean
@@ -115,6 +120,9 @@ export default function RichTextEditor({ value, onChange, className = "", placeh
           placeholder: placeholder,
         }),
         Image,
+        CodeBlockLowlight.configure({
+          lowlight,
+        }),
         Mathematics,
         FileHandler.configure({
           allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
@@ -164,8 +172,10 @@ export default function RichTextEditor({ value, onChange, className = "", placeh
         }
       },
       onUpdate: ({ editor }) => {
-        onChange(editor.getHTML());
-        console.log(editor.getHTML())
+        if (onChange) {
+          onChange(editor.getHTML());
+          console.log(editor.getHTML())
+        }
       },
       editable: editable,
     }

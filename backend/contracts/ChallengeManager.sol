@@ -169,10 +169,10 @@ contract ChallengeManager {
     function contributeChallenge(
         string calldata _title_url,
         string calldata _description_url,
-        Domain _category,
-        uint256 _contribute_at
+        Domain _category
     ) external {
         uint256 challengeId = total_challenges++;
+        uint256 contributeAt = block.timestamp * 1000;
 
         challenges[challengeId] = Challenge({
             id: challengeId,
@@ -180,7 +180,7 @@ contract ChallengeManager {
             title_url: _title_url,
             description_url: _description_url,
             category: _category,
-            contribute_at: _contribute_at,
+            contribute_at: contributeAt,
             status: ChallengeStatus.PENDING,
             quality_score: 0,
             difficulty_level: DifficultyLevel.EASY,
@@ -194,7 +194,7 @@ contract ChallengeManager {
             "Challenge #%s contributed by %s at %s with:",
             challengeId,
             msg.sender,
-            _contribute_at
+            contributeAt
         );
         console.log("- Title url        : %s", _title_url);
         console.log("- Description url  : %s", _description_url);
@@ -204,7 +204,7 @@ contract ChallengeManager {
             _title_url,
             _description_url,
             _category,
-            _contribute_at
+            contributeAt
         );
     }
 
@@ -365,7 +365,6 @@ contract ChallengeManager {
     }
 
     function userJoinChallenge(
-        address _user_address,
         uint256 _challenge_id,
         address _solution_address
     ) external {
@@ -376,7 +375,7 @@ contract ChallengeManager {
 
         require(
             !solution_manager.checkUserJoinedChallenge(
-                _user_address,
+                msg.sender,
                 _challenge_id
             )
         );
@@ -384,21 +383,21 @@ contract ChallengeManager {
         uint256 _joined_at = block.timestamp * 1000;
 
         solution_manager.createSolutionBase(
-            _user_address,
+            msg.sender,
             _challenge_id,
             _joined_at
         );
 
-        user_to_joined_challenges[_user_address].push(_challenge_id);
+        user_to_joined_challenges[msg.sender].push(_challenge_id);
 
         console.log(
             "User %s joined challenge %s at %s",
-            _user_address,
+            msg.sender,
             _challenge_id,
             _joined_at
         );
 
-        emit ChallengeJoinedByUser(_user_address, _challenge_id, _joined_at);
+        emit ChallengeJoinedByUser(msg.sender, _challenge_id, _joined_at);
     }
 
     // ================= GETTER METHODS =================

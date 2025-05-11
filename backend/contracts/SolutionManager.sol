@@ -74,14 +74,13 @@ contract SolutionManager {
     }
 
     function submitSolution(
-        address _user_address,
         uint256 _challenge_id,
         string calldata _solution_url
     ) external {
-        require(user_challenge_to_join_state[_challenge_id][_user_address]);
+        require(user_challenge_to_join_state[_challenge_id][msg.sender]);
 
         Solution storage solution = solutions[
-            user_challenge_to_solution[_challenge_id][_user_address]
+            user_challenge_to_solution[_challenge_id][msg.sender]
         ];
 
         solution.solution_url = _solution_url;
@@ -90,8 +89,8 @@ contract SolutionManager {
 
         console.log(
             "User %s submmitted solution #%s for challenge #%s",
-            _user_address,
-            user_challenge_to_solution[_challenge_id][_user_address],
+            msg.sender,
+            user_challenge_to_solution[_challenge_id][msg.sender],
             _challenge_id
         );
         console.log(
@@ -126,7 +125,7 @@ contract SolutionManager {
         require(user_challenge_to_join_state[_challenge_id][_user_address]);
 
         console.log(
-            "User %s fetched solution of challenge #%s",
+            "User %s fetched solution #%s of challenge #%s",
             _user_address,
             user_challenge_to_solution[_challenge_id][_user_address],
             _challenge_id

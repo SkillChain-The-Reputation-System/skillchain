@@ -114,8 +114,7 @@ export function ContributeChallengeForm() {
               <FormLabel className="text-lg font-bold">Description</FormLabel>
               <FormControl>
                 <RichTextEditor
-                  value={field.value}
-                  onChange={field.onChange}
+                  {...field}
                   className="min-h-[250px] border-black dark:border-white border-1 rounded-md bg-slate-50 py-2 px-3 dark:bg-blue-950/15 break-all"
                   placeholder="Challenge is about what and its goal"
                 />

@@ -15,12 +15,6 @@ import {
 } from "@/components/ui/popover"
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 
 export function Hyperlink({ editor }: { editor: Editor | null }) {
   if (!editor) {
@@ -38,47 +32,29 @@ export function Hyperlink({ editor }: { editor: Editor | null }) {
 
   return (
     <>
-      <TooltipProvider>
-        <Popover>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <PopoverTrigger asChild>
-                <Toggle pressed={editor.isActive("link")}>
-                  <Link className="size-4" />
-                </Toggle>
-              </PopoverTrigger>
-            </TooltipTrigger>
-            <TooltipContent>
-              Hyperlink
-            </TooltipContent>
-          </Tooltip>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Toggle pressed={editor.isActive("link")}>
+            <Link className="size-4" />
+          </Toggle>
+        </PopoverTrigger>
 
-          <PopoverContent className="min-w-md border-2 border-black dark:border-white space-y-4">
-            <Label><strong>Insert Hyperlink</strong></Label>
-            <Input
-              className='border-gray-400 dark:border-white border-1'
-              placeholder='https://'
-              value={linkText}
-              onChange={(e) => setLinkText(e.target.value)}
-            />
-            <Button onClick={setLink}>Add link</Button>
-          </PopoverContent>
-        </Popover>
-      </TooltipProvider>
+        <PopoverContent className="min-w-md border-2 border-black dark:border-white space-y-4">
+          <Label><strong>Insert Hyperlink</strong></Label>
+          <Input
+            className='border-gray-400 dark:border-white border-1'
+            placeholder='https://'
+            value={linkText}
+            onChange={(e) => setLinkText(e.target.value)}
+          />
+          <Button onClick={setLink}>Add link</Button>
+        </PopoverContent>
+      </Popover>
 
       {editor.isActive("link") && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Toggle pressed={editor.isActive("link")} onClick={() => editor.chain().focus().unsetLink().run()}>
-                <Unlink className="size-4" />
-              </Toggle>
-            </TooltipTrigger>
-            <TooltipContent>
-              Remove Hyperlink
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Toggle pressed={editor.isActive("link")} onClick={() => editor.chain().focus().unsetLink().run()}>
+          <Unlink className="size-4" />
+        </Toggle>
       )}
     </>
   )

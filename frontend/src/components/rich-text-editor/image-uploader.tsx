@@ -9,12 +9,6 @@ import { Toggle } from "@/components/ui/toggle";
 
 // Import UI components
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -43,25 +37,17 @@ export function ImageUploader({ editor }: { editor: Editor | null }) {
   });
 
   return (
-    <TooltipProvider>
-      <Popover>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <PopoverTrigger asChild>
-              <Toggle pressed={showUploader}>
-                <ImagePlus />
-              </Toggle>
-            </PopoverTrigger>
-          </TooltipTrigger>
-          <TooltipContent>
-            Upload Image
-          </TooltipContent>
-        </Tooltip>
+    <Popover>
+      <PopoverTrigger asChild>
+        <Toggle pressed={showUploader}>
+          <ImagePlus />
+        </Toggle>
+      </PopoverTrigger>
 
-        <PopoverContent className="min-w-md border-2 border-black dark:border-white space-y-4">
-          <div
-            {...getRootProps({
-              className: `
+      <PopoverContent className="min-w-md border-2 border-black dark:border-white space-y-4">
+        <div
+          {...getRootProps({
+            className: `
                     dropzone
                     border-2 border-dashed border-gray-300
                     rounded-lg
@@ -76,28 +62,27 @@ export function ImageUploader({ editor }: { editor: Editor | null }) {
                     dark:hover:border-primary
                     dark:hover:bg-muted
                     ${isDragActive
-                  ? "border-blue-500 bg-blue-50 dark:bg-muted"
-                  : ""
-                }
+                ? "border-blue-500 bg-blue-50 dark:bg-muted"
+                : ""
+              }
                   `,
-            })}
-          >
-            <input {...getInputProps()} />
-            <div className="space-y-4">
-              <UploadCloud className="mx-auto h-12 w-12 text-gray-400 dark:text-muted-foreground" />
-              <p className="text-gray-600 text-lg">
-                <span className="font-semibold text-blue-600 dark:text-primary">
-                  Drag 'n' drop
-                </span>{" "}
-                some files here or {" "}
-                <span className="font-semibold text-blue-600 dark:text-primary">
-                  Browse
-                </span>
-              </p>
-            </div>
+          })}
+        >
+          <input {...getInputProps()} />
+          <div className="space-y-4">
+            <UploadCloud className="mx-auto h-12 w-12 text-gray-400 dark:text-muted-foreground" />
+            <p className="text-gray-600 text-lg">
+              <span className="font-semibold text-blue-600 dark:text-primary">
+                Drag 'n' drop
+              </span>{" "}
+              an image here or {" "}
+              <span className="font-semibold text-blue-600 dark:text-primary">
+                Browse
+              </span>
+            </p>
           </div>
-        </PopoverContent>
-      </Popover>
-    </TooltipProvider>
+        </div>
+      </PopoverContent>
+    </Popover>
   )
 }

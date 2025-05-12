@@ -2,7 +2,7 @@
 
 // Import hooks
 import { useEffect } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react'
+import { useEditor, EditorContent, Content, ReactNodeViewRenderer } from '@tiptap/react'
 
 // Import TipTap extensions
 import StarterKit from '@tiptap/starter-kit'
@@ -13,10 +13,14 @@ import Placeholder from '@tiptap/extension-placeholder'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
+import Subscript from '@tiptap/extension-subscript'
+import Superscript from '@tiptap/extension-superscript'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
+import Typography from '@tiptap/extension-typography'
 import { Mathematics } from '@tiptap-pro/extension-mathematics'
 import FileHandler from '@tiptap-pro/extension-file-handler'
 
+import LangSelector from './lang-selector'
 import { all, createLowlight } from 'lowlight'
 
 const lowlight = createLowlight(all)
@@ -24,8 +28,8 @@ const lowlight = createLowlight(all)
 import 'katex/dist/katex.min.css'
 
 interface RichTextEditorProps {
-  value: string,
-  onChange?: (value: string) => void,
+  value?: Content,
+  onChange?: (value: Content) => void,
   className?: string,
   placeholder?: string,
   editable?: boolean
@@ -56,6 +60,9 @@ export default function RichTextEditor({ value, onChange, className = "", placeh
             types: ['heading', 'paragraph'],
           }
         ),
+        Subscript,
+        Superscript,
+        Typography,
         Highlight,
         Link.configure({
           openOnClick: true,
@@ -120,9 +127,12 @@ export default function RichTextEditor({ value, onChange, className = "", placeh
           placeholder: placeholder,
         }),
         Image,
-        CodeBlockLowlight.configure({
-          lowlight,
-        }),
+        CodeBlockLowlight.extend({
+          addNodeView() {
+            return ReactNodeViewRenderer(LangSelector)
+          },
+        })
+          .configure({ lowlight }),
         Mathematics,
         FileHandler.configure({
           allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
@@ -165,27 +175,23 @@ export default function RichTextEditor({ value, onChange, className = "", placeh
           },
         }),
       ],
-      content: value,
       editorProps: {
         attributes: {
           class: className
         }
       },
-      onUpdate: ({ editor }) => {
-        if (onChange) {
-          onChange(editor.getHTML());
-          console.log(editor.getHTML())
+      editable: editable,
+      onCreate: ({ editor }) => {
+        if (value && editor.isEmpty) {
+          editor.commands.setContent(value)
         }
       },
-      editable: editable,
+      onUpdate: ({ editor }) => {
+        onChange?.(editor.getHTML());
+        console.log(editor.getHTML());
+      },
     }
   )
-
-  useEffect(() => {
-    if (editor && value !== editor.getHTML()) {
-      editor.commands.setContent(value)
-    }
-  }, [value])
 
   return (
     <div>

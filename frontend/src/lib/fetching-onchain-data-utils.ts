@@ -388,6 +388,20 @@ export const fetchUserHasJoinedChallengeState = async (
   return has_joined;
 };
 
+export const fetchSolutionTxIdByUserAndChallengeId = async (
+  address: `0x${string}`,
+  challenge_id: number
+): Promise<string> => {
+  const fetchedTxId = await readContract(wagmiConfig, {
+    address: ContractConfig_SolutionManager.address as `0x${string}`,
+    abi: ContractConfig_SolutionManager.abi,
+    functionName: "getSolutionTxId",
+    args: [address, challenge_id],
+  }) as string;
+
+  return fetchedTxId;
+}
+
 export const fetchSolutionByUserAndChallengeId = async (
   address: `0x${string}`,
   challenge_id: number
@@ -402,7 +416,7 @@ export const fetchSolutionByUserAndChallengeId = async (
   if (!fetchedSolution)
     return null;
 
-  const solution = fetchedSolution.solution_url != "" ? await fetchStringDataOffChain(fetchedSolution.solution_url) : "";
+  const solution = await fetchStringDataOffChain(`https://gateway.irys.xyz/mutable/${fetchedSolution.solution_txid}`)
 
   return {
     user: fetchedSolution.user,

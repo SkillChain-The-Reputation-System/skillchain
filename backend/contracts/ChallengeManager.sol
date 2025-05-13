@@ -366,6 +366,7 @@ contract ChallengeManager {
 
     function userJoinChallenge(
         uint256 _challenge_id,
+        string calldata _solution_base_txid,
         address _solution_address
     ) external {
         // Check if challenge id exists
@@ -385,6 +386,7 @@ contract ChallengeManager {
         solution_manager.createSolutionBase(
             msg.sender,
             _challenge_id,
+            _solution_base_txid,
             _joined_at
         );
 

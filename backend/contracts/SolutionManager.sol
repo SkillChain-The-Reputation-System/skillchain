@@ -15,7 +15,7 @@ contract SolutionManager {
     struct Solution {
         address user;
         uint256 challenge_id;
-        string solution_url;
+        string solution_txid;
         uint256 created_at;
         uint256 submitted_at;
         SolutionProgress progress;
@@ -38,15 +38,17 @@ contract SolutionManager {
     event SolutionBaseCreated(
         address user_address,
         uint256 challenge_id,
+        string solution_base_txid,
         uint256 created_at
     );
 
-    event SolutionSubmitted(string solution_url, uint256 submitted_at);
+    event SolutionSubmitted(uint256 submitted_at);
 
     // ================= SOLUTION INTERFACTION METHODS =================
     function createSolutionBase(
         address _user_address,
         uint256 _challenge_id,
+        string calldata _solution_base_txid,
         uint256 _created_at
     ) external {
         uint256 solutionId = total_solutions++;
@@ -54,7 +56,7 @@ contract SolutionManager {
         solutions[solutionId] = Solution({
             user: _user_address,
             challenge_id: _challenge_id,
-            solution_url: "",
+            solution_txid: _solution_base_txid,
             created_at: _created_at,
             submitted_at: 0,
             progress: SolutionProgress.IN_PROGRESS,
@@ -64,45 +66,53 @@ contract SolutionManager {
         user_challenge_to_solution[_challenge_id][_user_address] = solutionId;
         user_challenge_to_join_state[_challenge_id][_user_address] = true;
         console.log(
-            "Created solution base #%s of challenge %s for user %s",
-            solutionId,
+            "Created solution base with txid %s of challenge %s for user %s",
+            _solution_base_txid,
             _challenge_id,
             _user_address
         );
 
-        emit SolutionBaseCreated(_user_address, _challenge_id, _created_at);
+        emit SolutionBaseCreated(
+            _user_address,
+            _challenge_id,
+            _solution_base_txid,
+            _created_at
+        );
     }
 
-    function submitSolution(
-        uint256 _challenge_id,
-        string calldata _solution_url
-    ) external {
+    function submitSolution(uint256 _challenge_id) external {
         require(user_challenge_to_join_state[_challenge_id][msg.sender]);
 
         Solution storage solution = solutions[
             user_challenge_to_solution[_challenge_id][msg.sender]
         ];
 
-        solution.solution_url = _solution_url;
         solution.submitted_at = block.timestamp * 1000;
         solution.progress = SolutionProgress.SUBMITTED;
 
         console.log(
-            "User %s submmitted solution #%s for challenge #%s",
+            "User %s submmitted solution with txid %s for challenge #%s",
             msg.sender,
-            user_challenge_to_solution[_challenge_id][msg.sender],
+            solution.solution_txid,
             _challenge_id
         );
-        console.log(
-            "at %s with solution URL: %s",
-            solution.submitted_at,
-            solution.solution_url
-        );
+        console.log("at %s", solution.submitted_at);
 
-        emit SolutionSubmitted(solution.solution_url, solution.submitted_at);
+        emit SolutionSubmitted(solution.submitted_at);
     }
 
     // ================= GETTER METHODS =================
+    function getSolutionTxId(
+        address _user_address,
+        uint256 _challenge_id
+    ) public view returns (string memory) {
+        require(user_challenge_to_join_state[_challenge_id][_user_address]);
+
+        return
+            solutions[user_challenge_to_solution[_challenge_id][_user_address]]
+                .solution_txid;
+    }
+
     function getSolutionPreviewByUserAndChallengeId(
         address _user_address,
         uint256 _challenge_id

@@ -9,11 +9,17 @@ export const getIrysUploader = async () => {
   return irysUploader;
 };
 
-export const uploadData = async (data: any): Promise<string | undefined> => {
+export const uploadData = async (
+  data: any,
+  tags?: [{ name: string, value: string }]
+): Promise<string | undefined> => {
   const irysUploader = await getIrysUploader();
+
   const dataToUpload = data;
+  const tagsToUpload = tags ? { tags: tags } : undefined;
+
   try {
-    const receipt = await irysUploader.upload(dataToUpload);
+    const receipt = await irysUploader.upload(dataToUpload, tagsToUpload);
     console.log(`Data uploaded ==> https://gateway.irys.xyz/${receipt.id}`);
     return receipt.id;
   } catch (e) {

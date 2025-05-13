@@ -65,8 +65,3 @@ export interface JoinedChallengePreview {
     joinedAt: number;
     score: number;
 }
-
-export interface ChallengeWorkspace {
-    challenge: ChallengeInterface;
-    solution: SolutionInterface;
-}

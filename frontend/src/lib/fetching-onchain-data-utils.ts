@@ -10,7 +10,6 @@ import {
   JoinedChallengePreview,
   FetchUserDataOnChainOutput,
   ModeratorReview,
-  ChallengeWorkspace,
   SolutionInterface,
 } from "./interfaces";
 import { fetchStringDataOffChain } from "./fetching-offchain-data-utils";
@@ -426,24 +425,5 @@ export const fetchSolutionByUserAndChallengeId = async (
     submittedAt: fetchedSolution.submitted_at,
     progress: fetchedSolution.progress,
     score: fetchedSolution.score
-  };
-}
-
-export const fetchChallengeWorkspace = async (
-  address: `0x${string}`,
-  challenge_id: number
-): Promise<ChallengeWorkspace | null> => {
-  const fetchedChallenge = await getChallengeById(challenge_id);
-  const fetchedSolution = await fetchSolutionByUserAndChallengeId(address, challenge_id);
-
-  if (!fetchedChallenge || !fetchedSolution)
-    return null;
-
-  if (fetchedChallenge.id != fetchedSolution.challengeId)
-    return null;
-
-  return {
-    challenge: fetchedChallenge,
-    solution: fetchedSolution
   };
 }

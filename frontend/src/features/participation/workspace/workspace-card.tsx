@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 
 // Import lucide-react icons
 import {
-  CalendarCheck,
+  CalendarPlus2,
   Tag,
   Trophy,
 } from "lucide-react";
@@ -77,7 +77,7 @@ export function WorkspaceCard({ previewChallenge, onClick }: WorkspaceCardProps)
 
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <CalendarCheck className="h-full max-h-3.5 max-w-3.5 w-full mr-1" />
+              <CalendarPlus2 className="h-full max-h-3.5 max-w-3.5 w-full mr-1" />
               <p className="ml-1">Joined on {formattedJoinedDate}</p>
             </div>
 

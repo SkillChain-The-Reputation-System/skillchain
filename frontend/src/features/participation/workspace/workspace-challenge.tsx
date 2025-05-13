@@ -37,6 +37,7 @@ import {
   UserRoundPen,
   Users,
   CalendarCheck,
+  CalendarPlus2,
   Eye,
   Trophy,
   Save,
@@ -56,7 +57,7 @@ import {
   ChallengeSolutionProgress,
   ChallengeSolutionProgressLabels
 } from '@/constants/system'
-import { submitSolution, waitForTransaction } from '@/lib/write-onchain-utils'
+import { saveSolutionDraft, submitSolution, waitForTransaction } from '@/lib/write-onchain-utils'
 import { getChallengeById, fetchSolutionByUserAndChallengeId } from "@/lib/fetching-onchain-data-utils";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -65,7 +66,6 @@ import { pageUrlMapping } from "@/constants/navigation"
 const solutionSchema = z.object({
   solution: z
     .string()
-    .min(17, "Solution must be at least 10 characters")
     .max(10000, "Solution must be less than 4000 characters"),
 });
 
@@ -77,11 +77,13 @@ interface WorkspaceChallengeDetailsProps {
 
 export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeDetailsProps) {
   const { address } = useAccount();
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  const [isLoading, setIsLoading] = useState(false);
   const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
   const [solution, setSolution] = useState<SolutionInterface | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
 
   const form = useForm<SolutionFormValues>({
     resolver: zodResolver(solutionSchema),
@@ -90,27 +92,42 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
     },
   });
 
-  async function onSubmit(data: SolutionFormValues) {
-    if (!address || !challenge || !solution) {
-      return;
-    }
+  // handle submitting
+  function onSubmit() {
+    form.handleSubmit(async (data: SolutionFormValues) => {
+      if (!address || !challenge || !solution) {
+        return;
+      }
 
-    try {
-      setSubmitting(true);
-      const txHash = await submitSolution(Number(challenge_id), address, data.solution);
-      await waitForTransaction(txHash);
-      toast.success("You have submitted this solution");
-      window.location.reload();
-    } catch (error: any) {
-      toast.error("Error occurs. Please try again!");
-    } finally {
-      setSubmitting(false);
-    }
+      try {
+        setSubmitting(true);
+        const txHash = await submitSolution(Number(challenge_id), address, data.solution);
+        await waitForTransaction(txHash);
+        toast.success("You have submitted this solution");
+      } catch (error: any) {
+        toast.error("Error occurs. Please try again!");
+      } finally {
+        setSubmitting(false);
+      }
+    })();
   }
 
-  async function onSaveDraft() {
-    form.handleSubmit((data: SolutionFormValues) => {
-      // maybe handle save draft here
+  // handle saving draft
+  function onSaveDraft() {
+    form.handleSubmit(async (data: SolutionFormValues) => {
+      if (!address || !challenge || !solution) {
+        return;
+      }
+
+      try {
+        setSavingDraft(true);
+        await saveSolutionDraft(Number(challenge_id), address, data.solution);
+        toast.info("Saved draft for this solution");
+      } catch (error: any) {
+        toast.error("Error occurs. Please try again!");
+      } finally {
+        setSavingDraft(false);
+      }
     })();
   }
 
@@ -120,8 +137,8 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
       if (!address)
         return;
 
-      setIsLoading(true);
       try {
+        setIsLoading(true);
         const [
           fetchedChallenge,
           fetchedSolution
@@ -132,6 +149,10 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
 
         setChallenge(fetchedChallenge);
         setSolution(fetchedSolution);
+
+        if (fetchedSolution && fetchedSolution.solution?.trim().length !== 0)
+          form.reset({ solution: fetchedSolution.solution })
+
       } catch (error) {
         toast.error("Error occurs. Please try again");
       } finally {
@@ -141,6 +162,23 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
 
     fetchData();
   }, [address]);
+
+  // fetch new solution data after submitting solution
+  useEffect(() => {
+    const fetchedData = async () => {
+      if (!address)
+        return;
+
+      try {
+        const fetchedSolution = await fetchSolutionByUserAndChallengeId(address, challenge_id);
+        setSolution(fetchedSolution);
+      } catch (error) {
+        toast.error("Error occurs. Please try again");
+      }
+    }
+
+    fetchedData();
+  }, [submitting])
 
   return (
     <>
@@ -261,7 +299,7 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                     <div className="flex flex-col gap-1.5">
                       <span className="text-sm font-medium text-muted-foreground">Joined on</span>
                       <div className="flex items-center gap-1.5">
-                        <CalendarCheck className="h-full max-h-4 w-full max-w-4" />
+                        <CalendarPlus2 className="h-full max-h-4 w-full max-w-4" />
                         <span>{epochToDateTimeString(solution.createdAt)}</span>
                       </div>
                     </div>
@@ -281,6 +319,16 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                         <span>{solution.progress != ChallengeSolutionProgress.REVIEWED ? "--" : "??"}</span>
                       </div>
                     </div>
+
+                    {solution.progress != ChallengeSolutionProgress.IN_PROGRESS && (
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-sm font-medium text-muted-foreground">Submitted on</span>
+                        <div className="flex items-center gap-1.5">
+                          <CalendarCheck className="h-full max-h-4 w-full max-w-4" />
+                          <span>{epochToDateTimeString(solution.submittedAt)}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </TabsContent>
                 {/* Description of challenge section */}
@@ -297,7 +345,6 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
 
                   <Form {...form}>
                     <form
-                      onSubmit={form.handleSubmit(onSubmit)}
                       className="w-full mt-8 space-y-8"
                     >
                       <FormField
@@ -307,8 +354,7 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                           <FormItem>
                             <FormControl>
                               <RichTextEditor
-                                value={solution.progress == ChallengeSolutionProgress.IN_PROGRESS ? field.value : solution.solution!}
-                                onChange={field.onChange}
+                                {...field}
                                 className="min-h-80 border-black dark:border-white border-1 rounded-md bg-slate-50 py-2 px-3 dark:bg-blue-950/15 break-all"
                                 placeholder="What is your solution about this challenge..."
                                 editable={solution.progress == ChallengeSolutionProgress.IN_PROGRESS}
@@ -318,34 +364,35 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                           </FormItem>
                         )}
                       />
-
-                      <div className="flex justify-end items-center gap-5">
-                        {
-                          (solution.progress == ChallengeSolutionProgress.IN_PROGRESS) &&
-                          <Button
-                            variant="outline"
-                            size="lg"
-                            className="flex items-center gap-2 cursor-pointer border border-zinc-700"
-                            onClick={onSaveDraft}
-                          >
-                            <Save className="h-4 w-4" />
-                            Save draft
-                          </Button>
-                        }
-
-                        <Button
-                          variant="outline"
-                          type="submit"
-                          size="lg"
-                          className="flex items-center gap-2 cursor-pointer shrink-0 bg-zinc-700 hover:bg-zinc-700/60 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/60"
-                          disabled={submitting || solution.progress != ChallengeSolutionProgress.IN_PROGRESS}
-                        >
-                          <Send className="h-4 w-4" />
-                          Submit
-                        </Button>
-                      </div>
                     </form>
                   </Form>
+
+                  <div className="flex justify-end items-center gap-5 mt-5">
+                    {
+                      (solution.progress == ChallengeSolutionProgress.IN_PROGRESS) &&
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="flex items-center gap-2 cursor-pointer border border-zinc-700"
+                        onClick={onSaveDraft}
+                        disabled={savingDraft || submitting}
+                      >
+                        <Save className="h-4 w-4" />
+                        Save draft
+                      </Button>
+                    }
+
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="flex items-center gap-2 cursor-pointer shrink-0 bg-zinc-700 hover:bg-zinc-700/60 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/60"
+                      onClick={onSubmit}
+                      disabled={savingDraft || submitting || solution.progress != ChallengeSolutionProgress.IN_PROGRESS}
+                    >
+                      <Send className="h-4 w-4" />
+                      Submit
+                    </Button>
+                  </div>
                 </TabsContent>
               </Tabs>
             </div>

@@ -90,7 +90,7 @@ export function ContributeChallengeForm() {
 
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="w-full max-w-4xl self-center space-y-8"
+        className="w-full max-w-5xl self-center space-y-8"
       >
         <FormField
           control={form.control}

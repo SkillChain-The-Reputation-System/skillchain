@@ -55,6 +55,7 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(true);
+  const [joining, setJoining] = useState(false);
   const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
   const [hasJoined, setHasJoined] = useState(false);
 
@@ -69,12 +70,15 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
     }
 
     try {
+      setJoining(true);
       const txHash = await userJoinChallenge(Number(challenge_id), address);
       await waitForTransaction(txHash);
       toast.success("You have joined this challenge");
       setHasJoined(true);
     } catch (error: any) {
       toast.error("Error occurs. Please try again!");
+    } finally {
+      setJoining(false);
     }
   }
 
@@ -143,7 +147,12 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
                       </Button>
                     </div>
                   ) : (
-                    <Button size="lg" className="shrink-0 bg-zinc-700 text-white cursor-pointer" onClick={handleJoinChallenge}>
+                    <Button
+                      size="lg"
+                      className="shrink-0 bg-zinc-700 text-white cursor-pointer"
+                      onClick={handleJoinChallenge}
+                      disabled={joining}
+                    >
                       Join Challenge
                     </Button>
                   )}
@@ -249,7 +258,12 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
                         <p className="text-sm text-muted-foreground">Join now and start working on your solution.</p>
                       </div>
 
-                      <Button size="lg" className="shrink-0 bg-zinc-700 text-white cursor-pointer" onClick={handleJoinChallenge}>
+                      <Button
+                        size="lg"
+                        className="shrink-0 bg-zinc-700 text-white cursor-pointer"
+                        onClick={handleJoinChallenge}
+                        disabled={joining}
+                      >
                         Join Challenge
                       </Button>
                     </>

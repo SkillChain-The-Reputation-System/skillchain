@@ -2,8 +2,8 @@
 
 // Import hooks
 import { useForm } from "react-hook-form";
-import { useAccount, useWriteContract } from "wagmi";
-import { useEffect, useState } from "react";
+import { useAccount } from "wagmi";
+import { useState } from "react";
 
 // Import UI components
 import {
@@ -23,22 +23,14 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Toaster, toast } from "sonner";
 import RichTextEditor from "@/components/rich-text-editor";
 
 // Import utils
-import { redirect } from "next/navigation";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  GetCurrentTimeResponse,
-  IrysUploadResponseInterface,
-} from "@/lib/interfaces";
-import axios from "axios";
-import { toast } from "react-toastify";
 import { DomainLabels, Domain } from "@/constants/system";
-
-// Import contracts config
-import { ContractConfig_ChallengeManager } from "@/constants/contracts-config";
+import { contributeChallenge, waitForTransaction } from "@/lib/write-onchain-utils"
 
 // Set up challenge schema input
 const contributeChallengeSchema = z.object({
@@ -49,7 +41,7 @@ const contributeChallengeSchema = z.object({
   description: z
     .string()
     .min(18, "Description must be at least 10 characters")
-    .max(4000, "Description must be less than 4000 characters"),
+    .max(10000, "Description must be less than 4000 characters"),
   category: z.coerce.number().pipe(
     z.nativeEnum(Domain, {
       errorMap: () => ({ message: "Category is required" }),
@@ -63,7 +55,6 @@ export type ChallengeFormValues = z.infer<typeof contributeChallengeSchema>;
 export function ContributeChallengeForm() {
   const { address } = useAccount(); // get user's current address
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(false); // for enable/disable submit button
-  const { data: hash, writeContract, isPending } = useWriteContract(); // for writing contract
 
   const form = useForm<ChallengeFormValues>({
     resolver: zodResolver(contributeChallengeSchema),
@@ -75,64 +66,31 @@ export function ContributeChallengeForm() {
     },
   });
 
-  useEffect(() => {
-    setIsSubmitDisabled(isPending);
-    if (isPending) {
-      toast.info("Transaction is pending. Please wait...");
-    }
-    if (!isPending && hash) {
-      toast.success("Contributed successfully!");
-
-      redirect("/dashboard/contribution/contribute");
-    }
-  }, [isPending]);
-
-  async function getCurrentTime(): Promise<number> {
-    const { data } = await axios.get<GetCurrentTimeResponse>(
-      "/api/utils/time/get-current-time"
-    );
-    return data.time;
-  }
-
   async function onSubmit(data: ChallengeFormValues) {
-    setIsSubmitDisabled(true);
+    if (!address) {
+      return;
+    }
 
-    // Upload title and description to Irys and get their URLs
-    const [
-      { data: title_upload_res_data },
-      { data: description_upload_res_data },
-    ] = await Promise.all([
-      axios.post<IrysUploadResponseInterface>(
-        "/api/irys/upload/upload-string",
-        data.title
-      ),
-      axios.post<IrysUploadResponseInterface>(
-        "/api/irys/upload/upload-string",
-        data.description
-      ),
-    ]);
-
-    const current_time_stamp = await getCurrentTime();
-
-    // Write contract
-    writeContract({
-      address: ContractConfig_ChallengeManager.address as `0x${string}`,
-      abi: ContractConfig_ChallengeManager.abi,
-      functionName: "contributeChallenge",
-      args: [
-        title_upload_res_data.url,
-        description_upload_res_data.url,
-        data.category,
-        current_time_stamp,
-      ],
-    });
+    try {
+      setIsSubmitDisabled(true);
+      const txHash = await contributeChallenge(address, data);
+      await waitForTransaction(txHash);
+      toast.success("You have successfully contribute this challenge");
+      window.location.reload();
+    } catch (error: any) {
+      toast.error("Error occurs. Please try again!");
+    } finally {
+      setIsSubmitDisabled(false);
+    }
   }
 
   return (
     <Form {...form}>
+      <Toaster position="top-right" richColors />
+
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="w-full max-w-4xl self-center space-y-8"
+        className="w-full max-w-5xl self-center space-y-8"
       >
         <FormField
           control={form.control}
@@ -156,8 +114,8 @@ export function ContributeChallengeForm() {
               <FormLabel className="text-lg font-bold">Description</FormLabel>
               <FormControl>
                 <RichTextEditor
-                  value={field.value}
-                  onChange={field.onChange}
+                  {...field}
+                  className="min-h-[250px] border-black dark:border-white border-1 rounded-md bg-slate-50 py-2 px-3 dark:bg-blue-950/15 break-all"
                   placeholder="Challenge is about what and its goal"
                 />
               </FormControl>

@@ -14,5 +14,5 @@ export const pageUrlMapping = {
     moderation_settings: "/dashboard/moderation/settings",
     participation: "/dashboard/participation",
     participation_explore: "/dashboard/participation/explore",
-    participation_my_participation: "/dashboard/participation/my-participation",
+    participation_workspace: "/dashboard/participation/workspace",
 }

@@ -1,4 +1,4 @@
-import { Domain, ChallengeStatus, QualityFactorAnswer, ChallengeDifficultyLevel } from "@/constants/system";
+import { Domain, ChallengeStatus, QualityFactorAnswer, ChallengeDifficultyLevel, ChallengeSolutionProgress } from "@/constants/system";
 
 export interface IrysUploadResponseInterface {
     success: boolean;
@@ -44,4 +44,24 @@ export interface ModeratorReview {
     suggested_difficulty: ChallengeDifficultyLevel;
     suggested_category: Domain;
     suggested_solve_time: number;
+}
+
+export interface SolutionInterface {
+    user: string | undefined;
+    challengeId: string | undefined;
+    solution: string | undefined;
+    createdAt: number;
+    submittedAt: number;
+    progress: ChallengeSolutionProgress;
+    score: number;
+}
+
+export interface JoinedChallengePreview {
+    challengeId: string;
+    title: string | undefined;
+    description: string | undefined;
+    category: string | Domain;
+    progress: ChallengeSolutionProgress;
+    joinedAt: number;
+    score: number;
 }

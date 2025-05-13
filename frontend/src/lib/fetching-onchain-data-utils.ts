@@ -2,18 +2,22 @@ import { readContract } from "@wagmi/core";
 import {
   ContractConfig_ChallengeManager,
   ContractConfig_UserDataManager,
+  ContractConfig_SolutionManager
 } from "@/constants/contracts-config";
 import { wagmiConfig } from "@/features/wallet/Web3Provider";
 import {
   ChallengeInterface,
+  JoinedChallengePreview,
   FetchUserDataOnChainOutput,
   ModeratorReview,
+  SolutionInterface,
 } from "./interfaces";
 import { fetchStringDataOffChain } from "./fetching-offchain-data-utils";
 import {
   QualityFactorAnswer,
   ChallengeDifficultyLevel,
   Domain,
+  ChallengeSolutionProgress,
 } from "@/constants/system";
 
 export const fetchUserDataOnChain = async (
@@ -257,9 +261,7 @@ export const fetchPendingChallenges = async (): Promise<ChallengeInterface[]> =>
   const meaningPendingChallenges = await Promise.all(
     (pendingChallenges as any[]).map(async (challenge) => {
       const title = await fetchStringDataOffChain(challenge.title_url);
-      const description = await fetchStringDataOffChain(
-        challenge.description_url
-      );
+      const description = await fetchStringDataOffChain(challenge.description_url);
 
       return {
         id: challenge.id.toString(),
@@ -278,3 +280,150 @@ export const fetchPendingChallenges = async (): Promise<ChallengeInterface[]> =>
 
   return meaningPendingChallenges;
 };
+
+export const fetchApprovedChallenges = async (): Promise<ChallengeInterface[]> => {
+  const approvedChallenges = await readContract(wagmiConfig, {
+    address: ContractConfig_ChallengeManager.address as `0x${string}`,
+    abi: ContractConfig_ChallengeManager.abi,
+    functionName: "getApprovedChallenges",
+    args: [],
+  });
+
+  const meaningApprovedChallenges = await Promise.all(
+    (approvedChallenges as any[]).map(async (challenge) => {
+      const title = await fetchStringDataOffChain(challenge.title_url);
+      const description = await fetchStringDataOffChain(challenge.description_url);
+
+      return {
+        id: challenge.id.toString(),
+        contributor: challenge.contributor,
+        title,
+        description,
+        category: challenge.category.toString(),
+        contributeAt: challenge.contribute_at,
+        status: challenge.status,
+        qualityScore: challenge.quality_score,
+        difficultyLevel: challenge.difficulty_level,
+        solveTime: challenge.solve_time,
+      };
+    })
+  );
+
+  return meaningApprovedChallenges;
+};
+
+export const fetchJoinedChallengesByUser = async (
+  address: `0x${string}`
+): Promise<ChallengeInterface[]> => {
+  const joinedChallenges = await readContract(wagmiConfig, {
+    address: ContractConfig_ChallengeManager.address as `0x${string}`,
+    abi: ContractConfig_ChallengeManager.abi,
+    functionName: "getJoinedChallengesByUser",
+    args: [address],
+  });
+
+  const meaningJoinedChallenges = await Promise.all(
+    (joinedChallenges as any[]).map(async (challenge) => {
+      const title = await fetchStringDataOffChain(challenge.title_url);
+      const description = await fetchStringDataOffChain(challenge.description_url);
+
+      return {
+        id: challenge.id.toString(),
+        contributor: challenge.contributor,
+        title,
+        description,
+        category: challenge.category.toString(),
+        contributeAt: challenge.contribute_at,
+        status: challenge.status,
+        qualityScore: challenge.quality_score,
+        difficultyLevel: challenge.difficulty_level,
+        solveTime: challenge.solve_time,
+      };
+    })
+  );
+
+  return meaningJoinedChallenges;
+}
+
+export const fetchJoinedChallengesPreviewByUser = async (address: `0x${string}`): Promise<JoinedChallengePreview[]> => {
+  const previewList = await readContract(wagmiConfig, {
+    address: ContractConfig_ChallengeManager.address as `0x${string}`,
+    abi: ContractConfig_ChallengeManager.abi,
+    functionName: "getJoinedChallengesByUserForPreview",
+    args: [address, ContractConfig_SolutionManager.address],
+  });
+
+  const meaningPreviewList = await Promise.all(
+    (previewList as any[]).map(async (preview) => {
+      const title = await fetchStringDataOffChain(preview.title_url);
+      const description = await fetchStringDataOffChain(preview.description_url);
+
+      return {
+        challengeId: preview.challenge_id,
+        title,
+        description,
+        category: preview.domain.toString(),
+        progress: preview.progress,
+        joinedAt: preview.joined_at,
+        score: preview.score,
+      };
+    })
+  );
+
+  return meaningPreviewList;
+}
+
+export const fetchUserHasJoinedChallengeState = async (
+  address: `0x${string}`,
+  challenge_id: number
+): Promise<boolean> => {
+  const has_joined = await readContract(wagmiConfig, {
+    address: ContractConfig_SolutionManager.address as `0x${string}`,
+    abi: ContractConfig_SolutionManager.abi,
+    functionName: "checkUserJoinedChallenge",
+    args: [address, challenge_id],
+  }) as boolean;
+
+  return has_joined;
+};
+
+export const fetchSolutionTxIdByUserAndChallengeId = async (
+  address: `0x${string}`,
+  challenge_id: number
+): Promise<string> => {
+  const fetchedTxId = await readContract(wagmiConfig, {
+    address: ContractConfig_SolutionManager.address as `0x${string}`,
+    abi: ContractConfig_SolutionManager.abi,
+    functionName: "getSolutionTxId",
+    args: [address, challenge_id],
+  }) as string;
+
+  return fetchedTxId;
+}
+
+export const fetchSolutionByUserAndChallengeId = async (
+  address: `0x${string}`,
+  challenge_id: number
+): Promise<SolutionInterface | null> => {
+  const fetchedSolution = await readContract(wagmiConfig, {
+    address: ContractConfig_SolutionManager.address as `0x${string}`,
+    abi: ContractConfig_SolutionManager.abi,
+    functionName: "getSolutionByUserAndChallengeId",
+    args: [address, challenge_id],
+  }) as any;
+
+  if (!fetchedSolution)
+    return null;
+
+  const solution = await fetchStringDataOffChain(`https://gateway.irys.xyz/mutable/${fetchedSolution.solution_txid}`)
+
+  return {
+    user: fetchedSolution.user,
+    challengeId: fetchedSolution.challenge_id,
+    solution: solution,
+    createdAt: fetchedSolution.created_at,
+    submittedAt: fetchedSolution.submitted_at,
+    progress: fetchedSolution.progress,
+    score: fetchedSolution.score
+  };
+}

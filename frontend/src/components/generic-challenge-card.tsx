@@ -19,15 +19,16 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import RichTextEditor from "@/components/rich-text-editor";
 
 import {
   Calendar,
   Tag,
   ArrowUpRight,
-  Clock,
   Users,
   UserRoundPen,
   ShieldUser,
+  Star,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -45,6 +46,9 @@ import {
   getReviewQuorum,
 } from "@/lib/fetching-onchain-data-utils";
 
+import { renderMathInElement } from "@/lib/katex-auto-render";
+import "katex/dist/katex.min.css";
+
 export interface ChallengeCardProps {
   reload?: boolean;
   challenge: ChallengeInterface;
@@ -54,6 +58,8 @@ export interface ChallengeCardProps {
   showModerators?: boolean;
   showCategory?: boolean;
   showCreatedDate?: boolean;
+  showQualityScore?: boolean;
+  showParticipants?: boolean;
   allowShowDetailDialog?: boolean;
 }
 
@@ -66,6 +72,8 @@ export function GenericChallengeCard({
   showModerators = true,
   showCategory = true,
   showCreatedDate = true,
+  showQualityScore = true,
+  showParticipants = true,
   allowShowDetailDialog = true,
 }: ChallengeCardProps) {
   const [showDetails, setShowDetails] = useState(false);
@@ -122,7 +130,7 @@ export function GenericChallengeCard({
         <CardContent className="flex flex-col text-sm text-muted-foreground gap-2">
           {showContributor && (
             <div className="flex items-center gap-1">
-              <UserRoundPen className="h-3.5 w-3.5" />
+              <UserRoundPen className="h-full max-h-3.5 w-full max-w-3.5" />
               <span>Contributor:</span>
               <span
                 className="ml-1 text-blue-600 hover:text-blue-600/80 dark:text-blue-400 dark:hover:text-blue-400/80 cursor-pointer break-all"
@@ -137,7 +145,7 @@ export function GenericChallengeCard({
 
           {showModerators && (
             <div className="flex items-center gap-1">
-              <ShieldUser className="h-3.5 w-3.5" />
+              <ShieldUser className="h-full max-h-3.5 w-full max-w-3.5" />
               <span>Moderators:</span>
               <span className="ml-1">
                 {poolSize !== null && quorum !== null
@@ -149,20 +157,40 @@ export function GenericChallengeCard({
 
           {showCategory && (
             <div className="flex items-center gap-1">
-              <Tag className="h-3.5 w-3.5" />
-              <p>Category:</p>
+              <Tag className="h-full max-h-3.5 w-full max-w-3.5" />
+              <p>Domain:</p>
               <p className="ml-1">
                 {DomainLabels[challenge.category as Domain]}
               </p>
             </div>
           )}
 
-          {showCreatedDate && (
-            <div className="flex items-center">
-              <Calendar className="h-3.5 w-3.5 mr-1" />
-              Created on {formattedContributeDate}
+          <Separator className="my-1 bg-black" />
+
+          <div className="flex items-center justify-between">
+            {showCreatedDate && (
+              <div className="flex items-center">
+                <Calendar className="h-3.5 w-3.5 mr-1" />
+                Created on: {formattedContributeDate}
+              </div>
+            )}
+
+            <div className="flex items-center gap-2">
+              {showQualityScore && (
+                <div className="flex items-center text-amber-500 dark:text-amber-400">
+                  <Star className="h-3.5 w-3.5 mr-1 fill-current" />
+                  <span>{challenge.status == ChallengeStatus.APPROVED ? challenge.qualityScore : "--"}</span>
+                </div>
+              )}
+
+              {showParticipants && (
+                <div className="flex items-center">
+                  <Users className="h-3.5 w-3.5 mr-1" />
+                  <span>{0} joined</span>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </CardContent>
 
         <CardFooter className="flex justify-between mt-2">
@@ -225,7 +253,7 @@ export function GenericChallengeCard({
                 Created On
               </span>
               <div className="flex items-center">
-                <Calendar className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                <Calendar className="h-full max-h-3.5 w-full max-w-3.5 mr-1 text-muted-foreground" />
                 <span>{formattedContributeDate}</span>
               </div>
             </div>
@@ -235,7 +263,7 @@ export function GenericChallengeCard({
                 Participants
               </span>
               <div className="flex items-center">
-                <Users className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                <Users className="h-full max-h-3.5 w-full max-w-3.5 mr-1 text-muted-foreground" />
                 <span>0 enrolled</span>
               </div>
             </div>
@@ -245,7 +273,7 @@ export function GenericChallengeCard({
                 Moderators
               </span>
               <div className="flex items-center">
-                <ShieldUser className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                <ShieldUser className="h-full max-h-3.5 w-full max-w-3.5 mr-1 text-muted-foreground" />
                 <span>
                   {poolSize !== null && quorum !== null
                     ? `${poolSize} / ${quorum} joined`
@@ -271,10 +299,7 @@ export function GenericChallengeCard({
               <Separator />
               <div className="py-4">
                 <h3 className="font-bold mb-2 text-xl">Challenge Details</h3>
-                <div
-                  className="text-sm text-muted-foreground editor"
-                  dangerouslySetInnerHTML={{ __html: challenge.description }}
-                />
+                <RichTextEditor value={challenge.description} editable={false} />
               </div>
             </>
           )}

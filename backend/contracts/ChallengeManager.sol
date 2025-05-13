@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "hardhat/console.sol";
+import "./SolutionManager.sol";
 
-// TODO: Think about store participants, voting mechanics, linking solutions, fee... | Moderation: verify challenge and upload to Explore
 contract ChallengeManager {
     // ================= CONSTANTS =================
     uint256 public constant REVIEW_QUORUM = 3; // The number of moderators needed to start a finalizing process
@@ -93,9 +93,20 @@ contract ChallengeManager {
         uint256 estimated_solve_time;
     }
 
+    // Struct for joined challenges preview in workspace
+    struct JoinedChallengesPreview {
+        uint256 challenge_id;
+        string title_url;
+        string description_url;
+        Domain domain;
+        SolutionProgress progress;
+        uint256 joined_at;
+        uint256 score;
+    }
+
     // ================= STATE VARIABLES =================
     // Mapping: Challenge ID -> Challenge
-    mapping(uint256 => Challenge) private challenges; // TODO: optizime storing challenges
+    mapping(uint256 => Challenge) private challenges;
     // Mapping: Challenge ID -> Review Pool
     mapping(uint256 => ReviewPool) private review_pool;
     // Mapping: Contributor address -> Challenge IDs
@@ -104,9 +115,12 @@ contract ChallengeManager {
     mapping(address => uint256[]) private moderator_to_challenges;
     // Mapping: Challenge ID -> Aggregated metadata
     mapping(uint256 => AggregatedMeta) private challenge_to_aggregated_meta;
+    // Mapping: User address -> Joined challenge IDs
+    mapping(address => uint256[]) private user_to_joined_challenges;
 
     uint256 public total_challenges = 0;
     uint256 public pending_challenges = 0;
+    uint256 public approved_challenges = 0;
 
     // ================= EVENTS =================
     event ChallengeContributed(
@@ -128,6 +142,19 @@ contract ChallengeManager {
         uint256 averagePercent
     );
 
+    event ChallengeJoinedByUser(
+        address indexed user,
+        uint256 challengeId,
+        uint256 joinedAt
+    );
+
+    event SolutionSubmitted(
+        address indexed user,
+        uint256 challengeId,
+        string solutionUrl,
+        uint256 submittedAt
+    );
+
     // ================= MODIFIER =================
     // Modifier to check if the challenge is finalized
     modifier onlyBeforeFinalized(uint256 challenge_id) {
@@ -142,10 +169,10 @@ contract ChallengeManager {
     function contributeChallenge(
         string calldata _title_url,
         string calldata _description_url,
-        Domain _category,
-        uint256 _contribute_at
+        Domain _category
     ) external {
         uint256 challengeId = total_challenges++;
+        uint256 contributeAt = block.timestamp * 1000;
 
         challenges[challengeId] = Challenge({
             id: challengeId,
@@ -153,7 +180,7 @@ contract ChallengeManager {
             title_url: _title_url,
             description_url: _description_url,
             category: _category,
-            contribute_at: _contribute_at,
+            contribute_at: contributeAt,
             status: ChallengeStatus.PENDING,
             quality_score: 0,
             difficulty_level: DifficultyLevel.EASY,
@@ -167,7 +194,7 @@ contract ChallengeManager {
             "Challenge #%s contributed by %s at %s with:",
             challengeId,
             msg.sender,
-            _contribute_at
+            contributeAt
         );
         console.log("- Title url        : %s", _title_url);
         console.log("- Description url  : %s", _description_url);
@@ -177,7 +204,7 @@ contract ChallengeManager {
             _title_url,
             _description_url,
             _category,
-            _contribute_at
+            contributeAt
         );
     }
 
@@ -318,6 +345,7 @@ contract ChallengeManager {
         if (average_score >= REVIEW_THRESHOLD) {
             challenges[_challenge_id].status = ChallengeStatus.APPROVED;
             pending_challenges--;
+            approved_challenges++;
         } else {
             challenges[_challenge_id].status = ChallengeStatus.REJECTED;
             pending_challenges--;
@@ -334,6 +362,44 @@ contract ChallengeManager {
             challenges[_challenge_id].status,
             challenges[_challenge_id].quality_score
         );
+    }
+
+    function userJoinChallenge(
+        uint256 _challenge_id,
+        string calldata _solution_base_txid,
+        address _solution_address
+    ) external {
+        // Check if challenge id exists
+        require(_challenge_id < total_challenges);
+
+        SolutionManager solution_manager = SolutionManager(_solution_address);
+
+        require(
+            !solution_manager.checkUserJoinedChallenge(
+                msg.sender,
+                _challenge_id
+            )
+        );
+
+        uint256 _joined_at = block.timestamp * 1000;
+
+        solution_manager.createSolutionBase(
+            msg.sender,
+            _challenge_id,
+            _solution_base_txid,
+            _joined_at
+        );
+
+        user_to_joined_challenges[msg.sender].push(_challenge_id);
+
+        console.log(
+            "User %s joined challenge %s at %s",
+            msg.sender,
+            _challenge_id,
+            _joined_at
+        );
+
+        emit ChallengeJoinedByUser(msg.sender, _challenge_id, _joined_at);
     }
 
     // ================= GETTER METHODS =================
@@ -364,19 +430,44 @@ contract ChallengeManager {
         Challenge[] memory pendingChallengeList = new Challenge[](
             pending_challenges
         );
+        uint256 count = 0;
 
         for (uint256 i = 0; i < total_challenges; i++) {
-            if (challenges[i].status == ChallengeStatus.PENDING)
-                pendingChallengeList[i] = challenges[i];
+            if (challenges[i].status == ChallengeStatus.PENDING) {
+                pendingChallengeList[count] = challenges[i];
+                count++;
+            }
         }
 
         console.log(
-            "User %s had fetch %s pending contributed challenges",
+            "Smart contract %s had fetch %s pending challenges",
             msg.sender,
             pendingChallengeList.length
         );
 
         return pendingChallengeList;
+    }
+
+    function getApprovedChallenges() public view returns (Challenge[] memory) {
+        Challenge[] memory approvedChallengeList = new Challenge[](
+            approved_challenges
+        );
+        uint256 count = 0;
+
+        for (uint256 i = 0; i < total_challenges; i++) {
+            if (challenges[i].status == ChallengeStatus.APPROVED) {
+                approvedChallengeList[count] = challenges[i];
+                count++;
+            }
+        }
+
+        console.log(
+            "Smart contract %s had fetch %s approved challenges",
+            msg.sender,
+            approvedChallengeList.length
+        );
+
+        return approvedChallengeList;
     }
 
     function getChallengesByModerator(
@@ -449,5 +540,93 @@ contract ChallengeManager {
         uint256 _challenge_id
     ) public view returns (bool) {
         return review_pool[_challenge_id].is_finalized;
+    }
+
+    function getJoinedChallengesByUserForPreview(
+        address _user_address,
+        address _solution_address
+    ) public view returns (JoinedChallengesPreview[] memory) {
+        uint256[] memory challengeIds = user_to_joined_challenges[
+            _user_address
+        ];
+
+        SolutionManager solution_manager = SolutionManager(_solution_address);
+
+        JoinedChallengesPreview[]
+            memory previewList = new JoinedChallengesPreview[](
+                challengeIds.length
+            );
+
+        for (uint256 i = 0; i < challengeIds.length; i++) {
+            uint256 id = challengeIds[i];
+            Challenge storage ch = challenges[id];
+            (
+                uint256 created_at,
+                SolutionProgress progress,
+                uint256 score
+            ) = solution_manager.getSolutionPreviewByUserAndChallengeId(
+                    _user_address,
+                    id
+                );
+
+            previewList[i] = JoinedChallengesPreview({
+                challenge_id: id,
+                title_url: ch.title_url,
+                description_url: ch.description_url,
+                domain: ch.category,
+                progress: progress,
+                joined_at: created_at,
+                score: score
+            });
+        }
+
+        console.log(
+            "User %s had fetched preview of joined challenges",
+            _user_address
+        );
+
+        return previewList;
+    }
+
+    // ================= SEEDING METHODS =================
+    function seedChallenge(
+        address _contributor,
+        string calldata _title_url,
+        string calldata _description_url,
+        Domain _category,
+        uint256 _contribute_at,
+        ChallengeStatus _status,
+        uint256 _quality_score,
+        DifficultyLevel _difficulty_level,
+        uint256 _solve_time
+    ) external {
+        uint256 challengeId = total_challenges++;
+
+        challenges[challengeId] = Challenge({
+            id: challengeId,
+            contributor: _contributor,
+            title_url: _title_url,
+            description_url: _description_url,
+            category: _category,
+            contribute_at: _contribute_at,
+            status: _status,
+            quality_score: _quality_score,
+            difficulty_level: _difficulty_level,
+            solve_time: _solve_time
+        });
+
+        contributor_to_challenges[_contributor].push(challengeId);
+
+        if (_status == ChallengeStatus.PENDING) pending_challenges++;
+        else if (_status == ChallengeStatus.APPROVED) approved_challenges++;
+
+        console.log(
+            "Challenge #%s seeded by %s at %s with:",
+            challengeId,
+            _contributor,
+            _contribute_at
+        );
+        console.log("- Title url        : %s", _title_url);
+        console.log("- Description url  : %s", _description_url);
     }
 }

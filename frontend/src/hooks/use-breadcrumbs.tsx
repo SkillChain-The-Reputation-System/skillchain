@@ -48,10 +48,10 @@ const routeMapping: Record<string, BreadcrumbItem[]> = {
     { title: "Participation", link: "/dashboard/participation" },
     { title: "Explore", link: "/dashboard/participation/explore" },
   ],
-  "/dashboard/participation/my-participation": [
+  "/dashboard/participation/workspace": [
     { title: "Dashboard", link: "/dashboard" },
     { title: "Participation", link: "/dashboard/participation" },
-    { title: "My Participation", link: "/dashboard/participation/my-participation" },
+    { title: "Workspace", link: "/dashboard/participation/workspace" },
   ],
   // Add more custom mappings as needed
 };

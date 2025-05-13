@@ -2,7 +2,7 @@
 
 // Import hooks
 import { useEffect } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react'
+import { useEditor, EditorContent, Content, ReactNodeViewRenderer } from '@tiptap/react'
 
 // Import TipTap extensions
 import StarterKit from '@tiptap/starter-kit'
@@ -13,16 +13,32 @@ import Placeholder from '@tiptap/extension-placeholder'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
+import Subscript from '@tiptap/extension-subscript'
+import Superscript from '@tiptap/extension-superscript'
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
+import Typography from '@tiptap/extension-typography'
+import { Mathematics } from '@tiptap-pro/extension-mathematics'
+import FileHandler from '@tiptap-pro/extension-file-handler'
+
+import LangSelector from './lang-selector'
+import { all, createLowlight } from 'lowlight'
+
+const lowlight = createLowlight(all)
+
+import 'katex/dist/katex.min.css'
 
 interface RichTextEditorProps {
-  value: string,
-  onChange: (value: string) => void
-  placeholder?: string
+  value?: Content,
+  onChange?: (value: Content) => void,
+  className?: string,
+  placeholder?: string,
+  editable?: boolean
 }
 
-export default function RichTextEditor({ value, onChange, placeholder = "Write something..." }: RichTextEditorProps) {
+export default function RichTextEditor({ value, onChange, className = "", placeholder = "Write something...", editable = true }: RichTextEditorProps) {
   const editor = useEditor(
     {
+      shouldRerenderOnTransaction: true,
       extensions: [
         StarterKit.configure(
           {
@@ -44,6 +60,9 @@ export default function RichTextEditor({ value, onChange, placeholder = "Write s
             types: ['heading', 'paragraph'],
           }
         ),
+        Subscript,
+        Superscript,
+        Typography,
         Highlight,
         Link.configure({
           openOnClick: true,
@@ -107,31 +126,76 @@ export default function RichTextEditor({ value, onChange, placeholder = "Write s
         Placeholder.configure({
           placeholder: placeholder,
         }),
-        Image
+        Image,
+        CodeBlockLowlight.extend({
+          addNodeView() {
+            return ReactNodeViewRenderer(LangSelector)
+          },
+        })
+          .configure({ lowlight }),
+        Mathematics,
+        FileHandler.configure({
+          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
+          onDrop: (currentEditor, files, pos) => {
+            files.forEach(file => {
+              const fileReader = new FileReader()
+
+              fileReader.readAsDataURL(file)
+              fileReader.onload = () => {
+                currentEditor.chain().insertContentAt(pos, {
+                  type: 'image',
+                  attrs: {
+                    src: fileReader.result,
+                  },
+                }).focus().run()
+              }
+            })
+          },
+          onPaste: (currentEditor, files, htmlContent) => {
+            files.forEach(file => {
+              if (htmlContent) {
+                // if there is htmlContent, stop manual insertion & let other extensions handle insertion via inputRule
+                // you could extract the pasted file from this url string and upload it to a server for example
+                console.log(htmlContent) // eslint-disable-line no-console
+                return false
+              }
+
+              const fileReader = new FileReader()
+
+              fileReader.readAsDataURL(file)
+              fileReader.onload = () => {
+                currentEditor.chain().insertContentAt(currentEditor.state.selection.anchor, {
+                  type: 'image',
+                  attrs: {
+                    src: fileReader.result,
+                  },
+                }).focus().run()
+              }
+            })
+          },
+        }),
       ],
-      content: value,
       editorProps: {
         attributes: {
-          class: "min-h-[250px] border-black dark:border-white border-1 rounded-md bg-slate-50 py-2 px-3 dark:bg-blue-950/15"
+          class: className
+        }
+      },
+      editable: editable,
+      onCreate: ({ editor }) => {
+        if (value && editor.isEmpty) {
+          editor.commands.setContent(value)
         }
       },
       onUpdate: ({ editor }) => {
-        onChange(editor.getHTML());
-        console.log(editor.getHTML())
+        onChange?.(editor.getHTML());
       },
     }
   )
 
-  useEffect(() => {
-    if (editor && value !== editor.getHTML()) {
-      editor.commands.setContent(value)
-    }
-  }, [value])
-
   return (
     <div>
-      <MenuBar editor={editor} />
-      <EditorContent editor={editor} className='editor' />
+      {editable && <MenuBar editor={editor} />}
+      <EditorContent editor={editor} className='editor' spellCheck={false} />
     </div>
   );
 }

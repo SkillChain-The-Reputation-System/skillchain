@@ -337,13 +337,21 @@
       }
     }
 
-    /* Code and preformatted text styles */
+    /* Blockquote styles */
     blockquote {
       border-left: 3px solid var(--color-gray-500);
       margin: 1.5rem 0;
       padding-left: 1rem;
     }
 
+    /* Code styles */
+    code {
+      background-color: var(--color-zinc-300);
+      border-radius: 0.4rem;
+      padding: 0.25em 0.3em;
+    }
+
+    /* Code block styles */
     pre {
       background-color: var(--color-zinc-800);
       padding: 1rem;
@@ -360,7 +368,6 @@
         padding: 0;
       }
 
-      /* Code styling */
       .hljs-comment {
         color: #489e70;
       }
@@ -489,6 +496,10 @@
       &:hover {
         color: var(--color-purple-500);
       }
+    }
+
+    code {
+      background-color: var(--color-indigo-950);
     }
 
     pre {

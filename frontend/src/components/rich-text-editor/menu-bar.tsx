@@ -16,6 +16,7 @@ import {
   List,
   ListOrdered,
   Quote,
+  SquareCode,
   Strikethrough,
   Subscript,
   Superscript,
@@ -115,6 +116,11 @@ export default function MenuBar({ editor }: { editor: Editor | null }) {
     },
     {
       icon: <Code className="size-4" />,
+      onClick: () => editor.chain().focus().toggleCode().run(),
+      pressed: editor.isActive('code')
+    },
+    {
+      icon: <SquareCode className="size-4" />,
       onClick: () => editor.chain().focus().toggleCodeBlock().run(),
       pressed: editor.isActive('codeBlock')
     }

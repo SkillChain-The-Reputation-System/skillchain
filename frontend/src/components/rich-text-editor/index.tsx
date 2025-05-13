@@ -188,7 +188,6 @@ export default function RichTextEditor({ value, onChange, className = "", placeh
       },
       onUpdate: ({ editor }) => {
         onChange?.(editor.getHTML());
-        console.log(editor.getHTML());
       },
     }
   )

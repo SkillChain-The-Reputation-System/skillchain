@@ -65,7 +65,7 @@ contract ChallengeManager {
         string title_url;
         string description_url;
         SystemEnums.Domain domain;
-        SolutionProgress progress;
+        SystemEnums.SolutionProgress progress;
         uint256 joined_at;
         uint256 score;
     }
@@ -529,7 +529,7 @@ contract ChallengeManager {
             Challenge storage ch = challenges[id];
             (
                 uint256 created_at,
-                SolutionProgress progress,
+                SystemEnums.SolutionProgress progress,
                 uint256 score
             ) = solution_manager.getSolutionPreviewByUserAndChallengeId(
                     _user_address,

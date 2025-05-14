@@ -72,10 +72,10 @@ library Weights {
     }
 }
 
-library SystemConsts{
+library SystemConsts{  
     // ================= GENERAL =================
-    uint256 public constant MAX_DOMAIN = 14; // Maximum number of domains
-    uint256 public constant MAX_DIFFICULTY_LEVEL = 3; // Maximum number of difficulty levels
+    uint256 public constant N_DOMAIN = 14; // Maximum number of domains
+    uint256 public constant N_DIFFICULTY_LEVEL = 3; // Maximum number of difficulty levels
 
     // ================= MODERATION =================
     uint256 public constant REVIEW_QUORUM = 3; // The number of moderators needed to start a finalizing process

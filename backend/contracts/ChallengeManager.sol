@@ -47,13 +47,6 @@ contract ChallengeManager {
         mapping(address => bool) moderator_to_join_status;
     }
 
-    // Struct for aggregated metadata
-    struct AggregatedMeta {
-        uint256[SystemConsts.MAX_DIFFICULTY_LEVEL] difficulty_weight;
-        uint256[SystemConsts.MAX_DOMAIN] category_weight;
-        uint256 estimated_solve_time;
-    }
-
     // Struct for joined challenges preview in workspace
     struct JoinedChallengesPreview {
         uint256 challenge_id;
@@ -74,8 +67,6 @@ contract ChallengeManager {
     mapping(address => uint256[]) private contributor_to_challenges;
     // Mapping: Moderator address -> Challenge IDs
     mapping(address => uint256[]) private moderator_to_challenges;
-    // Mapping: Challenge ID -> Aggregated metadata
-    mapping(uint256 => AggregatedMeta) private challenge_to_aggregated_meta;
     // Mapping: User address -> Joined challenge IDs
     mapping(address => uint256[]) private user_to_joined_challenges;
 
@@ -331,7 +322,7 @@ contract ChallengeManager {
         // Mark the review pool as finalized
         _pool.is_finalized = true;
 
-        // TODO: Update the challenge's aggregated metadata
+        // TODO: Update the challenge's difficulty level and solve time based on the moderator's suggestions
 
         emit ChallengeFinalized(
             _challenge_id,

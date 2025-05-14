@@ -5,7 +5,6 @@ import "./SolutionManager.sol";
 import "./Constants.sol";
 
 contract ChallengeManager {
-
     // ================= STRUCTS =================
     struct Challenge {
         uint256 id;
@@ -34,6 +33,7 @@ contract ChallengeManager {
         SystemEnums.DifficultyLevel suggested_difficulty;
         SystemEnums.Domain suggested_category;
         uint256 suggested_solve_time;
+        uint256 review_score;
     }
 
     struct ReviewPool {
@@ -175,7 +175,8 @@ contract ChallengeManager {
     ) public onlyBeforeFinalized(_challenge_id) {
         // Prevent joining the review pool if maximum number of moderators is reached
         require(
-            review_pool[_challenge_id].moderator_list.length < SystemConsts.REVIEW_QUORUM,
+            review_pool[_challenge_id].moderator_list.length <
+                SystemConsts.REVIEW_QUORUM,
             "Max moderators reached"
         );
 
@@ -227,6 +228,16 @@ contract ChallengeManager {
             pool.review_count++;
         }
 
+        // Calculate the review score based on the quality factors
+        uint256 review_score = ((uint256(_relevance) +
+            uint256(_technical_correctness) +
+            uint256(_completeness) +
+            uint256(_clarity) +
+            uint256(_originality) +
+            uint256(_unbiased) +
+            uint256(_plagiarism_free)) * 100) /
+            SystemConsts.NUMBER_OF_QUALITY_FACTORS;
+
         // Update the moderator's review in the review pool
         pool.moderator_reviews[msg.sender] = ModeratorReview({
             moderator: msg.sender,
@@ -241,30 +252,31 @@ contract ChallengeManager {
             plagiarism_free: _plagiarism_free,
             suggested_difficulty: _suggested_difficulty,
             suggested_category: _suggested_category,
-            suggested_solve_time: _suggested_solve_time
+            suggested_solve_time: _suggested_solve_time,
+            review_score: review_score
         });
 
-        console.log(
-            "Moderator %s updated review for challenge #%s",
-            msg.sender,
-            _challenge_id
-        );
-        console.log("- Relevance: %s", uint((_relevance)));
-        console.log(
-            "- Technical correctness: %s",
-            uint((_technical_correctness))
-        );
-        console.log("- Completeness: %s", uint((_completeness)));
-        console.log("- Clarity: %s", uint((_clarity)));
-        console.log("- Originality: %s", uint((_originality)));
-        console.log("- Unbiased: %s", uint((_unbiased)));
-        console.log("- Plagiarism free: %s", uint((_plagiarism_free)));
-        console.log(
-            "- Suggested difficulty: %s",
-            uint((_suggested_difficulty))
-        );
-        console.log("- Suggested category: %s", uint((_suggested_category)));
-        console.log("- Suggested solve time: %s", _suggested_solve_time);
+        // console.log(
+        //     "Moderator %s updated review for challenge #%s",
+        //     msg.sender,
+        //     _challenge_id
+        // );
+        // console.log("- Relevance: %s", uint((_relevance)));
+        // console.log(
+        //     "- Technical correctness: %s",
+        //     uint((_technical_correctness))
+        // );
+        // console.log("- Completeness: %s", uint((_completeness)));
+        // console.log("- Clarity: %s", uint((_clarity)));
+        // console.log("- Originality: %s", uint((_originality)));
+        // console.log("- Unbiased: %s", uint((_unbiased)));
+        // console.log("- Plagiarism free: %s", uint((_plagiarism_free)));
+        // console.log(
+        //     "- Suggested difficulty: %s",
+        //     uint((_suggested_difficulty))
+        // );
+        // console.log("- Suggested category: %s", uint((_suggested_category)));
+        // console.log("- Suggested solve time: %s", _suggested_solve_time);
 
         // Automatically finalize the review pool if the number of reviews reaches the quorum
         if (pool.review_count >= SystemConsts.REVIEW_QUORUM) {
@@ -285,17 +297,10 @@ contract ChallengeManager {
             ModeratorReview storage review = _pool.moderator_reviews[
                 _pool.moderator_list[i]
             ];
-            total_score +=
-                uint256(review.relevance) +
-                uint256(review.technical_correctness) +
-                uint256(review.completeness) +
-                uint256(review.clarity) +
-                uint256(review.originality) +
-                uint256(review.unbiased) +
-                uint256(review.plagiarism_free);
+            total_score += review.review_score;
         }
-        uint256 average_score = (total_score * 100) /
-            (SystemConsts.NUMBER_OF_QUALITY_FACTORS * _pool.review_count);
+        uint256 average_score = total_score / _pool.review_count;
+
         console.log(
             "Average score for challenge #%s: %s",
             _challenge_id,
@@ -304,11 +309,15 @@ contract ChallengeManager {
 
         // Update the challenge status based on the average score
         if (average_score >= SystemConsts.REVIEW_THRESHOLD) {
-            challenges[_challenge_id].status = SystemEnums.ChallengeStatus.APPROVED;
+            challenges[_challenge_id].status = SystemEnums
+                .ChallengeStatus
+                .APPROVED;
             pending_challenges--;
             approved_challenges++;
         } else {
-            challenges[_challenge_id].status = SystemEnums.ChallengeStatus.REJECTED;
+            challenges[_challenge_id].status = SystemEnums
+                .ChallengeStatus
+                .REJECTED;
             pending_challenges--;
         }
 
@@ -324,11 +333,7 @@ contract ChallengeManager {
             challenges[_challenge_id].quality_score
         );
 
-
         // TODO: Update contributor's and moderators' reputation scores
-        
-
-
     }
 
     function userJoinChallenge(
@@ -584,8 +589,10 @@ contract ChallengeManager {
 
         contributor_to_challenges[_contributor].push(challengeId);
 
-        if (_status == SystemEnums.ChallengeStatus.PENDING) pending_challenges++;
-        else if (_status == SystemEnums.ChallengeStatus.APPROVED) approved_challenges++;
+        if (_status == SystemEnums.ChallengeStatus.PENDING)
+            pending_challenges++;
+        else if (_status == SystemEnums.ChallengeStatus.APPROVED)
+            approved_challenges++;
 
         console.log(
             "Challenge #%s seeded by %s at %s with:",

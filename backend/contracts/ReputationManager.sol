@@ -12,12 +12,6 @@ contract ReputationManager {
     // global reputation = sum of all domainReputation
     mapping(address => int256) public global_reputation;
 
-    // authorized modules that can adjust reputations
-    address public challenge_module;
-    address public review_module;
-    address public contribution_module;
-    address public moderation_module;
-
     // --- EVENTS ---
     event ReputationChanged(
         address indexed _user,

@@ -39,6 +39,14 @@ library SystemEnums {
         NO, // 0
         YES // 1
     }
+
+    // --- Soliution Progress Constants ---
+    enum SolutionProgress {
+        IN_PROGRESS,
+        SUBMITTED,
+        UNDER_REVIEW,
+        REVIEWED
+    }
 }
 
 library Weights {
@@ -65,9 +73,7 @@ library Weights {
 }
 
 library MathUtils {
-
     function mulConst(uint256 a, uint256 b) external pure returns (uint256) {
-        return a * b / Weights.BASE_WEIGHT; 
+        return (a * b) / Weights.BASE_WEIGHT;
     }
-
 }

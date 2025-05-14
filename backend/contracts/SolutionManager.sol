@@ -1,14 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "hardhat/console.sol";
-
-// ================= ENUMS =================
-enum SolutionProgress {
-    IN_PROGRESS,
-    SUBMITTED,
-    UNDER_REVIEW,
-    REVIEWED
-}
+import "./Constants.sol";
 
 contract SolutionManager {
     // ================= STRUCTS =================
@@ -18,7 +11,7 @@ contract SolutionManager {
         string solution_txid;
         uint256 created_at;
         uint256 submitted_at;
-        SolutionProgress progress;
+        SystemEnums.SolutionProgress progress;
         uint256 score;
     }
 
@@ -59,7 +52,7 @@ contract SolutionManager {
             solution_txid: _solution_base_txid,
             created_at: _created_at,
             submitted_at: 0,
-            progress: SolutionProgress.IN_PROGRESS,
+            progress: SystemEnums.SolutionProgress.IN_PROGRESS,
             score: 0
         });
 
@@ -88,7 +81,7 @@ contract SolutionManager {
         ];
 
         solution.submitted_at = block.timestamp * 1000;
-        solution.progress = SolutionProgress.SUBMITTED;
+        solution.progress = SystemEnums.SolutionProgress.SUBMITTED;
 
         console.log(
             "User %s submmitted solution with txid %s for challenge #%s",
@@ -119,7 +112,7 @@ contract SolutionManager {
     )
         public
         view
-        returns (uint256 created_at, SolutionProgress progress, uint256 score)
+        returns (uint256 created_at, SystemEnums.SolutionProgress progress, uint256 score)
     {
         Solution storage solution = solutions[
             user_challenge_to_solution[_challenge_id][_user_address]

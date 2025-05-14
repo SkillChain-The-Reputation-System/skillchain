@@ -64,7 +64,7 @@ contract ChallengeManager {
         uint256 challenge_id;
         string title_url;
         string description_url;
-        Domain domain;
+        SystemEnums.Domain domain;
         SolutionProgress progress;
         uint256 joined_at;
         uint256 score;
@@ -422,7 +422,7 @@ contract ChallengeManager {
         uint256 count = 0;
 
         for (uint256 i = 0; i < total_challenges; i++) {
-            if (challenges[i].status == ChallengeStatus.APPROVED) {
+            if (challenges[i].status == SystemEnums.ChallengeStatus.APPROVED) {
                 approvedChallengeList[count] = challenges[i];
                 count++;
             }
@@ -560,11 +560,11 @@ contract ChallengeManager {
         address _contributor,
         string calldata _title_url,
         string calldata _description_url,
-        Domain _category,
+        SystemEnums.Domain _category,
         uint256 _contribute_at,
-        ChallengeStatus _status,
+        SystemEnums.ChallengeStatus _status,
         uint256 _quality_score,
-        DifficultyLevel _difficulty_level,
+        SystemEnums.DifficultyLevel _difficulty_level,
         uint256 _solve_time
     ) external {
         uint256 challengeId = total_challenges++;
@@ -584,8 +584,8 @@ contract ChallengeManager {
 
         contributor_to_challenges[_contributor].push(challengeId);
 
-        if (_status == ChallengeStatus.PENDING) pending_challenges++;
-        else if (_status == ChallengeStatus.APPROVED) approved_challenges++;
+        if (_status == SystemEnums.ChallengeStatus.PENDING) pending_challenges++;
+        else if (_status == SystemEnums.ChallengeStatus.APPROVED) approved_challenges++;
 
         console.log(
             "Challenge #%s seeded by %s at %s with:",

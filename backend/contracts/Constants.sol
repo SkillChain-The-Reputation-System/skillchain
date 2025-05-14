@@ -85,12 +85,16 @@ library SystemConsts{
     uint256 public constant REVIEW_THRESHOLD = 80; // The threshold of quality score for a challenge to be approved
     
     // ================= SCALING CONSTANT =================
+    uint256 public constant SCALING_CONSTANT_FOR_SOLVING_PROBLEM = 10; // Scaling constant for solving problem
+    uint256 public constant SCALING_CONSTANT_FOR_EVALUATION = 10; // Scaling constant for evaluation
+    uint256 public constant SCALING_CONSTANT_FOR_MODERATION = 10; // Scaling constant for moderation
+    uint256 public constant SCALING_CONSTANT_FOR_CONTRIBUTION = 10; // Scaling constant for contribution
 
     // ================= UPDATE REPUTATION THRESHOLD =================
-    uint256 public constant SOLVING_SCORE_THRESHOLD = 50; // Threshold for solving score
-    uint256 public constant EVALUATION_DEVIATION_THRESHOLD = 10; // Threshold for evaluaiton deviation (Final solution score - Score give by reviewer)
-    uint256 public constant CONTRIBUTION_QUALITY_THRESHOLD = 80; // Threshold for challenge quality score
-    uint256 public constant MODERATION_DEVIATION_THRESHOLD = 15; // Threshold for moderation deviation (Final challenge quality - Score give by moderator)
+    uint256 public constant THRESHOLD_OF_SOLVING_PROBLEM_SCORE = 50; // Threshold for final solution score
+    uint256 public constant THRESHOLD_OF_EVALUATION_DEVIATION = 10; // Threshold for evaluaiton deviation (= Final solution score - Score give by reviewer)
+    uint256 public constant THRESHOLD_OF_CHALLENGE_QUALITY_SCORE = 80; // Threshold for challenge quality score
+    uint256 public constant THRESHOLD_OF_MODERATION_DEVIATION = 15; // Threshold for moderation deviation (Final challenge quality - Score give by moderator)
 }
 
 library MathUtils {

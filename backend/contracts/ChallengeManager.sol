@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 import "hardhat/console.sol";
 import "./SolutionManager.sol";
 import "./Constants.sol";
+import "./ReputationManager.sol";
 
 contract ChallengeManager {
     // ================= STRUCTS =================
@@ -77,6 +78,9 @@ contract ChallengeManager {
     mapping(uint256 => AggregatedMeta) private challenge_to_aggregated_meta;
     // Mapping: User address -> Joined challenge IDs
     mapping(address => uint256[]) private user_to_joined_challenges;
+
+    ReputationManager private reputation_manager; // ReputationManager instance
+    address private reputation_manager_address; // ReputationManager address
 
     uint256 public total_challenges = 0;
     uint256 public pending_challenges = 0;
@@ -327,13 +331,41 @@ contract ChallengeManager {
         // Mark the review pool as finalized
         _pool.is_finalized = true;
 
+        // TODO: Update the challenge's aggregated metadata
+
         emit ChallengeFinalized(
             _challenge_id,
             challenges[_challenge_id].status,
             challenges[_challenge_id].quality_score
         );
 
-        // TODO: Update contributor's and moderators' reputation scores
+        // Update contributor's and moderators' reputation scores
+        if (reputation_manager_address != address(0)) {
+            Challenge storage challenge_data = challenges[_challenge_id];
+            reputation_manager.updateContributionReputation(
+                challenge_data.contributor,
+                challenge_data.category,
+                challenge_data.quality_score,
+                SystemConsts.THRESHOLD_OF_CHALLENGE_QUALITY_SCORE, 
+                SystemConsts.SCALING_CONSTANT_FOR_CONTRIBUTION, 
+                challenge_data.difficulty_level
+            );
+
+            for (uint256 i = 0; i < _pool.moderator_list.length; i++) {
+                address moderator_address = _pool.moderator_list[i];
+                ModeratorReview storage review = _pool.moderator_reviews[
+                    moderator_address
+                ];
+                reputation_manager.updateModerationReputation(
+                    moderator_address,
+                    challenge_data.category, // challenge category (have finalized), not suggested_category from review
+                    challenge_data.quality_score,
+                    review.review_score,
+                    SystemConsts.THRESHOLD_OF_MODERATION_DEVIATION,
+                    SystemConsts.SCALING_CONSTANT_FOR_MODERATION
+                );
+            }
+        }
     }
 
     function userJoinChallenge(
@@ -372,6 +404,14 @@ contract ChallengeManager {
         );
 
         emit ChallengeJoinedByUser(msg.sender, _challenge_id, _joined_at);
+    }
+
+    // ================= SETTER METHODS =================
+    function setReputationManagerAddress(address _address) external {
+        // TODO: Add access control (e.g., only owner)
+        require(_address != address(0), "Invalid address");
+        reputation_manager_address = _address;
+        reputation_manager = ReputationManager(_address);
     }
 
     // ================= GETTER METHODS =================

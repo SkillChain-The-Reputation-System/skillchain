@@ -52,6 +52,12 @@ async function main(): Promise<void> {
   );
   console.log(">>SolutionManager.json copied");
 
+  fs.copyFileSync(
+    path.join(artifactDir, "ReputationManager.sol", "ReputationManager.json"),
+    path.join(outputDir, "ReputationManager.json")
+  );
+  console.log(">>ReputationManager.json copied");
+
   console.log("All done.");
 }
 

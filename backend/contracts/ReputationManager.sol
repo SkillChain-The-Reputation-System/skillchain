@@ -5,6 +5,9 @@ import "./Constants.sol";
 
 // TODO: add access control to the modules. Currently, anyone can call the update functions.
 contract ReputationManager {
+    // ================== LOCAL CONSTANTS ==================
+    uint256 public constant N_DOMAIN = 14; // Maximum number of domains
+
     // domain-specific reputation: user => domain => score (can be negative)
     mapping(address => mapping(SystemEnums.Domain => int256))
         public domain_reputation;
@@ -233,5 +236,31 @@ contract ReputationManager {
             delta = 0;
         }
         return delta;
+    }
+
+    // --- GETTER FUNCTIONS ---
+    function getDomainReputation(
+        address _user,
+        SystemEnums.Domain _domain
+    ) external view returns (int256) {
+        return domain_reputation[_user][_domain];
+    }
+
+    function getAllDomainReputation(address _user)
+        external
+        view
+        returns (int256[N_DOMAIN] memory)
+    {
+        int256[N_DOMAIN] memory domain_reputation_array;
+        for (uint256 i = 0; i < N_DOMAIN; i++) {
+            domain_reputation_array[i] = domain_reputation[_user][
+                SystemEnums.Domain(i)
+            ];
+        }
+        return domain_reputation_array;
+    }
+
+    function getGlobalReputation(address _user) external view returns (int256) {
+        return global_reputation[_user];
     }
 }

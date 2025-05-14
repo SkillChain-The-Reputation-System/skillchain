@@ -325,7 +325,7 @@ contract ChallengeManager {
         );
 
 
-        // Update contributor's and moderators' reputation scores
+        // TODO: Update contributor's and moderators' reputation scores
         
 
 

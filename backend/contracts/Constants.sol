@@ -72,6 +72,27 @@ library Weights {
     }
 }
 
+library SystemConsts{
+    // ================= GENERAL =================
+    uint256 public constant MAX_DOMAIN = 14; // Maximum number of domains
+    uint256 public constant MAX_DIFFICULTY_LEVEL = 3; // Maximum number of difficulty levels
+
+    // ================= MODERATION =================
+    uint256 public constant REVIEW_QUORUM = 3; // The number of moderators needed to start a finalizing process
+    uint256 public constant NUMBER_OF_QUALITY_FACTORS = 7; // The number of quality factors used in the challenge assessment
+
+    // ================= THRESHOLD =================
+    uint256 public constant REVIEW_THRESHOLD = 80; // The threshold of quality score for a challenge to be approved
+    
+    // ================= SCALING CONSTANT =================
+
+    // ================= UPDATE REPUTATION THRESHOLD =================
+    uint256 public constant SOLVING_SCORE_THRESHOLD = 50; // Threshold for solving score
+    uint256 public constant EVALUATION_DEVIATION_THRESHOLD = 10; // Threshold for evaluaiton deviation (Final solution score - Score give by reviewer)
+    uint256 public constant CONTRIBUTION_QUALITY_THRESHOLD = 80; // Threshold for challenge quality score
+    uint256 public constant MODERATION_DEVIATION_THRESHOLD = 15; // Threshold for moderation deviation (Final challenge quality - Score give by moderator)
+}
+
 library MathUtils {
     function mulConst(uint256 a, uint256 b) external pure returns (uint256) {
         return (a * b) / Weights.BASE_WEIGHT;

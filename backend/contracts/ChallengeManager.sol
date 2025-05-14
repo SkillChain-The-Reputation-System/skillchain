@@ -5,12 +5,6 @@ import "./SolutionManager.sol";
 import "./Constants.sol";
 
 contract ChallengeManager {
-    // ================= CONSTANTS =================
-    uint256 public constant REVIEW_QUORUM = 3; // The number of moderators needed to start a finalizing process
-    uint256 public constant REVIEW_THRESHOLD = 80; // The threshold of quality score for a challenge to be approved
-    uint256 public constant NUMBER_OF_QUALITY_FACTORS = 7; // The number of quality factors used in the review process
-    uint256 public constant MAX_DOMAIN = 14; // Maximum number of domains
-    uint256 public constant MAX_DIFFICULTY_LEVEL = 3; // Maximum number of difficulty levels
 
     // ================= STRUCTS =================
     struct Challenge {
@@ -54,8 +48,8 @@ contract ChallengeManager {
 
     // Struct for aggregated metadata
     struct AggregatedMeta {
-        uint256[MAX_DIFFICULTY_LEVEL] difficulty_weight;
-        uint256[MAX_DOMAIN] category_weight;
+        uint256[SystemConsts.MAX_DIFFICULTY_LEVEL] difficulty_weight;
+        uint256[SystemConsts.MAX_DOMAIN] category_weight;
         uint256 estimated_solve_time;
     }
 
@@ -181,7 +175,7 @@ contract ChallengeManager {
     ) public onlyBeforeFinalized(_challenge_id) {
         // Prevent joining the review pool if maximum number of moderators is reached
         require(
-            review_pool[_challenge_id].moderator_list.length < REVIEW_QUORUM,
+            review_pool[_challenge_id].moderator_list.length < SystemConsts.REVIEW_QUORUM,
             "Max moderators reached"
         );
 
@@ -273,7 +267,7 @@ contract ChallengeManager {
         console.log("- Suggested solve time: %s", _suggested_solve_time);
 
         // Automatically finalize the review pool if the number of reviews reaches the quorum
-        if (pool.review_count >= REVIEW_QUORUM) {
+        if (pool.review_count >= SystemConsts.REVIEW_QUORUM) {
             finalizeChallenge(_challenge_id, pool);
         }
     }
@@ -301,7 +295,7 @@ contract ChallengeManager {
                 uint256(review.plagiarism_free);
         }
         uint256 average_score = (total_score * 100) /
-            (NUMBER_OF_QUALITY_FACTORS * _pool.review_count);
+            (SystemConsts.NUMBER_OF_QUALITY_FACTORS * _pool.review_count);
         console.log(
             "Average score for challenge #%s: %s",
             _challenge_id,
@@ -309,7 +303,7 @@ contract ChallengeManager {
         );
 
         // Update the challenge status based on the average score
-        if (average_score >= REVIEW_THRESHOLD) {
+        if (average_score >= SystemConsts.REVIEW_THRESHOLD) {
             challenges[_challenge_id].status = SystemEnums.ChallengeStatus.APPROVED;
             pending_challenges--;
             approved_challenges++;
@@ -329,6 +323,12 @@ contract ChallengeManager {
             challenges[_challenge_id].status,
             challenges[_challenge_id].quality_score
         );
+
+
+        // Update contributor's and moderators' reputation scores
+        
+
+
     }
 
     function userJoinChallenge(
@@ -494,7 +494,7 @@ contract ChallengeManager {
     }
 
     function getReviewQuorum() public pure returns (uint256) {
-        return REVIEW_QUORUM;
+        return SystemConsts.REVIEW_QUORUM;
     }
 
     function getReviewPoolSize(

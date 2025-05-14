@@ -1,8 +1,13 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+import ReputationManagerModule from "./ReputationManager";
 
 const ChallengeManagerModule = buildModule("ChallengeManagerModule", (m) => {
-  const challengeManagerModule = m.contract("ChallengeManager");
-  return { challengeManagerModule };
+  const { reputationManager } = m.useModule(ReputationManagerModule);
+  const challengeManager = m.contract("ChallengeManager");
+  // Set the reputation manager address on the ChallengeManager
+  m.call(challengeManager, "setReputationManagerAddress", [reputationManager]);
+
+  return { challengeManager };
 });
 
 export default ChallengeManagerModule;

@@ -46,18 +46,18 @@ contract UserDataManager {
             _bio_url
         );
 
-        console.log("Input data");
-        console.log("username: %s", _username);
-        console.log("avatar CID: %s", _avatar_url);
-        console.log("bio: %s", _bio_url);
+        // console.log("Input data");
+        // console.log("username: %s", _username);
+        // console.log("avatar CID: %s", _avatar_url);
+        // console.log("bio: %s", _bio_url);
 
-        console.log("is_username_requested_not_empty: %s", is_username_requested_not_empty);
-        console.log("is_username_available: %s", is_username_available);
-        console.log("is_avartar_cid_not_empty: %s", is_avartar_url_not_empty);
-        console.log("is_bio_not_empty: %s", is_bio_url_not_empty);
-        console.log("is_username_not_duplicated: %s", is_username_not_duplicated);
-        console.log("is_avatar_url_not_duplicated: %s", is_avatar_url_not_duplicated);
-        console.log("is_bio_url_not_duplicated: %s", is_bio_url_not_duplicated);
+        // console.log("is_username_requested_not_empty: %s", is_username_requested_not_empty);
+        // console.log("is_username_available: %s", is_username_available);
+        // console.log("is_avartar_cid_not_empty: %s", is_avartar_url_not_empty);
+        // console.log("is_bio_not_empty: %s", is_bio_url_not_empty);
+        // console.log("is_username_not_duplicated: %s", is_username_not_duplicated);
+        // console.log("is_avatar_url_not_duplicated: %s", is_avatar_url_not_duplicated);
+        // console.log("is_bio_url_not_duplicated: %s", is_bio_url_not_duplicated);
 
         // If all conditions are not met, revert the transaction since no update is needed
         if (
@@ -123,7 +123,7 @@ contract UserDataManager {
         usernameTaken[_username] = true;
 
         // Emit an event for the username update
-        console.log("Username of (%s) updated to: %s", msg.sender, users[msg.sender].username);
+        // console.log("Username of (%s) updated to: %s", msg.sender, users[msg.sender].username);
         emit UsernameUpdated(msg.sender, users[msg.sender].username);
     }
 
@@ -135,7 +135,7 @@ contract UserDataManager {
         users[msg.sender].avartar_url = _avatar_url;
 
         // Emit an event for the avatar update
-        console.log("Avatar of (%s) updated to: %s", msg.sender, users[msg.sender].avartar_url);
+        // console.log("Avatar of (%s) updated to: %s", msg.sender, users[msg.sender].avartar_url);
         emit AvatarUpdated(msg.sender, _avatar_url);
     }
 
@@ -147,7 +147,7 @@ contract UserDataManager {
         users[msg.sender].bio_url = _bio_url;
 
         // Emit an event for the bio update
-        console.log("Bio of (%s) updated to: %s", msg.sender, users[msg.sender].bio_url);
+        // console.log("Bio of (%s) updated to: %s", msg.sender, users[msg.sender].bio_url);
         emit BioUpdated(msg.sender, _bio_url);
     }
 
@@ -155,7 +155,7 @@ contract UserDataManager {
     function getUsername(
         address user_address
     ) public view returns (string memory) {
-        console.log("Username of (%s) is: %s", user_address, users[user_address].username);
+        // console.log("Username of (%s) is: %s", user_address, users[user_address].username);
         return users[user_address].username;
     }
 
@@ -163,13 +163,13 @@ contract UserDataManager {
     function getAvatar(
         address user_address
     ) public view returns (string memory) {
-        console.log("Avatar of (%s) is: %s", user_address, users[user_address].avartar_url);
+        // console.log("Avatar of (%s) is: %s", user_address, users[user_address].avartar_url);
         return users[user_address].avartar_url;
     }
 
     // Get bio
     function getBio(address user_address) public view returns (string memory) {
-        console.log("Bio of (%s) is: %s", user_address, users[user_address].bio_url);
+        // console.log("Bio of (%s) is: %s", user_address, users[user_address].bio_url);
         return users[user_address].bio_url;
     }
 
@@ -177,7 +177,7 @@ contract UserDataManager {
     function checkUsernameAvailable(
         string calldata _username
     ) public view returns (bool) {
-        console.log("Usename (%s) is available: %s", _username, !usernameTaken[_username]);
+        // console.log("Usename (%s) is available: %s", _username, !usernameTaken[_username]);
         return !usernameTaken[_username];
     }
 }

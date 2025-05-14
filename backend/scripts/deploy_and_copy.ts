@@ -3,6 +3,7 @@
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
+import { viem } from "hardhat";
 
 async function main(): Promise<void> {
   const backendRoot = path.resolve(__dirname, "..");

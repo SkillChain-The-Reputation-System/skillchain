@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
+import "hardhat/console.sol";
 import "./Constants.sol";
 
 // TODO: add access control to the modules. Currently, anyone can call the update functions.
@@ -171,6 +172,9 @@ contract ReputationManager {
             _new_domain,
             _new_global
         );
+
+        console.log("Reputation changed for user %s", _user);
+        console.logInt(_delta);
     }
 
     function _computeDeltaBasedOnScore(

@@ -15,11 +15,11 @@ export const ContractConfig_ReputationManager = {
 };
 
 export const ContractConfig_SolutionManager = {
-    address: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9', // Change this every time you deploy the contract
+    address: '0x5FC8d32690cc91D4c39d9d3abcBD16989F875707', // Change this every time you deploy the contract
     abi: SolutionManagerArtifact.abi,
 };
 
 export const ContractConfig_UserDataManager = {
-    address: '0x5FC8d32690cc91D4c39d9d3abcBD16989F875707', // Change this every time you deploy the contract
+    address: '0x0165878A594ca255338adfa4d48449f69242Eb8F', // Change this every time you deploy the contract
     abi: UserDataManagerArtifact.abi,
 };

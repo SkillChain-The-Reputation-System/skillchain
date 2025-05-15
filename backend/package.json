@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/SkillChain-The-Reputation-System/SkillChain#readme",
   "devDependencies": {
+    "@nomicfoundation/hardhat-ignition": "^0.15.11",
     "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
     "hardhat": "^2.22.19",
     "mocha": "^11.1.0"

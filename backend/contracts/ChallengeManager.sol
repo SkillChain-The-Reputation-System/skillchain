@@ -333,6 +333,7 @@ contract ChallengeManager {
         // Update contributor's and moderators' reputation scores
         if (reputation_manager_address != address(0)) {
             Challenge storage challenge_data = challenges[_challenge_id];
+            console.log("Executing reputation update for contributor of challenge #%s", _challenge_id);
             reputation_manager.updateContributionReputation(
                 challenge_data.contributor,
                 challenge_data.category,
@@ -343,6 +344,7 @@ contract ChallengeManager {
             );
 
             for (uint256 i = 0; i < _pool.moderator_list.length; i++) {
+                console.log("Executing reputation update for moderator %s", _pool.moderator_list[i]);
                 address moderator_address = _pool.moderator_list[i];
                 ModeratorReview storage review = _pool.moderator_reviews[
                     moderator_address

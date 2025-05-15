@@ -43,7 +43,6 @@ describe("ReputationManager - Initial State", () => {
     );
   });
 
-
   it("should have zero domain and global reputation for any account and domain by default", async () => {
     const accounts = [ownerAddress, client1Address, client2Address];
     const numDomains = 14; // as defined in SystemEnums.Domain
@@ -268,13 +267,30 @@ describe("ReputationManager - Initial State", () => {
     const threshold = BigInt(10);
     const scalingConstant = BigInt(10);
 
-    const oldDomain = await publicContract.read.domain_reputation([ownerAddress, domain]);
-    const oldGlobal = await publicContract.read.global_reputation([ownerAddress]);
+    const oldDomain = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
+    const oldGlobal = await publicContract.read.global_reputation([
+      ownerAddress,
+    ]);
 
-    await contract.write.updateEvaluateSolutionReputation([ownerAddress, domain, finalScore, evaluateScore, threshold, scalingConstant]);
+    await contract.write.updateEvaluateSolutionReputation([
+      ownerAddress,
+      domain,
+      finalScore,
+      evaluateScore,
+      threshold,
+      scalingConstant,
+    ]);
 
-    const newDomain = await publicContract.read.domain_reputation([ownerAddress, domain]);
-    const newGlobal = await publicContract.read.global_reputation([ownerAddress]);
+    const newDomain = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
+    const newGlobal = await publicContract.read.global_reputation([
+      ownerAddress,
+    ]);
 
     const expectedDelta = BigInt(5);
 
@@ -288,13 +304,30 @@ describe("ReputationManager - Initial State", () => {
     const threshold = BigInt(10);
     const scalingConstant = BigInt(10);
 
-    const oldDomain = await publicContract.read.domain_reputation([ownerAddress, domain]);
-    const oldGlobal = await publicContract.read.global_reputation([ownerAddress]);
+    const oldDomain = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
+    const oldGlobal = await publicContract.read.global_reputation([
+      ownerAddress,
+    ]);
 
-    await contract.write.updateEvaluateSolutionReputation([ownerAddress, domain, finalScore, evaluateScore, threshold, scalingConstant]);
+    await contract.write.updateEvaluateSolutionReputation([
+      ownerAddress,
+      domain,
+      finalScore,
+      evaluateScore,
+      threshold,
+      scalingConstant,
+    ]);
 
-    const newDomain = await publicContract.read.domain_reputation([ownerAddress, domain]);
-    const newGlobal = await publicContract.read.global_reputation([ownerAddress]);
+    const newDomain = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
+    const newGlobal = await publicContract.read.global_reputation([
+      ownerAddress,
+    ]);
 
     const expectedDelta = BigInt(0);
 
@@ -308,13 +341,30 @@ describe("ReputationManager - Initial State", () => {
     const threshold = BigInt(10);
     const scalingConstant = BigInt(10);
 
-    const oldDomain = await publicContract.read.domain_reputation([ownerAddress, domain]);
-    const oldGlobal = await publicContract.read.global_reputation([ownerAddress]);
+    const oldDomain = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
+    const oldGlobal = await publicContract.read.global_reputation([
+      ownerAddress,
+    ]);
 
-    await contract.write.updateEvaluateSolutionReputation([ownerAddress, domain, finalScore, evaluateScore, threshold, scalingConstant]);
+    await contract.write.updateEvaluateSolutionReputation([
+      ownerAddress,
+      domain,
+      finalScore,
+      evaluateScore,
+      threshold,
+      scalingConstant,
+    ]);
 
-    const newDomain = await publicContract.read.domain_reputation([ownerAddress, domain]);
-    const newGlobal = await publicContract.read.global_reputation([ownerAddress]);
+    const newDomain = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
+    const newGlobal = await publicContract.read.global_reputation([
+      ownerAddress,
+    ]);
 
     const expectedDelta = BigInt(-2);
     expect(newDomain).to.equal(oldDomain + expectedDelta);
@@ -328,13 +378,30 @@ describe("ReputationManager - Initial State", () => {
     const scalingConstant = BigInt(10);
     const difficulty = 0; // EASY
 
-    const oldDomain = await publicContract.read.domain_reputation([ownerAddress, domain]);
-    const oldGlobal = await publicContract.read.global_reputation([ownerAddress]);
+    const oldDomain = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
+    const oldGlobal = await publicContract.read.global_reputation([
+      ownerAddress,
+    ]);
 
-    await contract.write.updateContributionReputation([ownerAddress, domain, qualityScore, threshold, scalingConstant, difficulty]);
+    await contract.write.updateContributionReputation([
+      ownerAddress,
+      domain,
+      qualityScore,
+      threshold,
+      scalingConstant,
+      difficulty,
+    ]);
 
-    const newDomain = await publicContract.read.domain_reputation([ownerAddress, domain]);
-    const newGlobal = await publicContract.read.global_reputation([ownerAddress]);
+    const newDomain = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
+    const newGlobal = await publicContract.read.global_reputation([
+      ownerAddress,
+    ]);
 
     const expectedDelta = BigInt(-4);
     expect(newDomain).to.equal(oldDomain + expectedDelta);
@@ -347,13 +414,30 @@ describe("ReputationManager - Initial State", () => {
     const scalingConstant = BigInt(10);
     const difficulty = 0; // EASY
 
-    const oldDomain = await publicContract.read.domain_reputation([ownerAddress, domain]);
-    const oldGlobal = await publicContract.read.global_reputation([ownerAddress]);
+    const oldDomain = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
+    const oldGlobal = await publicContract.read.global_reputation([
+      ownerAddress,
+    ]);
 
-    await contract.write.updateContributionReputation([ownerAddress, domain, qualityScore, threshold, scalingConstant, difficulty]);
+    await contract.write.updateContributionReputation([
+      ownerAddress,
+      domain,
+      qualityScore,
+      threshold,
+      scalingConstant,
+      difficulty,
+    ]);
 
-    const newDomain = await publicContract.read.domain_reputation([ownerAddress, domain]);
-    const newGlobal = await publicContract.read.global_reputation([ownerAddress]);
+    const newDomain = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
+    const newGlobal = await publicContract.read.global_reputation([
+      ownerAddress,
+    ]);
 
     const expectedDelta = BigInt(0);
     expect(newDomain).to.equal(oldDomain + expectedDelta);
@@ -366,13 +450,30 @@ describe("ReputationManager - Initial State", () => {
     const scalingConstant = BigInt(10);
     const difficulty = 0; // EASY
 
-    const oldDomain = await publicContract.read.domain_reputation([ownerAddress, domain]);
-    const oldGlobal = await publicContract.read.global_reputation([ownerAddress]);
+    const oldDomain = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
+    const oldGlobal = await publicContract.read.global_reputation([
+      ownerAddress,
+    ]);
 
-    await contract.write.updateContributionReputation([ownerAddress, domain, qualityScore, threshold, scalingConstant, difficulty]);
+    await contract.write.updateContributionReputation([
+      ownerAddress,
+      domain,
+      qualityScore,
+      threshold,
+      scalingConstant,
+      difficulty,
+    ]);
 
-    const newDomain = await publicContract.read.domain_reputation([ownerAddress, domain]);
-    const newGlobal = await publicContract.read.global_reputation([ownerAddress]);
+    const newDomain = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
+    const newGlobal = await publicContract.read.global_reputation([
+      ownerAddress,
+    ]);
 
     const expectedDelta = BigInt(7);
     expect(newDomain).to.equal(oldDomain + expectedDelta);
@@ -386,13 +487,30 @@ describe("ReputationManager - Initial State", () => {
     const threshold = BigInt(10);
     const scalingConstant = BigInt(10);
 
-    const oldDomain = await publicContract.read.domain_reputation([ownerAddress, domain]);
-    const oldGlobal = await publicContract.read.global_reputation([ownerAddress]);
+    const oldDomain = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
+    const oldGlobal = await publicContract.read.global_reputation([
+      ownerAddress,
+    ]);
 
-    await contract.write.updateModerationReputation([ownerAddress, domain, qualityScore, reviewScore, threshold, scalingConstant]);
+    await contract.write.updateModerationReputation([
+      ownerAddress,
+      domain,
+      qualityScore,
+      reviewScore,
+      threshold,
+      scalingConstant,
+    ]);
 
-    const newDomain = await publicContract.read.domain_reputation([ownerAddress, domain]);
-    const newGlobal = await publicContract.read.global_reputation([ownerAddress]);
+    const newDomain = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
+    const newGlobal = await publicContract.read.global_reputation([
+      ownerAddress,
+    ]);
 
     const expectedDelta = BigInt(5);
     expect(newDomain).to.equal(oldDomain + expectedDelta);
@@ -405,13 +523,30 @@ describe("ReputationManager - Initial State", () => {
     const threshold = BigInt(10);
     const scalingConstant = BigInt(10);
 
-    const oldDomain = await publicContract.read.domain_reputation([ownerAddress, domain]);
-    const oldGlobal = await publicContract.read.global_reputation([ownerAddress]);
+    const oldDomain = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
+    const oldGlobal = await publicContract.read.global_reputation([
+      ownerAddress,
+    ]);
 
-    await contract.write.updateModerationReputation([ownerAddress, domain, qualityScore, reviewScore, threshold, scalingConstant]);
+    await contract.write.updateModerationReputation([
+      ownerAddress,
+      domain,
+      qualityScore,
+      reviewScore,
+      threshold,
+      scalingConstant,
+    ]);
 
-    const newDomain = await publicContract.read.domain_reputation([ownerAddress, domain]);
-    const newGlobal = await publicContract.read.global_reputation([ownerAddress]);
+    const newDomain = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
+    const newGlobal = await publicContract.read.global_reputation([
+      ownerAddress,
+    ]);
 
     const expectedDelta = BigInt(0);
     expect(newDomain).to.equal(oldDomain + expectedDelta);
@@ -424,13 +559,30 @@ describe("ReputationManager - Initial State", () => {
     const threshold = BigInt(10);
     const scalingConstant = BigInt(10);
 
-    const oldDomain = await publicContract.read.domain_reputation([ownerAddress, domain]);
-    const oldGlobal = await publicContract.read.global_reputation([ownerAddress]);
+    const oldDomain = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
+    const oldGlobal = await publicContract.read.global_reputation([
+      ownerAddress,
+    ]);
 
-    await contract.write.updateModerationReputation([ownerAddress, domain, qualityScore, reviewScore, threshold, scalingConstant]);
+    await contract.write.updateModerationReputation([
+      ownerAddress,
+      domain,
+      qualityScore,
+      reviewScore,
+      threshold,
+      scalingConstant,
+    ]);
 
-    const newDomain = await publicContract.read.domain_reputation([ownerAddress, domain]);
-    const newGlobal = await publicContract.read.global_reputation([ownerAddress]);
+    const newDomain = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
+    const newGlobal = await publicContract.read.global_reputation([
+      ownerAddress,
+    ]);
 
     const expectedDelta = BigInt(-2);
     expect(newDomain).to.equal(oldDomain + expectedDelta);
@@ -444,18 +596,41 @@ describe("ReputationManager - Initial State", () => {
     const difficulty = 0; // EASY
 
     // initial reputation
-    const baseDomain = await publicContract.read.domain_reputation([ownerAddress, domain]);
+    const baseDomain = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
 
     // scaling constant 1
     const scale1 = BigInt(1);
-    await contract.write.updateSolvingProblemReputation([ownerAddress, domain, finalScore, threshold, scale1, difficulty]);
-    const afterScale1 = await publicContract.read.domain_reputation([ownerAddress, domain]);
+    await contract.write.updateSolvingProblemReputation([
+      ownerAddress,
+      domain,
+      finalScore,
+      threshold,
+      scale1,
+      difficulty,
+    ]);
+    const afterScale1 = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
     const delta1 = afterScale1 - baseDomain;
 
     // scaling constant 3
     const scale3 = BigInt(3);
-    await contract.write.updateSolvingProblemReputation([ownerAddress, domain, finalScore, threshold, scale3, difficulty]);
-    const afterScale3 = await publicContract.read.domain_reputation([ownerAddress, domain]);
+    await contract.write.updateSolvingProblemReputation([
+      ownerAddress,
+      domain,
+      finalScore,
+      threshold,
+      scale3,
+      difficulty,
+    ]);
+    const afterScale3 = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
     const delta3 = afterScale3 - afterScale1;
 
     // delta3 should be exactly 3 times delta1
@@ -473,24 +648,48 @@ describe("ReputationManager - Initial State", () => {
     const hardWeight = BigInt(140);
 
     // initial reputation
-    const baseDomain = await publicContract.read.domain_reputation([ownerAddress, domain]);
+    const baseDomain = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
 
     // EASY difficulty
     const easyDiff = 0;
-    await contract.write.updateSolvingProblemReputation([ownerAddress, domain, finalScore, threshold, scalingConstant, easyDiff]);
-    const afterEasy = await publicContract.read.domain_reputation([ownerAddress, domain]);
+    await contract.write.updateSolvingProblemReputation([
+      ownerAddress,
+      domain,
+      finalScore,
+      threshold,
+      scalingConstant,
+      easyDiff,
+    ]);
+    const afterEasy = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
     const deltaEasy = afterEasy - baseDomain;
 
     // HARD difficulty
     const hardDiff = 2;
-    await contract.write.updateSolvingProblemReputation([ownerAddress, domain, finalScore, threshold, scalingConstant, hardDiff]);
-    const afterHard = await publicContract.read.domain_reputation([ownerAddress, domain]);
+    await contract.write.updateSolvingProblemReputation([
+      ownerAddress,
+      domain,
+      finalScore,
+      threshold,
+      scalingConstant,
+      hardDiff,
+    ]);
+    const afterHard = await publicContract.read.domain_reputation([
+      ownerAddress,
+      domain,
+    ]);
     const deltaHard = afterHard - afterEasy;
 
     // Expected: hardWeight/easyWeight = deltaHard/deltaEasy
     // => deltaHard * easyWeight == deltaEasy * hardWeight
     expect(Number(deltaEasy)).to.be.gt(0);
-    expect(BigInt(deltaHard) * easyWeight).to.equal(BigInt(deltaEasy) * hardWeight);
+    expect(BigInt(deltaHard) * easyWeight).to.equal(
+      BigInt(deltaEasy) * hardWeight
+    );
   });
-
 });

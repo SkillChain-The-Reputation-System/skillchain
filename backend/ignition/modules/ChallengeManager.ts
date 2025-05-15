@@ -7,7 +7,8 @@ const ChallengeManagerModule = buildModule("ChallengeManagerModule", (m) => {
   // Set the reputation manager address on the ChallengeManager
   m.call(challengeManager, "setReputationManagerAddress", [reputationManager]);
 
-  return { challengeManager };
+  // Return both contracts
+  return { challengeManager, reputationManager };
 });
 
 export default ChallengeManagerModule;

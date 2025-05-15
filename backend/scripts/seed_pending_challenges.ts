@@ -11,10 +11,10 @@ interface PendingChallengeData {
   description_url: string;
   category: number;
   timestamp: number;
-  status: number; // Likely not needed or different for pending
-  quality_score: number; // Likely not applicable for pending
-  difficulty_level: number; // May or may not be applicable
-  solve_time: number; // Likely not applicable for pending
+  status: number;
+  quality_score: number; 
+  difficulty_level: number; 
+  solve_time: number;
 }
 
 const abi = ChallengeManagerArtifact.abi;

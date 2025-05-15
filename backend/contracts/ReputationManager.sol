@@ -154,7 +154,10 @@ contract ReputationManager {
         SystemEnums.Domain _domain,
         int256 _delta
     ) internal {
-        if (_delta == 0) return;
+        if (_delta == 0) {
+            console.log("No change in reputation (delta = 0) for user %s", _user);
+            return;
+        }
 
         int256 _old_domain = domain_reputation[_user][_domain];
         int256 _new_domain = _old_domain + _delta;

@@ -2,61 +2,21 @@
 pragma solidity ^0.8.0;
 import "hardhat/console.sol";
 import "./SolutionManager.sol";
+import "./Constants.sol";
+import "./ReputationManager.sol";
 
 contract ChallengeManager {
-    // ================= CONSTANTS =================
-    uint256 public constant REVIEW_QUORUM = 3; // The number of moderators needed to start a finalizing process
-    uint256 public constant REVIEW_THRESHOLD = 80; // The threshold of quality score for a challenge to be approved
-    uint256 public constant NUMBER_OF_QUALITY_FACTORS = 7; // The number of quality factors used in the review process
-    uint256 public constant MAX_DOMAIN = 14; // Maximum number of domains
-    uint256 public constant MAX_DIFFICULTY_LEVEL = 3; // Maximum number of difficulty levels
-
-    // ================= ENUMS =================
-    enum ChallengeStatus {
-        PENDING, // 0
-        APPROVED, // 1
-        REJECTED // 2
-    }
-
-    enum DifficultyLevel {
-        EASY, // 0
-        MEDIUM, // 1
-        HARD // 2
-    }
-
-    enum QualityFactorAnswer {
-        NO, // 0
-        YES // 1
-    }
-
-    enum Domain {
-        COMPUTER_SCIENCE_FUNDAMENTALS, // 0
-        SOFTWARE_DEVELOPMENT, // 1
-        SYSTEMS_AND_NETWORKING, // 2
-        CYBERSECURITY, // 3
-        DATA_SCIENCE_AND_ANALYTICS, // 4
-        DATABASE_ADMINISTRATION, // 5
-        QUALITY_ASSURANCE_AND_TESTING, // 6
-        PROJECT_MANAGEMENT, // 7
-        USER_EXPERIENCE_AND_DESIGN, // 8
-        BUSINESS_ANALYSIS, // 9
-        ARTIFICIAL_INTELLIGENCE, // 10
-        BLOCKCHAIN_AND_CRYPTOCURRENCY, // 11
-        NETWORK_ADMINISTRATION, // 12
-        CLOUD_COMPUTING // 13
-    }
-
     // ================= STRUCTS =================
     struct Challenge {
         uint256 id;
         address contributor;
         string title_url;
         string description_url;
-        Domain category;
+        SystemEnums.Domain category;
         uint256 contribute_at;
-        ChallengeStatus status;
+        SystemEnums.ChallengeStatus status;
         uint256 quality_score;
-        DifficultyLevel difficulty_level;
+        SystemEnums.DifficultyLevel difficulty_level;
         uint256 solve_time;
     }
 
@@ -64,16 +24,17 @@ contract ChallengeManager {
         address moderator;
         uint256 challenge_id;
         uint256 review_time;
-        QualityFactorAnswer relevance;
-        QualityFactorAnswer technical_correctness;
-        QualityFactorAnswer completeness;
-        QualityFactorAnswer clarity;
-        QualityFactorAnswer originality;
-        QualityFactorAnswer unbiased;
-        QualityFactorAnswer plagiarism_free;
-        DifficultyLevel suggested_difficulty;
-        Domain suggested_category;
+        SystemEnums.QualityFactorAnswer relevance;
+        SystemEnums.QualityFactorAnswer technical_correctness;
+        SystemEnums.QualityFactorAnswer completeness;
+        SystemEnums.QualityFactorAnswer clarity;
+        SystemEnums.QualityFactorAnswer originality;
+        SystemEnums.QualityFactorAnswer unbiased;
+        SystemEnums.QualityFactorAnswer plagiarism_free;
+        SystemEnums.DifficultyLevel suggested_difficulty;
+        SystemEnums.Domain suggested_category;
         uint256 suggested_solve_time;
+        uint256 review_score;
     }
 
     struct ReviewPool {
@@ -86,20 +47,13 @@ contract ChallengeManager {
         mapping(address => bool) moderator_to_join_status;
     }
 
-    // Struct for aggregated metadata
-    struct AggregatedMeta {
-        uint256[MAX_DIFFICULTY_LEVEL] difficulty_weight;
-        uint256[MAX_DOMAIN] category_weight;
-        uint256 estimated_solve_time;
-    }
-
     // Struct for joined challenges preview in workspace
     struct JoinedChallengesPreview {
         uint256 challenge_id;
         string title_url;
         string description_url;
-        Domain domain;
-        SolutionProgress progress;
+        SystemEnums.Domain domain;
+        SystemEnums.SolutionProgress progress;
         uint256 joined_at;
         uint256 score;
     }
@@ -113,10 +67,13 @@ contract ChallengeManager {
     mapping(address => uint256[]) private contributor_to_challenges;
     // Mapping: Moderator address -> Challenge IDs
     mapping(address => uint256[]) private moderator_to_challenges;
-    // Mapping: Challenge ID -> Aggregated metadata
-    mapping(uint256 => AggregatedMeta) private challenge_to_aggregated_meta;
     // Mapping: User address -> Joined challenge IDs
     mapping(address => uint256[]) private user_to_joined_challenges;
+
+    ReputationManager private reputation_manager; // ReputationManager instance
+    address private reputation_manager_address; // ReputationManager address
+    SolutionManager private solution_manager; // SolutionManager instance
+    address private solution_manager_address; // SolutionManager address
 
     uint256 public total_challenges = 0;
     uint256 public pending_challenges = 0;
@@ -127,7 +84,7 @@ contract ChallengeManager {
         address indexed contributor,
         string title_url,
         string description_url,
-        Domain category,
+        SystemEnums.Domain category,
         uint256 contribute_at
     );
     // Emitted when a moderator joins a review pool
@@ -138,7 +95,7 @@ contract ChallengeManager {
 
     event ChallengeFinalized(
         uint256 indexed challengeId,
-        ChallengeStatus status,
+        SystemEnums.ChallengeStatus status,
         uint256 averagePercent
     );
 
@@ -169,7 +126,8 @@ contract ChallengeManager {
     function contributeChallenge(
         string calldata _title_url,
         string calldata _description_url,
-        Domain _category
+        SystemEnums.Domain _category,
+        uint256 _contribute_at
     ) external {
         uint256 challengeId = total_challenges++;
         uint256 contributeAt = block.timestamp * 1000;
@@ -180,10 +138,10 @@ contract ChallengeManager {
             title_url: _title_url,
             description_url: _description_url,
             category: _category,
-            contribute_at: contributeAt,
-            status: ChallengeStatus.PENDING,
+            contribute_at: _contribute_at,
+            status: SystemEnums.ChallengeStatus.PENDING,
             quality_score: 0,
-            difficulty_level: DifficultyLevel.EASY,
+            difficulty_level: SystemEnums.DifficultyLevel.EASY,
             solve_time: 0
         });
 
@@ -214,7 +172,8 @@ contract ChallengeManager {
     ) public onlyBeforeFinalized(_challenge_id) {
         // Prevent joining the review pool if maximum number of moderators is reached
         require(
-            review_pool[_challenge_id].moderator_list.length < REVIEW_QUORUM,
+            review_pool[_challenge_id].moderator_list.length <
+                SystemConsts.REVIEW_QUORUM,
             "Max moderators reached"
         );
 
@@ -242,15 +201,15 @@ contract ChallengeManager {
 
     function submitModeratorReview(
         uint256 _challenge_id,
-        QualityFactorAnswer _relevance,
-        QualityFactorAnswer _technical_correctness,
-        QualityFactorAnswer _completeness,
-        QualityFactorAnswer _clarity,
-        QualityFactorAnswer _originality,
-        QualityFactorAnswer _unbiased,
-        QualityFactorAnswer _plagiarism_free,
-        DifficultyLevel _suggested_difficulty,
-        Domain _suggested_category,
+        SystemEnums.QualityFactorAnswer _relevance,
+        SystemEnums.QualityFactorAnswer _technical_correctness,
+        SystemEnums.QualityFactorAnswer _completeness,
+        SystemEnums.QualityFactorAnswer _clarity,
+        SystemEnums.QualityFactorAnswer _originality,
+        SystemEnums.QualityFactorAnswer _unbiased,
+        SystemEnums.QualityFactorAnswer _plagiarism_free,
+        SystemEnums.DifficultyLevel _suggested_difficulty,
+        SystemEnums.Domain _suggested_category,
         uint256 _suggested_solve_time
     ) public onlyBeforeFinalized(_challenge_id) {
         // Check if the moderator has joined the review pool
@@ -266,6 +225,16 @@ contract ChallengeManager {
             pool.review_count++;
         }
 
+        // Calculate the review score based on the quality factors
+        uint256 review_score = ((uint256(_relevance) +
+            uint256(_technical_correctness) +
+            uint256(_completeness) +
+            uint256(_clarity) +
+            uint256(_originality) +
+            uint256(_unbiased) +
+            uint256(_plagiarism_free)) * 100) /
+            SystemConsts.NUMBER_OF_QUALITY_FACTORS;
+
         // Update the moderator's review in the review pool
         pool.moderator_reviews[msg.sender] = ModeratorReview({
             moderator: msg.sender,
@@ -280,33 +249,34 @@ contract ChallengeManager {
             plagiarism_free: _plagiarism_free,
             suggested_difficulty: _suggested_difficulty,
             suggested_category: _suggested_category,
-            suggested_solve_time: _suggested_solve_time
+            suggested_solve_time: _suggested_solve_time,
+            review_score: review_score
         });
 
-        console.log(
-            "Moderator %s updated review for challenge #%s",
-            msg.sender,
-            _challenge_id
-        );
-        console.log("- Relevance: %s", uint((_relevance)));
-        console.log(
-            "- Technical correctness: %s",
-            uint((_technical_correctness))
-        );
-        console.log("- Completeness: %s", uint((_completeness)));
-        console.log("- Clarity: %s", uint((_clarity)));
-        console.log("- Originality: %s", uint((_originality)));
-        console.log("- Unbiased: %s", uint((_unbiased)));
-        console.log("- Plagiarism free: %s", uint((_plagiarism_free)));
-        console.log(
-            "- Suggested difficulty: %s",
-            uint((_suggested_difficulty))
-        );
-        console.log("- Suggested category: %s", uint((_suggested_category)));
-        console.log("- Suggested solve time: %s", _suggested_solve_time);
+        // console.log(
+        //     "Moderator %s updated review for challenge #%s",
+        //     msg.sender,
+        //     _challenge_id
+        // );
+        // console.log("- Relevance: %s", uint((_relevance)));
+        // console.log(
+        //     "- Technical correctness: %s",
+        //     uint((_technical_correctness))
+        // );
+        // console.log("- Completeness: %s", uint((_completeness)));
+        // console.log("- Clarity: %s", uint((_clarity)));
+        // console.log("- Originality: %s", uint((_originality)));
+        // console.log("- Unbiased: %s", uint((_unbiased)));
+        // console.log("- Plagiarism free: %s", uint((_plagiarism_free)));
+        // console.log(
+        //     "- Suggested difficulty: %s",
+        //     uint((_suggested_difficulty))
+        // );
+        // console.log("- Suggested category: %s", uint((_suggested_category)));
+        // console.log("- Suggested solve time: %s", _suggested_solve_time);
 
         // Automatically finalize the review pool if the number of reviews reaches the quorum
-        if (pool.review_count >= REVIEW_QUORUM) {
+        if (pool.review_count >= SystemConsts.REVIEW_QUORUM) {
             finalizeChallenge(_challenge_id, pool);
         }
     }
@@ -320,21 +290,23 @@ contract ChallengeManager {
 
         // Calculate the average score from the moderator reviews
         uint256 total_score = 0;
+        uint256 total_reputation_weight = 0;
         for (uint256 i = 0; i < _pool.moderator_list.length; i++) {
             ModeratorReview storage review = _pool.moderator_reviews[
                 _pool.moderator_list[i]
             ];
-            total_score +=
-                uint256(review.relevance) +
-                uint256(review.technical_correctness) +
-                uint256(review.completeness) +
-                uint256(review.clarity) +
-                uint256(review.originality) +
-                uint256(review.unbiased) +
-                uint256(review.plagiarism_free);
+            int256 moderator_domain_reputation = reputation_manager.getDomainReputation(
+                review.moderator,
+                challenges[_challenge_id].category // This is the category that contributor suggested
+            );
+            uint256 reputation_weight = SystemConsts.REPUTATION_WEIGHT_FOR_SCORING +
+                uint256(moderator_domain_reputation);
+            total_score += review.review_score * reputation_weight;
+            total_reputation_weight += reputation_weight;
         }
-        uint256 average_score = (total_score * 100) /
-            (NUMBER_OF_QUALITY_FACTORS * _pool.review_count);
+
+        uint256 average_score = total_score / total_reputation_weight;
+
         console.log(
             "Average score for challenge #%s: %s",
             _challenge_id,
@@ -342,12 +314,16 @@ contract ChallengeManager {
         );
 
         // Update the challenge status based on the average score
-        if (average_score >= REVIEW_THRESHOLD) {
-            challenges[_challenge_id].status = ChallengeStatus.APPROVED;
+        if (average_score >= SystemConsts.REVIEW_THRESHOLD) {
+            challenges[_challenge_id].status = SystemEnums
+                .ChallengeStatus
+                .APPROVED;
             pending_challenges--;
             approved_challenges++;
         } else {
-            challenges[_challenge_id].status = ChallengeStatus.REJECTED;
+            challenges[_challenge_id].status = SystemEnums
+                .ChallengeStatus
+                .REJECTED;
             pending_challenges--;
         }
 
@@ -357,25 +333,57 @@ contract ChallengeManager {
         // Mark the review pool as finalized
         _pool.is_finalized = true;
 
+        // TODO: Update the challenge's difficulty level and solve time based on the moderator's suggestions
+
         emit ChallengeFinalized(
             _challenge_id,
             challenges[_challenge_id].status,
             challenges[_challenge_id].quality_score
         );
+
+        // Update contributor's and moderators' reputation scores
+        if (reputation_manager_address != address(0)) {
+            Challenge storage challenge_data = challenges[_challenge_id];
+            console.log("Executing reputation update for contributor of challenge #%s", _challenge_id);
+            reputation_manager.updateContributionReputation(
+                challenge_data.contributor,
+                challenge_data.category,
+                challenge_data.quality_score,
+                SystemConsts.THRESHOLD_OF_CHALLENGE_QUALITY_SCORE, 
+                SystemConsts.SCALING_CONSTANT_FOR_CONTRIBUTION, 
+                challenge_data.difficulty_level
+            );
+
+            for (uint256 i = 0; i < _pool.moderator_list.length; i++) {
+                console.log("Executing reputation update for moderator %s", _pool.moderator_list[i]);
+                address moderator_address = _pool.moderator_list[i];
+                ModeratorReview storage review = _pool.moderator_reviews[
+                    moderator_address
+                ];
+                reputation_manager.updateModerationReputation(
+                    moderator_address,
+                    challenge_data.category, // challenge category (have finalized), not suggested_category from review
+                    challenge_data.quality_score,
+                    review.review_score,
+                    SystemConsts.THRESHOLD_OF_MODERATION_DEVIATION,
+                    SystemConsts.SCALING_CONSTANT_FOR_MODERATION
+                );
+            }
+        }
     }
 
     function userJoinChallenge(
         uint256 _challenge_id,
-        string calldata _solution_base_txid,
-        address _solution_address
+        string calldata _solution_base_txid
     ) external {
         // Check if challenge id exists
         require(_challenge_id < total_challenges);
 
-        SolutionManager solution_manager = SolutionManager(_solution_address);
+        require(solution_manager_address != address(0), "SolutionManager not set");
+        SolutionManager sm = solution_manager;
 
         require(
-            !solution_manager.checkUserJoinedChallenge(
+            !sm.checkUserJoinedChallenge(
                 msg.sender,
                 _challenge_id
             )
@@ -383,7 +391,7 @@ contract ChallengeManager {
 
         uint256 _joined_at = block.timestamp * 1000;
 
-        solution_manager.createSolutionBase(
+        sm.createSolutionBase(
             msg.sender,
             _challenge_id,
             _solution_base_txid,
@@ -400,6 +408,24 @@ contract ChallengeManager {
         );
 
         emit ChallengeJoinedByUser(msg.sender, _challenge_id, _joined_at);
+    }
+
+    // ================= SETTER METHODS =================
+    function setReputationManagerAddress(address _address) external {
+        // TODO: Add access control (e.g., only owner)
+        require(_address != address(0), "Invalid address");
+        reputation_manager_address = _address;
+        reputation_manager = ReputationManager(_address);
+    }
+
+    /**
+     * @dev Set the SolutionManager contract address
+     */
+    function setSolutionManagerAddress(address _address) external {
+        // TODO: Add access control (e.g., only owner)
+        require(_address != address(0), "Invalid address");
+        solution_manager_address = _address;
+        solution_manager = SolutionManager(_address);
     }
 
     // ================= GETTER METHODS =================
@@ -433,7 +459,7 @@ contract ChallengeManager {
         uint256 count = 0;
 
         for (uint256 i = 0; i < total_challenges; i++) {
-            if (challenges[i].status == ChallengeStatus.PENDING) {
+            if (challenges[i].status == SystemEnums.ChallengeStatus.PENDING) {
                 pendingChallengeList[count] = challenges[i];
                 count++;
             }
@@ -455,7 +481,7 @@ contract ChallengeManager {
         uint256 count = 0;
 
         for (uint256 i = 0; i < total_challenges; i++) {
-            if (challenges[i].status == ChallengeStatus.APPROVED) {
+            if (challenges[i].status == SystemEnums.ChallengeStatus.APPROVED) {
                 approvedChallengeList[count] = challenges[i];
                 count++;
             }
@@ -527,7 +553,7 @@ contract ChallengeManager {
     }
 
     function getReviewQuorum() public pure returns (uint256) {
-        return REVIEW_QUORUM;
+        return SystemConsts.REVIEW_QUORUM;
     }
 
     function getReviewPoolSize(
@@ -543,31 +569,21 @@ contract ChallengeManager {
     }
 
     function getJoinedChallengesByUserForPreview(
-        address _user_address,
-        address _solution_address
+        address _user_address
     ) public view returns (JoinedChallengesPreview[] memory) {
-        uint256[] memory challengeIds = user_to_joined_challenges[
-            _user_address
-        ];
+        require(solution_manager_address != address(0), "SolutionManager not set");
+        uint256[] memory challengeIds = user_to_joined_challenges[_user_address];
 
-        SolutionManager solution_manager = SolutionManager(_solution_address);
-
-        JoinedChallengesPreview[]
-            memory previewList = new JoinedChallengesPreview[](
-                challengeIds.length
-            );
+        JoinedChallengesPreview[] memory previewList = new JoinedChallengesPreview[](challengeIds.length);
 
         for (uint256 i = 0; i < challengeIds.length; i++) {
             uint256 id = challengeIds[i];
             Challenge storage ch = challenges[id];
             (
                 uint256 created_at,
-                SolutionProgress progress,
+                SystemEnums.SolutionProgress progress,
                 uint256 score
-            ) = solution_manager.getSolutionPreviewByUserAndChallengeId(
-                    _user_address,
-                    id
-                );
+            ) = solution_manager.getSolutionPreviewByUserAndChallengeId(_user_address, id);
 
             previewList[i] = JoinedChallengesPreview({
                 challenge_id: id,
@@ -593,11 +609,11 @@ contract ChallengeManager {
         address _contributor,
         string calldata _title_url,
         string calldata _description_url,
-        Domain _category,
+        SystemEnums.Domain _category,
         uint256 _contribute_at,
-        ChallengeStatus _status,
+        SystemEnums.ChallengeStatus _status,
         uint256 _quality_score,
-        DifficultyLevel _difficulty_level,
+        SystemEnums.DifficultyLevel _difficulty_level,
         uint256 _solve_time
     ) external {
         uint256 challengeId = total_challenges++;
@@ -617,8 +633,10 @@ contract ChallengeManager {
 
         contributor_to_challenges[_contributor].push(challengeId);
 
-        if (_status == ChallengeStatus.PENDING) pending_challenges++;
-        else if (_status == ChallengeStatus.APPROVED) approved_challenges++;
+        if (_status == SystemEnums.ChallengeStatus.PENDING)
+            pending_challenges++;
+        else if (_status == SystemEnums.ChallengeStatus.APPROVED)
+            approved_challenges++;
 
         console.log(
             "Challenge #%s seeded by %s at %s with:",

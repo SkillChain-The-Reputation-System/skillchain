@@ -2,7 +2,8 @@ import { readContract } from "@wagmi/core";
 import {
   ContractConfig_ChallengeManager,
   ContractConfig_UserDataManager,
-  ContractConfig_SolutionManager
+  ContractConfig_SolutionManager,
+  ContractConfig_ReputationManager,
 } from "@/constants/contracts-config";
 import { wagmiConfig } from "@/features/wallet/Web3Provider";
 import {
@@ -36,6 +37,13 @@ export const fetchUserDataOnChain = async (
       functionName: "getAvatar",
       args: [address],
     }),
+    readContract(wagmiConfig, {
+      address: ContractConfig_UserDataManager.address as `0x${string}`,
+      abi: ContractConfig_UserDataManager.abi,
+      functionName: "getBio",
+      args: [address],
+    }),
+
     readContract(wagmiConfig, {
       address: ContractConfig_UserDataManager.address as `0x${string}`,
       abi: ContractConfig_UserDataManager.abi,
@@ -250,7 +258,9 @@ export const fetchContributedChallenges = async (
   return challengesWithMeaningfulData;
 };
 
-export const fetchPendingChallenges = async (): Promise<ChallengeInterface[]> => {
+export const fetchPendingChallenges = async (): Promise<
+  ChallengeInterface[]
+> => {
   const pendingChallenges = await readContract(wagmiConfig, {
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
     abi: ContractConfig_ChallengeManager.abi,
@@ -261,7 +271,9 @@ export const fetchPendingChallenges = async (): Promise<ChallengeInterface[]> =>
   const meaningPendingChallenges = await Promise.all(
     (pendingChallenges as any[]).map(async (challenge) => {
       const title = await fetchStringDataOffChain(challenge.title_url);
-      const description = await fetchStringDataOffChain(challenge.description_url);
+      const description = await fetchStringDataOffChain(
+        challenge.description_url
+      );
 
       return {
         id: challenge.id.toString(),
@@ -281,7 +293,9 @@ export const fetchPendingChallenges = async (): Promise<ChallengeInterface[]> =>
   return meaningPendingChallenges;
 };
 
-export const fetchApprovedChallenges = async (): Promise<ChallengeInterface[]> => {
+export const fetchApprovedChallenges = async (): Promise<
+  ChallengeInterface[]
+> => {
   const approvedChallenges = await readContract(wagmiConfig, {
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
     abi: ContractConfig_ChallengeManager.abi,
@@ -292,7 +306,9 @@ export const fetchApprovedChallenges = async (): Promise<ChallengeInterface[]> =
   const meaningApprovedChallenges = await Promise.all(
     (approvedChallenges as any[]).map(async (challenge) => {
       const title = await fetchStringDataOffChain(challenge.title_url);
-      const description = await fetchStringDataOffChain(challenge.description_url);
+      const description = await fetchStringDataOffChain(
+        challenge.description_url
+      );
 
       return {
         id: challenge.id.toString(),
@@ -325,7 +341,9 @@ export const fetchJoinedChallengesByUser = async (
   const meaningJoinedChallenges = await Promise.all(
     (joinedChallenges as any[]).map(async (challenge) => {
       const title = await fetchStringDataOffChain(challenge.title_url);
-      const description = await fetchStringDataOffChain(challenge.description_url);
+      const description = await fetchStringDataOffChain(
+        challenge.description_url
+      );
 
       return {
         id: challenge.id.toString(),
@@ -343,20 +361,24 @@ export const fetchJoinedChallengesByUser = async (
   );
 
   return meaningJoinedChallenges;
-}
+};
 
-export const fetchJoinedChallengesPreviewByUser = async (address: `0x${string}`): Promise<JoinedChallengePreview[]> => {
+export const fetchJoinedChallengesPreviewByUser = async (
+  address: `0x${string}`
+): Promise<JoinedChallengePreview[]> => {
   const previewList = await readContract(wagmiConfig, {
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
     abi: ContractConfig_ChallengeManager.abi,
     functionName: "getJoinedChallengesByUserForPreview",
-    args: [address, ContractConfig_SolutionManager.address],
+    args: [address],
   });
 
   const meaningPreviewList = await Promise.all(
     (previewList as any[]).map(async (preview) => {
       const title = await fetchStringDataOffChain(preview.title_url);
-      const description = await fetchStringDataOffChain(preview.description_url);
+      const description = await fetchStringDataOffChain(
+        preview.description_url
+      );
 
       return {
         challengeId: preview.challenge_id,
@@ -371,18 +393,18 @@ export const fetchJoinedChallengesPreviewByUser = async (address: `0x${string}`)
   );
 
   return meaningPreviewList;
-}
+};
 
 export const fetchUserHasJoinedChallengeState = async (
   address: `0x${string}`,
   challenge_id: number
 ): Promise<boolean> => {
-  const has_joined = await readContract(wagmiConfig, {
+  const has_joined = (await readContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
     abi: ContractConfig_SolutionManager.abi,
     functionName: "checkUserJoinedChallenge",
     args: [address, challenge_id],
-  }) as boolean;
+  })) as boolean;
 
   return has_joined;
 };
@@ -391,31 +413,32 @@ export const fetchSolutionTxIdByUserAndChallengeId = async (
   address: `0x${string}`,
   challenge_id: number
 ): Promise<string> => {
-  const fetchedTxId = await readContract(wagmiConfig, {
+  const fetchedTxId = (await readContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
     abi: ContractConfig_SolutionManager.abi,
     functionName: "getSolutionTxId",
     args: [address, challenge_id],
-  }) as string;
+  })) as string;
 
   return fetchedTxId;
-}
+};
 
 export const fetchSolutionByUserAndChallengeId = async (
   address: `0x${string}`,
   challenge_id: number
 ): Promise<SolutionInterface | null> => {
-  const fetchedSolution = await readContract(wagmiConfig, {
+  const fetchedSolution = (await readContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
     abi: ContractConfig_SolutionManager.abi,
     functionName: "getSolutionByUserAndChallengeId",
     args: [address, challenge_id],
-  }) as any;
+  })) as any;
 
-  if (!fetchedSolution)
-    return null;
+  if (!fetchedSolution) return null;
 
-  const solution = await fetchStringDataOffChain(`https://gateway.irys.xyz/mutable/${fetchedSolution.solution_txid}`)
+  const solution = await fetchStringDataOffChain(
+    `https://gateway.irys.xyz/mutable/${fetchedSolution.solution_txid}`
+  );
 
   return {
     user: fetchedSolution.user,
@@ -424,6 +447,27 @@ export const fetchSolutionByUserAndChallengeId = async (
     createdAt: fetchedSolution.created_at,
     submittedAt: fetchedSolution.submitted_at,
     progress: fetchedSolution.progress,
-    score: fetchedSolution.score
+    score: fetchedSolution.score,
   };
-}
+};
+
+export const fetchUserReputationScore = async (address: `0x${string}`) => {
+  const global_reputation = (await readContract(wagmiConfig, {
+    address: ContractConfig_ReputationManager.address as `0x${string}`,
+    abi: ContractConfig_ReputationManager.abi,
+    functionName: "getGlobalReputation",
+    args: [address],
+  })) as number | bigint;
+
+  const domain_reputation = (await readContract(wagmiConfig, {
+    address: ContractConfig_ReputationManager.address as `0x${string}`,
+    abi: ContractConfig_ReputationManager.abi,
+    functionName: "getAllDomainReputation",
+    args: [address],
+  })) as number[];
+
+  return {
+    global_reputation: Number(global_reputation),
+    domain_reputation: domain_reputation.map((score) => Number(score)),
+  };
+};

@@ -72,6 +72,8 @@ contract ChallengeManager {
 
     ReputationManager private reputation_manager; // ReputationManager instance
     address private reputation_manager_address; // ReputationManager address
+    SolutionManager private solution_manager; // SolutionManager instance
+    address private solution_manager_address; // SolutionManager address
 
     uint256 public total_challenges = 0;
     uint256 public pending_challenges = 0;
@@ -363,16 +365,16 @@ contract ChallengeManager {
 
     function userJoinChallenge(
         uint256 _challenge_id,
-        string calldata _solution_base_txid,
-        address _solution_address
+        string calldata _solution_base_txid
     ) external {
         // Check if challenge id exists
         require(_challenge_id < total_challenges);
 
-        SolutionManager solution_manager = SolutionManager(_solution_address);
+        require(solution_manager_address != address(0), "SolutionManager not set");
+        SolutionManager sm = solution_manager;
 
         require(
-            !solution_manager.checkUserJoinedChallenge(
+            !sm.checkUserJoinedChallenge(
                 msg.sender,
                 _challenge_id
             )
@@ -380,7 +382,7 @@ contract ChallengeManager {
 
         uint256 _joined_at = block.timestamp * 1000;
 
-        solution_manager.createSolutionBase(
+        sm.createSolutionBase(
             msg.sender,
             _challenge_id,
             _solution_base_txid,
@@ -405,6 +407,16 @@ contract ChallengeManager {
         require(_address != address(0), "Invalid address");
         reputation_manager_address = _address;
         reputation_manager = ReputationManager(_address);
+    }
+
+    /**
+     * @dev Set the SolutionManager contract address
+     */
+    function setSolutionManagerAddress(address _address) external {
+        // TODO: Add access control (e.g., only owner)
+        require(_address != address(0), "Invalid address");
+        solution_manager_address = _address;
+        solution_manager = SolutionManager(_address);
     }
 
     // ================= GETTER METHODS =================
@@ -548,19 +560,12 @@ contract ChallengeManager {
     }
 
     function getJoinedChallengesByUserForPreview(
-        address _user_address,
-        address _solution_address
+        address _user_address
     ) public view returns (JoinedChallengesPreview[] memory) {
-        uint256[] memory challengeIds = user_to_joined_challenges[
-            _user_address
-        ];
+        require(solution_manager_address != address(0), "SolutionManager not set");
+        uint256[] memory challengeIds = user_to_joined_challenges[_user_address];
 
-        SolutionManager solution_manager = SolutionManager(_solution_address);
-
-        JoinedChallengesPreview[]
-            memory previewList = new JoinedChallengesPreview[](
-                challengeIds.length
-            );
+        JoinedChallengesPreview[] memory previewList = new JoinedChallengesPreview[](challengeIds.length);
 
         for (uint256 i = 0; i < challengeIds.length; i++) {
             uint256 id = challengeIds[i];
@@ -569,10 +574,7 @@ contract ChallengeManager {
                 uint256 created_at,
                 SystemEnums.SolutionProgress progress,
                 uint256 score
-            ) = solution_manager.getSolutionPreviewByUserAndChallengeId(
-                    _user_address,
-                    id
-                );
+            ) = solution_manager.getSolutionPreviewByUserAndChallengeId(_user_address, id);
 
             previewList[i] = JoinedChallengesPreview({
                 challenge_id: id,

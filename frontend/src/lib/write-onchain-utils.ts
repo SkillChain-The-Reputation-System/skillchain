@@ -110,8 +110,7 @@ export async function userJoinChallenge(
     functionName: "userJoinChallenge",
     args: [
       challengeId,
-      solution_upload_res.id,
-      ContractConfig_SolutionManager.address,
+      solution_upload_res.id
     ],
     account: address,
   });

@@ -370,7 +370,7 @@ export const fetchJoinedChallengesPreviewByUser = async (
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
     abi: ContractConfig_ChallengeManager.abi,
     functionName: "getJoinedChallengesByUserForPreview",
-    args: [address, ContractConfig_SolutionManager.address],
+    args: [address],
   });
 
   const meaningPreviewList = await Promise.all(

@@ -290,13 +290,22 @@ contract ChallengeManager {
 
         // Calculate the average score from the moderator reviews
         uint256 total_score = 0;
+        uint256 total_reputation_weight = 0;
         for (uint256 i = 0; i < _pool.moderator_list.length; i++) {
             ModeratorReview storage review = _pool.moderator_reviews[
                 _pool.moderator_list[i]
             ];
-            total_score += review.review_score;
+            int256 moderator_domain_reputation = reputation_manager.getDomainReputation(
+                review.moderator,
+                challenges[_challenge_id].category // This is the category that contributor suggested
+            );
+            uint256 reputation_weight = SystemConsts.REPUTATION_WEIGHT_FOR_SCORING +
+                uint256(moderator_domain_reputation);
+            total_score += review.review_score * reputation_weight;
+            total_reputation_weight += reputation_weight;
         }
-        uint256 average_score = total_score / _pool.review_count;
+
+        uint256 average_score = total_score / total_reputation_weight;
 
         console.log(
             "Average score for challenge #%s: %s",

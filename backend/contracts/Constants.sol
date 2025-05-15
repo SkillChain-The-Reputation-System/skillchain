@@ -77,6 +77,9 @@ library SystemConsts{
     uint256 public constant N_DOMAIN = 14; // Maximum number of domains
     uint256 public constant N_DIFFICULTY_LEVEL = 3; // Maximum number of difficulty levels
 
+    // ================= SCORING CONSTANT =================
+    uint256 public constant REPUTATION_WEIGHT_FOR_SCORING = 1; // Weight for reputation score
+
     // ================= MODERATION =================
     uint256 public constant REVIEW_QUORUM = 3; // The number of moderators needed to start a finalizing process
     uint256 public constant NUMBER_OF_QUALITY_FACTORS = 7; // The number of quality factors used in the challenge assessment
@@ -91,10 +94,10 @@ library SystemConsts{
     uint256 public constant SCALING_CONSTANT_FOR_CONTRIBUTION = 10; // Scaling constant for contribution
 
     // ================= UPDATE REPUTATION THRESHOLD =================
-    uint256 public constant THRESHOLD_OF_SOLVING_PROBLEM_SCORE = 50; // Threshold for final solution score
-    uint256 public constant THRESHOLD_OF_EVALUATION_DEVIATION = 10; // Threshold for evaluaiton deviation (= Final solution score - Score give by reviewer)
+    uint256 public constant THRESHOLD_OF_SOLVING_PROBLEM_SCORE = 30; // Threshold for final solution score
+    uint256 public constant THRESHOLD_OF_EVALUATION_DEVIATION = 60; // Threshold for evaluation deviation (= Final solution score - Score give by reviewer)
     uint256 public constant THRESHOLD_OF_CHALLENGE_QUALITY_SCORE = 80; // Threshold for challenge quality score
-    uint256 public constant THRESHOLD_OF_MODERATION_DEVIATION = 15; // Threshold for moderation deviation (Final challenge quality - Score give by moderator)
+    uint256 public constant THRESHOLD_OF_MODERATION_DEVIATION = 60; // Threshold for moderation deviation (Final challenge quality - Score give by moderator)
 }
 
 library MathUtils {

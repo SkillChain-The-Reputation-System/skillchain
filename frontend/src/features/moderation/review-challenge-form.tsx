@@ -290,7 +290,7 @@ export function ReviewChallengeForm({
                                 <ToggleGroupItem
                                   value={QualityFactorAnswer.YES.toString()}
                                   className={cn(
-                                    "px-4 py-2 rounded-md text-center transition-all border-2",
+                                    "px-4 py-2 rounded-md text-center transition-all border-2 select-none",
                                     field.value?.toString() === QualityFactorAnswer.YES.toString()
                                       ? "bg-blue-500 text-white border-blue-600 dark:bg-blue-400 dark:text-white dark:border-blue-500 shadow-lg scale-105"
                                       : "bg-gray-50 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 hover:bg-gray-200 hover:border-blue-400 dark:hover:bg-blue-900 dark:hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -302,7 +302,7 @@ export function ReviewChallengeForm({
                                 <ToggleGroupItem
                                   value={QualityFactorAnswer.NO.toString()}
                                   className={cn(
-                                    "px-4 py-2 rounded-md text-center transition-all border-2",
+                                    "px-4 py-2 rounded-md text-center transition-all border-2 select-none",
                                     field.value?.toString() === QualityFactorAnswer.NO.toString()
                                       ? "bg-blue-500 text-white border-blue-600 dark:bg-blue-400 dark:text-white dark:border-blue-500 shadow-lg scale-105"
                                       : "bg-gray-50 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 hover:bg-gray-200 hover:border-blue-400 dark:hover:bg-blue-900 dark:hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -347,7 +347,7 @@ export function ReviewChallengeForm({
                               <ToggleGroupItem
                                 value={ChallengeDifficultyLevel.EASY.toString()}
                                 className={cn(
-                                  "px-4 py-2 rounded-md text-center transition-all border-2",
+                                  "px-4 py-2 rounded-md text-center transition-all border-2 select-none",
                                   field.value?.toString() === ChallengeDifficultyLevel.EASY.toString()
                                     ? "bg-blue-500 text-white border-blue-600 dark:bg-blue-400 dark:text-white dark:border-blue-500 shadow-lg scale-105"
                                     : "bg-gray-50 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 hover:bg-gray-200 hover:border-blue-400 dark:hover:bg-blue-900 dark:hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -358,7 +358,7 @@ export function ReviewChallengeForm({
                               <ToggleGroupItem
                                 value={ChallengeDifficultyLevel.MEDIUM.toString()}
                                 className={cn(
-                                  "px-4 py-2 rounded-md text-center transition-all border-2",
+                                  "px-4 py-2 rounded-md text-center transition-all border-2 select-none",
                                   field.value?.toString() === ChallengeDifficultyLevel.MEDIUM.toString()
                                     ? "bg-blue-500 text-white border-blue-600 dark:bg-blue-400 dark:text-white dark:border-blue-500 shadow-lg scale-105"
                                     : "bg-gray-50 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 hover:bg-gray-200 hover:border-blue-400 dark:hover:bg-blue-900 dark:hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -369,7 +369,7 @@ export function ReviewChallengeForm({
                               <ToggleGroupItem
                                 value={ChallengeDifficultyLevel.HARD.toString()}
                                 className={cn(
-                                  "px-4 py-2 rounded-md text-center transition-all border-2",
+                                  "px-4 py-2 rounded-md text-center transition-all border-2 select-none",
                                   field.value?.toString() === ChallengeDifficultyLevel.HARD.toString()
                                     ? "bg-blue-500 text-white border-blue-600 dark:bg-blue-400 dark:text-white dark:border-blue-500 shadow-lg scale-105"
                                     : "bg-gray-50 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 hover:bg-gray-200 hover:border-blue-400 dark:hover:bg-blue-900 dark:hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -401,7 +401,7 @@ export function ReviewChallengeForm({
                             onValueChange={(val) => field.onChange(Number(val))}
                           >
                             <FormControl>
-                              <SelectTrigger className="w-[300px] hover:border-blue-500 border-2 border-gray-300 dark:border-gray-800 shadow-lg">
+                              <SelectTrigger className="w-[300px] hover:border-blue-500 border-2 border-gray-300 dark:border-gray-800 shadow-lg select-none">
                                 <SelectValue placeholder="Select category of your challenge" />
                               </SelectTrigger>
                             </FormControl>
@@ -451,7 +451,7 @@ export function ReviewChallengeForm({
                 />
               </div>
 
-              <div className="flex space-x-4">
+              <div className="flex space-x-4 select-none">
                 <Button
                   type="submit"
                   disabled={isSubmitDisabled || isChallengeFinalized}

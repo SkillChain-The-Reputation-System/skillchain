@@ -17,7 +17,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -266,29 +267,54 @@ export function ReviewChallengeForm({
                     name={q.name as keyof ModeratorReviewValues}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>
-                          {index + 1}. {q.label}
-                        </FormLabel>
-                        <FormDescription>{q.description}</FormDescription>
-                        <FormControl>
-                          <RadioGroup
-                            value={field.value?.toString()}
-                            onValueChange={field.onChange}
-                            className="flex space-x-4"
-                          >
-                            <RadioGroupItem
-                              value={QualityFactorAnswer.YES.toString()}
-                              id={QualityFactorAnswer.YES.toString()}
-                            />
-                            <Label htmlFor={`${q.name}-yes`}>Yes</Label>
-                            <RadioGroupItem
-                              value={QualityFactorAnswer.NO.toString()}
-                              id={QualityFactorAnswer.NO.toString()}
-                            />
-                            <Label htmlFor={`${q.name}-no`}>No</Label>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                          {/* Left: Question */}
+                          <div>
+                            <FormLabel>
+                              {index + 1}. {q.label}
+                            </FormLabel>
+                            <FormDescription>{q.description}</FormDescription>
+                          </div>
+                          {/* Right: Controls */}
+                          <div>
+                            <FormControl>
+                              <ToggleGroup
+                                type="single"
+                                className="grid grid-cols-2 gap-2 mt-2"
+                                value={field.value?.toString()}
+                                onValueChange={field.onChange}
+                                aria-label={q.label}
+                                defaultChecked={true}
+                                defaultValue={field.value?.toString()}
+                              >
+                                <ToggleGroupItem
+                                  value={QualityFactorAnswer.YES.toString()}
+                                  className={cn(
+                                    "px-4 py-2 rounded-md text-center transition-all border-2",
+                                    field.value?.toString() === QualityFactorAnswer.YES.toString()
+                                      ? "bg-blue-500 text-white border-blue-600 dark:bg-blue-400 dark:text-white dark:border-blue-500 shadow-lg scale-105"
+                                      : "bg-gray-50 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 hover:bg-gray-200 hover:border-blue-400 dark:hover:bg-blue-900 dark:hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  )}
+                                >
+                                  Yes
+                                </ToggleGroupItem>
+
+                                <ToggleGroupItem
+                                  value={QualityFactorAnswer.NO.toString()}
+                                  className={cn(
+                                    "px-4 py-2 rounded-md text-center transition-all border-2",
+                                    field.value?.toString() === QualityFactorAnswer.NO.toString()
+                                      ? "bg-blue-500 text-white border-blue-600 dark:bg-blue-400 dark:text-white dark:border-blue-500 shadow-lg scale-105"
+                                      : "bg-gray-50 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 hover:bg-gray-200 hover:border-blue-400 dark:hover:bg-blue-900 dark:hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  )}
+                                >
+                                  No
+                                </ToggleGroupItem>
+                              </ToggleGroup>
+                            </FormControl>
+                            <FormMessage />
+                          </div>
+                        </div>
                       </FormItem>
                     )}
                   />
@@ -304,31 +330,58 @@ export function ReviewChallengeForm({
                   name="suggested_difficulty"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Difficulty Level</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          value={field.value?.toString()}
-                          onValueChange={field.onChange}
-                          className="flex space-x-4"
-                        >
-                          <RadioGroupItem
-                            value={ChallengeDifficultyLevel.EASY.toString()}
-                            id={ChallengeDifficultyLevel.EASY.toString()}
-                          />
-                          <Label htmlFor="difficulty-easy">Easy</Label>
-                          <RadioGroupItem
-                            value={ChallengeDifficultyLevel.MEDIUM.toString()}
-                            id={ChallengeDifficultyLevel.MEDIUM.toString()}
-                          />
-                          <Label htmlFor="difficulty-medium">Medium</Label>
-                          <RadioGroupItem
-                            value={ChallengeDifficultyLevel.HARD.toString()}
-                            id={ChallengeDifficultyLevel.HARD.toString()}
-                          />
-                          <Label htmlFor="difficulty-hard">Hard</Label>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                        <div>
+                          <FormLabel>Difficulty Level</FormLabel>
+                        </div>
+                        <div>
+                          <FormControl>
+                            <ToggleGroup
+                              type="single"
+                              className="flex space-x-4"
+                              value={field.value?.toString()}
+                              onValueChange={field.onChange}
+                              aria-label="Difficulty Level"
+                              defaultValue={field.value?.toString()}
+                            >
+                              <ToggleGroupItem
+                                value={ChallengeDifficultyLevel.EASY.toString()}
+                                className={cn(
+                                  "px-4 py-2 rounded-md text-center transition-all border-2",
+                                  field.value?.toString() === ChallengeDifficultyLevel.EASY.toString()
+                                    ? "bg-blue-500 text-white border-blue-600 dark:bg-blue-400 dark:text-white dark:border-blue-500 shadow-lg scale-105"
+                                    : "bg-gray-50 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 hover:bg-gray-200 hover:border-blue-400 dark:hover:bg-blue-900 dark:hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                )}
+                              >
+                                Easy
+                              </ToggleGroupItem>
+                              <ToggleGroupItem
+                                value={ChallengeDifficultyLevel.MEDIUM.toString()}
+                                className={cn(
+                                  "px-4 py-2 rounded-md text-center transition-all border-2",
+                                  field.value?.toString() === ChallengeDifficultyLevel.MEDIUM.toString()
+                                    ? "bg-blue-500 text-white border-blue-600 dark:bg-blue-400 dark:text-white dark:border-blue-500 shadow-lg scale-105"
+                                    : "bg-gray-50 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 hover:bg-gray-200 hover:border-blue-400 dark:hover:bg-blue-900 dark:hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                )}
+                              >
+                                Medium
+                              </ToggleGroupItem>
+                              <ToggleGroupItem
+                                value={ChallengeDifficultyLevel.HARD.toString()}
+                                className={cn(
+                                  "px-4 py-2 rounded-md text-center transition-all border-2",
+                                  field.value?.toString() === ChallengeDifficultyLevel.HARD.toString()
+                                    ? "bg-blue-500 text-white border-blue-600 dark:bg-blue-400 dark:text-white dark:border-blue-500 shadow-lg scale-105"
+                                    : "bg-gray-50 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 hover:bg-gray-200 hover:border-blue-400 dark:hover:bg-blue-900 dark:hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                )}
+                              >
+                                Hard
+                              </ToggleGroupItem>
+                            </ToggleGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </div>
+                      </div>
                     </FormItem>
                   )}
                 />
@@ -338,30 +391,36 @@ export function ReviewChallengeForm({
                   name="suggested_category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Category</FormLabel>
-                      <Select
-                        value={field.value?.toString() ?? ""}
-                        onValueChange={(val) => field.onChange(Number(val))}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-[300px]">
-                            <SelectValue placeholder="Select category of your challenge" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="w-[300px]">
-                          {
-                            // get the numeric enum members
-                            (Object.values(Domain) as unknown as number[])
-                              .filter((v) => typeof v === "number")
-                              .map((num) => (
-                                <SelectItem key={num} value={num.toString()}>
-                                  {DomainLabels[num as Domain]}
-                                </SelectItem>
-                              ))
-                          }
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                        <div>
+                          <FormLabel>Category</FormLabel>
+                        </div>
+                        <div>
+                          <Select
+                            value={field.value?.toString() ?? ""}
+                            onValueChange={(val) => field.onChange(Number(val))}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="w-[300px] hover:border-blue-500 border-2 border-gray-300 dark:border-gray-800 shadow-lg">
+                                <SelectValue placeholder="Select category of your challenge" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="w-[300px] ">
+                              {
+                                // get the numeric enum members
+                                (Object.values(Domain) as unknown as number[])
+                                  .filter((v) => typeof v === "number")
+                                  .map((num) => (
+                                    <SelectItem key={num} value={num.toString()}>
+                                      {DomainLabels[num as Domain]}
+                                    </SelectItem>
+                                  ))
+                              }
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </div>
+                      </div>
                     </FormItem>
                   )}
                 />
@@ -371,11 +430,22 @@ export function ReviewChallengeForm({
                   name="suggested_solve_time"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Estimated Solve Time (minutes)</FormLabel>
-                      <FormControl>
-                        <Input type="number" min={1} {...field} />
-                      </FormControl>
-                      <FormMessage />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                        <div>
+                          <FormLabel>Estimated Solve Time (minutes)</FormLabel>
+                        </div>
+                        <div>
+                            <FormControl>
+                              <Input
+                              type="number"
+                              min={1}
+                              {...field}
+                              className="border-2 hover:border-blue-500 border-gray-300 dark:border-gray-800 focus-visible:border-blue-500 focus:ring-0 shadow-lg"
+                              />
+                            </FormControl>
+                          <FormMessage />
+                        </div>
+                      </div>
                     </FormItem>
                   )}
                 />

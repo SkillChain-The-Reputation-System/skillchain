@@ -294,14 +294,31 @@ contract ChallengeManager {
             _challenge_id,
             _pool
         );
+        console.log(
+            "Final category for challenge #%s: %s",
+            _challenge_id,
+            uint256(challenges[_challenge_id].category)
+        );
+
         challenges[_challenge_id]
             .difficulty_level = _consolidateChallengeDifficulty(
             _challenge_id,
             _pool
         );
+        console.log(
+            "Final difficulty level for challenge #%s: %s",
+            _challenge_id,
+            uint256(challenges[_challenge_id].difficulty_level)
+        );
+
         challenges[_challenge_id].solve_time = _consolidateChallengeSolveTime(
             _challenge_id,
             _pool
+        );
+        console.log(
+            "Final estimated solve time for challenge #%s: %s",
+            _challenge_id,
+            challenges[_challenge_id].solve_time
         );
 
         // Consolidate average score of challenge

@@ -185,6 +185,13 @@ contract ChallengeManager {
             "You have already joined this review pool."
         );
 
+        // Prevent joining the review pool if the user is a contributor
+        require(
+            challenges[_challenge_id].contributor != msg.sender,
+            "Contributor cannot join review pool"
+        );
+
+
         // Add new challenge to the moderator's list of challenges
         moderator_to_challenges[msg.sender].push(_challenge_id);
         // Use a storage reference for cleaner access

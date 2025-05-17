@@ -1,5 +1,5 @@
 import { fetchModeratorReviewTxIdByModeratorAndChallengeId, fetchSolutionTxIdByUserAndChallengeId } from "@/lib/fetching-onchain-data-utils";
-import { writeContract, waitForTransactionReceipt } from "@wagmi/core";
+import { writeContract, waitForTransactionReceipt, simulateContract } from "@wagmi/core";
 import {
   ContractConfig_ChallengeManager,
   ContractConfig_SolutionManager,
@@ -25,6 +25,23 @@ export async function joinReviewPool(
     );
 
   // send transaction and return tx hash
+  // const txHash = await writeContract(wagmiConfig, {
+  //   address: ContractConfig_ChallengeManager.address as `0x${string}`,
+  //   abi: ContractConfig_ChallengeManager.abi,
+  //   functionName: "joinReviewPool",
+  //   args: [challengeId, review_upload_res.id],
+  //   account: address,
+  // });
+  // return txHash;
+
+  await simulateContract(wagmiConfig, {
+    address: ContractConfig_ChallengeManager.address as `0x${string}`,
+    abi: ContractConfig_ChallengeManager.abi,
+    functionName: "joinReviewPool",
+    args: [challengeId, review_upload_res.id],
+    account: address,
+  });
+
   const txHash = await writeContract(wagmiConfig, {
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
     abi: ContractConfig_ChallengeManager.abi,
@@ -32,6 +49,7 @@ export async function joinReviewPool(
     args: [challengeId, review_upload_res.id],
     account: address,
   });
+
   return txHash;
 }
 

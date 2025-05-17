@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 
 // Import utils
 import { ChallengeInterface } from "@/lib/interfaces";
+import { cn } from "@/lib/utils";
 
 interface ChallengeCardProps {
   challenge: ChallengeInterface;
@@ -88,7 +89,10 @@ export function ChallengeCard({
   const primaryButton = (
     <Button
       variant="default"
-      className="cursor-pointer"
+      className={cn(
+        "cursor-pointer",
+        isJoined && "bg-green-500 hover:bg-green-600 text-white"
+      )}
       onClick={handleJoinClick}
       disabled={loadingStatus || isJoined || isChallengeFinalized || isFullReviewPool}
     >

@@ -12,14 +12,15 @@ import {
   FetchUserDataOnChainOutput,
   ModeratorReview,
   SolutionInterface,
+  ReviewData,
 } from "./interfaces";
-import { fetchStringDataOffChain } from "./fetching-offchain-data-utils";
+import { fetchJsonDataOffChain, fetchStringDataOffChain } from "./fetching-offchain-data-utils";
 import {
   QualityFactorAnswer,
   ChallengeDifficultyLevel,
-  Domain,
-  ChallengeSolutionProgress,
+  Domain
 } from "@/constants/system";
+
 
 export const fetchUserDataOnChain = async (
   address: `0x${string}`
@@ -163,11 +164,36 @@ export const getModeratorReviewOfChallenge = async (
     })) as any;
 
     // TODO: Get review data from Irys
-    const review_data_raw = await fetchStringDataOffChain(
+    const review_data_raw = await fetchJsonDataOffChain(
       `https://gateway.irys.xyz/mutable/${review.review_txid}`
     );
-    if (!review_data_raw) return null;
-    const review_data = JSON.parse(review_data_raw);
+    let review_data: ReviewData = {
+      relevance: QualityFactorAnswer.NO,
+      technical_correctness: QualityFactorAnswer.NO,
+      completeness: QualityFactorAnswer.NO,
+      clarity: QualityFactorAnswer.NO,
+      originality: QualityFactorAnswer.NO,
+      unbiased: QualityFactorAnswer.NO,
+      plagiarism_free: QualityFactorAnswer.NO,
+      suggested_difficulty: ChallengeDifficultyLevel.EASY,
+      suggested_category: Domain.COMPUTER_SCIENCE_FUNDAMENTALS,
+      suggested_solve_time: 0,
+    };
+
+    if (typeof review_data_raw === "string" ? review_data_raw.trim() !== "" : review_data_raw && Object.keys(review_data_raw).length > 0) {
+      review_data = {
+        relevance: Number(review_data_raw.relevance) as QualityFactorAnswer,
+        technical_correctness: Number(review_data_raw.technical_correctness) as QualityFactorAnswer,
+        completeness: Number(review_data_raw.completeness) as QualityFactorAnswer,
+        clarity: Number(review_data_raw.clarity) as QualityFactorAnswer,
+        originality: Number(review_data_raw.originality) as QualityFactorAnswer,
+        unbiased: Number(review_data_raw.unbiased) as QualityFactorAnswer,
+        plagiarism_free: Number(review_data_raw.plagiarism_free) as QualityFactorAnswer,
+        suggested_difficulty: Number(review_data_raw.suggested_difficulty) as ChallengeDifficultyLevel,
+        suggested_category: Number(review_data_raw.suggested_category) as Domain,
+        suggested_solve_time: Number(review_data_raw.suggested_solve_time),
+      };
+    }
 
     // Build a strongly-typed ModeratorReview object to force TS validation
     const moderatorReview: ModeratorReview = {
@@ -176,17 +202,17 @@ export const getModeratorReviewOfChallenge = async (
       review_time: Number(review.review_time),
       review_txid: review.review_txid as string,
       is_submitted: review.is_submitted as boolean,
-
-      relevance: review_data.relevance as QualityFactorAnswer,
-      technical_correctness: review_data.technical_correctness as QualityFactorAnswer,
-      completeness: review_data.completeness as QualityFactorAnswer,
-      clarity: review_data.clarity as QualityFactorAnswer,
-      originality: review_data.originality as QualityFactorAnswer,
-      unbiased: review_data.unbiased as QualityFactorAnswer,
-      plagiarism_free: review_data.plagiarism_free as QualityFactorAnswer,
-      suggested_difficulty: review_data.suggested_difficulty as ChallengeDifficultyLevel,
-      suggested_category: review_data.suggested_category as Domain,
-      suggested_solve_time: review_data.suggested_solve_time
+      relevance: review_data.relevance,
+      technical_correctness: review_data.technical_correctness,
+      completeness: review_data.completeness,
+      clarity: review_data.clarity,
+      originality: review_data.originality,
+      unbiased: review_data.unbiased,
+      plagiarism_free: review_data.plagiarism_free,
+      suggested_difficulty: review_data.suggested_difficulty,
+      suggested_category: review_data.suggested_category,
+      suggested_solve_time: review_data.suggested_solve_time,
+      review_score: Number(review.review_score),
     };
     return moderatorReview;
   } catch (error) {

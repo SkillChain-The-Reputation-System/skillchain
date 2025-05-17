@@ -25,6 +25,8 @@ contract ChallengeManager {
         address moderator;
         uint256 challenge_id;
         uint256 review_time;
+        string review__url;
+        bool is_submitted;
         SystemEnums.QualityFactorAnswer relevance;
         SystemEnums.QualityFactorAnswer technical_correctness;
         SystemEnums.QualityFactorAnswer completeness;
@@ -169,7 +171,8 @@ contract ChallengeManager {
 
     // ================= MODERATION METHODS=================
     function joinReviewPool(
-        uint256 _challenge_id
+        uint256 _challenge_id,
+        string calldata _review__url
     ) public onlyBeforeFinalized(_challenge_id) {
         // Prevent joining the review pool if maximum number of moderators is reached
         require(
@@ -191,13 +194,17 @@ contract ChallengeManager {
             "Contributor cannot join review pool"
         );
 
-
         // Add new challenge to the moderator's list of challenges
         moderator_to_challenges[msg.sender].push(_challenge_id);
         // Use a storage reference for cleaner access
         ReviewPool storage pool = review_pool[_challenge_id];
         pool.moderator_list.push(msg.sender);
         pool.moderator_to_join_status[msg.sender] = true;
+
+        ModeratorReview storage review = pool.moderator_reviews[msg.sender];
+        review.moderator = msg.sender;
+        review.challenge_id = _challenge_id;
+        review.review__url = _review__url;
 
         emit ReviewPoolJoined(_challenge_id, msg.sender);
         console.log(
@@ -227,11 +234,17 @@ contract ChallengeManager {
             "You have not joined this review pool."
         );
 
+        // Moderator can only submit once
+        require(
+            review_pool[_challenge_id].moderator_reviews[msg.sender].is_submitted ==
+                false,
+            "You have already submitted a review."
+        );
+
         ReviewPool storage pool = review_pool[_challenge_id];
-        // Add review_count if the moderator is submitting a review for the first time
-        if (pool.moderator_reviews[msg.sender].review_time == 0) {
-            pool.review_count++;
-        }
+
+        // Increment the review count
+        pool.review_count++;
 
         // Calculate the review score based on the quality factors
         uint256 review_score = ((uint256(_relevance) +
@@ -244,44 +257,20 @@ contract ChallengeManager {
             SystemConsts.NUMBER_OF_QUALITY_FACTORS;
 
         // Update the moderator's review in the review pool
-        pool.moderator_reviews[msg.sender] = ModeratorReview({
-            moderator: msg.sender,
-            challenge_id: _challenge_id,
-            review_time: block.timestamp,
-            relevance: _relevance,
-            technical_correctness: _technical_correctness,
-            completeness: _completeness,
-            clarity: _clarity,
-            originality: _originality,
-            unbiased: _unbiased,
-            plagiarism_free: _plagiarism_free,
-            suggested_difficulty: _suggested_difficulty,
-            suggested_category: _suggested_category,
-            suggested_solve_time: _suggested_solve_time,
-            review_score: review_score
-        });
-
-        // console.log(
-        //     "Moderator %s updated review for challenge #%s",
-        //     msg.sender,
-        //     _challenge_id
-        // );
-        // console.log("- Relevance: %s", uint((_relevance)));
-        // console.log(
-        //     "- Technical correctness: %s",
-        //     uint((_technical_correctness))
-        // );
-        // console.log("- Completeness: %s", uint((_completeness)));
-        // console.log("- Clarity: %s", uint((_clarity)));
-        // console.log("- Originality: %s", uint((_originality)));
-        // console.log("- Unbiased: %s", uint((_unbiased)));
-        // console.log("- Plagiarism free: %s", uint((_plagiarism_free)));
-        // console.log(
-        //     "- Suggested difficulty: %s",
-        //     uint((_suggested_difficulty))
-        // );
-        // console.log("- Suggested category: %s", uint((_suggested_category)));
-        // console.log("- Suggested solve time: %s", _suggested_solve_time);
+        ModeratorReview storage review = pool.moderator_reviews[msg.sender];
+        review.review_time = block.timestamp;
+        review.is_submitted = true;
+        review.relevance = _relevance;
+        review.technical_correctness = _technical_correctness;
+        review.completeness = _completeness;
+        review.clarity = _clarity;
+        review.originality = _originality;
+        review.unbiased = _unbiased;
+        review.plagiarism_free = _plagiarism_free;
+        review.suggested_difficulty = _suggested_difficulty;
+        review.suggested_category = _suggested_category;
+        review.suggested_solve_time = _suggested_solve_time;
+        review.review_score = review_score;
 
         // Automatically finalize the review pool if the number of reviews reaches the quorum
         if (pool.review_count >= SystemConsts.REVIEW_QUORUM) {

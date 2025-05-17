@@ -93,6 +93,26 @@ export const navItems: NavItem[] = [
       },
     ],
   },
+  {
+    title: "Evaluation",
+    url: pageUrlMapping.evaluation,
+    icon: "evaluation",
+    isActive: false,
+    items: [
+      {
+        title: "Pending Solutions",
+        url: pageUrlMapping.evaluation_pendingsolutions,
+        icon: "userPen",
+        shortcut: ["m", "m"],
+      },
+      {
+        title: "Evaluated By Me",
+        url: pageUrlMapping.evaluation_evaluatedbyme,
+        icon: "userPen",
+        shortcut: ["m", "m"],
+      },
+    ],
+  },
 ];
 
 export const sidebarNavItemsProfileSettings = [

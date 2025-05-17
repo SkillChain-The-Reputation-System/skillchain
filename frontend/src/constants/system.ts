@@ -46,6 +46,12 @@ export enum ChallengeSolutionProgress {
   REVIEWED = 3
 }
 
+export enum SolutionSortOption {
+  NEWEST = 0,
+  MOST_EVALUATORS = 1,
+  LEAST_EVALUATORS = 2
+}
+
 export const DomainLabels: Record<Domain, string> = {
   [Domain.COMPUTER_SCIENCE_FUNDAMENTALS]: "Computer Science Fundamentals",
   [Domain.SOFTWARE_DEVELOPMENT]: "Software Development",
@@ -94,3 +100,9 @@ export const ChallengeSolutionProgressLabels: Record<ChallengeSolutionProgress, 
   [ChallengeSolutionProgress.UNDER_REVIEW]: "Under Review",
   [ChallengeSolutionProgress.REVIEWED]: "Reviewed",
 }
+
+export const SolutionSortOptionLabels: Record<SolutionSortOption, string> = {
+  [SolutionSortOption.NEWEST]: "Newest First",
+  [SolutionSortOption.MOST_EVALUATORS]: "Most Evaluators",
+  [SolutionSortOption.LEAST_EVALUATORS]: "Least Evaluators",
+};

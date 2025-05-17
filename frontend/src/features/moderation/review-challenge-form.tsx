@@ -35,13 +35,13 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import { ChallengeInterface } from "@/lib/interfaces";
-import { 
+import {
   ChallengeDifficultyLevel,
   Domain,
   DomainLabels,
   QualityFactorAnswer,
 } from "@/constants/system";
-import { Loader2 } from "lucide-react";
+import { Loader2, Save, Send } from "lucide-react";
 import {
   getChallengeById,
   getChallengeFinalizedStatus,
@@ -50,7 +50,7 @@ import {
   getReviewQuorum,
 } from "@/lib/fetching-onchain-data-utils";
 import { quality_factors_questions } from "@/constants/data";
-import { submitModeratorReview } from "@/lib/write-onchain-utils";
+import { saveModeratorReviewDraft, submitModeratorReview } from "@/lib/write-onchain-utils";
 
 // Schema for the review form
 const reviewChallengeSchema = z.object({
@@ -212,22 +212,33 @@ export function ReviewChallengeForm({
     }
   }, [isPending, hash, router]);
 
-    // Fetch review pool size and quorum when the details dialog is opened, or when the challenge ID changes
-    useEffect(() => {
-      async function fetchPoolInfo() {
-        try {
-          const [size, q, is_finalized] = await Promise.all([
-            getReviewPoolSize(Number(challenge_id)),
-            getReviewQuorum(),
-            getChallengeFinalizedStatus(Number(challenge_id))
-          ]);
-          setIsChallengeFinalized(is_finalized);
-        } catch (error) {
-          toast.error(`Error fetching review pool info: ${error}`);
-        }
+  // Fetch review pool size and quorum when the details dialog is opened, or when the challenge ID changes
+  useEffect(() => {
+    async function fetchPoolInfo() {
+      try {
+        const [size, q, is_finalized] = await Promise.all([
+          getReviewPoolSize(Number(challenge_id)),
+          getReviewQuorum(),
+          getChallengeFinalizedStatus(Number(challenge_id)),
+        ]);
+        setIsChallengeFinalized(is_finalized);
+      } catch (error) {
+        toast.error(`Error fetching review pool info: ${error}`);
       }
-      fetchPoolInfo();
-    }, [address, challenge_id, form]);
+    }
+    fetchPoolInfo();
+  }, [address, challenge_id, form]);
+
+  async function onSaveDraft() {
+    const review_data = form.getValues();
+    const review_data_json = JSON.stringify(review_data);
+    try {
+      await saveModeratorReviewDraft(challenge_id, address as `0x${string}`, review_data_json);
+      toast.success("Draft saved successfully!");
+    } catch (error) {
+      toast.error("Failed to save draft");
+    }
+  } 
 
   async function onSubmit(data: ModeratorReviewValues) {
     setIsSubmitDisabled(true);
@@ -250,10 +261,7 @@ export function ReviewChallengeForm({
         </div>
       ) : (
         <div className="space-y-8">
-          <ChallengeContent
-            challenge={challenge}
-            reload={isPending}
-          />
+          <ChallengeContent challenge={challenge} reload={isPending} />
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -291,7 +299,8 @@ export function ReviewChallengeForm({
                                   value={QualityFactorAnswer.YES.toString()}
                                   className={cn(
                                     "px-4 py-2 rounded-md text-center transition-all border-2 select-none",
-                                    field.value?.toString() === QualityFactorAnswer.YES.toString()
+                                    field.value?.toString() ===
+                                      QualityFactorAnswer.YES.toString()
                                       ? "bg-blue-500 text-white border-blue-600 dark:bg-blue-400 dark:text-white dark:border-blue-500 shadow-lg scale-105"
                                       : "bg-gray-50 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 hover:bg-gray-200 hover:border-blue-400 dark:hover:bg-blue-900 dark:hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                   )}
@@ -303,7 +312,8 @@ export function ReviewChallengeForm({
                                   value={QualityFactorAnswer.NO.toString()}
                                   className={cn(
                                     "px-4 py-2 rounded-md text-center transition-all border-2 select-none",
-                                    field.value?.toString() === QualityFactorAnswer.NO.toString()
+                                    field.value?.toString() ===
+                                      QualityFactorAnswer.NO.toString()
                                       ? "bg-blue-500 text-white border-blue-600 dark:bg-blue-400 dark:text-white dark:border-blue-500 shadow-lg scale-105"
                                       : "bg-gray-50 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 hover:bg-gray-200 hover:border-blue-400 dark:hover:bg-blue-900 dark:hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                   )}
@@ -348,7 +358,8 @@ export function ReviewChallengeForm({
                                 value={ChallengeDifficultyLevel.EASY.toString()}
                                 className={cn(
                                   "px-4 py-2 rounded-md text-center transition-all border-2 select-none",
-                                  field.value?.toString() === ChallengeDifficultyLevel.EASY.toString()
+                                  field.value?.toString() ===
+                                    ChallengeDifficultyLevel.EASY.toString()
                                     ? "bg-blue-500 text-white border-blue-600 dark:bg-blue-400 dark:text-white dark:border-blue-500 shadow-lg scale-105"
                                     : "bg-gray-50 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 hover:bg-gray-200 hover:border-blue-400 dark:hover:bg-blue-900 dark:hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 )}
@@ -359,7 +370,8 @@ export function ReviewChallengeForm({
                                 value={ChallengeDifficultyLevel.MEDIUM.toString()}
                                 className={cn(
                                   "px-4 py-2 rounded-md text-center transition-all border-2 select-none",
-                                  field.value?.toString() === ChallengeDifficultyLevel.MEDIUM.toString()
+                                  field.value?.toString() ===
+                                    ChallengeDifficultyLevel.MEDIUM.toString()
                                     ? "bg-blue-500 text-white border-blue-600 dark:bg-blue-400 dark:text-white dark:border-blue-500 shadow-lg scale-105"
                                     : "bg-gray-50 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 hover:bg-gray-200 hover:border-blue-400 dark:hover:bg-blue-900 dark:hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 )}
@@ -370,7 +382,8 @@ export function ReviewChallengeForm({
                                 value={ChallengeDifficultyLevel.HARD.toString()}
                                 className={cn(
                                   "px-4 py-2 rounded-md text-center transition-all border-2 select-none",
-                                  field.value?.toString() === ChallengeDifficultyLevel.HARD.toString()
+                                  field.value?.toString() ===
+                                    ChallengeDifficultyLevel.HARD.toString()
                                     ? "bg-blue-500 text-white border-blue-600 dark:bg-blue-400 dark:text-white dark:border-blue-500 shadow-lg scale-105"
                                     : "bg-gray-50 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 hover:bg-gray-200 hover:border-blue-400 dark:hover:bg-blue-900 dark:hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 )}
@@ -411,7 +424,10 @@ export function ReviewChallengeForm({
                                 (Object.values(Domain) as unknown as number[])
                                   .filter((v) => typeof v === "number")
                                   .map((num) => (
-                                    <SelectItem key={num} value={num.toString()}>
+                                    <SelectItem
+                                      key={num}
+                                      value={num.toString()}
+                                    >
                                       {DomainLabels[num as Domain]}
                                     </SelectItem>
                                   ))
@@ -435,14 +451,14 @@ export function ReviewChallengeForm({
                           <FormLabel>Estimated Solve Time (minutes)</FormLabel>
                         </div>
                         <div>
-                            <FormControl>
-                              <Input
+                          <FormControl>
+                            <Input
                               type="number"
                               min={1}
                               {...field}
                               className="border-2 hover:border-blue-500 border-gray-300 dark:border-gray-800 focus-visible:border-blue-500 focus:ring-0 shadow-lg"
-                              />
-                            </FormControl>
+                            />
+                          </FormControl>
                           <FormMessage />
                         </div>
                       </div>
@@ -451,23 +467,56 @@ export function ReviewChallengeForm({
                 />
               </div>
 
-              <div className="flex space-x-4 select-none">
-                <Button
-                  type="submit"
-                  disabled={isSubmitDisabled || isChallengeFinalized}
-                  className="flex-1"
-                >
-                  Submit Review
-                </Button>
+              <div className="grid md:flex justify-center items-center gap-2 m-5">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => router.back()}
-                  className="flex-1"
+                  onClick={onSaveDraft}
+                  className="gap-2 cursor-pointer border border-zinc-700"
                 >
-                  Cancel
+                  <Save className="h-4 w-4" />
+                  Save Draft
+                </Button>
+
+                <Button
+                  type="submit"
+                  disabled={isSubmitDisabled || isChallengeFinalized}
+                  className="gap-2 cursor-pointer shrink-0 bg-zinc-700 hover:bg-zinc-700/60 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/60"
+                >
+                  <Send className="h-4 w-4" />
+                  Submit Review
                 </Button>
               </div>
+
+              {/* <div className="flex justify-center items-center gap-5 mt-5">
+                {solution.progress == ChallengeSolutionProgress.IN_PROGRESS && (
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="flex items-center gap-2 cursor-pointer border border-zinc-700"
+                    onClick={onSaveDraft}
+                    disabled={savingDraft || submitting}
+                  >
+                    <Save className="h-4 w-4" />
+                    Save draft
+                  </Button>
+                )}
+
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="flex items-center gap-2 cursor-pointer shrink-0 bg-zinc-700 hover:bg-zinc-700/60 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/60"
+                  onClick={onSubmit}
+                  disabled={
+                    savingDraft ||
+                    submitting ||
+                    solution.progress != ChallengeSolutionProgress.IN_PROGRESS
+                  }
+                >
+                  <Send className="h-4 w-4" />
+                  Submit
+                </Button>
+              </div> */}
             </form>
           </Form>
         </div>

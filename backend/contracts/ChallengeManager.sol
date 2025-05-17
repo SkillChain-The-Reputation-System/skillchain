@@ -25,7 +25,7 @@ contract ChallengeManager {
         address moderator;
         uint256 challenge_id;
         uint256 review_time;
-        string review__url;
+        string review_txid;
         bool is_submitted;
         SystemEnums.QualityFactorAnswer relevance;
         SystemEnums.QualityFactorAnswer technical_correctness;
@@ -68,7 +68,7 @@ contract ChallengeManager {
     mapping(uint256 => ReviewPool) private review_pool;
     // Mapping: Contributor address -> Challenge IDs
     mapping(address => uint256[]) private contributor_to_challenges;
-    // Mapping: Moderator address -> Challenge IDs
+    // Mapping: Moderator address -> Challenge I@Ds
     mapping(address => uint256[]) private moderator_to_challenges;
     // Mapping: User address -> Joined challenge IDs
     mapping(address => uint256[]) private user_to_joined_challenges;
@@ -172,7 +172,7 @@ contract ChallengeManager {
     // ================= MODERATION METHODS=================
     function joinReviewPool(
         uint256 _challenge_id,
-        string calldata _review__url
+        string calldata _review_txid
     ) public onlyBeforeFinalized(_challenge_id) {
         // Prevent joining the review pool if maximum number of moderators is reached
         require(
@@ -204,7 +204,7 @@ contract ChallengeManager {
         ModeratorReview storage review = pool.moderator_reviews[msg.sender];
         review.moderator = msg.sender;
         review.challenge_id = _challenge_id;
-        review.review__url = _review__url;
+        review.review_txid = _review_txid;
 
         emit ReviewPoolJoined(_challenge_id, msg.sender);
         console.log(
@@ -236,8 +236,9 @@ contract ChallengeManager {
 
         // Moderator can only submit once
         require(
-            review_pool[_challenge_id].moderator_reviews[msg.sender].is_submitted ==
-                false,
+            review_pool[_challenge_id]
+                .moderator_reviews[msg.sender]
+                .is_submitted == false,
             "You have already submitted a review."
         );
 
@@ -631,6 +632,24 @@ contract ChallengeManager {
         );
 
         return previewList;
+    }
+
+    function getModeratorReviewTxId(
+        address _moderator_address,
+        uint256 _challenge_id
+    ) public view returns (string memory) {
+        // Moderator must have joined the review pool
+        require(
+            review_pool[_challenge_id].moderator_to_join_status[
+                _moderator_address
+            ],
+            "Moderator has not joined the review pool"
+        );
+
+        return
+            review_pool[_challenge_id]
+                .moderator_reviews[_moderator_address]
+                .review_txid;
     }
 
     // ================= SEEDING METHODS =================

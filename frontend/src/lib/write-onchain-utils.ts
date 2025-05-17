@@ -1,4 +1,4 @@
-import { fetchSolutionTxIdByUserAndChallengeId } from "@/lib/fetching-onchain-data-utils";
+import { fetchModeratorReviewTxIdByModeratorAndChallengeId, fetchSolutionTxIdByUserAndChallengeId } from "@/lib/fetching-onchain-data-utils";
 import { writeContract, waitForTransactionReceipt } from "@wagmi/core";
 import {
   ContractConfig_ChallengeManager,
@@ -17,12 +17,19 @@ export async function joinReviewPool(
   challengeId: number,
   address: `0x${string}`
 ) {
+  // Upload empty review data to Irys to get the fixed transaction id
+  const { data: review_upload_res } =
+    await axios.post<IrysUploadResponseInterface>(
+      "/api/irys/upload/upload-string",
+      { data: " " }
+    );
+
   // send transaction and return tx hash
   const txHash = await writeContract(wagmiConfig, {
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
     abi: ContractConfig_ChallengeManager.abi,
     functionName: "joinReviewPool",
-    args: [challengeId],
+    args: [challengeId, review_upload_res.id],
     account: address,
   });
   return txHash;
@@ -108,10 +115,7 @@ export async function userJoinChallenge(
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
     abi: ContractConfig_ChallengeManager.abi,
     functionName: "userJoinChallenge",
-    args: [
-      challengeId,
-      solution_upload_res.id
-    ],
+    args: [challengeId, solution_upload_res.id],
     account: address,
   });
 
@@ -135,6 +139,26 @@ export async function saveSolutionDraft(
     "/api/irys/upload/upload-string",
     {
       data: handledSolution,
+      tags: tags,
+    }
+  );
+}
+
+export async function saveModeratorReviewDraft(
+  challengeId: number,
+  address: `0x${string}`,
+  review_data: string
+) {
+  const moderator_review_txid = await fetchModeratorReviewTxIdByModeratorAndChallengeId(
+    address,
+    challengeId
+  );
+  const tags = [{ name: "Root-TX", value: moderator_review_txid }];
+
+  await axios.post<IrysUploadResponseInterface>(
+    "/api/irys/upload/upload-string",
+    {
+      data: review_data,
       tags: tags,
     }
   );

@@ -34,6 +34,8 @@ export interface ModeratorReview {
     moderator: string;
     challenge_id: number;
     review_time: number;
+    review_txid: string;
+    is_submitted: boolean;
     relevance: QualityFactorAnswer;
     technical_correctness: QualityFactorAnswer;
     completeness: QualityFactorAnswer;

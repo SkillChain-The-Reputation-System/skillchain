@@ -23,6 +23,7 @@ export interface ChallengeInterface {
     qualityScore: number;
     difficultyLevel: ChallengeDifficultyLevel;
     solveTime: number;
+    completed: number;
 }
 
 export interface GetCurrentTimeResponse {
@@ -47,6 +48,7 @@ export interface ModeratorReview {
 }
 
 export interface SolutionInterface {
+    solutionId: string;
     user: string | undefined;
     challengeId: string | undefined;
     solution: string | undefined;
@@ -64,4 +66,23 @@ export interface JoinedChallengePreview {
     progress: ChallengeSolutionProgress;
     joinedAt: number;
     score: number;
+}
+
+export interface UnderReviewSolutionPreview {
+    solutionId: string;
+    submitter: string | undefined;
+    challengeTitle: string | undefined;
+    category: string | Domain;
+    solution: string | undefined;
+    submittedAt: number;
+    progress: ChallengeSolutionProgress;
+    numberOfEvaluators: number;
+    totalEvaluators: number;
+}
+
+export interface SolutionReviewPool {
+    solution: SolutionInterface;
+    numberOfEvaluators: number;
+    numberOfSubmittedEvaluation: number;
+    totalEvaluators: number;
 }

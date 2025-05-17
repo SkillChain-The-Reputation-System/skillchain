@@ -18,6 +18,7 @@ contract ChallengeManager {
         uint256 quality_score;
         SystemEnums.DifficultyLevel difficulty_level;
         uint256 solve_time;
+        uint256 completed;
     }
 
     struct ModeratorReview {
@@ -105,13 +106,6 @@ contract ChallengeManager {
         uint256 joinedAt
     );
 
-    event SolutionSubmitted(
-        address indexed user,
-        uint256 challengeId,
-        string solutionUrl,
-        uint256 submittedAt
-    );
-
     // ================= MODIFIER =================
     // Modifier to check if the challenge is finalized
     modifier onlyBeforeFinalized(uint256 challenge_id) {
@@ -142,7 +136,8 @@ contract ChallengeManager {
             status: SystemEnums.ChallengeStatus.PENDING,
             quality_score: 0,
             difficulty_level: SystemEnums.DifficultyLevel.EASY,
-            solve_time: 0
+            solve_time: 0,
+            completed: 0
         });
 
         contributor_to_challenges[msg.sender].push(challengeId);
@@ -295,11 +290,13 @@ contract ChallengeManager {
             ModeratorReview storage review = _pool.moderator_reviews[
                 _pool.moderator_list[i]
             ];
-            int256 moderator_domain_reputation = reputation_manager.getDomainReputation(
-                review.moderator,
-                challenges[_challenge_id].category // This is the category that contributor suggested
-            );
-            uint256 reputation_weight = SystemConsts.REPUTATION_WEIGHT_FOR_SCORING +
+            int256 moderator_domain_reputation = reputation_manager
+                .getDomainReputation(
+                    review.moderator,
+                    challenges[_challenge_id].category // This is the category that contributor suggested
+                );
+            uint256 reputation_weight = SystemConsts
+                .REPUTATION_WEIGHT_FOR_SCORING +
                 uint256(moderator_domain_reputation);
             total_score += review.review_score * reputation_weight;
             total_reputation_weight += reputation_weight;
@@ -344,18 +341,24 @@ contract ChallengeManager {
         // Update contributor's and moderators' reputation scores
         if (reputation_manager_address != address(0)) {
             Challenge storage challenge_data = challenges[_challenge_id];
-            console.log("Executing reputation update for contributor of challenge #%s", _challenge_id);
+            console.log(
+                "Executing reputation update for contributor of challenge #%s",
+                _challenge_id
+            );
             reputation_manager.updateContributionReputation(
                 challenge_data.contributor,
                 challenge_data.category,
                 challenge_data.quality_score,
-                SystemConsts.THRESHOLD_OF_CHALLENGE_QUALITY_SCORE, 
-                SystemConsts.SCALING_CONSTANT_FOR_CONTRIBUTION, 
+                SystemConsts.THRESHOLD_OF_CHALLENGE_QUALITY_SCORE,
+                SystemConsts.SCALING_CONSTANT_FOR_CONTRIBUTION,
                 challenge_data.difficulty_level
             );
 
             for (uint256 i = 0; i < _pool.moderator_list.length; i++) {
-                console.log("Executing reputation update for moderator %s", _pool.moderator_list[i]);
+                console.log(
+                    "Executing reputation update for moderator %s",
+                    _pool.moderator_list[i]
+                );
                 address moderator_address = _pool.moderator_list[i];
                 ModeratorReview storage review = _pool.moderator_reviews[
                     moderator_address
@@ -379,15 +382,13 @@ contract ChallengeManager {
         // Check if challenge id exists
         require(_challenge_id < total_challenges);
 
-        require(solution_manager_address != address(0), "SolutionManager not set");
+        require(
+            solution_manager_address != address(0),
+            "SolutionManager not set"
+        );
         SolutionManager sm = solution_manager;
 
-        require(
-            !sm.checkUserJoinedChallenge(
-                msg.sender,
-                _challenge_id
-            )
-        );
+        require(!sm.checkUserJoinedChallenge(msg.sender, _challenge_id));
 
         uint256 _joined_at = block.timestamp * 1000;
 
@@ -408,6 +409,10 @@ contract ChallengeManager {
         );
 
         emit ChallengeJoinedByUser(msg.sender, _challenge_id, _joined_at);
+    }
+
+    function userCompleteChallenge(uint256 _challenge_id) external {
+        challenges[_challenge_id].completed++;
     }
 
     // ================= SETTER METHODS =================
@@ -542,6 +547,24 @@ contract ChallengeManager {
         return challenges[_challenge_id];
     }
 
+    function getChallengeTitleById(
+        uint256 _challenge_id
+    ) public view returns (string memory) {
+        return challenges[_challenge_id].title_url;
+    }
+
+    function getChallengeDomainById(
+        uint256 _challenge_id
+    ) public view returns (SystemEnums.Domain) {
+        return challenges[_challenge_id].category;
+    }
+
+    function getChallengeDifficultyById(
+        uint256 _challenge_id
+    ) public view returns (SystemEnums.DifficultyLevel) {
+        return challenges[_challenge_id].difficulty_level;
+    }
+
     function getJoinReviewPoolStatus(
         uint256 _challenge_id,
         address _moderator_address
@@ -571,10 +594,18 @@ contract ChallengeManager {
     function getJoinedChallengesByUserForPreview(
         address _user_address
     ) public view returns (JoinedChallengesPreview[] memory) {
-        require(solution_manager_address != address(0), "SolutionManager not set");
-        uint256[] memory challengeIds = user_to_joined_challenges[_user_address];
+        require(
+            solution_manager_address != address(0),
+            "SolutionManager not set"
+        );
+        uint256[] memory challengeIds = user_to_joined_challenges[
+            _user_address
+        ];
 
-        JoinedChallengesPreview[] memory previewList = new JoinedChallengesPreview[](challengeIds.length);
+        JoinedChallengesPreview[]
+            memory previewList = new JoinedChallengesPreview[](
+                challengeIds.length
+            );
 
         for (uint256 i = 0; i < challengeIds.length; i++) {
             uint256 id = challengeIds[i];
@@ -583,7 +614,10 @@ contract ChallengeManager {
                 uint256 created_at,
                 SystemEnums.SolutionProgress progress,
                 uint256 score
-            ) = solution_manager.getSolutionPreviewByUserAndChallengeId(_user_address, id);
+            ) = solution_manager.getSolutionPreviewByUserAndChallengeId(
+                    _user_address,
+                    id
+                );
 
             previewList[i] = JoinedChallengesPreview({
                 challenge_id: id,
@@ -628,7 +662,8 @@ contract ChallengeManager {
             status: _status,
             quality_score: _quality_score,
             difficulty_level: _difficulty_level,
-            solve_time: _solve_time
+            solve_time: _solve_time,
+            completed: 0
         });
 
         contributor_to_challenges[_contributor].push(challengeId);

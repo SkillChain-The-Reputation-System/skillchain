@@ -25,7 +25,7 @@ import {
 } from "@/constants/system";
 import { epochToDateString } from "@/lib/time-utils";
 
-export interface ChallengeCardProps {
+interface ChallengeCardProps {
   challenge: ChallengeInterface;
   onClick: (id: string) => void;
 }
@@ -84,7 +84,7 @@ export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
 
               <div className="flex items-center">
                 <Users className="h-full max-h-3.5 w-full max-w-3.5 mr-1" />
-                <span>{0} joined</span>
+                <span>{challenge.completed} completed</span>
               </div>
             </div>
           </div>

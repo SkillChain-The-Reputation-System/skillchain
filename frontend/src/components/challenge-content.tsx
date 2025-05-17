@@ -52,7 +52,7 @@ export function ChallengeContent({ challenge, reload }: ChallengeContentProps) {
   useEffect(() => {
     async function fetchPoolInfo() {
       if (!challenge) return;
-      
+
       try {
         const [size, q] = await Promise.all([
           getReviewPoolSize(Number(challenge.id)),
@@ -82,7 +82,7 @@ export function ChallengeContent({ challenge, reload }: ChallengeContentProps) {
           >
             {
               ChallengeStatusLabels[
-                challenge.status as keyof typeof ChallengeStatusLabels
+              challenge.status as keyof typeof ChallengeStatusLabels
               ]
             }
           </Badge>
@@ -122,7 +122,7 @@ export function ChallengeContent({ challenge, reload }: ChallengeContentProps) {
             </span>
             <div className="flex items-center">
               <Users className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-              <span>0 enrolled</span>
+              <span>{challenge.completed} completed</span>
             </div>
           </div>
 

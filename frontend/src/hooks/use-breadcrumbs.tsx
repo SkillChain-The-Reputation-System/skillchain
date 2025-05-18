@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
+import { pageUrlMapping } from "../constants/navigation";
 
 type BreadcrumbItem = {
   title: string;
@@ -10,48 +11,45 @@ type BreadcrumbItem = {
 
 // This allows to add custom title as well
 const routeMapping: Record<string, BreadcrumbItem[]> = {
-  "/dashboard": [{ title: "Dashboard", link: "/dashboard" }],
-  "/dashboard/employee": [
-    { title: "Dashboard", link: "/dashboard" },
-    { title: "Employee", link: "/dashboard/employee" },
+  [pageUrlMapping.dashboard]: [
+    { title: "Dashboard", link: pageUrlMapping.dashboard },
   ],
-  "/dashboard/product": [
-    { title: "Dashboard", link: "/dashboard" },
-    { title: "Product", link: "/dashboard/product" },
+  [pageUrlMapping.account]: [
+    { title: "Dashboard", link: pageUrlMapping.dashboard },
+    { title: "Account", link: pageUrlMapping.account },
   ],
-  "/dashboard/account": [
-    { title: "Dashboard", link: "/dashboard" },
-    { title: "Account", link: "/dashboard/account" },
+  [pageUrlMapping.account_profile]: [
+    { title: "Dashboard", link: pageUrlMapping.dashboard },
+    { title: "Account", link: pageUrlMapping.account },
+    { title: "Profile", link: pageUrlMapping.account_profile },
   ],
-  "/dashboard/account/profile": [
-    { title: "Dashboard", link: "/dashboard" },
-    { title: "Account", link: "/dashboard/account" },
-    { title: "Profile", link: "/dashboard/account/profile" },
+  [pageUrlMapping.account_settings]: [
+    { title: "Dashboard", link: pageUrlMapping.dashboard },
+    { title: "Account", link: pageUrlMapping.account },
+    { title: "Settings", link: pageUrlMapping.account_settings },
   ],
-  "/dashboard/account/settings": [
-    { title: "Dashboard", link: "/dashboard" },
-    { title: "Account", link: "/dashboard/account" },
-    { title: "Settings", link: "/dashboard/account/settings" },
+  [pageUrlMapping.contribution_contribute]: [
+    { title: "Dashboard", link: pageUrlMapping.dashboard },
+    { title: "Contribution", link: pageUrlMapping.contribution },
+    { title: "Contribute", link: pageUrlMapping.contribution_contribute },
   ],
-  "/dashboard/contribution/contribute": [
-    { title: "Dashboard", link: "/dashboard" },
-    { title: "Contribution", link: "/dashboard/contribution" },
-    { title: "Contribute", link: "/dashboard/contribution/contribute" },
+  [pageUrlMapping.contribution_my_contributions]: [
+    { title: "Dashboard", link: pageUrlMapping.dashboard },
+    { title: "Contribution", link: pageUrlMapping.contribution },
+    {
+      title: "My Contributions",
+      link: pageUrlMapping.contribution_my_contributions,
+    },
   ],
-  "/dashboard/contribution/my-contributions": [
-    { title: "Dashboard", link: "/dashboard" },
-    { title: "Contribution", link: "/dashboard/contribution" },
-    { title: "My Contributions", link: "/dashboard/contribution/my-contributions" },
+  [pageUrlMapping.participation_explore]: [
+    { title: "Dashboard", link: pageUrlMapping.dashboard },
+    { title: "Participation", link: pageUrlMapping.participation },
+    { title: "Explore", link: pageUrlMapping.participation_explore },
   ],
-  "/dashboard/participation/explore": [
-    { title: "Dashboard", link: "/dashboard" },
-    { title: "Participation", link: "/dashboard/participation" },
-    { title: "Explore", link: "/dashboard/participation/explore" },
-  ],
-  "/dashboard/participation/workspace": [
-    { title: "Dashboard", link: "/dashboard" },
-    { title: "Participation", link: "/dashboard/participation" },
-    { title: "Workspace", link: "/dashboard/participation/workspace" },
+  [pageUrlMapping.participation_workspace]: [
+    { title: "Dashboard", link: pageUrlMapping.dashboard },
+    { title: "Participation", link: pageUrlMapping.participation },
+    { title: "Workspace", link: pageUrlMapping.participation_workspace },
   ],
   "/dashboard/evaluation/pending-solutions": [
     { title: "Dashboard", link: "/dashboard" },

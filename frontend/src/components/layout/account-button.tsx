@@ -23,21 +23,22 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { fetchUserDataOnChain } from "@/lib/fetching-onchain-data-utils";
 import { toast } from "react-toastify";
+import { pageUrlMapping } from "@/constants/navigation";
 
 export const AccountButton = () => {
   const [username, setUsername] = useState<string | undefined>(undefined);
   const [avatar_url, setAvatar] = useState<string | undefined>(undefined);
   const router = useRouter();
-  const { address, isReconnecting } = useAccount();
+  const { address, isDisconnected } = useAccount();
   const { disconnect } = useDisconnect();
 
   function handleDisconnectWallet() {
     disconnect();
-    router.push("/");
+    router.push(pageUrlMapping.home);
   }
 
   function handleDirectToAccountPage() {
-    router.push("/dashboard/account/profile");
+    router.push(pageUrlMapping.account_profile);
   }
 
   // Fetch user data when the component mounts
@@ -56,7 +57,7 @@ export const AccountButton = () => {
     if (address) {
       handleFetchingUserData();
     }
-  }, [address]);
+  }, [address, isDisconnected]);
 
   return (
     <DropdownMenu>

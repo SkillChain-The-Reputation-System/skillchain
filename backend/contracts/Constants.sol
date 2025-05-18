@@ -72,7 +72,7 @@ library Weights {
     }
 }
 
-library SystemConsts{  
+library SystemConsts {
     // ================= GENERAL =================
     uint256 public constant N_DOMAIN = 14; // Maximum number of domains
     uint256 public constant N_DIFFICULTY_LEVEL = 3; // Maximum number of difficulty levels
@@ -84,9 +84,12 @@ library SystemConsts{
     uint256 public constant REVIEW_QUORUM = 3; // The number of moderators needed to start a finalizing process
     uint256 public constant NUMBER_OF_QUALITY_FACTORS = 7; // The number of quality factors used in the challenge assessment
 
+    // ================= EVALUATION =================
+    uint256 public constant EVALUATION_QUORUM = 3;
+
     // ================= THRESHOLD =================
     uint256 public constant REVIEW_THRESHOLD = 80; // The threshold of quality score for a challenge to be approved
-    
+
     // ================= SCALING CONSTANT =================
     uint256 public constant SCALING_CONSTANT_FOR_SOLVING_PROBLEM = 10; // Scaling constant for solving problem
     uint256 public constant SCALING_CONSTANT_FOR_EVALUATION = 10; // Scaling constant for evaluation

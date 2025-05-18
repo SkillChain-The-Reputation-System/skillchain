@@ -203,7 +203,7 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
               {/* Header Section */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="space-y-2">
-                  <h1 className="text-3xl font-bold">{challenge.title}</h1>
+                  <h1 className="text-3xl font-bold break-all">{challenge.title}</h1>
                 </div>
 
                 {

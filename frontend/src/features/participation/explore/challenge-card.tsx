@@ -40,13 +40,13 @@ export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
         onClick={() => onClick(challenge.id!)}>
         <CardHeader>
           <div className="space-y-1.5">
-            <CardTitle className="text-sm font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+            <CardTitle className="text-sm font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition break-all">
               {challenge.title}
             </CardTitle>
           </div>
 
           <div
-            className="line-clamp-2 mt-1 text-muted-foreground text-xs font-light disable-click-links no-images"
+            className="line-clamp-2 mt-1 text-muted-foreground text-xs font-light disable-click-links no-images break-all"
             dangerouslySetInnerHTML={{ __html: challenge.description || "" }}
           />
         </CardHeader>

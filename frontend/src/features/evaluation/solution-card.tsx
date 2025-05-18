@@ -44,7 +44,7 @@ export function SolutionCard({ solutionPreview, onClick, forEvaluator = false }:
         <CardHeader>
           <div className="space-y-1.5">
             <div className="flex justify-between">
-              <CardTitle className="text-sm font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              <CardTitle className="text-sm font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors break-all">
                 {solutionPreview.challengeTitle}
               </CardTitle>
 
@@ -59,7 +59,7 @@ export function SolutionCard({ solutionPreview, onClick, forEvaluator = false }:
             </div>
 
             <div
-              className="line-clamp-1 mt-1 text-muted-foreground text-xs font-light disable-click-links no-images"
+              className="line-clamp-1 mt-1 text-muted-foreground text-xs font-light disable-click-links no-images break-all"
               dangerouslySetInnerHTML={{ __html: solutionPreview.solution || "" }}
             />
           </div>

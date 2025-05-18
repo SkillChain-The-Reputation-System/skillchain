@@ -24,16 +24,6 @@ export async function joinReviewPool(
       { data: " " }
     );
 
-  // send transaction and return tx hash
-  // const txHash = await writeContract(wagmiConfig, {
-  //   address: ContractConfig_ChallengeManager.address as `0x${string}`,
-  //   abi: ContractConfig_ChallengeManager.abi,
-  //   functionName: "joinReviewPool",
-  //   args: [challengeId, review_upload_res.id],
-  //   account: address,
-  // });
-  // return txHash;
-
   await simulateContract(wagmiConfig, {
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
     abi: ContractConfig_ChallengeManager.abi,
@@ -64,6 +54,28 @@ export async function submitModeratorReview(
   address: `0x${string}`,
   data: ModeratorReviewValues
 ) {
+  saveModeratorReviewDraft(challengeId, address, JSON.stringify(data));
+
+  await simulateContract(wagmiConfig, {
+    address: ContractConfig_ChallengeManager.address as `0x${string}`,
+    abi: ContractConfig_ChallengeManager.abi,
+    functionName: "submitModeratorReview",
+    args: [
+      challengeId,
+      data.relevance,
+      data.technical_correctness,
+      data.completeness,
+      data.clarity,
+      data.originality,
+      data.unbiased,
+      data.plagiarism_free,
+      data.suggested_difficulty,
+      data.suggested_category,
+      data.suggested_solve_time,
+    ],
+    account: address,
+  });
+
   const txHash = await writeContract(wagmiConfig, {
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
     abi: ContractConfig_ChallengeManager.abi,

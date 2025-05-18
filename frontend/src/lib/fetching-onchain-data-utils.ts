@@ -167,6 +167,8 @@ export const getModeratorReviewOfChallenge = async (
     const review_data_raw = await fetchJsonDataOffChain(
       `https://gateway.irys.xyz/mutable/${review.review_txid}`
     );
+
+    console.log("Review data raw:", review_data_raw);
     let review_data: ReviewData = {
       relevance: QualityFactorAnswer.NO,
       technical_correctness: QualityFactorAnswer.NO,

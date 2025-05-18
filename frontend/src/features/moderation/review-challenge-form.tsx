@@ -280,12 +280,18 @@ export function ReviewChallengeForm({
 
     try {
       const tx = await submitModeratorReview(challenge_id, address as `0x${string}`, data);
-      await waitForTransaction(tx);
+      router.back();
       toast.success("Review submitted successfully!");
-      router.refresh();
-      setActiveTab("details"); // Switch to the third tab after refresh
-    } catch (error) {
-      toast.error("Failed to submit review");
+    } catch (error: any) {
+      if (error.shortMessage) {
+        toast.error(error.shortMessage);
+      }
+      else if (error.message) {
+        toast.error(error.message);
+      }
+      else {
+        toast.error("An error occurred while submitting the review.");
+      }
     }
     setIsSubmitDisabled(false);
   }

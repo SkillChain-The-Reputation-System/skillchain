@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import "hardhat/console.sol";
 import "./Constants.sol";
 import "./ReputationManager.sol";
 import "./ChallengeManager.sol";
@@ -354,12 +353,6 @@ contract SolutionManager {
             challenge_manager.getChallengeDifficultyById(sl.challenge_id)
         );
 
-        console.log(
-            "Updated reputation for user %s for solving solution %s",
-            sl.user,
-            sl.id
-        );
-
         // Update evaluators' reputation score
         for (uint256 i = 0; i < evaluatorCount; i++) {
             address evalutor_address = pool.evaluator_list[i];
@@ -395,12 +388,12 @@ contract SolutionManager {
     function getSolutionTxId(
         address _user_address,
         uint256 _challenge_id
-    ) public view returns (string memory) {
-        require(
-            is_user_joined_challenge[_challenge_id][_user_address],
-            "User not joined challenge"
-        );
-
+    )
+        public
+        view
+        onlyUserJoinedChallenge(_user_address, _challenge_id)
+        returns (string memory)
+    {
         return
             solutions[user_challenge_to_solution[_challenge_id][_user_address]]
                 .solution_txid;
@@ -428,12 +421,12 @@ contract SolutionManager {
     function getSolutionByUserAndChallengeId(
         address _user_address,
         uint256 _challenge_id
-    ) public view returns (Solution memory) {
-        require(
-            is_user_joined_challenge[_challenge_id][_user_address],
-            "User not joined challenge"
-        );
-
+    )
+        public
+        view
+        onlyUserJoinedChallenge(_user_address, _challenge_id)
+        returns (Solution memory)
+    {
         return
             solutions[user_challenge_to_solution[_challenge_id][_user_address]];
     }

@@ -42,7 +42,7 @@ export function WorkspaceCard({ previewChallenge, onClick }: WorkspaceCardProps)
         onClick={() => onClick(previewChallenge.challengeId)}>
         <CardHeader>
           <div className="flex justify-between items-baseline">
-            <CardTitle className="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors break-all">
+            <CardTitle className="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 wrap-anywhere">
               <p className="text-normal font-bold leading-6">{previewChallenge.title}</p>
             </CardTitle>
 

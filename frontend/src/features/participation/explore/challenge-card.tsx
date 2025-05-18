@@ -40,7 +40,7 @@ export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
         onClick={() => onClick(challenge.id!)}>
         <CardHeader>
           <div className="space-y-1.5">
-            <CardTitle className="text-sm font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition break-all">
+            <CardTitle className="text-sm font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition line-clamp-2 wrap-anywhere">
               {challenge.title}
             </CardTitle>
           </div>

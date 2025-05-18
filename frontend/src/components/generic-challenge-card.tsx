@@ -102,7 +102,7 @@ export function GenericChallengeCard({
       <Card className="w-full h-full group gap-3 overflow-hidden bg-blue-100 dark:bg-blue-950/60 transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-lg dark:hover:shadow-blue-900/20 border-transparent hover:border-blue-300 dark:hover:border-blue-700">
         <CardHeader>
           <div className="flex justify-between items-start">
-            <CardTitle className="text-xl font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors break-all">
+            <CardTitle className="text-xl font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 wrap-anywhere">
               {challenge.title}
             </CardTitle>
             {showStatus && (

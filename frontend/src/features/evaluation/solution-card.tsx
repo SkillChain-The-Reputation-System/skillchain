@@ -44,7 +44,7 @@ export function SolutionCard({ solutionPreview, onClick, forEvaluator = false }:
         <CardHeader>
           <div className="space-y-1.5">
             <div className="flex justify-between">
-              <CardTitle className="text-sm font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors break-all">
+              <CardTitle className="text-sm font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 wrap-anywhere">
                 {solutionPreview.challengeTitle}
               </CardTitle>
 

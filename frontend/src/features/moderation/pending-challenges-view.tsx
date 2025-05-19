@@ -35,8 +35,14 @@ export default function PendingChallengesView() {
       .then((pending_challenges_array: ChallengeInterface[]) => {
         setAllPendingChallenges(pending_challenges_array);
       })
-      .catch((error) => {
-        toast.error(`Error fetching user data: ${error.message}`);
+      .catch((error: any) => {
+        if (error.shortMessage) {
+          toast.error(error.shortMessage);
+        } else if (error.message) {
+          toast.error(error.message);
+        } else {
+          toast.error("An error occurred while fetching challenges.");
+        }
       })
       .finally(() => {
         setIsLoading(false);
@@ -54,12 +60,18 @@ export default function PendingChallengesView() {
     }
     try {
       const txHash = await joinReviewPool(Number(challenge_id), address);
-      toast.success(`Review pool join transaction sent: ${txHash}`);
       await waitForTransaction(txHash);
       setReload((prev) => !prev); // Trigger a reload to fetch updated data
+      toast.success("Successfully joined the review pool!");
     } catch (error: any) {
-      toast.error(`Failed to join review pool: ${error.message}`);
-    }
+      if (error.shortMessage) {
+        toast.error(error.shortMessage);
+      } else if (error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error("An error occurred while joining the review pool.");
+      }
+    } 
   }
 
   // Fetch user data when the component mounts

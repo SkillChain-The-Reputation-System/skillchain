@@ -23,7 +23,6 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
     router.push(
       pageUrlMapping.moderation_reviewchallenges + `/${challenge.id}`
     );
-    toast.info(`Redirect to review page: ${challenge.id}`);
   };
 
   const primaryButton = (

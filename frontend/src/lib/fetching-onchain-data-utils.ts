@@ -12,16 +12,18 @@ import {
   FetchUserDataOnChainOutput,
   ModeratorReview,
   SolutionInterface,
+  ReviewData,
   UnderReviewSolutionPreview,
   SolutionReviewPool,
   EvaluationInterface
 } from "./interfaces";
-import { fetchStringDataOffChain } from "./fetching-offchain-data-utils";
+import { fetchJsonDataOffChain, fetchStringDataOffChain } from "./fetching-offchain-data-utils";
 import {
   QualityFactorAnswer,
   ChallengeDifficultyLevel,
-  Domain,
+  Domain
 } from "@/constants/system";
+
 
 export const fetchUserDataOnChain = async (
   address: `0x${string}`
@@ -166,25 +168,58 @@ export const getModeratorReviewOfChallenge = async (
       args: [challenge_id, address],
     })) as any;
 
+    // TODO: Get review data from Irys
+    const review_data_raw = await fetchJsonDataOffChain(
+      `https://gateway.irys.xyz/mutable/${review.review_txid}`
+    );
+
+    console.log("Review data raw:", review_data_raw);
+    let review_data: ReviewData = {
+      relevance: QualityFactorAnswer.NO,
+      technical_correctness: QualityFactorAnswer.NO,
+      completeness: QualityFactorAnswer.NO,
+      clarity: QualityFactorAnswer.NO,
+      originality: QualityFactorAnswer.NO,
+      unbiased: QualityFactorAnswer.NO,
+      plagiarism_free: QualityFactorAnswer.NO,
+      suggested_difficulty: ChallengeDifficultyLevel.EASY,
+      suggested_category: Domain.COMPUTER_SCIENCE_FUNDAMENTALS,
+      suggested_solve_time: 0,
+    };
+
+    if (typeof review_data_raw === "string" ? review_data_raw.trim() !== "" : review_data_raw && Object.keys(review_data_raw).length > 0) {
+      review_data = {
+        relevance: Number(review_data_raw.relevance) as QualityFactorAnswer,
+        technical_correctness: Number(review_data_raw.technical_correctness) as QualityFactorAnswer,
+        completeness: Number(review_data_raw.completeness) as QualityFactorAnswer,
+        clarity: Number(review_data_raw.clarity) as QualityFactorAnswer,
+        originality: Number(review_data_raw.originality) as QualityFactorAnswer,
+        unbiased: Number(review_data_raw.unbiased) as QualityFactorAnswer,
+        plagiarism_free: Number(review_data_raw.plagiarism_free) as QualityFactorAnswer,
+        suggested_difficulty: Number(review_data_raw.suggested_difficulty) as ChallengeDifficultyLevel,
+        suggested_category: Number(review_data_raw.suggested_category) as Domain,
+        suggested_solve_time: Number(review_data_raw.suggested_solve_time),
+      };
+    }
+
     // Build a strongly-typed ModeratorReview object to force TS validation
     const moderatorReview: ModeratorReview = {
       moderator: review.moderator as string,
       challenge_id: Number(review.challenge_id),
       review_time: Number(review.review_time),
-      relevance: Number(review.relevance) as QualityFactorAnswer,
-      technical_correctness: Number(
-        review.technical_correctness
-      ) as QualityFactorAnswer,
-      completeness: Number(review.completeness) as QualityFactorAnswer,
-      clarity: Number(review.clarity) as QualityFactorAnswer,
-      originality: Number(review.originality) as QualityFactorAnswer,
-      unbiased: Number(review.unbiased) as QualityFactorAnswer,
-      plagiarism_free: Number(review.plagiarism_free) as QualityFactorAnswer,
-      suggested_difficulty: Number(
-        review.suggested_difficulty
-      ) as ChallengeDifficultyLevel,
-      suggested_category: Number(review.suggested_category) as Domain,
-      suggested_solve_time: Number(review.suggested_solve_time),
+      review_txid: review.review_txid as string,
+      is_submitted: review.is_submitted as boolean,
+      relevance: review_data.relevance,
+      technical_correctness: review_data.technical_correctness,
+      completeness: review_data.completeness,
+      clarity: review_data.clarity,
+      originality: review_data.originality,
+      unbiased: review_data.unbiased,
+      plagiarism_free: review_data.plagiarism_free,
+      suggested_difficulty: review_data.suggested_difficulty,
+      suggested_category: review_data.suggested_category,
+      suggested_solve_time: review_data.suggested_solve_time,
+      review_score: Number(review.review_score),
     };
     return moderatorReview;
   } catch (error) {
@@ -425,6 +460,20 @@ export const fetchSolutionTxIdByUserAndChallengeId = async (
     address: ContractConfig_SolutionManager.address as `0x${string}`,
     abi: ContractConfig_SolutionManager.abi,
     functionName: "getSolutionTxId",
+    args: [address, challenge_id],
+  })) as string;
+
+  return fetchedTxId;
+};
+
+export const fetchModeratorReviewTxIdByModeratorAndChallengeId = async (
+  address: `0x${string}`,
+  challenge_id: number
+): Promise<string> => {
+  const fetchedTxId = (await readContract(wagmiConfig, {
+    address: ContractConfig_ChallengeManager.address as `0x${string}`,
+    abi: ContractConfig_ChallengeManager.abi,
+    functionName: "getModeratorReviewTxId",
     args: [address, challenge_id],
   })) as string;
 

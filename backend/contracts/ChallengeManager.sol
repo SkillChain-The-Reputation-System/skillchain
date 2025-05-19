@@ -4,6 +4,7 @@ import "hardhat/console.sol";
 import "./SolutionManager.sol";
 import "./Constants.sol";
 import "./ReputationManager.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract ChallengeManager {
     // ================= STRUCTS =================
@@ -25,6 +26,8 @@ contract ChallengeManager {
         address moderator;
         uint256 challenge_id;
         uint256 review_time;
+        string review_txid;
+        bool is_submitted;
         SystemEnums.QualityFactorAnswer relevance;
         SystemEnums.QualityFactorAnswer technical_correctness;
         SystemEnums.QualityFactorAnswer completeness;
@@ -66,7 +69,7 @@ contract ChallengeManager {
     mapping(uint256 => ReviewPool) private review_pool;
     // Mapping: Contributor address -> Challenge IDs
     mapping(address => uint256[]) private contributor_to_challenges;
-    // Mapping: Moderator address -> Challenge IDs
+    // Mapping: Moderator address -> Challenge I@Ds
     mapping(address => uint256[]) private moderator_to_challenges;
     // Mapping: User address -> Joined challenge IDs
     mapping(address => uint256[]) private user_to_joined_challenges;
@@ -173,7 +176,8 @@ contract ChallengeManager {
 
     // ================= MODERATION METHODS=================
     function joinReviewPool(
-        uint256 _challenge_id
+        uint256 _challenge_id,
+        string calldata _review_txid
     ) public onlyBeforeFinalized(_challenge_id) {
         ReviewPool storage pool = review_pool[_challenge_id];
 
@@ -189,12 +193,23 @@ contract ChallengeManager {
             "You have already joined this review pool."
         );
 
+        // Prevent joining the review pool if the user is a contributor
+        require(
+            challenges[_challenge_id].contributor != msg.sender,
+            "Contributor cannot join review pool"
+        );
+
         // Add new challenge to the moderator's list of challenges
         moderator_to_challenges[msg.sender].push(_challenge_id);
 
         // Use a storage reference for cleaner access
         pool.moderator_list.push(msg.sender);
         pool.moderator_to_join_status[msg.sender] = true;
+
+        ModeratorReview storage review = pool.moderator_reviews[msg.sender];
+        review.moderator = msg.sender;
+        review.challenge_id = _challenge_id;
+        review.review_txid = _review_txid;
 
         emit ReviewPoolJoined(_challenge_id, msg.sender);
         console.log(
@@ -225,10 +240,16 @@ contract ChallengeManager {
             "You have not joined this review pool."
         );
 
-        // Add review_count if the moderator is submitting a review for the first time
-        if (pool.moderator_reviews[msg.sender].review_time == 0) {
-            pool.review_count++;
-        }
+        // Moderator can only submit once
+        require(
+            review_pool[_challenge_id]
+                .moderator_reviews[msg.sender]
+                .is_submitted == false,
+            "You have already submitted a review."
+        );
+
+        // Increment the review count
+        pool.review_count++;
 
         // Calculate the review score based on the quality factors
         uint256 review_score = ((uint256(_relevance) +
@@ -241,44 +262,20 @@ contract ChallengeManager {
             SystemConsts.NUMBER_OF_QUALITY_FACTORS;
 
         // Update the moderator's review in the review pool
-        pool.moderator_reviews[msg.sender] = ModeratorReview({
-            moderator: msg.sender,
-            challenge_id: _challenge_id,
-            review_time: block.timestamp,
-            relevance: _relevance,
-            technical_correctness: _technical_correctness,
-            completeness: _completeness,
-            clarity: _clarity,
-            originality: _originality,
-            unbiased: _unbiased,
-            plagiarism_free: _plagiarism_free,
-            suggested_difficulty: _suggested_difficulty,
-            suggested_category: _suggested_category,
-            suggested_solve_time: _suggested_solve_time,
-            review_score: review_score
-        });
-
-        // console.log(
-        //     "Moderator %s updated review for challenge #%s",
-        //     msg.sender,
-        //     _challenge_id
-        // );
-        // console.log("- Relevance: %s", uint((_relevance)));
-        // console.log(
-        //     "- Technical correctness: %s",
-        //     uint((_technical_correctness))
-        // );
-        // console.log("- Completeness: %s", uint((_completeness)));
-        // console.log("- Clarity: %s", uint((_clarity)));
-        // console.log("- Originality: %s", uint((_originality)));
-        // console.log("- Unbiased: %s", uint((_unbiased)));
-        // console.log("- Plagiarism free: %s", uint((_plagiarism_free)));
-        // console.log(
-        //     "- Suggested difficulty: %s",
-        //     uint((_suggested_difficulty))
-        // );
-        // console.log("- Suggested category: %s", uint((_suggested_category)));
-        // console.log("- Suggested solve time: %s", _suggested_solve_time);
+        ModeratorReview storage review = pool.moderator_reviews[msg.sender];
+        review.review_time = block.timestamp;
+        review.is_submitted = true;
+        review.relevance = _relevance;
+        review.technical_correctness = _technical_correctness;
+        review.completeness = _completeness;
+        review.clarity = _clarity;
+        review.originality = _originality;
+        review.unbiased = _unbiased;
+        review.plagiarism_free = _plagiarism_free;
+        review.suggested_difficulty = _suggested_difficulty;
+        review.suggested_category = _suggested_category;
+        review.suggested_solve_time = _suggested_solve_time;
+        review.review_score = review_score;
 
         // Automatically finalize the review pool if the number of reviews reaches the quorum
         if (pool.review_count >= SystemConsts.REVIEW_QUORUM) {
@@ -295,29 +292,36 @@ contract ChallengeManager {
 
         Challenge storage cl = challenges[_challenge_id];
 
-        // Calculate the average score from the moderator reviews
-        uint256 total_score = 0;
-        uint256 total_reputation_weight = 0;
+        // Consolidate the challenge category, difficulty level and estimated solve time
+        cl.category = _consolidateChallengeCategory(_challenge_id, _pool);
+        console.log(
+            "Final category for challenge #%s: %s",
+            _challenge_id,
+            uint256(challenges[_challenge_id].category)
+        );
 
-        for (uint256 i = 0; i < _pool.moderator_list.length; i++) {
-            address moderator = _pool.moderator_list[i];
-            ModeratorReview storage review = _pool.moderator_reviews[moderator];
+        cl.difficulty_level = _consolidateChallengeDifficulty(
+            _challenge_id,
+            _pool
+        );
+        console.log(
+            "Final difficulty level for challenge #%s: %s",
+            _challenge_id,
+            uint256(challenges[_challenge_id].difficulty_level)
+        );
 
-            int256 moderator_domain_reputation = reputation_manager
-                .getDomainReputation(
-                    moderator,
-                    cl.category // This is the category that contributor suggested
-                );
+        cl.solve_time = _consolidateChallengeSolveTime(_challenge_id, _pool);
+        console.log(
+            "Final estimated solve time for challenge #%s: %s",
+            _challenge_id,
+            challenges[_challenge_id].solve_time
+        );
 
-            uint256 reputation_weight = SystemConsts
-                .REPUTATION_WEIGHT_FOR_SCORING +
-                uint256(moderator_domain_reputation);
-
-            total_score += review.review_score * reputation_weight;
-            total_reputation_weight += reputation_weight;
-        }
-
-        uint256 average_score = total_score / total_reputation_weight;
+        // Consolidate average score of challenge
+        uint256 average_score = _consolidateWeightedAverageScore(
+            _challenge_id,
+            _pool
+        );
 
         console.log(
             "Average score for challenge #%s: %s",
@@ -352,8 +356,6 @@ contract ChallengeManager {
 
         // Mark the review pool as finalized
         _pool.is_finalized = true;
-
-        // TODO: Update the challenge's difficulty level and solve time based on the moderator's suggestions
 
         emit ChallengeFinalized(_challenge_id, cl.status, cl.quality_score);
 
@@ -605,6 +607,10 @@ contract ChallengeManager {
     function getJoinedChallengesByUserForPreview(
         address _user_address
     ) public view returns (JoinedChallengesPreview[] memory) {
+        require(
+            solution_manager_address != address(0),
+            "SolutionManager not set"
+        );
         uint256[] memory challengeIds = user_to_joined_challenges[
             _user_address
         ];
@@ -643,6 +649,24 @@ contract ChallengeManager {
         );
 
         return previewList;
+    }
+
+    function getModeratorReviewTxId(
+        address _moderator_address,
+        uint256 _challenge_id
+    ) public view returns (string memory) {
+        // Moderator must have joined the review pool
+        require(
+            review_pool[_challenge_id].moderator_to_join_status[
+                _moderator_address
+            ],
+            "Moderator has not joined the review pool"
+        );
+
+        return
+            review_pool[_challenge_id]
+                .moderator_reviews[_moderator_address]
+                .review_txid;
     }
 
     // ================= SEEDING METHODS =================
@@ -691,5 +715,211 @@ contract ChallengeManager {
         );
         console.log("- Title url        : %s", _title_url);
         console.log("- Description url  : %s", _description_url);
+    }
+
+    // ================== INTERNAL METHODS =================
+
+    /**
+     * @dev Computes a reputation weight based on domain reputation
+     * @param domain_reputation The domain-specific reputation score of a moderator
+     * @return The calculated reputation weight used for weighted average scoring
+     *
+     * The weight is calculated using a logarithmic scale to prevent
+     * participants with very high reputation from dominating the scoring.
+     * Base weight constant is added to ensure minimum influence.
+     *
+     * The mathematical formula used:
+     * $W = W_{base} + \log_2(W_{base} + R_{domain})$
+     *
+     * Where:
+     * - $W$ is the final reputation weight
+     * - $W_{base}$ is the base reputation weight constant (bootstrap weight)
+     * - $R_{domain}$ is the domain-specific reputation score
+     */
+    function _computeReputationWeight(
+        int256 domain_reputation
+    ) internal pure returns (uint256) {
+        uint256 reputation_weight = SystemConsts.REPUTATION_WEIGHT_FOR_SCORING +
+            Math.log2(
+                SystemConsts.REPUTATION_WEIGHT_FOR_SCORING +
+                    uint256(domain_reputation)
+            );
+        return reputation_weight;
+    }
+
+    /**
+     * @dev Consolidates the final category (domain) for a challenge based on moderator suggestions
+     * @param _challenge_id The ID of the challenge being reviewed
+     * @param _pool The review pool containing moderator reviews
+     * @return The final determined category for the challenge
+     *
+     * The function uses a weighted voting system where each moderator's vote is weighted
+     * by their reputation in the specific domain they suggested. A category is selected
+     * if it receives a supermajority of the weighted votes (more than 50% of total weight).
+     * If no category achieves a supermajority, the original category suggested by the
+     * contributor is maintained.
+     */
+    function _consolidateChallengeCategory(
+        uint256 _challenge_id,
+        ReviewPool storage _pool
+    ) internal view returns (SystemEnums.Domain) {
+        SystemEnums.Domain final_category = challenges[_challenge_id].category; // Default to contributor's suggested category
+        uint256[] memory accumulated_weights = new uint256[](
+            SystemConsts.N_DOMAIN
+        );
+        uint256 total_weight_sum = 0;
+
+        for (uint256 i = 0; i < _pool.moderator_list.length; i++) {
+            address moderator = _pool.moderator_list[i];
+            ModeratorReview storage review = _pool.moderator_reviews[moderator];
+            int256 moderator_domain_reputation = reputation_manager
+                .getDomainReputation(
+                    moderator,
+                    review.suggested_category // Moderator suggested category
+                );
+            require(
+                moderator_domain_reputation >= 0,
+                "ERROR: Negative domain reputation"
+            );
+            uint256 weight = _computeReputationWeight(
+                moderator_domain_reputation
+            );
+            accumulated_weights[uint256(review.suggested_category)] += weight;
+            total_weight_sum += weight;
+        }
+
+        for (uint256 i = 0; i < accumulated_weights.length; i++) {
+            if (accumulated_weights[i] * 2 > total_weight_sum) {
+                final_category = SystemEnums.Domain(i);
+            }
+        }
+
+        return final_category;
+    }
+
+    /**
+     * @dev Consolidates the final difficulty level for a challenge based on moderator suggestions
+     * @param _challenge_id The ID of the challenge being reviewed
+     * @param _pool The review pool containing moderator reviews
+     * @return The final determined difficulty level for the challenge
+     *
+     * The function uses a weighted voting system where each moderator's vote is weighted
+     * by their reputation in the challenge's domain. The final difficulty level is selected
+     * based on which difficulty level received the highest weighted vote total.
+     *
+     * Algorithm:
+     * 1. Start with the challenge's default difficulty level
+     * 2. Accumulate weighted votes for each suggested difficulty level
+     * 3. For each moderator:
+     *    - Get their domain reputation for the challenge's category
+     *    - Calculate their reputation weight
+     *    - Add the weight to their suggested difficulty level
+     * 4. Select the difficulty level with the highest accumulated weight
+     */
+    function _consolidateChallengeDifficulty(
+        uint256 _challenge_id,
+        ReviewPool storage _pool
+    ) internal view returns (SystemEnums.DifficultyLevel) {
+        SystemEnums.DifficultyLevel final_difficulty = challenges[_challenge_id]
+            .difficulty_level;
+        uint256[] memory accumulated_weights = new uint256[](
+            SystemConsts.N_DIFFICULTY_LEVEL
+        );
+
+        // Accumulate weights for each suggested difficulty
+        for (uint256 i = 0; i < _pool.moderator_list.length; i++) {
+            address moderator = _pool.moderator_list[i];
+            ModeratorReview storage review = _pool.moderator_reviews[moderator];
+            int256 domainRep = reputation_manager.getDomainReputation(
+                moderator,
+                challenges[_challenge_id].category // Aggregated challenge category
+            );
+            require(domainRep >= 0, "ERROR: Negative domain reputation");
+            uint256 weight = _computeReputationWeight(domainRep);
+            accumulated_weights[uint256(review.suggested_difficulty)] += weight;
+        }
+
+        for (uint256 i = 0; i < SystemConsts.N_DIFFICULTY_LEVEL; i++) {
+            if (
+                accumulated_weights[i] >
+                accumulated_weights[uint256(final_difficulty)]
+            ) {
+                final_difficulty = SystemEnums.DifficultyLevel(i);
+            }
+        }
+
+        return final_difficulty;
+    }
+
+    /**
+     * @dev Calculates the weighted average score from moderator reviews for a challenge
+     * @param _challenge_id The ID of the challenge being reviewed
+     * @param _pool The review pool containing moderator reviews
+     * @return The weighted average score
+     */
+    function _consolidateWeightedAverageScore(
+        uint256 _challenge_id,
+        ReviewPool storage _pool
+    ) internal view returns (uint256) {
+        uint256 total_weighted_score = 0;
+        uint256 total_weight = 0;
+        for (uint256 i = 0; i < _pool.moderator_list.length; i++) {
+            ModeratorReview storage review = _pool.moderator_reviews[
+                _pool.moderator_list[i]
+            ];
+            int256 moderator_domain_reputation = reputation_manager
+                .getDomainReputation(
+                    review.moderator,
+                    challenges[_challenge_id].category // Aggregated challenge category
+                );
+            uint256 reputation_weight = _computeReputationWeight(
+                moderator_domain_reputation
+            );
+            total_weighted_score += review.review_score * reputation_weight;
+            total_weight += reputation_weight;
+        }
+        if (total_weight == 0) {
+            return 0;
+        }
+        return total_weighted_score / total_weight;
+    }
+
+    /**
+     * @dev Consolidates the final estimated solve time for a challenge based on moderator suggestions
+     * @param _challenge_id The ID of the challenge being reviewed
+     * @param _pool The review pool containing moderator reviews
+     * @return The weighted average of suggested solve times
+     *
+     * Aggregates moderator suggested solve times weighted by their domain reputation.
+     */
+    function _consolidateChallengeSolveTime(
+        uint256 _challenge_id,
+        ReviewPool storage _pool
+    ) internal view returns (uint256) {
+        uint256 total_weighted_time = 0;
+        uint256 total_weight = 0;
+        // Use the aggregated category for reputation lookup
+        SystemEnums.Domain category = challenges[_challenge_id].category;
+
+        for (uint256 i = 0; i < _pool.moderator_list.length; i++) {
+            address moderator = _pool.moderator_list[i];
+            ModeratorReview storage review = _pool.moderator_reviews[moderator];
+            int256 moderator_domain_reputation = reputation_manager
+                .getDomainReputation(moderator, category);
+            require(
+                moderator_domain_reputation >= 0,
+                "ERROR: Negative domain reputation"
+            );
+            uint256 weight = _computeReputationWeight(
+                moderator_domain_reputation
+            );
+            total_weighted_time += weight * review.suggested_solve_time;
+            total_weight += weight;
+        }
+
+        if (total_weight == 0) {
+            return 0;
+        }
+        return total_weighted_time / total_weight;
     }
 }

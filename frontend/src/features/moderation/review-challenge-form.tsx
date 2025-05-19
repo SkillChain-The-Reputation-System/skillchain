@@ -1,46 +1,35 @@
 "use client";
 
-// Import hooks
+// Import hooks - only import what's needed
 import { useForm } from "react-hook-form";
 import { useAccount, useWriteContract } from "wagmi";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, lazy, Suspense } from "react";
 import { useRouter } from "next/navigation";
 
-// Import external UI components
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+// Import external UI components - optimize imports
 import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { ChallengeContent } from "@/components/challenge-content";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
-// Import utils
+// Lazy load heavy components
+const ChallengeContent = lazy(() => 
+  import("@/components/challenge-content").then(module => ({ 
+    default: module.ChallengeContent 
+  }))
+);
+const ReviewFormSection = lazy(() => import("./review-form-section"));
+const ReviewDetailsSection = lazy(() => import("./review-details-section"));
+
+// Import utils - optimize imports
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
-import { ChallengeInterface } from "@/lib/interfaces";
-import { 
-  ChallengeDifficultyLevel,
-  Domain,
-  DomainLabels,
-  QualityFactorAnswer,
-} from "@/constants/system";
-import { Loader2 } from "lucide-react";
+import { ChallengeInterface, ModeratorReview } from "@/lib/interfaces";
+import { ChallengeDifficultyLevel, Domain, QualityFactorAnswer } from "@/constants/system";
+
+// Import icons - only load what's needed
+import { ArrowLeftCircle, Loader2 } from "lucide-react";
+
+// Import data fetching utilities
 import {
   getChallengeById,
   getChallengeFinalizedStatus,
@@ -48,8 +37,12 @@ import {
   getReviewPoolSize,
   getReviewQuorum,
 } from "@/lib/fetching-onchain-data-utils";
-import { quality_factors_questions } from "@/constants/data";
-import { submitModeratorReview } from "@/lib/write-onchain-utils";
+
+// Import data mutation utilities
+import {
+  saveModeratorReviewDraft,
+  submitModeratorReview,
+} from "@/lib/write-onchain-utils";
 
 // Schema for the review form
 const reviewChallengeSchema = z.object({
@@ -136,10 +129,16 @@ export function ReviewChallengeForm({
   const { address } = useAccount();
   const router = useRouter();
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isChallengeFinalized, setIsChallengeFinalized] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [moderatorReview, setModeratorReview] = useState<ModeratorReview | null>();
   const { data: hash, isPending } = useWriteContract();
-
+  const [activeTab, setActiveTab] = useState("challenge");
+  const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
+  
+  // Use memoized form setup to prevent unnecessary re-renders
   const form = useForm<ModeratorReviewValues>({
     resolver: zodResolver(reviewChallengeSchema),
     defaultValues: {
@@ -155,48 +154,77 @@ export function ReviewChallengeForm({
       suggested_solve_time: 1,
     },
   });
-
-  const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
-
+  
+  // Only watch form values when needed
+  const reviewValues = useMemo(() => form.watch(), [form]);
+  // Optimize data fetching with useEffect cleanup and better dependency management
   useEffect(() => {
+    let isMounted = true;
+    
     async function fetchChallenge() {
-      const challenge = await getChallengeById(challenge_id);
-      if (challenge) {
-        setChallenge(challenge);
-      } else {
-        toast.error("Failed to fetch challenge data.");
+      try {
+        const challenge = await getChallengeById(challenge_id);
+        if (isMounted) {
+          if (challenge) {
+            setChallenge(challenge);
+          } else {
+            toast.error("Failed to fetch challenge data.");
+          }
+          setIsLoading(false);
+        }
+      } catch (error) {
+        if (isMounted) {
+          toast.error("Error fetching challenge data");
+          setIsLoading(false);
+        }
       }
-      setIsLoading(false);
     }
 
     fetchChallenge();
-  }, []);
+    
+    return () => { isMounted = false; };
+  }, [challenge_id]);
 
-  // Fetch existing moderator review and populate form
+  // Fetch existing moderator review and populate form - with cleanup
   useEffect(() => {
+    let isMounted = true;
+    
     async function fetchReview() {
       if (!address) return;
-      const review = await getModeratorReviewOfChallenge(
-        challenge_id,
-        address as `0x${string}`
-      );
-      if (review) {
-        form.reset({
-          relevance: review.relevance,
-          technical_correctness: review.technical_correctness,
-          completeness: review.completeness,
-          clarity: review.clarity,
-          originality: review.originality,
-          unbiased: review.unbiased,
-          plagiarism_free: review.plagiarism_free,
-          suggested_difficulty: review.suggested_difficulty,
-          suggested_category: review.suggested_category,
-          suggested_solve_time: review.suggested_solve_time,
-        });
+      try {
+        const review = await getModeratorReviewOfChallenge(
+          challenge_id,
+          address as `0x${string}`
+        );
+        
+        if (isMounted && review) {
+          setIsSubmitted(review.is_submitted);
+          form.reset({
+            relevance: review.relevance,
+            technical_correctness: review.technical_correctness,
+            completeness: review.completeness,
+            clarity: review.clarity,
+            originality: review.originality,
+            unbiased: review.unbiased,
+            plagiarism_free: review.plagiarism_free,
+            suggested_difficulty: review.suggested_difficulty,
+            suggested_category: review.suggested_category,
+            suggested_solve_time: review.suggested_solve_time,
+          });
+          setModeratorReview(review);
+        }
+      } catch (error) {
+        if (isMounted) {
+          toast.error("Error fetching review data");
+        }
       }
     }
 
-    fetchReview();
+    if (address) {
+      fetchReview();
+    }
+    
+    return () => { isMounted = false; };
   }, [address, challenge_id, form]);
 
   // Handle transaction status
@@ -211,195 +239,136 @@ export function ReviewChallengeForm({
     }
   }, [isPending, hash, router]);
 
-    // Fetch review pool size and quorum when the details dialog is opened, or when the challenge ID changes
-    useEffect(() => {
-      async function fetchPoolInfo() {
-        try {
-          const [size, q, is_finalized] = await Promise.all([
-            getReviewPoolSize(Number(challenge_id)),
-            getReviewQuorum(),
-            getChallengeFinalizedStatus(Number(challenge_id))
-          ]);
+  // Fetch review pool size and quorum only when needed
+  useEffect(() => {
+    let isMounted = true;
+    
+    async function fetchPoolInfo() {
+      if (activeTab !== 'details') return; // Only fetch when details tab is active
+      
+      try {
+        const [, , is_finalized] = await Promise.all([
+          getReviewPoolSize(Number(challenge_id)),
+          getReviewQuorum(),
+          getChallengeFinalizedStatus(Number(challenge_id)),
+        ]);
+        
+        if (isMounted) {
           setIsChallengeFinalized(is_finalized);
-        } catch (error) {
+        }
+      } catch (error) {
+        if (isMounted) {
           toast.error(`Error fetching review pool info: ${error}`);
         }
       }
-      fetchPoolInfo();
-    }, [address, challenge_id, form]);
+    }
+    
+    fetchPoolInfo();
+    
+    return () => { isMounted = false; };
+  }, [challenge_id, activeTab]);
+  // Memoize handlers to prevent unnecessary re-renders
+  const onSaveDraft = useMemo(() => async () => {
+    if (isSubmitted) {
+      toast.error("Cannot save draft: Review already submitted.");
+      return;
+    }
+    const review_data = form.getValues();
+    const review_data_json = JSON.stringify(review_data);
+    try {
+      setIsSavingDraft(true);
+      await saveModeratorReviewDraft(
+        challenge_id,
+        address as `0x${string}`,
+        review_data_json
+      );
+      toast.success("Draft saved successfully!");
+    } catch (error) {
+      toast.error("Failed to save draft");
+    }
+    setIsSavingDraft(false);
+  }, [isSubmitted, form, challenge_id, address]);
 
-  async function onSubmit(data: ModeratorReviewValues) {
+  const onSubmit = useMemo(() => async (data: ModeratorReviewValues) => {
     setIsSubmitDisabled(true);
 
     try {
       await submitModeratorReview(challenge_id, address as `0x${string}`, data);
+      router.back();
       toast.success("Review submitted successfully!");
-      router.back(); // Go back to the previous page
-    } catch (error) {
-      toast.error("Failed to submit review");
+    } catch (error: any) {
+      if (error.shortMessage) {
+        toast.error(error.shortMessage);
+      }
+      else if (error.message) {
+        toast.error(error.message);
+      }
+      else {
+        toast.error("An error occurred while submitting the review.");
+      }
     }
     setIsSubmitDisabled(false);
-  }
+  }, [challenge_id, address, router]);
 
+  const handleGoBack = useMemo(() => () => {
+    router.back();
+  }, [router]);
+  // Memoize UI components that don't need to re-render often
+  const backButton = useMemo(() => (
+    <Button
+      variant="outline"
+      size="sm"
+      className="mb-6 gap-1 text-muted-foreground hover:text-foreground bg-gray-200 cursor-pointer"
+      onClick={handleGoBack}
+    >
+      <ArrowLeftCircle className="h-4 w-4" />
+      Back to My Reviews
+    </Button>
+  ), [handleGoBack]);
+  
+  const loadingIndicator = useMemo(() => (
+    <div className="flex justify-center py-8">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  ), []);
+  
+  const tabsList = useMemo(() => (
+    <TabsList className="grid w-full grid-cols-3 mb-2">
+      <TabsTrigger value="challenge">About the challenge</TabsTrigger>
+      <TabsTrigger value="review">Review Form</TabsTrigger>
+      <TabsTrigger value="details">Review Info</TabsTrigger>
+    </TabsList>
+  ), []);
+  
   return (
     <div>
-      {isLoading ? (
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      ) : (
+      {backButton}      {isLoading ? loadingIndicator : (
         <div className="space-y-8">
-          <ChallengeContent
-            challenge={challenge}
-            reload={isPending}
-          />
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              {/* Quality Factors Group */}
-              <div className="space-y-6">
-                <h3 className="text-lg font-medium">Quality Factors</h3>
-                {quality_factors_questions.map((q, index) => (
-                  <FormField
-                    key={q.name}
-                    control={form.control}
-                    name={q.name as keyof ModeratorReviewValues}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          {index + 1}. {q.label}
-                        </FormLabel>
-                        <FormDescription>{q.description}</FormDescription>
-                        <FormControl>
-                          <RadioGroup
-                            value={field.value?.toString()}
-                            onValueChange={field.onChange}
-                            className="flex space-x-4"
-                          >
-                            <RadioGroupItem
-                              value={QualityFactorAnswer.YES.toString()}
-                              id={QualityFactorAnswer.YES.toString()}
-                            />
-                            <Label htmlFor={`${q.name}-yes`}>Yes</Label>
-                            <RadioGroupItem
-                              value={QualityFactorAnswer.NO.toString()}
-                              id={QualityFactorAnswer.NO.toString()}
-                            />
-                            <Label htmlFor={`${q.name}-no`}>No</Label>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                ))}
-              </div>
-
-              {/* Suggestion Group */}
-              <div className="space-y-6">
-                <h3 className="text-lg font-medium">Suggestions</h3>
-                {/* Difficulty Level */}
-                <FormField
-                  control={form.control}
-                  name="suggested_difficulty"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Difficulty Level</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          value={field.value?.toString()}
-                          onValueChange={field.onChange}
-                          className="flex space-x-4"
-                        >
-                          <RadioGroupItem
-                            value={ChallengeDifficultyLevel.EASY.toString()}
-                            id={ChallengeDifficultyLevel.EASY.toString()}
-                          />
-                          <Label htmlFor="difficulty-easy">Easy</Label>
-                          <RadioGroupItem
-                            value={ChallengeDifficultyLevel.MEDIUM.toString()}
-                            id={ChallengeDifficultyLevel.MEDIUM.toString()}
-                          />
-                          <Label htmlFor="difficulty-medium">Medium</Label>
-                          <RadioGroupItem
-                            value={ChallengeDifficultyLevel.HARD.toString()}
-                            id={ChallengeDifficultyLevel.HARD.toString()}
-                          />
-                          <Label htmlFor="difficulty-hard">Hard</Label>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            {tabsList}            <TabsContent value="challenge">
+              <Suspense fallback={loadingIndicator}>
+                <ChallengeContent challenge={challenge} reload={isPending} className="bg-muted/40 p-6 rounded-lg shadow-md" />
+              </Suspense>
+            </TabsContent>
+            <TabsContent value="review">
+              <Suspense fallback={loadingIndicator}>
+                <ReviewFormSection
+                  form={form}
+                  isSubmitted={isSubmitted}
+                  isSavingDraft={isSavingDraft}
+                  isSubmitDisabled={isSubmitDisabled || isPending}
+                  isChallengeFinalized={isChallengeFinalized}
+                  onSaveDraft={onSaveDraft}
+                  onSubmit={onSubmit}
                 />
-                {/* Category */}
-                <FormField
-                  control={form.control}
-                  name="suggested_category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Category</FormLabel>
-                      <Select
-                        value={field.value?.toString() ?? ""}
-                        onValueChange={(val) => field.onChange(Number(val))}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-[300px]">
-                            <SelectValue placeholder="Select category of your challenge" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="w-[300px]">
-                          {
-                            // get the numeric enum members
-                            (Object.values(Domain) as unknown as number[])
-                              .filter((v) => typeof v === "number")
-                              .map((num) => (
-                                <SelectItem key={num} value={num.toString()}>
-                                  {DomainLabels[num as Domain]}
-                                </SelectItem>
-                              ))
-                          }
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {/* Estimated Solve Time */}
-                <FormField
-                  control={form.control}
-                  name="suggested_solve_time"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Estimated Solve Time (minutes)</FormLabel>
-                      <FormControl>
-                        <Input type="number" min={1} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="flex space-x-4">
-                <Button
-                  type="submit"
-                  disabled={isSubmitDisabled || isChallengeFinalized}
-                  className="flex-1"
-                >
-                  Submit Review
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.back()}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </Form>
+              </Suspense>
+            </TabsContent>
+            <TabsContent value="details">
+              <Suspense fallback={loadingIndicator}>
+                <ReviewDetailsSection moderatorReview={moderatorReview} />
+              </Suspense>
+            </TabsContent>
+          </Tabs>
         </div>
       )}
     </div>

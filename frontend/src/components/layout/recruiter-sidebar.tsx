@@ -21,7 +21,7 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { navItems } from "@/constants/data";
+import { recruiterNavItems } from "@/constants/data";
 import {
   ChevronRight,
   GalleryVerticalEnd,
@@ -35,10 +35,10 @@ import { AccountButton } from "./account-button";
 export const company = {
   name: "SkillChain",
   logo: GalleryVerticalEnd,
-  plan: "User",
+  plan: "Recruiter",
 };
 
-export default function AppSidebar() {
+export default function RecruiterSidebar() {
   const pathname = usePathname();
   const { toggleSidebar } = useSidebar();
 
@@ -57,9 +57,9 @@ export default function AppSidebar() {
       </SidebarHeader>
       <SidebarContent className="overflow-x-hidden">
         <SidebarGroup>
-          <SidebarGroupLabel>User Dashboard</SidebarGroupLabel>
+          <SidebarGroupLabel>Recruiter Portal</SidebarGroupLabel>
           <SidebarMenu>
-            {navItems.map((item) => {
+            {recruiterNavItems.map((item) => {
               const Icon = item.icon ? Icons[item.icon] : Icons.logo;
               return item?.items && item?.items?.length > 0 ? (
                 <Collapsible
@@ -102,7 +102,7 @@ export default function AppSidebar() {
                   <SidebarMenuButton
                     asChild
                     tooltip={item.title}
-                    isActive={pathname === item.url}
+                    isActive={pathname === item.url || pathname.startsWith(item.url + '/')}
                   >
                     <Link href={item.url}>
                       <Icon />

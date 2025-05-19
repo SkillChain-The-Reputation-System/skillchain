@@ -1,11 +1,11 @@
-import { NavItem } from "types";
+import { AccountButtonItem, NavItem } from "types";
 import { pageUrlMapping } from "./navigation";
 
 //Info: The following data is used for the sidebar navigation and Cmd K bar.
 export const navItems: NavItem[] = [
   {
-    title: "Dashboard",
-    url: pageUrlMapping.dashboard,
+    title: "Overview",
+    url: pageUrlMapping.dashboard_overview,
     icon: "dashboard",
     isActive: false,
     shortcut: ["d", "d"],
@@ -124,18 +124,6 @@ export const sidebarNavItemsProfileSettings = [
     title: "Account",
     href: "##",
   },
-  // {
-  //   title: "Appearance",
-  //   href: "##"
-  // },
-  // {
-  //   title: "Notifications",
-  //   href: "###"
-  // },
-  // {
-  //   title: "Display",
-  //   href: "####"
-  // }
 ];
 
 export const quality_factors_questions = [
@@ -173,5 +161,111 @@ export const quality_factors_questions = [
     name: "plagiarism_free",
     label: "No plagiarism",
     description: "Is the content original or properly cited?",
+  },
+];
+
+export const account_button_items: AccountButtonItem[] = [
+  {
+    title: "Overview",
+    href: pageUrlMapping.dashboard_overview,
+    icon: "dashboard",
+  },
+  {
+    title: "Profile",
+    href: pageUrlMapping.account_profile,
+    icon: "SquareUser",
+  },
+  {
+    title: "Account Settings",
+    href: pageUrlMapping.account_settings,
+    icon: "settings",
+  },
+  {
+    title: "Review Challenges",
+    href: pageUrlMapping.moderation_reviewchallenges,
+    icon: "ShieldUser",
+  },
+  {
+    title: "My contributions",
+    href: pageUrlMapping.contribution_my_contributions,
+    icon: "contribution",
+  },
+  {
+    title: "My participation",
+    href: pageUrlMapping.participation_workspace,
+    icon: "participation",
+  }
+]
+
+// Menu items for the recruiter role in the account button dropdown
+export const recruiter_account_button_items: AccountButtonItem[] = [
+  {
+    title: "Recruiter Dashboard",
+    href: pageUrlMapping.recruiter_dashboard,
+    icon: "dashboard",
+  },
+  {
+    title: "Jobs",
+    href: pageUrlMapping.recruiter_jobs,
+    icon: "page",
+  },
+  {
+    title: "Meetings",
+    href: pageUrlMapping.recruiter_meetings,
+    icon: "Cast",
+  },
+  {
+    title: "Insights",
+    href: pageUrlMapping.recruiter_insights,
+    icon: "ChartNoAxesCombined",
+  },
+  {
+    title: "Account",
+    href: pageUrlMapping.recruiter_account,
+    icon: "SquareUser",
+  },
+];
+
+// Navigation items for the recruiter portal
+export const recruiterNavItems: NavItem[] = [
+  {
+    title: "Dashboard",
+    url: pageUrlMapping.recruiter_dashboard,
+    icon: "dashboard",
+    isActive: false,
+    shortcut: ["d", "d"],
+    items: [],
+  },
+  {
+    title: "Jobs",
+    url: pageUrlMapping.recruiter_jobs,
+    icon: "page",
+    isActive: false,
+    shortcut: ["j", "j"],
+    items: [],
+  },
+  {
+    title: "Meetings",
+    url: pageUrlMapping.recruiter_meetings,
+    icon: "Cast",
+    isActive: false,
+    shortcut: ["m", "m"],
+    items: [],
+  },
+  {
+    title: "Insights",
+    url: pageUrlMapping.recruiter_insights,
+    icon: "ChartNoAxesCombined",
+    isActive: false,
+    shortcut: ["i", "i"],
+    items: [],
+  },
+  {
+    title: "Account",
+    url: pageUrlMapping.recruiter_account,
+    icon: "SquareUser",
+    isActive: false,
+    shortcut: ["a", "a"],
+    items: [],
   },
 ];

@@ -1,4 +1,4 @@
-import { AccountPageHeader } from "@/components/layout/account-page-header";
+import { PageHeader } from "@/components/layout/page-header";
 import PageContainer from "@/components/layout/page-container";
 import { Separator } from "@/components/ui/separator";
 import { Settings } from "lucide-react";
@@ -18,14 +18,14 @@ export default async function DashboardLayout({
   return (
     <div>
       <div className="flex flex-col px-4">
-        <AccountPageHeader
+        <PageHeader
           title="Profile"
           description="View your profile information and your activity on SkillChain."
-        ></AccountPageHeader>
+        ></PageHeader>
 
         <Separator className="my-6" />
       </div>
-      
+
       <PageContainer>{children}</PageContainer>
     </div>
   );

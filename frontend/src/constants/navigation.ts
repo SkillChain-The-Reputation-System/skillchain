@@ -1,6 +1,7 @@
 export const pageUrlMapping = {
     home: "/",
     dashboard: "/dashboard",
+    dashboard_overview: "/dashboard/overview",
     account: "/dashboard/account",
     account_profile: "/dashboard/account/profile",
     account_settings: "/dashboard/account/settings",
@@ -18,4 +19,12 @@ export const pageUrlMapping = {
     evaluation: "/dashboard/evaluation",
     evaluation_pendingsolutions: "/dashboard/evaluation/pending-solutions",
     evaluation_evaluatedbyme: "/dashboard/evaluation/evaluated-by-me",
+    recruiter: "/recruiter",
+    recruiter_dashboard: "/recruiter/dashboard",
+    recruiter_jobs: "/recruiter/jobs",
+    recruiter_job_applicants: "/recruiter/jobs/:id/applicants",
+    recruiter_meetings: "/recruiter/meetings",
+    recruiter_meeting_room: "/recruiter/meetings/:roomId",
+    recruiter_insights: "/recruiter/insights",
+    recruiter_account: "/recruiter/account"
 }

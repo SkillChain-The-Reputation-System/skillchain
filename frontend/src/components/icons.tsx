@@ -1,8 +1,13 @@
 import {
   AlertTriangle,
   ArrowRight,
+  BarChart,
+  Bolt,
   BookOpenText,
   BookPlus,
+  Calendar,
+  Cast,
+  ChartNoAxesCombined,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -27,12 +32,13 @@ import {
   Plus,
   Settings,
   ShieldUser,
+  SquareUser,
   SunMedium,
   Trash,
-  Twitter,
   User,
   UserCircle2Icon,
   UserPen,
+  UserSearch,
   UserX2Icon,
   X
 } from 'lucide-react';
@@ -89,5 +95,10 @@ export const Icons = {
     </svg>
   ),
   check: Check,
-  ShieldUser: ShieldUser,
+  ShieldUser: ShieldUser, 
+  UserSearch: UserSearch,
+  Bolt: Bolt,
+  SquareUser: SquareUser,
+  ChartNoAxesCombined: ChartNoAxesCombined,
+  Cast: Cast
 };

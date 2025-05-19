@@ -341,7 +341,7 @@ contract ChallengeManager {
         cl.quality_score = average_score;
 
         // Remove challenge from pending tracking
-        is_pending_challenge[_challenge_id] == false;
+        is_pending_challenge[_challenge_id] = false;
         // Remove challenge from spending_challenges array
         for (uint256 i = 0; i < pending_challenges.length; i++) {
             if (pending_challenges[i] == _challenge_id) {

@@ -85,4 +85,11 @@ export interface SolutionReviewPool {
     numberOfEvaluators: number;
     numberOfSubmittedEvaluation: number;
     totalEvaluators: number;
+    completedAt: number | undefined;
+}
+
+export interface EvaluationInterface {
+    isSubmitted: boolean;
+    score: number | undefined;
+    submittedAt: number | undefined;
 }

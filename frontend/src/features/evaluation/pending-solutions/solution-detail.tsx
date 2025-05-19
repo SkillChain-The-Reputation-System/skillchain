@@ -46,6 +46,7 @@ import {
 } from "@/constants/system";
 import { epochToDateString, epochToDateTimeString } from "@/lib/time-utils";
 import { difficultyStyles } from "@/constants/styles";
+import { pageUrlMapping } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
 
 interface SolutionDetailProps {
@@ -232,7 +233,7 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
                       <span className="text-sm font-medium text-muted-foreground">Participants</span>
                       <div className="flex items-center gap-1.5">
                         <Users className="h-full max-h-4 w-full max-w-4" />
-                        <span>{challenge.completed} completed</span>
+                        <span>{challenge.completed} done</span>
                       </div>
                     </div>
 
@@ -322,7 +323,13 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
             </div>
           </div >
         ) : (
-          <div></div>
+          <div className="text-center object-center py-12">
+            <h2 className="text-xl font-semibold mb-2">Solution not found</h2>
+            <p className="text-muted-foreground mb-6">
+              The solution you're looking for doesn't exist or has been removed.
+            </p>
+            <Button onClick={() => router.push(pageUrlMapping.evaluation_pendingsolutions)}>Return to Explore Solutions</Button>
+          </div>
         )
       )
       }

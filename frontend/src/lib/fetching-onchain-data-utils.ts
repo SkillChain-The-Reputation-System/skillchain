@@ -14,6 +14,7 @@ import {
   SolutionInterface,
   UnderReviewSolutionPreview,
   SolutionReviewPool,
+  EvaluationInterface
 } from "./interfaces";
 import { fetchStringDataOffChain } from "./fetching-offchain-data-utils";
 import {
@@ -580,7 +581,7 @@ export const fetchNumberOfJoinedEvaluatorsById = async (
     args: [solution_id],
   }) as number;
 
-  return numberOfEvaluators;
+  return Number(numberOfEvaluators);
 }
 
 export const fetchNumberOfSubmittedEvaluationById = async (
@@ -593,7 +594,7 @@ export const fetchNumberOfSubmittedEvaluationById = async (
     args: [solution_id],
   }) as number;
 
-  return numberOfSubmittedEvaluation;
+  return Number(numberOfSubmittedEvaluation);
 }
 
 export const fetchMaxEvaluatorsForSolutionById = async (
@@ -606,7 +607,24 @@ export const fetchMaxEvaluatorsForSolutionById = async (
     args: [solution_id],
   }) as number;
 
-  return totalEvaluators;
+  return Number(totalEvaluators);
+}
+
+export const fetchTimestampEvaluationCompleted = async (
+  solution_id: number
+): Promise<number | undefined> => {
+  try {
+    const timestamp = await readContract(wagmiConfig, {
+      address: ContractConfig_SolutionManager.address as `0x${string}`,
+      abi: ContractConfig_SolutionManager.abi,
+      functionName: "getTimestampEvaluationCompleted",
+      args: [solution_id],
+    }) as number;
+
+    return Number(timestamp);
+  } catch (error) {
+    return undefined;
+  }
 }
 
 export const fetchSolutionReviewPool = async (
@@ -614,22 +632,24 @@ export const fetchSolutionReviewPool = async (
 ): Promise<SolutionReviewPool | null> => {
   const solution = await fetchSolutionById(solution_id) as SolutionInterface;
 
-  const solutionManageContract = {
-    address: ContractConfig_SolutionManager.address as `0x${string}`,
-    abi: ContractConfig_SolutionManager.abi,
-  } as const;
-
-  const [numberOfEvaluators, numberOfSubmittedEvaluation, totalEvaluators] = (await Promise.all([
-    fetchNumberOfJoinedEvaluatorsById(solution_id) as Promise<number>,
-    fetchNumberOfSubmittedEvaluationById(solution_id) as Promise<number>,
-    fetchMaxEvaluatorsForSolutionById(solution_id) as Promise<number>,
+  const [
+    numberOfEvaluators,
+    numberOfSubmittedEvaluation,
+    totalEvaluators,
+    timestamp
+  ] = (await Promise.all([
+    fetchNumberOfJoinedEvaluatorsById(solution_id),
+    fetchNumberOfSubmittedEvaluationById(solution_id),
+    fetchMaxEvaluatorsForSolutionById(solution_id),
+    fetchTimestampEvaluationCompleted(solution_id)
   ]))
 
   return {
     solution: solution,
-    numberOfEvaluators: Number(numberOfEvaluators),
-    numberOfSubmittedEvaluation: Number(numberOfSubmittedEvaluation),
-    totalEvaluators: Number(totalEvaluators),
+    numberOfEvaluators: numberOfEvaluators,
+    numberOfSubmittedEvaluation: numberOfSubmittedEvaluation,
+    totalEvaluators: totalEvaluators,
+    completedAt: timestamp
   }
 }
 
@@ -664,13 +684,53 @@ export const fetchEvaluatorHasSubmittedSolution = async (
 export const fetchSubmittedEvaluationScore = async (
   address: `0x${string}`,
   solution_id: number
-): Promise<number> => {
-  const score = (await readContract(wagmiConfig, {
-    address: ContractConfig_SolutionManager.address as `0x${string}`,
-    abi: ContractConfig_SolutionManager.abi,
-    functionName: "getScoreSubmittedByEvaluator",
-    args: [address, solution_id],
-  })) as number;
+): Promise<number | undefined> => {
+  try {
+    const score = (await readContract(wagmiConfig, {
+      address: ContractConfig_SolutionManager.address as `0x${string}`,
+      abi: ContractConfig_SolutionManager.abi,
+      functionName: "getScoreSubmittedByEvaluator",
+      args: [address, solution_id],
+    })) as number;
 
-  return score;
+    return Number(score);
+  } catch (error) {
+    return undefined;
+  }
+}
+
+export const fetchTimestampScoreSubmittedByEvaluator = async (
+  address: `0x${string}`,
+  solution_id: number
+): Promise<number | undefined> => {
+  try {
+    const timestamp = (await readContract(wagmiConfig, {
+      address: ContractConfig_SolutionManager.address as `0x${string}`,
+      abi: ContractConfig_SolutionManager.abi,
+      functionName: "getTimestampScoreSubmittedByEvaluator",
+      args: [address, solution_id],
+    })) as number;
+
+    return Number(timestamp);
+  } catch (error) {
+    return undefined;
+  }
+}
+
+export const fetchEvaluationForSolutionByEvaluator = async (
+  address: `0x${string}`,
+  solution_id: number
+): Promise<EvaluationInterface> => {
+
+  const [isSubmitted, score, timestamp] = (await Promise.all([
+    fetchEvaluatorHasSubmittedSolution(address, solution_id),
+    fetchSubmittedEvaluationScore(address, solution_id),
+    fetchTimestampScoreSubmittedByEvaluator(address, solution_id)
+  ]))
+
+  return {
+    isSubmitted: isSubmitted,
+    score: score,
+    submittedAt: timestamp
+  }
 }

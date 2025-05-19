@@ -43,17 +43,21 @@ import {
   FileCheck,
   Trophy,
   LoaderCircle,
+  CalendarCheck,
 } from "lucide-react";
 
 // Import utils
 import {
   fetchSolutionReviewPool,
-  fetchEvaluatorHasSubmittedSolution,
-  fetchSubmittedEvaluationScore,
+  fetchEvaluationForSolutionByEvaluator,
   getChallengeById
 } from "@/lib/fetching-onchain-data-utils";
 import { submitEvaluationScore, waitForTransaction } from "@/lib/write-onchain-utils";
-import { SolutionReviewPool, ChallengeInterface } from "@/lib/interfaces";
+import {
+  SolutionReviewPool,
+  ChallengeInterface,
+  EvaluationInterface
+} from "@/lib/interfaces";
 import {
   Domain,
   DomainLabels,
@@ -65,6 +69,7 @@ import { epochToDateString, epochToDateTimeString } from "@/lib/time-utils";
 import { difficultyStyles } from "@/constants/styles";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { pageUrlMapping } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
 
 const evaluationSchema = z.object({
@@ -85,13 +90,11 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
   const [solutionReviewPool, setSolutionReviewPool] = useState<SolutionReviewPool | null>(null);
   const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
-
-  // for work on evaluation
-  const [submitting, setSubmitting] = useState(false);
-  const [evaluatorHasSumitted, setEvaluatorHasSumitted] = useState(false);
-  const [score, setScore] = useState<number | undefined>(undefined);
+  const [evaluation, setEvaluation] = useState<EvaluationInterface | null>(null);
 
   const form = useForm<EvaluationFormValues>({
     resolver: zodResolver(evaluationSchema),
@@ -127,19 +130,12 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
         setSolutionReviewPool(fetchedSolution);
 
         if (fetchedSolution) {
-          const [fetchedChallenge, fetchedSubmittedState] = await Promise.all([
+          const [fetchedChallenge, fetchedEvaluation] = await Promise.all([
             getChallengeById(Number(fetchedSolution.solution.challengeId)),
-            address ? fetchEvaluatorHasSubmittedSolution(address as `0x${string}`, solutionId) : Promise.resolve(false),
+            address ? fetchEvaluationForSolutionByEvaluator(address as `0x${string}`, solutionId) : Promise.resolve(null),
           ]);
           setChallenge(fetchedChallenge);
-          setEvaluatorHasSumitted(fetchedSubmittedState);
-
-          if (fetchedSubmittedState) {
-            const fetchedScore = address ? await fetchSubmittedEvaluationScore(address as `0x${string}`, solutionId) : undefined;
-            setScore(fetchedScore);
-
-            form.reset({ score: fetchedScore })
-          }
+          setEvaluation(fetchedEvaluation);
         }
       } catch (error) {
         console.error(error);
@@ -158,22 +154,17 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
         setSolutionReviewPool(fetchedSolution);
 
         if (fetchedSolution) {
-          const [fetchedChallenge, fetchedSubmittedState] = await Promise.all([
+          const [fetchedChallenge, fetchedEvaluation] = await Promise.all([
             getChallengeById(Number(fetchedSolution.solution.challengeId)),
-            address ? fetchEvaluatorHasSubmittedSolution(address as `0x${string}`, solutionId) : Promise.resolve(false),
+            address ? fetchEvaluationForSolutionByEvaluator(address as `0x${string}`, solutionId) : Promise.resolve(null),
           ]);
           setChallenge(fetchedChallenge);
-          setEvaluatorHasSumitted(fetchedSubmittedState);
-
-          if (fetchedSubmittedState) {
-            const fetchedScore = address ? await fetchSubmittedEvaluationScore(address as `0x${string}`, solutionId) : undefined;
-            setScore(fetchedScore);
-          }
+          setEvaluation(fetchedEvaluation);
         }
       } catch (error) {
         console.error(error);
       }
-    }
+    };
 
     fetchData();
   }, [submitting])
@@ -273,7 +264,7 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
                       <span className="text-sm font-medium text-muted-foreground">Participants</span>
                       <div className="flex items-center gap-1.5">
                         <Users className="h-full max-h-4 w-full max-w-4" />
-                        <span>{challenge.completed} completed</span>
+                        <span>{challenge.completed} done</span>
                       </div>
                     </div>
 
@@ -321,8 +312,8 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
                   {/* General info section */}
                   <h2 className="text-xl font-bold">General Info</h2>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-7">
-                    <div className="col-span-2 flex flex-col gap-1.5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
+                    <div className="flex flex-col gap-1.5">
                       <span className="text-sm font-medium text-muted-foreground">Submitter</span>
                       <div className="flex items-center gap-1.5">
                         <UserRoundPen className="h-full max-h-4 w-full max-w-4" />
@@ -352,7 +343,7 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
                       <span className="text-sm font-medium text-muted-foreground">Completed Evaluations</span>
                       <div className="flex items-center gap-1.5">
                         <FileCheck className="h-full max-h-4 w-full max-w-4" />
-                        <span>{solutionReviewPool.numberOfSubmittedEvaluation} / {solutionReviewPool.totalEvaluators} completed</span>
+                        <span>{solutionReviewPool.numberOfSubmittedEvaluation} / {solutionReviewPool.totalEvaluators} done</span>
                       </div>
                     </div>
 
@@ -363,6 +354,18 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
                         {
                           solutionReviewPool.solution.progress == ChallengeSolutionProgress.REVIEWED ?
                             <span>{solutionReviewPool.solution.score}</span> :
+                            <span>--</span>
+                        }
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-sm font-medium text-muted-foreground">Evaluation Completed Date</span>
+                      <div className="flex items-center gap-1.5">
+                        <CalendarCheck className="h-full max-h-4 w-full max-w-4" />
+                        {
+                          solutionReviewPool.solution.progress == ChallengeSolutionProgress.REVIEWED ?
+                            <span>{epochToDateTimeString(solutionReviewPool.completedAt!)}</span> :
                             <span>--</span>
                         }
                       </div>
@@ -380,13 +383,20 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
                   />
 
                   {
-                    evaluatorHasSumitted ? (
-                      <div className="flex space-x-2">
+                    evaluation?.isSubmitted ? (
+                      <div className="mt-10 flex flex-col sm:flex-row justify-between items-center bg-green-100 dark:bg-muted/70 p-6 rounded-lg">
                         {/* Display submitted score */}
-                        <p className="font-bold mb-2 flex items-center gap-1">
-                          Your Evaluation Score:
-                        </p>
-                        <p>{score}</p>
+                        <div className="flex gap-2">
+                          <h3 className="font-bold gap-1">
+                            Your Evaluation Score:
+                          </h3>
+                          <p>{evaluation.score}</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-1 justify-items-end text-xs text-muted-foreground">
+                          <p>Submitted on</p>
+                          <p>{epochToDateTimeString(evaluation.submittedAt!)}</p>
+                        </div>
                       </div>
                     ) : (
                       <div className="space-y-2">
@@ -427,7 +437,7 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
                           <Button
                             className="bg-green-500 hover:bg-green-600 cursor-pointer"
                             onClick={submitEvaluation}
-                            disabled={submitting || evaluatorHasSumitted}
+                            disabled={submitting || evaluation?.isSubmitted}
                           >
                             Submit
                           </Button>
@@ -438,9 +448,15 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
                 </TabsContent>
               </Tabs>
             </div>
-          </div >
+          </div>
         ) : (
-          <div></div>
+          <div className="text-center object-center py-12">
+            <h2 className="text-xl font-semibold mb-2">Solution not found</h2>
+            <p className="text-muted-foreground mb-6">
+              The solution you've joined for evaluation doesn't exist or has been removed.
+            </p>
+            <Button onClick={() => router.push(pageUrlMapping.evaluation_evaluatedbyme)}>Return to Evaluation Workspace</Button>
+          </div>
         )
       )
       }

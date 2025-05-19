@@ -303,7 +303,7 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                       <span className="text-sm font-medium text-muted-foreground">Participants</span>
                       <div className="flex items-center gap-1.5">
                         <Users className="h-full max-h-4 w-full max-w-4" />
-                        <span>{challenge.completed} completed</span>
+                        <span>{challenge.completed} done</span>
                       </div>
                     </div>
 

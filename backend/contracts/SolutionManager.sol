@@ -30,6 +30,7 @@ contract SolutionManager {
         mapping(address => bool) evaluator_joined;
         mapping(address => bool) evaluator_submitted;
         mapping(address => Evaluation) evaluator_to_evaluation;
+        uint256 completed_at;
     }
 
     struct UnderReviewSolutionPreview {
@@ -319,6 +320,9 @@ contract SolutionManager {
         // Update solution result
         sl.score = final_score;
         sl.progress = SystemEnums.SolutionProgress.REVIEWED;
+        // Update completed timestamp
+        uint256 done_at = block.timestamp * 1000;
+        pool.completed_at = done_at;
 
         // Remove from under review tracking
         is_under_review_solution[_solution_id] = false;
@@ -334,11 +338,7 @@ contract SolutionManager {
             }
         }
 
-        emit SolutionEvaluationFinalized(
-            _solution_id,
-            final_score,
-            block.timestamp * 1000
-        );
+        emit SolutionEvaluationFinalized(_solution_id, final_score, done_at);
 
         // Update number of completed user for this challenge
         challenge_manager.userCompleteChallenge(sl.challenge_id);
@@ -532,6 +532,18 @@ contract SolutionManager {
         return solution_to_evaluation_pool[_solution_id].evaluation_count;
     }
 
+    function getTimestampEvaluationCompleted(
+        uint256 _solution_id
+    ) public view returns (uint256) {
+        require(
+            solutions[_solution_id].progress ==
+                SystemEnums.SolutionProgress.REVIEWED,
+            "Solution hasn't been evaluated yet"
+        );
+
+        return solution_to_evaluation_pool[_solution_id].completed_at;
+    }
+
     function getScoreSubmittedByEvaluator(
         address _evaluator_address,
         uint256 _solution_id
@@ -546,6 +558,21 @@ contract SolutionManager {
 
         return
             pool.evaluator_to_evaluation[_evaluator_address].evaluation_score;
+    }
+
+    function getTimestampScoreSubmittedByEvaluator(
+        address _evaluator_address,
+        uint256 _solution_id
+    ) public view returns (uint256) {
+        EvaluationPool storage pool = solution_to_evaluation_pool[_solution_id];
+
+        require(
+            pool.evaluator_joined[_evaluator_address] &&
+                pool.evaluator_submitted[_evaluator_address],
+            "Evaluator not submitted score"
+        );
+
+        return pool.evaluator_to_evaluation[_evaluator_address].submitted_at;
     }
 
     function checkUserJoinedChallenge(

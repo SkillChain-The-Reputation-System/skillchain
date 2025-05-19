@@ -34,11 +34,11 @@ export function EmptySolution({ evaluationWorkspace }: EmptySolutionProps) {
           <p className="text-muted-foreground mb-6 max-w-md">
             You might have not joined any evaluation for a solution at the moment. Check back later or join now!
           </p>
-          <Button className="cursor-pointer" onClick={handleGoToPendingSolutions}>Go to Explore</Button>
+          <Button className="cursor-pointer" onClick={handleGoToPendingSolutions}>Go to Explore Solutions</Button>
         </>
       ) : (
         <p className="text-muted-foreground mb-6 max-w-md">
-          There are no challenges available at the moment. Please check back later.
+          There are no solutions available at the moment. Please check back later.
         </p>
       )}
     </div>

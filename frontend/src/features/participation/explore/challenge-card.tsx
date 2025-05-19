@@ -84,7 +84,7 @@ export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
 
               <div className="flex items-center">
                 <Users className="h-full max-h-3.5 w-full max-w-3.5 mr-1" />
-                <span>{challenge.completed} completed</span>
+                <span>{challenge.completed} done</span>
               </div>
             </div>
           </div>

@@ -39,9 +39,10 @@ import {
 interface ChallengeContentProps {
   challenge: ChallengeInterface | null;
   reload?: boolean;
+  className?: string; // Add className prop for styling
 }
 
-export function ChallengeContent({ challenge, reload }: ChallengeContentProps) {
+export function ChallengeContent({ challenge, reload, className }: ChallengeContentProps) {
   const [poolSize, setPoolSize] = useState<number | null>(null);
   const [quorum, setQuorum] = useState<number | null>(null);
 
@@ -68,9 +69,8 @@ export function ChallengeContent({ challenge, reload }: ChallengeContentProps) {
   }, [challenge, reload]);
 
   if (!challenge) return null;
-
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader>
         <div className="flex items-center justify-between mt-3.5">
           <CardTitle className="text-2xl">{challenge.title}</CardTitle>

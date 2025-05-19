@@ -34,6 +34,8 @@ export interface ModeratorReview {
     moderator: string;
     challenge_id: number;
     review_time: number;
+    review_txid: string;
+    is_submitted: boolean;
     relevance: QualityFactorAnswer;
     technical_correctness: QualityFactorAnswer;
     completeness: QualityFactorAnswer;
@@ -44,6 +46,7 @@ export interface ModeratorReview {
     suggested_difficulty: ChallengeDifficultyLevel;
     suggested_category: Domain;
     suggested_solve_time: number;
+    review_score: number;
 }
 
 export interface SolutionInterface {
@@ -64,4 +67,18 @@ export interface JoinedChallengePreview {
     progress: ChallengeSolutionProgress;
     joinedAt: number;
     score: number;
+}
+
+
+export interface ReviewData {
+  relevance: QualityFactorAnswer;
+  technical_correctness: QualityFactorAnswer;
+  completeness: QualityFactorAnswer;
+  clarity: QualityFactorAnswer;
+  originality: QualityFactorAnswer;
+  unbiased: QualityFactorAnswer;
+  plagiarism_free: QualityFactorAnswer;
+  suggested_difficulty: ChallengeDifficultyLevel;
+  suggested_category: Domain;
+  suggested_solve_time: number;
 }

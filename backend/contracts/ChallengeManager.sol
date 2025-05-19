@@ -153,7 +153,7 @@ contract ChallengeManager {
         contributor_to_challenges[msg.sender].push(challengeId);
 
         // Mark challenge is pending
-        is_pending_challenge[challengeId] == true;
+        is_pending_challenge[challengeId] = true;
         pending_challenges.push(challengeId);
 
         console.log(
@@ -333,7 +333,7 @@ contract ChallengeManager {
         if (average_score >= SystemConsts.REVIEW_THRESHOLD) {
             cl.status = SystemEnums.ChallengeStatus.APPROVED;
             // Mark challenge is approved
-            is_approved_challenge[_challenge_id] == true;
+            is_approved_challenge[_challenge_id] = true;
             approved_challenges.push(_challenge_id);
         } else {
             cl.status = SystemEnums.ChallengeStatus.REJECTED;
@@ -700,10 +700,10 @@ contract ChallengeManager {
         contributor_to_challenges[_contributor].push(challengeId);
 
         if (_status == SystemEnums.ChallengeStatus.PENDING) {
-            is_pending_challenge[challengeId] == true;
+            is_pending_challenge[challengeId] = true;
             pending_challenges.push(challengeId);
         } else if (_status == SystemEnums.ChallengeStatus.APPROVED) {
-            is_approved_challenge[challengeId] == true;
+            is_approved_challenge[challengeId] = true;
             approved_challenges.push(challengeId);
         }
 

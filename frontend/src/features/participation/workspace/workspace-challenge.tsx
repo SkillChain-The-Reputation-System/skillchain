@@ -42,7 +42,8 @@ import {
   Eye,
   Trophy,
   Save,
-  Send
+  Send,
+  CalendarDays
 } from "lucide-react";
 
 // Import utils
@@ -69,6 +70,7 @@ import {
   fetchSolutionByUserAndChallengeId,
   fetchNumberOfJoinedEvaluatorsById,
   fetchMaxEvaluatorsForSolutionById,
+  fetchTimestampEvaluationCompleted
 } from "@/lib/fetching-onchain-data-utils";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -91,15 +93,16 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
-  const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
-  const [solution, setSolution] = useState<SolutionInterface | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
   const [puttingUnderReview, setPuttingUnderReview] = useState(false);
 
+  const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
+  const [solution, setSolution] = useState<SolutionInterface | null>(null);
   // if solution is under review or reviewed
-  const [joinedEvaluators, setJoinedEvaluators] = useState(0);
-  const [totalEvaluators, setTotalEvaluators] = useState(0);
+  const [joinedEvaluators, setJoinedEvaluators] = useState<number>(0);
+  const [totalEvaluators, setTotalEvaluators] = useState<number>(0);
+  const [completedDate, setCompletedDate] = useState<number | undefined>(0);
 
   const form = useForm<SolutionFormValues>({
     resolver: zodResolver(solutionSchema),
@@ -188,14 +191,17 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
         if ((fetchedSolution?.progress == ChallengeSolutionProgress.UNDER_REVIEW) || (fetchedSolution?.progress == ChallengeSolutionProgress.REVIEWED)) {
           const [
             fetchedEvaluators,
-            fetchedTotalEvaluators
+            fetchedTotalEvaluators,
+            fetchedCompletedDate
           ] = await Promise.all([
             fetchNumberOfJoinedEvaluatorsById(Number(fetchedSolution.solutionId)),
-            fetchMaxEvaluatorsForSolutionById(Number(fetchedSolution.solutionId))
+            fetchMaxEvaluatorsForSolutionById(Number(fetchedSolution.solutionId)),
+            fetchTimestampEvaluationCompleted(Number(fetchedSolution.solutionId))
           ]);
 
           setJoinedEvaluators(fetchedEvaluators);
-          setTotalEvaluators(fetchedTotalEvaluators)
+          setTotalEvaluators(fetchedTotalEvaluators);
+          setCompletedDate(fetchedCompletedDate)
         }
 
       } catch (error) {
@@ -360,9 +366,9 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                     {/* Display submission date if solution is submitted */}
                     {solution.progress != ChallengeSolutionProgress.IN_PROGRESS && (
                       <div className="flex flex-col gap-1.5">
-                        <span className="text-sm font-medium text-muted-foreground">Submitted on</span>
+                        <span className="text-sm font-medium text-muted-foreground">Submission Date</span>
                         <div className="flex items-center gap-1.5">
-                          <CalendarCheck className="h-full max-h-4 w-full max-w-4" />
+                          <CalendarDays className="h-full max-h-4 w-full max-w-4" />
                           <span>{epochToDateTimeString(solution.submittedAt)}</span>
                         </div>
                       </div>
@@ -379,13 +385,23 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                     )}
 
                     {solution.progress == ChallengeSolutionProgress.REVIEWED && (
-                      <div className="flex flex-col gap-1.5">
-                        <span className="text-sm font-medium text-muted-foreground">Total Evaluators</span>
-                        <div className="flex items-center gap-1.5">
-                          <Eye className="h-full max-h-4 w-full max-w-4" />
-                          <span>{totalEvaluators} reviewed</span>
+                      <>
+                        <div className="flex flex-col gap-1.5">
+                          <span className="text-sm font-medium text-muted-foreground">Total Evaluators</span>
+                          <div className="flex items-center gap-1.5">
+                            <Eye className="h-full max-h-4 w-full max-w-4" />
+                            <span>{totalEvaluators} reviewed</span>
+                          </div>
                         </div>
-                      </div>
+
+                        <div className="flex flex-col gap-1.5">
+                          <span className="text-sm font-medium text-muted-foreground">Evaluation Completed Date</span>
+                          <div className="flex items-center gap-1.5">
+                            <CalendarCheck className="h-full max-h-4 w-full max-w-4" />
+                            <span>{epochToDateTimeString(completedDate!)}</span>
+                          </div>
+                        </div>
+                      </>
                     )}
                   </div>
                 </TabsContent>

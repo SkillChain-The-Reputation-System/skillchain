@@ -35,7 +35,11 @@ import {
 } from "lucide-react";
 
 // Import utils
-import { fetchSolutionReviewPool, fetchEvaluatorHasJoinedSolutionState, getChallengeById } from "@/lib/fetching-onchain-data-utils";
+import {
+  fetchSolutionReviewPool,
+  fetchEvaluatorHasJoinedSolutionState,
+  getChallengeById
+} from "@/lib/fetching-onchain-data-utils";
 import { joinEvaluationPool, waitForTransaction } from "@/lib/write-onchain-utils";
 import { SolutionReviewPool, ChallengeInterface } from "@/lib/interfaces";
 import {
@@ -193,7 +197,7 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
               <Tabs defaultValue="information">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="information" className="cursor-pointer">Challenge Information</TabsTrigger>
-                  <TabsTrigger value="solution" className="cursor-pointer">Solution</TabsTrigger>
+                  <TabsTrigger value="solution" className="cursor-pointer">Solution Information</TabsTrigger>
                 </TabsList>
                 {/* Challenge info section */}
                 <TabsContent value="information" className="space-y-8">
@@ -308,16 +312,6 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
                       </div>
                     </div>
                   </div>
-
-                  <Separator className='bg-black' />
-                  {/* Solution section */}
-                  <h2 className="text-xl font-bold">Solution</h2>
-
-                  <RichTextEditor
-                    value={solutionReviewPool.solution.solution}
-                    className="min-h-80 border-black dark:border-white border-1 rounded-md bg-slate-50 py-2 px-3 dark:bg-blue-950/15 break-all"
-                    editable={false}
-                  />
                 </TabsContent>
               </Tabs>
             </div>

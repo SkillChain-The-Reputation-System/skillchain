@@ -47,6 +47,16 @@ library SystemEnums {
         UNDER_REVIEW,
         REVIEWED
     }
+
+    // --- Job Status Constants ---
+    enum JobStatus {
+        DRAFT, 
+        OPEN,
+        PAUSED,
+        CLOSED,
+        FILLED, 
+        ARCHIVED
+    }
 }
 
 library Weights {

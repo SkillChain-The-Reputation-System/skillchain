@@ -342,7 +342,7 @@ contract ChallengeManager {
 
         // Remove challenge from pending tracking
         is_pending_challenge[_challenge_id] = false;
-        // Remove challenge from spending_challenges array
+        // Remove challenge from pending_challenges array
         for (uint256 i = 0; i < pending_challenges.length; i++) {
             if (pending_challenges[i] == _challenge_id) {
                 // Replace with the last element and pop

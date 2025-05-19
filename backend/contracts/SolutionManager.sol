@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 import "./Constants.sol";
 import "./ReputationManager.sol";
 import "./ChallengeManager.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract SolutionManager {
     // ================= STRUCTS =================
@@ -309,7 +310,10 @@ contract SolutionManager {
 
             uint256 reputation_weight = SystemConsts
                 .REPUTATION_WEIGHT_FOR_SCORING +
-                uint256(evaluator_domain_reputation);
+                Math.log2(
+                    SystemConsts.REPUTATION_WEIGHT_FOR_SCORING +
+                        uint256(evaluator_domain_reputation)
+                );
 
             total_score += evaluation.evaluation_score * reputation_weight;
             total_reputation_weight += reputation_weight;

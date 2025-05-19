@@ -11,7 +11,7 @@ import { WorkspaceCard } from "@/features/participation/workspace/workspace-card
 import { ChallengeSkeleton } from "@/features/participation/challenge-skeleton";
 import { EmptyChallenge } from "@/features/participation/empty-challenge";
 import SearchBar from "@/features/participation/workspace/search-bar"
-import { Pagination } from "@/features/participation/pagination";
+import { Pagination } from "@/components/pagination";
 
 // Import utils
 import { JoinedChallengePreview } from "@/lib/interfaces"

@@ -10,7 +10,7 @@ import { SolutionCard } from "@/features/evaluation/solution-card"
 import { SolutionSkeleton } from "@/features/evaluation/solution-skeleton"
 import { EmptySolution } from "@/features/evaluation/empty-solution";
 import SearchBar from "@/features/evaluation/pending-solutions/search-bar"
-import { Pagination } from "@/features/evaluation/pagination"
+import { Pagination } from "@/components/pagination";
 
 // Import utils
 import { fetchUnderReviewSolutionsPreview } from "@/lib/fetching-onchain-data-utils";

@@ -11,6 +11,7 @@ import { SolutionCard } from "@/features/evaluation/solution-card"
 import { SolutionSkeleton } from "@/features/evaluation/solution-skeleton"
 import { EmptySolution } from "@/features/evaluation/empty-solution";
 import SearchBar from "@/features/evaluation/evaluated-by-me/search-bar"
+import { Pagination } from "@/components/pagination";
 
 // Import utils
 import { fetchUnderReviewSolutionsPreviewByEvaluator } from "@/lib/fetching-onchain-data-utils";
@@ -152,6 +153,10 @@ export default function EvaluationPools({ query, domain, page }: EvaluationPools
                   {currentSearchedSolutions.map((solution, index) => (
                     <SolutionCard key={index} solutionPreview={solution} onClick={cardOnClick} forEvaluator />
                   ))}
+                </div>
+
+                <div className="mt-8 flex flex-col items-center space-y-4">
+                  <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
                 </div>
               </div>
             ) : (

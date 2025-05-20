@@ -102,7 +102,7 @@ export function GenericChallengeCard({
       <Card className="w-full h-full group gap-3 overflow-hidden bg-blue-100 dark:bg-blue-950/60 transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-lg dark:hover:shadow-blue-900/20 border-transparent hover:border-blue-300 dark:hover:border-blue-700">
         <CardHeader>
           <div className="flex justify-between items-start">
-            <CardTitle className="text-xl font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+            <CardTitle className="text-xl font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 wrap-anywhere">
               {challenge.title}
             </CardTitle>
             {showStatus && (
@@ -122,7 +122,7 @@ export function GenericChallengeCard({
           </div>
 
           <div
-            className="line-clamp-2 mt-1 text-muted-foreground text-sm"
+            className="line-clamp-2 mt-1 text-muted-foreground text-sm break-all"
             dangerouslySetInnerHTML={{ __html: challenge.description || "" }}
           />
         </CardHeader>
@@ -186,7 +186,7 @@ export function GenericChallengeCard({
               {showParticipants && (
                 <div className="flex items-center">
                   <Users className="h-3.5 w-3.5 mr-1" />
-                  <span>{0} joined</span>
+                  <span>{challenge.completed} completed</span>
                 </div>
               )}
             </div>
@@ -264,7 +264,7 @@ export function GenericChallengeCard({
               </span>
               <div className="flex items-center">
                 <Users className="h-full max-h-3.5 w-full max-w-3.5 mr-1 text-muted-foreground" />
-                <span>0 enrolled</span>
+                <span>{challenge.completed} completed</span>
               </div>
             </div>
 

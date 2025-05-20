@@ -25,7 +25,7 @@ import {
 } from "@/constants/system";
 import { epochToDateString } from "@/lib/time-utils";
 
-export interface ChallengeCardProps {
+interface ChallengeCardProps {
   challenge: ChallengeInterface;
   onClick: (id: string) => void;
 }
@@ -40,13 +40,13 @@ export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
         onClick={() => onClick(challenge.id!)}>
         <CardHeader>
           <div className="space-y-1.5">
-            <CardTitle className="text-sm font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+            <CardTitle className="text-sm font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition line-clamp-2 wrap-anywhere">
               {challenge.title}
             </CardTitle>
           </div>
 
           <div
-            className="line-clamp-2 mt-1 text-muted-foreground text-xs font-light disable-click-links no-images"
+            className="line-clamp-2 mt-1 text-muted-foreground text-xs font-light disable-click-links no-images break-all"
             dangerouslySetInnerHTML={{ __html: challenge.description || "" }}
           />
         </CardHeader>
@@ -84,7 +84,7 @@ export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
 
               <div className="flex items-center">
                 <Users className="h-full max-h-3.5 w-full max-w-3.5 mr-1" />
-                <span>{0} joined</span>
+                <span>{challenge.completed} done</span>
               </div>
             </div>
           </div>

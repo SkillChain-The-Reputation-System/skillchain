@@ -2,7 +2,7 @@
 
 // Import hooks
 import { useForm } from "react-hook-form";
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useAccount } from 'wagmi'
 import { useRouter } from 'next/navigation'
 
@@ -29,6 +29,7 @@ import RichTextEditor from '@/components/rich-text-editor'
 
 // Import lucide-react icons
 import {
+  ArrowBigUpDash,
   ArrowLeft,
   CalendarArrowUp,
   Clock,
@@ -41,7 +42,8 @@ import {
   Eye,
   Trophy,
   Save,
-  Send
+  Send,
+  CalendarDays
 } from "lucide-react";
 
 // Import utils
@@ -57,8 +59,19 @@ import {
   ChallengeSolutionProgress,
   ChallengeSolutionProgressLabels
 } from '@/constants/system'
-import { saveSolutionDraft, submitSolution, waitForTransaction } from '@/lib/write-onchain-utils'
-import { getChallengeById, fetchSolutionByUserAndChallengeId } from "@/lib/fetching-onchain-data-utils";
+import {
+  saveSolutionDraft,
+  submitSolution,
+  putSolutionUnderReview,
+  waitForTransaction
+} from '@/lib/write-onchain-utils'
+import {
+  getChallengeById,
+  fetchSolutionByUserAndChallengeId,
+  fetchNumberOfJoinedEvaluatorsById,
+  fetchMaxEvaluatorsForSolutionById,
+  fetchTimestampEvaluationCompleted
+} from "@/lib/fetching-onchain-data-utils";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { pageUrlMapping } from "@/constants/navigation"
@@ -80,10 +93,16 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
-  const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
-  const [solution, setSolution] = useState<SolutionInterface | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
+  const [puttingUnderReview, setPuttingUnderReview] = useState(false);
+
+  const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
+  const [solution, setSolution] = useState<SolutionInterface | null>(null);
+  // if solution is under review or reviewed
+  const [joinedEvaluators, setJoinedEvaluators] = useState<number>(0);
+  const [totalEvaluators, setTotalEvaluators] = useState<number>(0);
+  const [completedDate, setCompletedDate] = useState<number | undefined>(0);
 
   const form = useForm<SolutionFormValues>({
     resolver: zodResolver(solutionSchema),
@@ -131,6 +150,22 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
     })();
   }
 
+  async function onPutUnderReview() {
+    if (!address || !challenge || !solution) {
+      return;
+    }
+
+    try {
+      setPuttingUnderReview(true);
+      await putSolutionUnderReview(Number(challenge_id), address);
+      toast.success("You've put this solution under review");
+    } catch (error: any) {
+      toast.error("Error occurs. Please try again!");
+    } finally {
+      setPuttingUnderReview(false);
+    }
+  }
+
   // fetch data once
   useEffect(() => {
     const fetchData = async () => {
@@ -152,6 +187,22 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
 
         if (fetchedSolution && fetchedSolution.solution?.trim().length !== 0)
           form.reset({ solution: fetchedSolution.solution })
+
+        if ((fetchedSolution?.progress == ChallengeSolutionProgress.UNDER_REVIEW) || (fetchedSolution?.progress == ChallengeSolutionProgress.REVIEWED)) {
+          const [
+            fetchedEvaluators,
+            fetchedTotalEvaluators,
+            fetchedCompletedDate
+          ] = await Promise.all([
+            fetchNumberOfJoinedEvaluatorsById(Number(fetchedSolution.solutionId)),
+            fetchMaxEvaluatorsForSolutionById(Number(fetchedSolution.solutionId)),
+            fetchTimestampEvaluationCompleted(Number(fetchedSolution.solutionId))
+          ]);
+
+          setJoinedEvaluators(fetchedEvaluators);
+          setTotalEvaluators(fetchedTotalEvaluators);
+          setCompletedDate(fetchedCompletedDate)
+        }
 
       } catch (error) {
         toast.error("Error occurs. Please try again");
@@ -178,7 +229,7 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
     }
 
     fetchedData();
-  }, [submitting])
+  }, [submitting, puttingUnderReview])
 
   return (
     <>
@@ -205,7 +256,7 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
               {/* Header section */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="space-y-2">
-                  <h1 className="text-3xl font-bold">{challenge.title}</h1>
+                  <h1 className="text-3xl font-bold break-all">{challenge.title}</h1>
                 </div>
 
                 <Badge className={cn("text-md font-bold", solutionProgressStyles[solution.progress as keyof typeof solutionProgressStyles])}>
@@ -258,7 +309,7 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                       <span className="text-sm font-medium text-muted-foreground">Participants</span>
                       <div className="flex items-center gap-1.5">
                         <Users className="h-full max-h-4 w-full max-w-4" />
-                        <span>{0} enrolled</span>
+                        <span>{challenge.completed} done</span>
                       </div>
                     </div>
 
@@ -305,29 +356,52 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-sm font-medium text-muted-foreground">Reviewer</span>
-                      <div className="flex items-center gap-1.5">
-                        <Eye className="h-full max-h-4 w-full max-w-4" />
-                        <span>{0} joined</span>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
                       <span className="text-sm font-medium text-muted-foreground">Score</span>
                       <div className="flex items-center gap-1.5">
                         <Trophy className="h-full max-h-4 w-full max-w-4 text-amber-500 dark:text-amber-400 fill-current" />
-                        <span>{solution.progress != ChallengeSolutionProgress.REVIEWED ? "--" : "??"}</span>
+                        <span>{solution.progress != ChallengeSolutionProgress.REVIEWED ? "--" : solution.score}</span>
                       </div>
                     </div>
 
+                    {/* Display submission date if solution is submitted */}
                     {solution.progress != ChallengeSolutionProgress.IN_PROGRESS && (
                       <div className="flex flex-col gap-1.5">
-                        <span className="text-sm font-medium text-muted-foreground">Submitted on</span>
+                        <span className="text-sm font-medium text-muted-foreground">Submission Date</span>
                         <div className="flex items-center gap-1.5">
-                          <CalendarCheck className="h-full max-h-4 w-full max-w-4" />
+                          <CalendarDays className="h-full max-h-4 w-full max-w-4" />
                           <span>{epochToDateTimeString(solution.submittedAt)}</span>
                         </div>
                       </div>
+                    )}
+
+                    {solution.progress == ChallengeSolutionProgress.UNDER_REVIEW && (
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-sm font-medium text-muted-foreground">Evaluators</span>
+                        <div className="flex items-center gap-1.5">
+                          <Eye className="h-full max-h-4 w-full max-w-4" />
+                          <span>{joinedEvaluators} / {totalEvaluators} joined</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {solution.progress == ChallengeSolutionProgress.REVIEWED && (
+                      <>
+                        <div className="flex flex-col gap-1.5">
+                          <span className="text-sm font-medium text-muted-foreground">Total Evaluators</span>
+                          <div className="flex items-center gap-1.5">
+                            <Eye className="h-full max-h-4 w-full max-w-4" />
+                            <span>{totalEvaluators} reviewed</span>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-1.5">
+                          <span className="text-sm font-medium text-muted-foreground">Evaluation Completed Date</span>
+                          <div className="flex items-center gap-1.5">
+                            <CalendarCheck className="h-full max-h-4 w-full max-w-4" />
+                            <span>{epochToDateTimeString(completedDate!)}</span>
+                          </div>
+                        </div>
+                      </>
                     )}
                   </div>
                 </TabsContent>
@@ -342,7 +416,7 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                 {/* Solution section */}
                 <TabsContent value="solution">
                   <Separator className='bg-black' />
-
+                  {/* Rich Text Editor for user working on solution */}
                   <Form {...form}>
                     <form
                       className="w-full mt-8 space-y-8"
@@ -367,31 +441,53 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                     </form>
                   </Form>
 
+                  {/* Display buttons according to status of solution */}
                   <div className="flex justify-end items-center gap-5 mt-5">
                     {
-                      (solution.progress == ChallengeSolutionProgress.IN_PROGRESS) &&
-                      <Button
-                        variant="outline"
-                        size="lg"
-                        className="flex items-center gap-2 cursor-pointer border border-zinc-700"
-                        onClick={onSaveDraft}
-                        disabled={savingDraft || submitting}
-                      >
-                        <Save className="h-4 w-4" />
-                        Save draft
-                      </Button>
+                      solution.progress == ChallengeSolutionProgress.IN_PROGRESS ?
+                        (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="lg"
+                              className="flex items-center gap-2 cursor-pointer border border-zinc-700"
+                              onClick={onSaveDraft}
+                              disabled={savingDraft || submitting}
+                            >
+                              <Save className="h-4 w-4" />
+                              Save draft
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              size="lg"
+                              className="flex items-center gap-2 cursor-pointer shrink-0 bg-zinc-700 hover:bg-zinc-700/60 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/60"
+                              onClick={onSubmit}
+                              disabled={savingDraft || submitting}
+                            >
+                              <Send className="h-4 w-4" />
+                              Submit
+                            </Button>
+                          </>
+                        ) : solution.progress == ChallengeSolutionProgress.SUBMITTED ? (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="lg"
+                              className="flex items-center gap-2 cursor-pointer border bg-purple-800 hover:bg-purple-800/60 text-white dark:bg-purple-400 dark:hover:bg-purple-400/60 dark:text-black"
+                              onClick={onPutUnderReview}
+                              disabled={puttingUnderReview}
+                            >
+                              <ArrowBigUpDash className="h-4 w-4" />
+                              Put Under Review
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                          </>
+                        )
                     }
 
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="flex items-center gap-2 cursor-pointer shrink-0 bg-zinc-700 hover:bg-zinc-700/60 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/60"
-                      onClick={onSubmit}
-                      disabled={savingDraft || submitting || solution.progress != ChallengeSolutionProgress.IN_PROGRESS}
-                    >
-                      <Send className="h-4 w-4" />
-                      Submit
-                    </Button>
                   </div>
                 </TabsContent>
               </Tabs>

@@ -10,6 +10,10 @@ const ChallengeManagerModule = buildModule("ChallengeManagerModule", (m) => {
   m.call(challengeManager, "setReputationManagerAddress", [reputationManager]);
   // Set the solution manager address on the ChallengeManager
   m.call(challengeManager, "setSolutionManagerAddress", [solutionManager]);
+  // Set the challenge manager address on the SolutionManager
+  m.call(solutionManager, "setChallengeManagerAddress", [challengeManager]);
+  // Set the reputation manage addrss on the SolutionManager
+  m.call(solutionManager, "setReputationManagerAddress", [reputationManager]);
 
   // Return both contracts
   return { challengeManager, reputationManager, solutionManager };

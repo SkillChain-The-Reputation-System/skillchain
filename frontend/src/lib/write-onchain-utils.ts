@@ -226,6 +226,52 @@ export async function submitSolution(
   return txHash;
 }
 
+export async function putSolutionUnderReview(
+  challengeId: number,
+  address: `0x${string}`
+) {
+  const txHash = await writeContract(wagmiConfig, {
+    address: ContractConfig_SolutionManager.address as `0x${string}`,
+    abi: ContractConfig_SolutionManager.abi,
+    functionName: "putSolutionUnderReview",
+    args: [challengeId],
+    account: address,
+  });
+
+  return txHash;
+}
+
+export async function joinEvaluationPool(
+  solutionId: number,
+  address: `0x${string}`
+) {
+  const txHash = await writeContract(wagmiConfig, {
+    address: ContractConfig_SolutionManager.address as `0x${string}`,
+    abi: ContractConfig_SolutionManager.abi,
+    functionName: "evaluatorJoinSolution",
+    args: [solutionId],
+    account: address,
+  });
+
+  return txHash;
+}
+
+export async function submitEvaluationScore(
+  solutionId: number,
+  address: `0x${string}`,
+  score: number
+) {
+  const txHash = await writeContract(wagmiConfig, {
+    address: ContractConfig_SolutionManager.address as `0x${string}`,
+    abi: ContractConfig_SolutionManager.abi,
+    functionName: "evaluatorSubmitScore",
+    args: [solutionId, score],
+    account: address,
+  });
+
+  return txHash;
+}
+
 export async function updateProfile(
   address: `0x${string}`,
   data: ProfileFormValues

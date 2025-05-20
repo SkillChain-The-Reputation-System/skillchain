@@ -11,7 +11,7 @@ import { WorkspaceCard } from "@/features/participation/workspace/workspace-card
 import { ChallengeSkeleton } from "@/features/participation/challenge-skeleton";
 import { EmptyChallenge } from "@/features/participation/empty-challenge";
 import SearchBar from "@/features/participation/workspace/search-bar"
-import { Pagination } from "@/features/participation/pagination";
+import { Pagination } from "@/components/pagination";
 
 // Import utils
 import { JoinedChallengePreview } from "@/lib/interfaces"
@@ -127,19 +127,6 @@ export default function Workspace({ query, domain, progress, page }: WorkspacePr
 
         return matchesDomain && matchesProgress && matchesQuery;
       })
-    // .sort((a, b) => {
-    //   switch (true) {
-    //     // case ChallengeSortOption.QUALITY:
-    //     //   return Number(b.qualityScore) - Number(a.qualityScore);
-    //     // // case ChallengeSortOption.VOTES:
-    //     // //   return Number(b.totalVotes ?? 0) - Number(a.totalVotes ?? 0);
-    //     // // case ChallengeSortOption.PARTICIPANTS:
-    //     // //   return Number(b.totalParticipants ?? 0) - Number(a.totalParticipants ?? 0);
-    //     // case ChallengeSortOption.NEWEST:
-    //     default:
-    //       return Number(b.joinedAt) - Number(a.joinedAt);
-    //   }
-    // });
   }, [previewList, searchQuery, domainFilter, progressFilter]);
 
   // caculate total pages to display total searched challenges
@@ -165,15 +152,15 @@ export default function Workspace({ query, domain, progress, page }: WorkspacePr
       {
         address && (
           isLoading ? (
-            <div className="grid grid-cols-1 w-full max-w-5xl mx-auto">
-              {[...Array(8)].map((_, index) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-6xl mx-auto">
+              {[...Array(6)].map((_, index) => (
                 <ChallengeSkeleton key={index} />
               ))}
             </div>
           ) : previewList.length > 0 ? (
             currentSearchedPreviews.length > 0 ? (
               <div className="w-full max-w-6xl mx-auto">
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {currentSearchedPreviews.map((challengePreview, index) => (
                     <WorkspaceCard key={index} previewChallenge={challengePreview} onClick={cardOnClick} />
                   ))}

@@ -8,9 +8,9 @@ import { useRouter } from "next/navigation";
 import SearchBar from "@/features/participation/explore/search-bar"
 import { Button } from "@/components/ui/button";
 import { ChallengeCard } from "@/features/participation/explore/challenge-card";
-import { Pagination } from "@/features/participation/pagination";
 import { ChallengeSkeleton } from "@/features/participation/challenge-skeleton";
 import { EmptyChallenge } from "@/features/participation/empty-challenge";
+import { Pagination } from "@/components/pagination";
 
 // Import utils
 import { ChallengeInterface } from "@/lib/interfaces";
@@ -127,8 +127,8 @@ export default function Explore({ query, sort, domain, page }: ExploreProps) {
             return Number(b.qualityScore) - Number(a.qualityScore);
           // case ChallengeSortOption.VOTES:
           //   return Number(b.totalVotes ?? 0) - Number(a.totalVotes ?? 0);
-          // case ChallengeSortOption.PARTICIPANTS:
-          //   return Number(b.totalParticipants ?? 0) - Number(a.totalParticipants ?? 0);
+          case ChallengeSortOption.PARTICIPANTS:
+            return Number(b.completed ?? 0) - Number(a.completed ?? 0);
           case ChallengeSortOption.NEWEST:
           default:
             return Number(b.contributeAt) - Number(a.contributeAt);
@@ -159,7 +159,7 @@ export default function Explore({ query, sort, domain, page }: ExploreProps) {
 
       {
         isLoading ? (
-          <div className="grid grid-cols-4 gap-4 w-full max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-6xl mx-auto">
             {[...Array(itemsPerPage)].map((_, index) => (
               <ChallengeSkeleton key={index} />
             ))}
@@ -167,7 +167,7 @@ export default function Explore({ query, sort, domain, page }: ExploreProps) {
         ) : challenges.length > 0 ? (
           currentSearchedChallenges.length > 0 ? (
             <div>
-              <div className="grid grid-cols-4 gap-4 w-full max-w-6xl mx-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-6xl mx-auto">
                 {currentSearchedChallenges.map((challenge, index) => (
                   <ChallengeCard key={index} challenge={challenge} onClick={cardOnClick} />
                 ))}

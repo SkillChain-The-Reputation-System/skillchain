@@ -74,7 +74,6 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
       const txHash = await userJoinChallenge(Number(challenge_id), address);
       await waitForTransaction(txHash);
       toast.success("You have joined this challenge");
-      setHasJoined(true);
     } catch (error: any) {
       toast.error("Error occurs. Please try again!");
     } finally {
@@ -111,6 +110,19 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
     fetchData();
   }, [address]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const fetchHasJoinedState = address ? await fetchUserHasJoinedChallengeState(address, challenge_id) : false;
+        setHasJoined(fetchHasJoinedState);
+      } catch (error: any) {
+        console.error("Error during data fetching:", error);
+      }
+    }
+
+    fetchData();
+  }, [joining])
+
   return (
     <>
       {
@@ -137,7 +149,7 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
                 {/* Header Section */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div className="space-y-2">
-                    <h1 className="text-3xl font-bold">{challenge.title}</h1>
+                    <h1 className="text-3xl font-bold break-all">{challenge.title}</h1>
                   </div>
                   {hasJoined ? (
                     <div>
@@ -193,7 +205,7 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
                     <span className="text-sm font-medium text-muted-foreground">Participants</span>
                     <div className="flex items-center gap-1.5">
                       <Users className="h-full max-h-4 w-full max-w-4" />
-                      <span>{0} enrolled</span>
+                      <span>{challenge.completed} done</span>
                     </div>
                   </div>
 

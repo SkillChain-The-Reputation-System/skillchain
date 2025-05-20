@@ -23,6 +23,7 @@ export interface ChallengeInterface {
     qualityScore: number;
     difficultyLevel: ChallengeDifficultyLevel;
     solveTime: number;
+    completed: number;
 }
 
 export interface GetCurrentTimeResponse {
@@ -50,6 +51,7 @@ export interface ModeratorReview {
 }
 
 export interface SolutionInterface {
+    solutionId: string;
     user: string | undefined;
     challengeId: string | undefined;
     solution: string | undefined;
@@ -69,16 +71,41 @@ export interface JoinedChallengePreview {
     score: number;
 }
 
-
 export interface ReviewData {
-  relevance: QualityFactorAnswer;
-  technical_correctness: QualityFactorAnswer;
-  completeness: QualityFactorAnswer;
-  clarity: QualityFactorAnswer;
-  originality: QualityFactorAnswer;
-  unbiased: QualityFactorAnswer;
-  plagiarism_free: QualityFactorAnswer;
-  suggested_difficulty: ChallengeDifficultyLevel;
-  suggested_category: Domain;
-  suggested_solve_time: number;
+    relevance: QualityFactorAnswer;
+    technical_correctness: QualityFactorAnswer;
+    completeness: QualityFactorAnswer;
+    clarity: QualityFactorAnswer;
+    originality: QualityFactorAnswer;
+    unbiased: QualityFactorAnswer;
+    plagiarism_free: QualityFactorAnswer;
+    suggested_difficulty: ChallengeDifficultyLevel;
+    suggested_category: Domain;
+    suggested_solve_time: number;
+}
+
+export interface UnderReviewSolutionPreview {
+    solutionId: string;
+    submitter: string | undefined;
+    challengeTitle: string | undefined;
+    category: string | Domain;
+    solution: string | undefined;
+    submittedAt: number;
+    progress: ChallengeSolutionProgress;
+    numberOfEvaluators: number;
+    totalEvaluators: number;
+}
+
+export interface SolutionReviewPool {
+    solution: SolutionInterface;
+    numberOfEvaluators: number;
+    numberOfSubmittedEvaluation: number;
+    totalEvaluators: number;
+    completedAt: number | undefined;
+}
+
+export interface EvaluationInterface {
+    isSubmitted: boolean;
+    score: number | undefined;
+    submittedAt: number | undefined;
 }

@@ -15,4 +15,7 @@ export const pageUrlMapping = {
     participation: "/dashboard/participation",
     participation_explore: "/dashboard/participation/explore",
     participation_workspace: "/dashboard/participation/workspace",
+    evaluation: "/dashboard/evaluation",
+    evaluation_pendingsolutions: "/dashboard/evaluation/pending-solutions",
+    evaluation_evaluatedbyme: "/dashboard/evaluation/evaluated-by-me",
 }

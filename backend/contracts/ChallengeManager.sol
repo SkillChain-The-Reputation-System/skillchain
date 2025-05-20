@@ -19,6 +19,7 @@ contract ChallengeManager {
         uint256 quality_score;
         SystemEnums.DifficultyLevel difficulty_level;
         uint256 solve_time;
+        uint256 completed;
     }
 
     struct ModeratorReview {
@@ -72,6 +73,14 @@ contract ChallengeManager {
     mapping(address => uint256[]) private moderator_to_challenges;
     // Mapping: User address -> Joined challenge IDs
     mapping(address => uint256[]) private user_to_joined_challenges;
+    // Mapping: Challenge ID -> Is pending
+    mapping(uint256 => bool) is_pending_challenge;
+    // Array of pending challenges
+    uint256[] private pending_challenges;
+    // Mapping: Challenge ID -> Is approved
+    mapping(uint256 => bool) is_approved_challenge;
+    // Array of approved challenges
+    uint256[] private approved_challenges;
 
     ReputationManager private reputation_manager; // ReputationManager instance
     address private reputation_manager_address; // ReputationManager address
@@ -79,8 +88,6 @@ contract ChallengeManager {
     address private solution_manager_address; // SolutionManager address
 
     uint256 public total_challenges = 0;
-    uint256 public pending_challenges = 0;
-    uint256 public approved_challenges = 0;
 
     // ================= EVENTS =================
     event ChallengeContributed(
@@ -108,13 +115,6 @@ contract ChallengeManager {
         uint256 joinedAt
     );
 
-    event SolutionSubmitted(
-        address indexed user,
-        uint256 challengeId,
-        string solutionUrl,
-        uint256 submittedAt
-    );
-
     // ================= MODIFIER =================
     // Modifier to check if the challenge is finalized
     modifier onlyBeforeFinalized(uint256 challenge_id) {
@@ -129,27 +129,32 @@ contract ChallengeManager {
     function contributeChallenge(
         string calldata _title_url,
         string calldata _description_url,
-        SystemEnums.Domain _category,
-        uint256 _contribute_at
+        SystemEnums.Domain _category
     ) external {
         uint256 challengeId = total_challenges++;
         uint256 contributeAt = block.timestamp * 1000;
 
+        // Create a challenge
         challenges[challengeId] = Challenge({
             id: challengeId,
             contributor: msg.sender,
             title_url: _title_url,
             description_url: _description_url,
             category: _category,
-            contribute_at: _contribute_at,
+            contribute_at: contributeAt,
             status: SystemEnums.ChallengeStatus.PENDING,
             quality_score: 0,
             difficulty_level: SystemEnums.DifficultyLevel.EASY,
-            solve_time: 0
+            solve_time: 0,
+            completed: 0
         });
 
+        // Mark contributor to this challenge
         contributor_to_challenges[msg.sender].push(challengeId);
-        pending_challenges++;
+
+        // Mark challenge is pending
+        is_pending_challenge[challengeId] = true;
+        pending_challenges.push(challengeId);
 
         console.log(
             "Challenge #%s contributed by %s at %s with:",
@@ -174,17 +179,17 @@ contract ChallengeManager {
         uint256 _challenge_id,
         string calldata _review_txid
     ) public onlyBeforeFinalized(_challenge_id) {
+        ReviewPool storage pool = review_pool[_challenge_id];
+
         // Prevent joining the review pool if maximum number of moderators is reached
         require(
-            review_pool[_challenge_id].moderator_list.length <
-                SystemConsts.REVIEW_QUORUM,
+            pool.moderator_list.length < SystemConsts.REVIEW_QUORUM,
             "Max moderators reached"
         );
 
         // Prevent duplicate joining of the same review pool
         require(
-            review_pool[_challenge_id].moderator_to_join_status[msg.sender] ==
-                false,
+            pool.moderator_to_join_status[msg.sender] == false,
             "You have already joined this review pool."
         );
 
@@ -196,8 +201,8 @@ contract ChallengeManager {
 
         // Add new challenge to the moderator's list of challenges
         moderator_to_challenges[msg.sender].push(_challenge_id);
+
         // Use a storage reference for cleaner access
-        ReviewPool storage pool = review_pool[_challenge_id];
         pool.moderator_list.push(msg.sender);
         pool.moderator_to_join_status[msg.sender] = true;
 
@@ -227,10 +232,11 @@ contract ChallengeManager {
         SystemEnums.Domain _suggested_category,
         uint256 _suggested_solve_time
     ) public onlyBeforeFinalized(_challenge_id) {
+        ReviewPool storage pool = review_pool[_challenge_id];
+
         // Check if the moderator has joined the review pool
         require(
-            review_pool[_challenge_id].moderator_to_join_status[msg.sender] ==
-                true,
+            pool.moderator_to_join_status[msg.sender] == true,
             "You have not joined this review pool."
         );
 
@@ -241,8 +247,6 @@ contract ChallengeManager {
                 .is_submitted == false,
             "You have already submitted a review."
         );
-
-        ReviewPool storage pool = review_pool[_challenge_id];
 
         // Increment the review count
         pool.review_count++;
@@ -286,19 +290,17 @@ contract ChallengeManager {
         // Check if the challenge is already finalized
         require(!_pool.is_finalized, "Challenge already finalized");
 
+        Challenge storage cl = challenges[_challenge_id];
+
         // Consolidate the challenge category, difficulty level and estimated solve time
-        challenges[_challenge_id].category = _consolidateChallengeCategory(
-            _challenge_id,
-            _pool
-        );
+        cl.category = _consolidateChallengeCategory(_challenge_id, _pool);
         console.log(
             "Final category for challenge #%s: %s",
             _challenge_id,
             uint256(challenges[_challenge_id].category)
         );
 
-        challenges[_challenge_id]
-            .difficulty_level = _consolidateChallengeDifficulty(
+        cl.difficulty_level = _consolidateChallengeDifficulty(
             _challenge_id,
             _pool
         );
@@ -308,10 +310,7 @@ contract ChallengeManager {
             uint256(challenges[_challenge_id].difficulty_level)
         );
 
-        challenges[_challenge_id].solve_time = _consolidateChallengeSolveTime(
-            _challenge_id,
-            _pool
-        );
+        cl.solve_time = _consolidateChallengeSolveTime(_challenge_id, _pool);
         console.log(
             "Final estimated solve time for challenge #%s: %s",
             _challenge_id,
@@ -332,44 +331,47 @@ contract ChallengeManager {
 
         // Update the challenge status based on the average score
         if (average_score >= SystemConsts.REVIEW_THRESHOLD) {
-            challenges[_challenge_id].status = SystemEnums
-                .ChallengeStatus
-                .APPROVED;
-            pending_challenges--;
-            approved_challenges++;
+            cl.status = SystemEnums.ChallengeStatus.APPROVED;
+            // Mark challenge is approved
+            is_approved_challenge[_challenge_id] = true;
+            approved_challenges.push(_challenge_id);
         } else {
-            challenges[_challenge_id].status = SystemEnums
-                .ChallengeStatus
-                .REJECTED;
-            pending_challenges--;
+            cl.status = SystemEnums.ChallengeStatus.REJECTED;
         }
+        cl.quality_score = average_score;
 
-        // Update the challenge quality score
-        challenges[_challenge_id].quality_score = average_score;
+        // Remove challenge from pending tracking
+        is_pending_challenge[_challenge_id] = false;
+        // Remove challenge from pending_challenges array
+        for (uint256 i = 0; i < pending_challenges.length; i++) {
+            if (pending_challenges[i] == _challenge_id) {
+                // Replace with the last element and pop
+                pending_challenges[i] = pending_challenges[
+                    pending_challenges.length - 1
+                ];
+                pending_challenges.pop();
+                break;
+            }
+        }
 
         // Mark the review pool as finalized
         _pool.is_finalized = true;
 
-        emit ChallengeFinalized(
-            _challenge_id,
-            challenges[_challenge_id].status,
-            challenges[_challenge_id].quality_score
-        );
+        emit ChallengeFinalized(_challenge_id, cl.status, cl.quality_score);
 
         // Update contributor's and moderators' reputation scores
         if (reputation_manager_address != address(0)) {
-            Challenge storage challenge_data = challenges[_challenge_id];
             console.log(
                 "Executing reputation update for contributor of challenge #%s",
                 _challenge_id
             );
             reputation_manager.updateContributionReputation(
-                challenge_data.contributor,
-                challenge_data.category,
-                challenge_data.quality_score,
+                cl.contributor,
+                cl.category,
+                cl.quality_score,
                 SystemConsts.THRESHOLD_OF_CHALLENGE_QUALITY_SCORE,
                 SystemConsts.SCALING_CONSTANT_FOR_CONTRIBUTION,
-                challenge_data.difficulty_level
+                cl.difficulty_level
             );
 
             for (uint256 i = 0; i < _pool.moderator_list.length; i++) {
@@ -383,8 +385,8 @@ contract ChallengeManager {
                 ];
                 reputation_manager.updateModerationReputation(
                     moderator_address,
-                    challenge_data.category, // challenge category (have finalized), not suggested_category from review
-                    challenge_data.quality_score,
+                    cl.category, // challenge category (have finalized), not suggested_category from review
+                    cl.quality_score,
                     review.review_score,
                     SystemConsts.THRESHOLD_OF_MODERATION_DEVIATION,
                     SystemConsts.SCALING_CONSTANT_FOR_MODERATION
@@ -400,21 +402,21 @@ contract ChallengeManager {
         // Check if challenge id exists
         require(_challenge_id < total_challenges);
 
+        // Check if user already joined this challenge
         require(
-            solution_manager_address != address(0),
-            "SolutionManager not set"
+            !solution_manager.checkUserJoinedChallenge(
+                msg.sender,
+                _challenge_id
+            )
         );
-        SolutionManager sm = solution_manager;
 
-        require(!sm.checkUserJoinedChallenge(msg.sender, _challenge_id));
+        uint256 joinAt = block.timestamp * 1000;
 
-        uint256 _joined_at = block.timestamp * 1000;
-
-        sm.createSolutionBase(
+        solution_manager.createSolutionBase(
             msg.sender,
             _challenge_id,
             _solution_base_txid,
-            _joined_at
+            joinAt
         );
 
         user_to_joined_challenges[msg.sender].push(_challenge_id);
@@ -423,10 +425,17 @@ contract ChallengeManager {
             "User %s joined challenge %s at %s",
             msg.sender,
             _challenge_id,
-            _joined_at
+            joinAt
         );
 
-        emit ChallengeJoinedByUser(msg.sender, _challenge_id, _joined_at);
+        emit ChallengeJoinedByUser(msg.sender, _challenge_id, joinAt);
+    }
+
+    function userCompleteChallenge(uint256 _challenge_id) external {
+        // Check if challenge id exists
+        require(_challenge_id < total_challenges);
+
+        challenges[_challenge_id].completed++;
     }
 
     // ================= SETTER METHODS =================
@@ -472,16 +481,11 @@ contract ChallengeManager {
     }
 
     function getPendingChallenges() public view returns (Challenge[] memory) {
-        Challenge[] memory pendingChallengeList = new Challenge[](
-            pending_challenges
-        );
-        uint256 count = 0;
+        uint256 count = pending_challenges.length;
+        Challenge[] memory pendingChallengeList = new Challenge[](count);
 
-        for (uint256 i = 0; i < total_challenges; i++) {
-            if (challenges[i].status == SystemEnums.ChallengeStatus.PENDING) {
-                pendingChallengeList[count] = challenges[i];
-                count++;
-            }
+        for (uint256 i = 0; i < count; i++) {
+            pendingChallengeList[i] = challenges[pending_challenges[i]];
         }
 
         console.log(
@@ -494,16 +498,11 @@ contract ChallengeManager {
     }
 
     function getApprovedChallenges() public view returns (Challenge[] memory) {
-        Challenge[] memory approvedChallengeList = new Challenge[](
-            approved_challenges
-        );
-        uint256 count = 0;
+        uint256 count = approved_challenges.length;
+        Challenge[] memory approvedChallengeList = new Challenge[](count);
 
-        for (uint256 i = 0; i < total_challenges; i++) {
-            if (challenges[i].status == SystemEnums.ChallengeStatus.APPROVED) {
-                approvedChallengeList[count] = challenges[i];
-                count++;
-            }
+        for (uint256 i = 0; i < count; i++) {
+            approvedChallengeList[i] = challenges[approved_challenges[i]];
         }
 
         console.log(
@@ -561,6 +560,24 @@ contract ChallengeManager {
         return challenges[_challenge_id];
     }
 
+    function getChallengeTitleById(
+        uint256 _challenge_id
+    ) public view returns (string memory) {
+        return challenges[_challenge_id].title_url;
+    }
+
+    function getChallengeDomainById(
+        uint256 _challenge_id
+    ) public view returns (SystemEnums.Domain) {
+        return challenges[_challenge_id].category;
+    }
+
+    function getChallengeDifficultyById(
+        uint256 _challenge_id
+    ) public view returns (SystemEnums.DifficultyLevel) {
+        return challenges[_challenge_id].difficulty_level;
+    }
+
     function getJoinReviewPoolStatus(
         uint256 _challenge_id,
         address _moderator_address
@@ -605,7 +622,7 @@ contract ChallengeManager {
 
         for (uint256 i = 0; i < challengeIds.length; i++) {
             uint256 id = challengeIds[i];
-            Challenge storage ch = challenges[id];
+            Challenge storage cl = challenges[id];
             (
                 uint256 created_at,
                 SystemEnums.SolutionProgress progress,
@@ -617,9 +634,9 @@ contract ChallengeManager {
 
             previewList[i] = JoinedChallengesPreview({
                 challenge_id: id,
-                title_url: ch.title_url,
-                description_url: ch.description_url,
-                domain: ch.category,
+                title_url: cl.title_url,
+                description_url: cl.description_url,
+                domain: cl.category,
                 progress: progress,
                 joined_at: created_at,
                 score: score
@@ -676,15 +693,19 @@ contract ChallengeManager {
             status: _status,
             quality_score: _quality_score,
             difficulty_level: _difficulty_level,
-            solve_time: _solve_time
+            solve_time: _solve_time,
+            completed: 0
         });
 
         contributor_to_challenges[_contributor].push(challengeId);
 
-        if (_status == SystemEnums.ChallengeStatus.PENDING)
-            pending_challenges++;
-        else if (_status == SystemEnums.ChallengeStatus.APPROVED)
-            approved_challenges++;
+        if (_status == SystemEnums.ChallengeStatus.PENDING) {
+            is_pending_challenge[challengeId] = true;
+            pending_challenges.push(challengeId);
+        } else if (_status == SystemEnums.ChallengeStatus.APPROVED) {
+            is_approved_challenge[challengeId] = true;
+            approved_challenges.push(challengeId);
+        }
 
         console.log(
             "Challenge #%s seeded by %s at %s with:",

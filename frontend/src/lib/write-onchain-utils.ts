@@ -2,11 +2,13 @@ import {
   fetchModeratorReviewTxIdByModeratorAndChallengeId,
   fetchSolutionTxIdByUserAndChallengeId,
   fetchJobContentID,
+  fetchJobStatus,
 } from "@/lib/fetching-onchain-data-utils";
 import {
   writeContract,
   waitForTransactionReceipt,
   simulateContract,
+  readContract,
 } from "@wagmi/core";
 import {
   ContractConfig_ChallengeManager,
@@ -22,6 +24,7 @@ import { uploadImagesInHTML } from "@/lib/utils";
 import { IrysUploadResponseInterface } from "@/lib/interfaces";
 import { ProfileFormValues } from "@/features/account/profile-settings/profile-form";
 import { JobFormData } from "@/features/jobs/create/create-job-form";
+import { JobStatus } from "@/constants/system";
 
 export async function joinReviewPool(
   challengeId: number,
@@ -362,6 +365,65 @@ export async function updateJobContent(
     return upload_res.id; // Return the transaction ID of the updated content
   } catch (error) {
     console.error("Error updating job content:", error);
+    throw error;
+  }
+}
+/**
+ * Update a job status
+ * @param jobId The job ID
+ * @param newStatus The new job status
+ * @returns The transaction hash
+ */
+export async function updateJobStatus(
+  jobId: string,
+  newStatus: JobStatus
+): Promise<`0x${string}`> {
+ try {
+    let functionName: string;
+    // Get current job status to determine correct transition method
+    const currentStatus = await fetchJobStatus(jobId);
+    
+    // Select the appropriate contract function based on the status transition
+    switch (newStatus) {
+      case JobStatus.OPEN:
+        // From DRAFT to OPEN (publish) or from PAUSED to OPEN (resume)
+        functionName = currentStatus === JobStatus.DRAFT ? "publishJob" : "resumeJob";
+        break;
+      case JobStatus.PAUSED:
+        functionName = "pauseJob";
+        break;
+      case JobStatus.CLOSED:
+        functionName = "closeJob";
+        break;
+      case JobStatus.ARCHIVED:
+        functionName = "archiveJob";
+        break;
+      case JobStatus.FILLED:
+        functionName = "fillJob";
+        break;
+      default:
+        throw new Error(`Unsupported status transition to ${newStatus}`);
+    }
+
+    await simulateContract(wagmiConfig, {
+      address: ContractConfig_JobManager.address as `0x${string}`,
+      abi: ContractConfig_JobManager.abi,
+      functionName,
+      args: [jobId],
+    });
+
+    const txHash = await writeContract(wagmiConfig, {
+      address: ContractConfig_JobManager.address as `0x${string}`,
+      abi: ContractConfig_JobManager.abi,
+      functionName,
+      args: [jobId],
+    });
+
+    await waitForTransactionReceipt(wagmiConfig, { hash: txHash });
+    
+    return txHash;
+  } catch (error) {
+    console.error("Error updating job status:", error);
     throw error;
   }
 }

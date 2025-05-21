@@ -31,6 +31,7 @@ import {
   Domain,
   JobDurationLabels,
   JobDuration,
+  JobStatus,
 } from "@/constants/system";
 
 export const fetchUserDataOnChain = async (
@@ -935,5 +936,51 @@ export const fetchJobById = async (
   } catch (error) {
     console.error("Error fetching job by ID:", error);
     return null;
+  }
+};
+
+/**
+ * Get possible job status transitions from current status
+ * @param status The current job status
+ * @returns An array of possible job statuses that can be transitioned to
+ */
+export const getPossibleJobStatusTransitions = async (
+  status: JobStatus
+): Promise<JobStatus[]> => {
+  try {
+    const possibleStatuses = await readContract(wagmiConfig, {
+      address: ContractConfig_JobManager.address as `0x${string}`,
+      abi: ContractConfig_JobManager.abi,
+      functionName: "getPossibleStatusTransitions",
+      args: [status],
+    });
+    
+    return possibleStatuses as JobStatus[];
+  } catch (error) {
+    console.error("Error fetching possible job status transitions:", error);
+    return [];
+  }
+};
+
+/**
+ * Fetch the current status of a job
+ * @param jobId The job ID
+ * @returns The current job status or undefined if there's an error
+ */
+export const fetchJobStatus = async (
+  jobId: string
+): Promise<JobStatus | undefined> => {
+  try {
+    const job = await readContract(wagmiConfig, {
+      address: ContractConfig_JobManager.address as `0x${string}`,
+      abi: ContractConfig_JobManager.abi,
+      functionName: "getJob",
+      args: [jobId],
+    }) as any;
+    
+    return job?.status;
+  } catch (error) {
+    console.error("Error fetching job status:", error);
+    return undefined;
   }
 };

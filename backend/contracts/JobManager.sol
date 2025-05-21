@@ -343,6 +343,50 @@ contract JobManager {
         return jobs[id].content_id;
     }
 
+    /// @notice Get possible next statuses a job can transition to from current status
+    /// @param status The current job status
+    /// @return An array of possible status transitions
+    function getPossibleStatusTransitions(
+        SystemEnums.JobStatus status
+    ) external pure returns (SystemEnums.JobStatus[] memory) {
+        if (status == SystemEnums.JobStatus.DRAFT) {
+            SystemEnums.JobStatus[]
+                memory possibleStatuses = new SystemEnums.JobStatus[](2);
+            possibleStatuses[0] = SystemEnums.JobStatus.OPEN; // can publish
+            possibleStatuses[1] = SystemEnums.JobStatus.ARCHIVED; // can archive
+            return possibleStatuses;
+        } else if (status == SystemEnums.JobStatus.OPEN) {
+            SystemEnums.JobStatus[]
+                memory possibleStatuses = new SystemEnums.JobStatus[](3);
+            possibleStatuses[0] = SystemEnums.JobStatus.PAUSED; // can pause
+            possibleStatuses[1] = SystemEnums.JobStatus.CLOSED; // can close
+            possibleStatuses[2] = SystemEnums.JobStatus.FILLED; // can fill
+            return possibleStatuses;
+        } else if (status == SystemEnums.JobStatus.PAUSED) {
+            SystemEnums.JobStatus[]
+                memory possibleStatuses = new SystemEnums.JobStatus[](2);
+            possibleStatuses[0] = SystemEnums.JobStatus.OPEN; // can resume
+            possibleStatuses[1] = SystemEnums.JobStatus.CLOSED; // can close
+            return possibleStatuses;
+        } else if (status == SystemEnums.JobStatus.FILLED) {
+            SystemEnums.JobStatus[]
+                memory possibleStatuses = new SystemEnums.JobStatus[](1);
+            possibleStatuses[0] = SystemEnums.JobStatus.CLOSED; // can close
+            return possibleStatuses;
+        } else if (status == SystemEnums.JobStatus.CLOSED) {
+            SystemEnums.JobStatus[]
+                memory possibleStatuses = new SystemEnums.JobStatus[](1);
+            possibleStatuses[0] = SystemEnums.JobStatus.ARCHIVED; // can archive
+            return possibleStatuses;
+        } else if (status == SystemEnums.JobStatus.ARCHIVED) {
+            // No transitions possible from ARCHIVED state
+            return new SystemEnums.JobStatus[](0);
+        }
+
+        // Unreachable but compiler might warn without it
+        return new SystemEnums.JobStatus[](0);
+    }
+
     // ========================= HELPER FUNCTIONS =========================
     /// @notice Helper function to remove a job from its status array
     /// @param id The job ID to remove

@@ -19,6 +19,7 @@ import {
   SolutionReviewPool,
   EvaluationInterface,
   JobPreviewInterface,
+  JobInterface,
 } from "./interfaces";
 import {
   fetchJsonDataOffChain,
@@ -831,11 +832,11 @@ export const fetchPreviewJobsByRecruiter = async (
   const jobs: JobPreviewInterface[] = await Promise.all(
     (rawJobs as any[]).map(async (job) => {
       // Fetch the job content from Irys using the content_id
-      const jobContent = await fetchStringDataOffChain(
+      const jobContent = (await fetchStringDataOffChain(
         `https://gateway.irys.xyz/mutable/${job.content_id}`
-      ) as any;
+      )) as any;
       let duration: JobDuration = JobDuration.FULL_TIME; // Default to FULL_TIME
-      
+
       try {
         if (jobContent && jobContent.duration !== undefined) {
           duration = Number(jobContent.duration) as JobDuration;
@@ -843,7 +844,7 @@ export const fetchPreviewJobsByRecruiter = async (
       } catch (error) {
         console.error("Error parsing job duration:", error);
       }
-      
+
       const preview_job_object: JobPreviewInterface = {
         id: job.id,
         title: jobContent?.title || "",
@@ -859,4 +860,62 @@ export const fetchPreviewJobsByRecruiter = async (
   );
 
   return jobs;
+};
+
+export const fetchJobById = async (
+  job_id: string
+): Promise<JobInterface | null> => {
+  try {
+    // Call the contract function to get job by ID
+    const job = (await readContract(wagmiConfig, {
+      address: ContractConfig_JobManager.address as `0x${string}`,
+      abi: ContractConfig_JobManager.abi,
+      functionName: "getJob",
+      args: [job_id],
+    })) as any;
+
+    if (!job) return null;
+
+    // Fetch the job content from Irys using the content_id
+    const jobContent = (await fetchStringDataOffChain(
+      `https://gateway.irys.xyz/mutable/${job.content_id}`
+    )) as any;
+
+    if (!jobContent) return null;
+
+    // Default to FULL_TIME if duration is not provided
+    let duration: JobDuration = JobDuration.FULL_TIME;
+    try {
+      if (jobContent.duration !== undefined) {
+        duration = Number(jobContent.duration) as JobDuration;
+      }
+    } catch (error) {
+      console.error("Error parsing job duration:", error);
+    }
+
+    // Map the smart contract job and Irys content to JobInterface
+    const jobDetails: JobInterface = {
+      id: job.id,
+      title: jobContent.title || "",
+      location: jobContent.location || "",
+      duration: duration,
+      applicants: jobContent.applicants || 0,
+      posted: new Date(Number(job.created_at)),
+      status: job.status,
+      // Additional fields from JobFormData
+      description: jobContent.description || "",
+      requirements: jobContent.requirements || "",
+      compensation: jobContent.compensation || "",
+      domains: jobContent.domains || [],
+      domainReputations: jobContent.domainReputations || {},
+      requireGlobalReputation: jobContent.requireGlobalReputation || false,
+      globalReputationScore: jobContent.globalReputationScore,
+      deadline: jobContent.deadline || 0,
+    };
+
+    return jobDetails;
+  } catch (error) {
+    console.error("Error fetching job by ID:", error);
+    return null;
+  }
 };

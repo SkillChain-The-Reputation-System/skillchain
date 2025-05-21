@@ -115,7 +115,7 @@ export function useBreadcrumbs() {
       return [
         { title: "Recruiter", link: "/recruiter" },
         { title: "Jobs", link: "/recruiter/jobs" },
-        { title: `Job ${displayId}`, link: pathname },
+        { title: `${displayId}`, link: pathname },
       ];
     } 
     

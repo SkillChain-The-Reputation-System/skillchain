@@ -135,3 +135,12 @@ export const JobDurationLabels: Record<JobDuration, string> = {
   [JobDuration.CONTRACT]: "Contract",
   [JobDuration.FREELANCE]: "Freelance"
 };
+
+export const JobStatusLabels: Record<JobStatus, string> = {
+  [JobStatus.DRAFT]: "Draft",
+  [JobStatus.OPEN]: "Open",
+  [JobStatus.PAUSED]: "Paused",
+  [JobStatus.CLOSED]: "Closed",
+  [JobStatus.FILLED]: "Filled",
+  [JobStatus.ARCHIVED]: "Archived",
+};

@@ -580,6 +580,24 @@ export const fetchUserReputationScore = async (address: `0x${string}`) => {
   };
 };
 
+export const fetchJobContentID = async (
+  job_id: string
+): Promise<string> => {
+  try {
+    const content_id = await readContract(wagmiConfig, {
+      address: ContractConfig_JobManager.address as `0x${string}`,
+      abi: ContractConfig_JobManager.abi,
+      functionName: "getJobContentID",
+      args: [job_id],
+    });
+    
+    return content_id as string;
+  } catch (error) {
+    console.error("Error fetching job content ID:", error);
+    throw error;
+  }
+};
+
 export const fetchUnderReviewSolutionsPreview = async (): Promise<
   UnderReviewSolutionPreview[]
 > => {

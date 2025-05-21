@@ -142,10 +142,12 @@ export default function JobDetailPage() {
                 {job.applicants} Applicants
               </Button>
             </Link>
-            <Button>
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Job
-            </Button>
+            <Link href={`/recruiter/jobs/${jobId}/edit`}>
+              <Button>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Job
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -203,6 +205,11 @@ export default function JobDetailPage() {
                     <div className="prose max-w-none">
                       {job.description ? (
                         <div
+                          style={{ 
+                            overflowWrap: 'break-word', 
+                            wordBreak: 'break-word',
+                            hyphens: 'auto'
+                          }}
                           dangerouslySetInnerHTML={{ __html: job.description }}
                         />
                       ) : (
@@ -216,6 +223,11 @@ export default function JobDetailPage() {
                     <div className="prose max-w-none">
                       {job.requirements ? (
                         <div
+                          style={{ 
+                            overflowWrap: 'break-word', 
+                            wordBreak: 'break-word',
+                            hyphens: 'auto'
+                          }}
                           dangerouslySetInnerHTML={{ __html: job.requirements }}
                         />
                       ) : (
@@ -229,6 +241,11 @@ export default function JobDetailPage() {
                     <div className="prose max-w-none">
                       {job.compensation ? (
                         <div
+                          style={{ 
+                            overflowWrap: 'break-word', 
+                            wordBreak: 'break-word',
+                            hyphens: 'auto'
+                          }}
                           dangerouslySetInnerHTML={{ __html: job.compensation }}
                         />
                       ) : (

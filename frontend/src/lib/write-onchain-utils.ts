@@ -1,6 +1,7 @@
 import {
   fetchModeratorReviewTxIdByModeratorAndChallengeId,
   fetchSolutionTxIdByUserAndChallengeId,
+  fetchJobContentID,
 } from "@/lib/fetching-onchain-data-utils";
 import {
   writeContract,
@@ -335,4 +336,32 @@ export async function createJob(address: `0x${string}`, _data: JobFormData) {
   });
 
   return txHash;
+}
+
+export async function updateJobContent(
+  jobId: string,
+  _data: JobFormData
+) {
+  try {
+    // Get the content_id from the smart contract using the fetching function
+    const content_id = await fetchJobContentID(jobId);
+
+    // Create tags to link this update to the original content
+    const tags = [{ name: "Root-TX", value: content_id }];
+
+    // Upload job data to Irys with the Root-TX tag
+    const { data: upload_res } = await axios.post<IrysUploadResponseInterface>(
+      "/api/irys/upload/upload-string",
+      {
+        data: JSON.stringify(_data),
+        tags: tags,
+      }
+    );
+
+    console.log("Job content updated on Irys with Root-TX:", content_id);
+    return upload_res.id; // Return the transaction ID of the updated content
+  } catch (error) {
+    console.error("Error updating job content:", error);
+    throw error;
+  }
 }

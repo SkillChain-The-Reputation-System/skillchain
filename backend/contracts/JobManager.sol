@@ -336,6 +336,13 @@ contract JobManager {
         return status_jobs_arr;
     }
 
+    /// @notice Get the content ID of a specific job
+    /// @param id The job ID to get the content ID for
+    /// @return The content ID of the job (URL pointing to off-chain storage)
+    function getJobContentID(bytes32 id) external view returns (string memory) {
+        return jobs[id].content_id;
+    }
+
     // ========================= HELPER FUNCTIONS =========================
     /// @notice Helper function to remove a job from its status array
     /// @param id The job ID to remove

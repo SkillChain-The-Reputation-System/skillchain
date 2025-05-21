@@ -14,11 +14,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { JobStatus } from "@/constants/system";
+import { JobStatus, JobDuration, JobDurationLabels } from "@/constants/system";
 import { format } from "date-fns";
 import { JobPreviewInterface } from "@/lib/interfaces";
 
-export const columns: ColumnDef<JobPreviewInterface>[] = [  {
+export const columns: ColumnDef<JobPreviewInterface>[] = [
+  {
     id: "select",
     header: ({ table }: { table: any }) => (
       <Checkbox
@@ -40,7 +41,8 @@ export const columns: ColumnDef<JobPreviewInterface>[] = [  {
     enableSorting: false,
     enableHiding: false,
     size: 40,
-  },  {
+  },
+  {
     accessorKey: "title",
     header: ({ column }: { column: any }) => (
       <Button
@@ -53,21 +55,36 @@ export const columns: ColumnDef<JobPreviewInterface>[] = [  {
       </Button>
     ),
     cell: ({ row }: { row: any }) => (
-      <div className="font-medium break-words line-clamp-2 overflow-hidden text-ellipsis">{row.getValue("title")}</div>
+      <div className="font-medium break-words line-clamp-2 overflow-hidden text-ellipsis">
+        {row.getValue("title")}
+      </div>
     ),
     size: 250,
-  },  {
+  },
+  {
     accessorKey: "location",
     header: "Location",
-    cell: ({ row }: { row: any }) => <div className="break-words line-clamp-2 overflow-hidden text-ellipsis">{row.getValue("location")}</div>,
+    cell: ({ row }: { row: any }) => (
+      <div className="break-words line-clamp-2 overflow-hidden text-ellipsis">
+        {row.getValue("location")}
+      </div>
+    ),
     size: 150,
   },
   {
-    accessorKey: "type",
-    header: "Type",
-    cell: ({ row }: { row: any }) => <div className="break-words line-clamp-2 overflow-hidden text-ellipsis">{row.getValue("type")}</div>,
+    accessorKey: "duration",
+    header: "Duration",
+    cell: ({ row }: { row: any }) => {
+      const durationEnum = row.getValue("duration") as JobDuration;
+      return (
+        <div className="break-words line-clamp-2 overflow-hidden text-ellipsis">
+          {JobDurationLabels[durationEnum]}
+        </div>
+      );
+    },
     size: 100,
-  },  {
+  },
+  {
     accessorKey: "applicants",
     header: "Applicants",
     cell: ({ row }: { row: any }) => {
@@ -84,7 +101,8 @@ export const columns: ColumnDef<JobPreviewInterface>[] = [  {
       );
     },
     size: 100,
-  },  {
+  },
+  {
     accessorKey: "posted",
     header: ({ column }: { column: any }) => (
       <Button
@@ -98,10 +116,15 @@ export const columns: ColumnDef<JobPreviewInterface>[] = [  {
     ),
     cell: ({ row }: { row: any }) => {
       const posted = row.getValue("posted") as Date;
-      return <div className="break-words overflow-hidden text-ellipsis">{format(posted, "MMM d, yyyy")}</div>;
+      return (
+        <div className="break-words overflow-hidden text-ellipsis">
+          {format(posted, "MMM d, yyyy")}
+        </div>
+      );
     },
     size: 110,
-  },{
+  },
+  {
     accessorKey: "status",
     header: "Status",
     filterFn: "equals",
@@ -139,16 +162,21 @@ export const columns: ColumnDef<JobPreviewInterface>[] = [  {
         default:
           statusText = "Unknown";
           badgeVariant = "bg-gray-100 text-gray-800";
-      }      return (
+      }
+      return (
         <div className="overflow-hidden text-ellipsis">
-          <Badge className={`${badgeVariant} font-medium text-xs`} variant="outline">
+          <Badge
+            className={`${badgeVariant} font-medium text-xs`}
+            variant="outline"
+          >
             {statusText}
           </Badge>
         </div>
       );
     },
     size: 100,
-  },{
+  },
+  {
     id: "actions",
     header: "Actions",
     cell: ({ row }: { row: any }) => {

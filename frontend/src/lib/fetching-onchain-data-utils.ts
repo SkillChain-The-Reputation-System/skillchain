@@ -834,17 +834,26 @@ export const fetchPreviewJobsByRecruiter = async (
       const jobContent = await fetchStringDataOffChain(
         `https://gateway.irys.xyz/mutable/${job.content_id}`
       ) as any;
-
+      let duration: JobDuration = JobDuration.FULL_TIME; // Default to FULL_TIME
+      
+      try {
+        if (jobContent && jobContent.duration !== undefined) {
+          duration = Number(jobContent.duration) as JobDuration;
+        }
+      } catch (error) {
+        console.error("Error parsing job duration:", error);
+      }
+      
       const preview_job_object: JobPreviewInterface = {
         id: job.id,
-        title: jobContent.title || "",
-        location: jobContent.location || "",
-        type: JobDurationLabels[Number(jobContent.duration) as JobDuration] || "",
-        applicants: jobContent.applicants || 0, // TODO: Add real applicant number here
+        title: jobContent?.title || "",
+        location: jobContent?.location || "",
+        duration: duration,
+        applicants: jobContent?.applicants || 0, // TODO: Add real applicant number here
         posted: new Date(Number(job.created_at)),
         status: job.status,
       };
-      
+
       return preview_job_object;
     })
   );

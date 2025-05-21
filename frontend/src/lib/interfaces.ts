@@ -1,4 +1,4 @@
-import { Domain, ChallengeStatus, QualityFactorAnswer, ChallengeDifficultyLevel, ChallengeSolutionProgress, JobStatus } from "@/constants/system";
+import { Domain, ChallengeStatus, QualityFactorAnswer, ChallengeDifficultyLevel, ChallengeSolutionProgress, JobStatus, JobDuration } from "@/constants/system";
 
 export interface IrysUploadResponseInterface {
     success: boolean;
@@ -30,7 +30,7 @@ export interface JobPreviewInterface {
     id: string;
     title: string;
     location: string;
-    type: string;
+    duration: JobDuration;
     applicants: number;
     posted: Date;
     status: JobStatus;
@@ -38,10 +38,10 @@ export interface JobPreviewInterface {
 
 export interface JobInterface {
     // Fields from JobPreviewInterface
-    id: number;
+    id: string;
     title: string;
     location?: string; // Optional as in JobFormData
-    type: string; // Maps to duration in JobFormData
+    duration: JobDuration;
     applicants: number;
     posted: Date;
     status: JobStatus;

@@ -109,15 +109,17 @@ export function useBreadcrumbs() {
 
     if (jobPageRegex.test(pathname)) {
       const jobId = pathname.match(jobPageRegex)![1];
-      // Always shorten the ID if it's longer than 8 characters
+      // Always shorten the ID if it's longer than 10 characters
       const displayId =
-        jobId.length > 8 ? `${jobId.substring(0, 6)}...` : jobId;
+        jobId.length > 10 ? `${jobId.substring(0, 8)}...` : jobId;
       return [
         { title: "Recruiter", link: "/recruiter" },
         { title: "Jobs", link: "/recruiter/jobs" },
         { title: `Job ${displayId}`, link: pathname },
       ];
-    } // If no exact match, fall back to generating breadcrumbs from the path
+    } 
+    
+    // If no exact match, fall back to generating breadcrumbs from the path
     const segments = pathname.split("/").filter(Boolean);
     return segments.map((segment, index) => {
       const path = `/${segments.slice(0, index + 1).join("/")}`;

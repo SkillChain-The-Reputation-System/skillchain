@@ -2,16 +2,17 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { JobDuration, JobDurationLabels } from "@/constants/system";
+import { ArrowLeft } from "lucide-react";
 
 export default function JobApplicantsPage() {
   const params = useParams();
-  const jobId = params.id;
-  
+  const jobId = params.id;    
   const job = {
     id: jobId,
     title: "Senior Blockchain Developer",
     location: "Remote",
-    type: "Full-time",
+    duration: JobDuration.FULL_TIME,
     posted: "May 10, 2025",
     status: "active"
   };
@@ -73,7 +74,7 @@ export default function JobApplicantsPage() {
     <div>
       <div className="mb-8">
         <Link href="/recruiter/jobs" className="text-blue-600 hover:text-blue-800 flex items-center gap-1 mb-4">
-          <ArrowLeftIcon /> Back to Jobs
+          <ArrowLeft /> Back to Jobs
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -81,7 +82,7 @@ export default function JobApplicantsPage() {
             <div className="mt-2 flex items-center gap-4 text-slate-600">
               <span>{job.location}</span>
               <span>•</span>
-              <span>{job.type}</span>
+              <span>{JobDurationLabels[job.duration]}</span>
             </div>
           </div>
           <div className="flex gap-3">
@@ -236,11 +237,3 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function ArrowLeftIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="19" y1="12" x2="5" y2="12"></line>
-      <polyline points="12 19 5 12 12 5"></polyline>
-    </svg>
-  );
-}

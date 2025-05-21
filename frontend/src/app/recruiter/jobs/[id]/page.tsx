@@ -166,7 +166,6 @@ export default function JobDetailPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {" "}
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4 flex-shrink-0 text-slate-500" />
                     <span
@@ -291,7 +290,7 @@ export default function JobDetailPage() {
                     <span className="text-sm">Posted</span>
                   </div>
                   <span className="text-sm font-medium">
-                    {format(job.posted, "MMM d, yyyy")}
+                    {format(job.posted, "MMM d, yyyy h:mm a")}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -328,7 +327,7 @@ export default function JobDetailPage() {
                   </div>
                   <span className="text-sm font-medium">
                     {job.deadline
-                      ? new Date(job.deadline).toLocaleDateString()
+                      ? format(new Date(job.deadline), "MMM d, yyyy h:mm a")
                       : "None"}
                   </span>
                 </div>
@@ -367,7 +366,7 @@ export default function JobDetailPage() {
                       <span className="font-medium">Global Reputation</span>
                     </div>
                     <p className="text-sm text-slate-600 mb-2">
-                      Minimum score required:{" "}
+                      Minimum score required:
                       <span className="font-medium">
                         {job.globalReputationScore}
                       </span>

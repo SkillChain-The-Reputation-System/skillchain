@@ -9,7 +9,7 @@ contract JobManager {
     struct Job {
         bytes32 id; // ID of the job: = keccak256(abi.encodePacked(msg.sender, block.timestamp))
         address recruiter;
-        string content_url;
+        string content_id;
         uint256 created_at;
         SystemEnums.JobStatus status;
     }
@@ -31,43 +31,43 @@ contract JobManager {
     event JobCreated(
         bytes32 indexed id,
         address indexed recruiter,
-        string content_url
+        string content_id
     );
 
     event JobPublished(
         bytes32 indexed id,
         address indexed recruiter,
-        string content_url
+        string content_id
     );
 
     event JobClosed(
         bytes32 indexed id,
         address indexed recruiter,
-        string content_url
+        string content_id
     );
 
     event JobFilled(
         bytes32 indexed id,
         address indexed recruiter,
-        string content_url
+        string content_id
     );
 
     event JobPaused(
         bytes32 indexed id,
         address indexed recruiter,
-        string content_url
+        string content_id
     );
 
     event JobResumed(
         bytes32 indexed id,
         address indexed recruiter,
-        string content_url
+        string content_id
     );
 
     event JobArchived(
         bytes32 indexed id,
         address indexed recruiter,
-        string content_url
+        string content_id
     );
 
     // ========================= MODIFIERS =========================
@@ -148,14 +148,14 @@ contract JobManager {
 
     // ========================= JOB MANAGEMENT =========================
     /// @notice Create a job posting
-    /// @param content_url URL pointing to job details stored off-chain (IPFS/Arweave CID)
+    /// @param content_id URL pointing to job details stored off-chain (Irys)
     /// @return id The new job's unique ID
     function createJob(
-        string calldata content_url
+        string calldata content_id
     ) external returns (bytes32 id) {
-        console.log("Creating job with content URL:", content_url);
+        console.log("Creating job with content URL:", content_id);
         // Validate input
-        require(bytes(content_url).length > 0, "Content URL cannot be empty");
+        require(bytes(content_id).length > 0, "Content ID cannot be empty");
 
         // Generate a unique bytes32 ID based on sender and timestamp
         id = keccak256(abi.encodePacked(msg.sender, block.timestamp));
@@ -164,7 +164,7 @@ contract JobManager {
         jobs[id] = Job({
             id: id,
             recruiter: msg.sender,
-            content_url: content_url,
+            content_id: content_id,
             status: SystemEnums.JobStatus.DRAFT,
             created_at: block.timestamp * 1000 // Convert to milliseconds
         });
@@ -174,7 +174,7 @@ contract JobManager {
         recruiter_jobs[msg.sender].push(id);
         status_jobs[SystemEnums.JobStatus.DRAFT].push(id);
 
-        emit JobCreated(id, msg.sender, content_url);
+        emit JobCreated(id, msg.sender, content_id);
     }
 
     /// @notice Publish a job posting
@@ -191,7 +191,7 @@ contract JobManager {
         // Add job to OPEN status array
         status_jobs[SystemEnums.JobStatus.OPEN].push(id);
 
-        emit JobPublished(id, msg.sender, job.content_url);
+        emit JobPublished(id, msg.sender, job.content_id);
     }
 
     /// @notice Pause a job posting
@@ -208,7 +208,7 @@ contract JobManager {
         // Add job to PAUSED status array
         status_jobs[SystemEnums.JobStatus.PAUSED].push(id);
 
-        emit JobPaused(id, msg.sender, job.content_url);
+        emit JobPaused(id, msg.sender, job.content_id);
     }
 
     /// @notice Resume a paused job posting
@@ -225,7 +225,7 @@ contract JobManager {
         // Add job to OPEN status array
         status_jobs[SystemEnums.JobStatus.OPEN].push(id);
 
-        emit JobResumed(id, msg.sender, job.content_url);
+        emit JobResumed(id, msg.sender, job.content_id);
     }
 
     /// @notice Close a job posting
@@ -244,7 +244,7 @@ contract JobManager {
         // Add job to CLOSED status array
         status_jobs[SystemEnums.JobStatus.CLOSED].push(id);
 
-        emit JobClosed(id, msg.sender, job.content_url);
+        emit JobClosed(id, msg.sender, job.content_id);
     }
 
     /// @notice Archive a job posting
@@ -263,7 +263,7 @@ contract JobManager {
         // Add job to ARCHIVED status array
         status_jobs[SystemEnums.JobStatus.ARCHIVED].push(id);
 
-        emit JobArchived(id, msg.sender, job.content_url);
+        emit JobArchived(id, msg.sender, job.content_id);
     }
 
     /// @notice Mark a job as filled
@@ -280,7 +280,7 @@ contract JobManager {
         // Add job to FILLED status array
         status_jobs[SystemEnums.JobStatus.FILLED].push(id);
 
-        emit JobFilled(id, msg.sender, job.content_url);
+        emit JobFilled(id, msg.sender, job.content_id);
     }
 
     // ========================= VIEW FUNCTIONS =========================

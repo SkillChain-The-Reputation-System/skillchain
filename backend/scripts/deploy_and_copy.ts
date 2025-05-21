@@ -3,7 +3,6 @@
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
-import { viem } from "hardhat";
 
 async function main(): Promise<void> {
   const backendRoot = path.resolve(__dirname, "..");
@@ -58,6 +57,12 @@ async function main(): Promise<void> {
     path.join(outputDir, "ReputationManager.json")
   );
   console.log(">>ReputationManager.json copied");
+
+    fs.copyFileSync(
+    path.join(artifactDir, "JobManager.sol", "JobManager.json"),
+    path.join(outputDir, "JobManager.json")
+  );
+  console.log(">>JobManager.json copied");
 
   console.log("All done.");
 }

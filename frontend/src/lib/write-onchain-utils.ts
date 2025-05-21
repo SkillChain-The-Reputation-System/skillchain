@@ -1,7 +1,15 @@
-import { fetchModeratorReviewTxIdByModeratorAndChallengeId, fetchSolutionTxIdByUserAndChallengeId } from "@/lib/fetching-onchain-data-utils";
-import { writeContract, waitForTransactionReceipt, simulateContract } from "@wagmi/core";
+import {
+  fetchModeratorReviewTxIdByModeratorAndChallengeId,
+  fetchSolutionTxIdByUserAndChallengeId,
+} from "@/lib/fetching-onchain-data-utils";
+import {
+  writeContract,
+  waitForTransactionReceipt,
+  simulateContract,
+} from "@wagmi/core";
 import {
   ContractConfig_ChallengeManager,
+  ContractConfig_JobManager,
   ContractConfig_SolutionManager,
   ContractConfig_UserDataManager,
 } from "@/constants/contracts-config";
@@ -12,6 +20,7 @@ import axios from "axios";
 import { uploadImagesInHTML } from "@/lib/utils";
 import { IrysUploadResponseInterface } from "@/lib/interfaces";
 import { ProfileFormValues } from "@/features/account/profile-settings/profile-form";
+import { JobFormData } from "@/features/jobs/create/create-job-form";
 
 export async function joinReviewPool(
   challengeId: number,
@@ -179,10 +188,11 @@ export async function saveModeratorReviewDraft(
   address: `0x${string}`,
   review_data: string
 ) {
-  const moderator_review_txid = await fetchModeratorReviewTxIdByModeratorAndChallengeId(
-    address,
-    challengeId
-  );
+  const moderator_review_txid =
+    await fetchModeratorReviewTxIdByModeratorAndChallengeId(
+      address,
+      challengeId
+    );
   const tags = [{ name: "Root-TX", value: moderator_review_txid }];
 
   await axios.post<IrysUploadResponseInterface>(
@@ -295,6 +305,32 @@ export async function updateProfile(
     abi: ContractConfig_UserDataManager.abi,
     functionName: "setUserPersonalData",
     args: [data.username, image_upload_res_data.url, bio_upload_res_data.url],
+    account: address,
+  });
+
+  return txHash;
+}
+
+export async function createJob(address: `0x${string}`, _data: JobFormData) {
+  const { data: job_content_upload_res } =
+    await axios.post<IrysUploadResponseInterface>(
+      "/api/irys/upload/upload-string",
+      { data: JSON.stringify(_data) }
+    );
+
+  await simulateContract(wagmiConfig, {
+    address: ContractConfig_JobManager.address as `0x${string}`,
+    abi: ContractConfig_JobManager.abi,
+    functionName: "createJob",
+    args: [job_content_upload_res.id],
+    account: address,
+  });
+
+  const txHash = await writeContract(wagmiConfig, {
+    address: ContractConfig_JobManager.address as `0x${string}`,
+    abi: ContractConfig_JobManager.abi,
+    functionName: "createJob",
+    args: [job_content_upload_res.id],
     account: address,
   });
 

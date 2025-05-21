@@ -22,9 +22,9 @@ export const pageUrlMapping = {
     recruiter: "/recruiter",
     recruiter_dashboard: "/recruiter/dashboard",
     recruiter_jobs: "/recruiter/jobs",
-    recruiter_job_applicants: "/recruiter/jobs/:id/applicants",
+    recruiter_jobs_create: "/recruiter/jobs/create",
     recruiter_meetings: "/recruiter/meetings",
     recruiter_meeting_room: "/recruiter/meetings/:roomId",
     recruiter_insights: "/recruiter/insights",
     recruiter_account: "/recruiter/account"
-}
+};

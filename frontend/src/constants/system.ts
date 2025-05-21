@@ -43,13 +43,22 @@ export enum ChallengeSolutionProgress {
   IN_PROGRESS = 0,
   SUBMITTED = 1,
   UNDER_REVIEW = 2,
-  REVIEWED = 3
+  REVIEWED = 3,
 }
 
 export enum SolutionSortOption {
   NEWEST = 0,
   MOST_EVALUATORS = 1,
-  LEAST_EVALUATORS = 2
+  LEAST_EVALUATORS = 2,
+}
+
+export enum JobStatus {
+  DRAFT = 0,
+  OPEN = 1,
+  PAUSED = 2,
+  CLOSED = 3,
+  FILLED = 4,
+  ARCHIVED = 5,
 }
 
 export const DomainLabels: Record<Domain, string> = {
@@ -75,13 +84,15 @@ export const ChallengeStatusLabels: Record<ChallengeStatus, string> = {
   [ChallengeStatus.REJECTED]: "Rejected",
 };
 
-
 export const QualityFactorAnswerLabels: Record<QualityFactorAnswer, string> = {
   [QualityFactorAnswer.YES]: "Yes",
   [QualityFactorAnswer.NO]: "No",
 };
 
-export const ChallengeDifficultyLevelLabels: Record<ChallengeDifficultyLevel, string> = {
+export const ChallengeDifficultyLevelLabels: Record<
+  ChallengeDifficultyLevel,
+  string
+> = {
   [ChallengeDifficultyLevel.EASY]: "Easy",
   [ChallengeDifficultyLevel.MEDIUM]: "Medium",
   [ChallengeDifficultyLevel.HARD]: "Hard",
@@ -94,12 +105,15 @@ export const ChallengeSortOptionLabels: Record<ChallengeSortOption, string> = {
   [ChallengeSortOption.PARTICIPANTS]: "Most Participants",
 };
 
-export const ChallengeSolutionProgressLabels: Record<ChallengeSolutionProgress, string> = {
+export const ChallengeSolutionProgressLabels: Record<
+  ChallengeSolutionProgress,
+  string
+> = {
   [ChallengeSolutionProgress.IN_PROGRESS]: "In Progress",
   [ChallengeSolutionProgress.SUBMITTED]: "Submitted",
   [ChallengeSolutionProgress.UNDER_REVIEW]: "Under Review",
   [ChallengeSolutionProgress.REVIEWED]: "Reviewed",
-}
+};
 
 export const SolutionSortOptionLabels: Record<SolutionSortOption, string> = {
   [SolutionSortOption.NEWEST]: "Newest First",

@@ -4,12 +4,13 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Separator } from "@/components/ui/separator";
 import { pageUrlMapping } from "@/constants/navigation";
 import { PlusIcon } from "lucide-react";
-import { DataTable, columns, Job } from "@/features/jobs/jobs-table";
+import { DataTable, columns } from "@/features/jobs/jobs-table";
 import { JobStatus } from "@/constants/system";
+import { JobInterface } from "@/lib/interfaces";
 
 export default function RecruiterJobsPage() {
   // Sample data - in a real application, this would come from an API
-  const jobs: Job[] = [
+  const jobs: JobInterface[] = [
     {
       id: 1,
       title: "Senior Blockchain Developer",

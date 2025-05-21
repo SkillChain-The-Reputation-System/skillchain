@@ -16,20 +16,9 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { JobStatus } from "@/constants/system";
 import { format } from "date-fns";
+import { JobInterface } from "@/lib/interfaces";
 
-// This type is used to define the shape of our data.
-export type Job = {
-  id: number;
-  title: string;
-  department: string;
-  location: string;
-  type: string;
-  applicants: number;
-  posted: Date;
-  status: JobStatus;
-};
-
-export const columns: ColumnDef<Job>[] = [
+export const columns: ColumnDef<JobInterface>[] = [
   {
     id: "select",
     header: ({ table }: { table: any }) => (

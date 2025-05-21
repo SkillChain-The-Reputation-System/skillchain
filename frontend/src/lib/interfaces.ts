@@ -1,4 +1,4 @@
-import { Domain, ChallengeStatus, QualityFactorAnswer, ChallengeDifficultyLevel, ChallengeSolutionProgress } from "@/constants/system";
+import { Domain, ChallengeStatus, QualityFactorAnswer, ChallengeDifficultyLevel, ChallengeSolutionProgress, JobStatus } from "@/constants/system";
 
 export interface IrysUploadResponseInterface {
     success: boolean;
@@ -24,6 +24,17 @@ export interface ChallengeInterface {
     difficultyLevel: ChallengeDifficultyLevel;
     solveTime: number;
     completed: number;
+}
+
+export interface JobInterface {
+    id: number;
+    title: string;
+    department: string;
+    location: string;
+    type: string;
+    applicants: number;
+    posted: Date;
+    status: JobStatus;
 }
 
 export interface GetCurrentTimeResponse {

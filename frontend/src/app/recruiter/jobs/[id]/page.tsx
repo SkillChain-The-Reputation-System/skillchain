@@ -310,14 +310,18 @@ export default function JobDetailPage() {
             <div className="flex justify-center items-center gap-5 py-6">
               <div className="flex flex-col items-center">
                 {getStatusIcon(job.status)}
-                <span className="mt-2 text-sm font-medium">Current</span>
+                <span className="mt-2 text-sm font-medium">
+                  {JobStatusLabels[job.status]}
+                </span>
               </div>
 
               <ArrowLeftIcon className="h-5 w-5 transform rotate-180" />
 
               <div className="flex flex-col items-center">
                 {getStatusIcon(newStatus)}
-                <span className="mt-2 text-sm font-medium">New</span>
+                <span className="mt-2 text-sm font-medium">
+                  {JobStatusLabels[newStatus]}
+                </span>
               </div>
             </div>
           )}
@@ -329,6 +333,7 @@ export default function JobDetailPage() {
                 setIsDialogOpen(false);
                 setNewStatus(null);
               }}
+              className="cursor-pointer"
               disabled={statusLoading}
             >
               Cancel
@@ -336,7 +341,10 @@ export default function JobDetailPage() {
             <Button
               onClick={confirmStatusChange}
               disabled={statusLoading}
-              className={newStatus ? getStatusButtonColor(newStatus) : ""}
+              className={cn(
+                newStatus ? getStatusButtonColor(newStatus) : "",
+                "cursor-pointer"
+              )}
             >
               {statusLoading ? (
                 <>

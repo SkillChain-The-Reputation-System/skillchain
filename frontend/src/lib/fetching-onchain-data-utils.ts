@@ -18,7 +18,7 @@ import {
   UnderReviewSolutionPreview,
   SolutionReviewPool,
   EvaluationInterface,
-  JobInterface,
+  JobPreviewInterface,
 } from "./interfaces";
 import {
   fetchJsonDataOffChain,
@@ -28,6 +28,8 @@ import {
   QualityFactorAnswer,
   ChallengeDifficultyLevel,
   Domain,
+  JobDurationLabels,
+  JobDuration,
 } from "@/constants/system";
 
 export const fetchUserDataOnChain = async (
@@ -812,9 +814,9 @@ export const fetchEvaluationForSolutionByEvaluator = async (
   };
 };
 
-export const fetchJobsByRecruiter = async (
+export const fetchPreviewJobsByRecruiter = async (
   address: `0x${string}`
-): Promise<JobInterface[]> => {
+): Promise<JobPreviewInterface[]> => {
   // Call the contract function to get jobs by recruiter
   const rawJobs = await readContract(wagmiConfig, {
     address: ContractConfig_JobManager.address as `0x${string}`,
@@ -823,27 +825,27 @@ export const fetchJobsByRecruiter = async (
     args: [address],
   });
 
+  console.log("Raw jobs data:", rawJobs);
+
   // Transform the raw jobs data into JobInterface format
-  const jobs = await Promise.all(
+  const jobs: JobPreviewInterface[] = await Promise.all(
     (rawJobs as any[]).map(async (job) => {
       // Fetch the job content from Irys using the content_id
       const jobContent = await fetchStringDataOffChain(
         `https://gateway.irys.xyz/mutable/${job.content_id}`
-      );
-      
-      // Parse the job content which was stored as a JSON string
-      const parsedJobContent = jobContent ? JSON.parse(jobContent) : {};
-      
-      return {
-        id: Number(job.id),
-        title: parsedJobContent.title || "",
-        department: parsedJobContent.department || "",
-        location: parsedJobContent.location || "",
-        type: parsedJobContent.type || "",
-        applicants: parsedJobContent.applicants || 0,
+      ) as any;
+
+      const preview_job_object: JobPreviewInterface = {
+        id: job.id,
+        title: jobContent.title || "",
+        location: jobContent.location || "",
+        type: JobDurationLabels[Number(jobContent.duration) as JobDuration] || "",
+        applicants: jobContent.applicants || 0, // TODO: Add real applicant number here
         posted: new Date(Number(job.created_at)),
         status: job.status,
       };
+      
+      return preview_job_object;
     })
   );
 

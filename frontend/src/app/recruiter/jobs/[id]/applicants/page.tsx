@@ -10,7 +10,6 @@ export default function JobApplicantsPage() {
   const job = {
     id: jobId,
     title: "Senior Blockchain Developer",
-    department: "Engineering",
     location: "Remote",
     type: "Full-time",
     posted: "May 10, 2025",
@@ -80,8 +79,6 @@ export default function JobApplicantsPage() {
           <div>
             <h1 className="text-3xl font-bold">{job.title}</h1>
             <div className="mt-2 flex items-center gap-4 text-slate-600">
-              <span>{job.department}</span>
-              <span>•</span>
               <span>{job.location}</span>
               <span>•</span>
               <span>{job.type}</span>

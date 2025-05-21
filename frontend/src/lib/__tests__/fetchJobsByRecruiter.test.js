@@ -58,7 +58,6 @@ describe('fetchJobsByRecruiter', () => {
     // Mock job content returned from Irys gateway
     const mockJobContent1 = JSON.stringify({
       title: 'Software Developer',
-      department: 'Engineering',
       location: 'Remote',
       type: 'Full-time',
       applicants: 10
@@ -66,7 +65,6 @@ describe('fetchJobsByRecruiter', () => {
 
     const mockJobContent2 = JSON.stringify({
       title: 'Project Manager',
-      department: 'Product',
       location: 'New York',
       type: 'Contract',
       applicants: 5
@@ -93,7 +91,6 @@ describe('fetchJobsByRecruiter', () => {
     expect(result[0]).toEqual({
       id: 1,
       title: 'Software Developer',
-      department: 'Engineering',
       location: 'Remote',
       type: 'Full-time',
       applicants: 10,
@@ -105,7 +102,6 @@ describe('fetchJobsByRecruiter', () => {
     expect(result[1]).toEqual({
       id: 2,
       title: 'Project Manager',
-      department: 'Product', 
       location: 'New York',
       type: 'Contract',
       applicants: 5,
@@ -160,7 +156,6 @@ describe('fetchJobsByRecruiter', () => {
     expect(result[0]).toEqual({
       id: 3,
       title: '',
-      department: '',
       location: '',
       type: '',
       applicants: 0,
@@ -197,7 +192,6 @@ describe('fetchJobsByRecruiter', () => {
       expect(result[0]).toEqual({
         id: 4,
         title: '',
-        department: '',
         location: '',
         type: '',
         applicants: 0,

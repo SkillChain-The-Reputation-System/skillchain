@@ -26,15 +26,35 @@ export interface ChallengeInterface {
     completed: number;
 }
 
-export interface JobInterface {
-    id: number;
+export interface JobPreviewInterface {
+    id: string;
     title: string;
-    department: string;
     location: string;
     type: string;
     applicants: number;
     posted: Date;
     status: JobStatus;
+}
+
+export interface JobInterface {
+    // Fields from JobPreviewInterface
+    id: number;
+    title: string;
+    location?: string; // Optional as in JobFormData
+    type: string; // Maps to duration in JobFormData
+    applicants: number;
+    posted: Date;
+    status: JobStatus;
+    
+    // Additional fields from JobFormData
+    description: string;
+    requirements: string;
+    compensation: string;
+    domains: Domain[]; // Domain enum values
+    domainReputations: Record<Domain, number>;
+    requireGlobalReputation: boolean;
+    globalReputationScore?: number; // Optional
+    deadline: number; // Epoch time in milliseconds
 }
 
 export interface GetCurrentTimeResponse {

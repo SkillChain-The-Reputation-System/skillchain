@@ -54,14 +54,16 @@ const routeMapping: Record<string, BreadcrumbItem[]> = {
   "/dashboard/evaluation/pending-solutions": [
     { title: "Dashboard", link: "/dashboard" },
     { title: "Evaluation", link: "/dashboard/evaluation" },
-    { title: "Pending Solutions", link: "/dashboard/evaluation/pending-solutions" },
+    {
+      title: "Pending Solutions",
+      link: "/dashboard/evaluation/pending-solutions",
+    },
   ],
   "/dashboard/evaluation/evaluated-by-me": [
     { title: "Dashboard", link: "/dashboard" },
     { title: "Evaluation", link: "/dashboard/evaluation" },
     { title: "Evaluated By Me", link: "/dashboard/evaluation/evaluated-by-me" },
   ],
-  // Add more custom mappings as needed
 };
 
 export function useBreadcrumbs() {
@@ -73,12 +75,68 @@ export function useBreadcrumbs() {
       return routeMapping[pathname];
     }
 
-    // If no exact match, fall back to generating breadcrumbs from the path
+    // Special case for job applicants page and job pages with long IDs
+    // Using looser regex that will match any segment that looks like a job ID
+    const jobApplicantsRegex = /^\/recruiter\/jobs\/([^\/]+)\/applicants$/i;
+    const jobEditRegex = /^\/recruiter\/jobs\/([^\/]+)\/edit$/i;
+    const jobPageRegex = /^\/recruiter\/jobs\/([^\/]+)$/i;
+
+    if (jobApplicantsRegex.test(pathname)) {
+      const jobId = pathname.match(jobApplicantsRegex)![1];
+      // Always shorten the ID if it's longer than 10 characters
+      const displayId =
+        jobId.length > 10 ? `${jobId.substring(0, 8)}...` : jobId;
+      return [
+        { title: "Recruiter", link: "/recruiter" },
+        { title: "Jobs", link: "/recruiter/jobs" },
+        { title: `${displayId}`, link: `/recruiter/jobs/${jobId}` },
+        { title: "Applicants", link: pathname },
+      ];
+    }
+
+    if (jobEditRegex.test(pathname)) {
+      const jobId = pathname.match(jobEditRegex)![1];
+      // Always shorten the ID if it's longer than 10 characters
+      const displayId =
+        jobId.length > 10 ? `${jobId.substring(0, 8)}...` : jobId;
+      return [
+        { title: "Recruiter", link: "/recruiter" },
+        { title: "Jobs", link: "/recruiter/jobs" },
+        { title: `${displayId}`, link: `/recruiter/jobs/${jobId}` },
+        { title: "Edit", link: pathname },
+      ];
+    }
+
+    if (jobPageRegex.test(pathname)) {
+      const jobId = pathname.match(jobPageRegex)![1];
+      // Always shorten the ID if it's longer than 8 characters
+      const displayId =
+        jobId.length > 8 ? `${jobId.substring(0, 6)}...` : jobId;
+      return [
+        { title: "Recruiter", link: "/recruiter" },
+        { title: "Jobs", link: "/recruiter/jobs" },
+        { title: `Job ${displayId}`, link: pathname },
+      ];
+    } // If no exact match, fall back to generating breadcrumbs from the path
     const segments = pathname.split("/").filter(Boolean);
     return segments.map((segment, index) => {
       const path = `/${segments.slice(0, index + 1).join("/")}`;
+
+      // Format the segment title
+      let title = segment;
+
+      // Check if segment might be a long ID (any segment longer than 10 characters)
+      // This catches hex IDs as well as UUIDs and other long identifiers
+      if (segment.length > 10) {
+        // Shorten IDs to first 8 characters + ellipsis
+        title = `${segment.substring(0, 8)}...`;
+      }
+
+      // Format the title with proper capitalization
+      title = title.charAt(0).toUpperCase() + title.slice(1).replace(/-/g, " ");
+
       return {
-        title: segment.charAt(0).toUpperCase() + segment.slice(1),
+        title: title,
         link: path,
       };
     });

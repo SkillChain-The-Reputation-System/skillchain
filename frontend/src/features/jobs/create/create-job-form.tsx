@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Domain, DomainLabels } from "@/constants/system";
+import { Domain, DomainLabels, JobDuration, JobDurationLabels } from "@/constants/system";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,9 +49,8 @@ const formSchema = z.object({
     .min(20, { message: "Description must be at least 20 characters" }),
   requirements: z
     .string()
-    .min(10, { message: "Requirements must be at least 10 characters" }),
-  location: z.string().optional(),
-  duration: z.string(),
+    .min(10, { message: "Requirements must be at least 10 characters" }),  location: z.string().optional(),
+  duration: z.number(),
   compensation: z.string(),
   domains: z
     .array(z.number()) // Domain enum values
@@ -79,7 +78,7 @@ export default function CreateJobForm() {
       description: "",
       requirements: "",
       location: "",
-      duration: "",
+      duration: JobDuration.FULL_TIME,
       compensation: "",
       domains: [] as number[],
       domainReputations: {},
@@ -224,19 +223,18 @@ export default function CreateJobForm() {
                   <FormItem>
                     <FormLabel>Duration</FormLabel>
                     <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      onValueChange={(value) => field.onChange(Number(value))}
+                      defaultValue={field.value.toString()}
                     >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select job duration" />
                         </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="full_time">Full-Time</SelectItem>
-                        <SelectItem value="part_time">Part-Time</SelectItem>
-                        <SelectItem value="contract">Contract</SelectItem>
-                        <SelectItem value="freelance">Freelance</SelectItem>
+                      </FormControl>                      <SelectContent>
+                        <SelectItem value={JobDuration.FULL_TIME.toString()}>{JobDurationLabels[JobDuration.FULL_TIME]}</SelectItem>
+                        <SelectItem value={JobDuration.PART_TIME.toString()}>{JobDurationLabels[JobDuration.PART_TIME]}</SelectItem>
+                        <SelectItem value={JobDuration.CONTRACT.toString()}>{JobDurationLabels[JobDuration.CONTRACT]}</SelectItem>
+                        <SelectItem value={JobDuration.FREELANCE.toString()}>{JobDurationLabels[JobDuration.FREELANCE]}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

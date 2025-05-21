@@ -61,6 +61,14 @@ export enum JobStatus {
   ARCHIVED = 5,
 }
 
+export enum JobDuration {
+  FULL_TIME = 0,
+  PART_TIME = 1,
+  CONTRACT = 2,
+  FREELANCE = 3,
+}
+
+
 export const DomainLabels: Record<Domain, string> = {
   [Domain.COMPUTER_SCIENCE_FUNDAMENTALS]: "Computer Science Fundamentals",
   [Domain.SOFTWARE_DEVELOPMENT]: "Software Development",
@@ -119,4 +127,11 @@ export const SolutionSortOptionLabels: Record<SolutionSortOption, string> = {
   [SolutionSortOption.NEWEST]: "Newest First",
   [SolutionSortOption.MOST_EVALUATORS]: "Most Evaluators",
   [SolutionSortOption.LEAST_EVALUATORS]: "Least Evaluators",
+};
+
+export const JobDurationLabels: Record<JobDuration, string> = {
+  [JobDuration.FULL_TIME]: "Full Time",
+  [JobDuration.PART_TIME]: "Part Time",
+  [JobDuration.CONTRACT]: "Contract",
+  [JobDuration.FREELANCE]: "Freelance"
 };

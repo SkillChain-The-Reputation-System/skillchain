@@ -125,7 +125,7 @@ export function DataTable<TData, TValue>({
           </SelectContent>
         </Select>
       </div>
-      <div className="rounded-md border border-gray-300 shadow-sm w-full">
+      <div className="rounded-md border border-gray-300 dark:border-input shadow-sm w-full">
         <Table className="border-collapse table-fixed">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup: any) => (

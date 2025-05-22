@@ -94,7 +94,7 @@ export const navItems: NavItem[] = [
     title: "Moderation",
     url: pageUrlMapping.moderation,
     icon: "ShieldUser",
-    isActive: true,
+    isActive: false,
     items: [
       {
         title: "Pending Challenges",
@@ -135,7 +135,7 @@ export const navItems: NavItem[] = [
     title: "Account",
     url: pageUrlMapping.account,
     icon: "billing",
-    isActive: true,
+    isActive: false,
 
     items: [
       {

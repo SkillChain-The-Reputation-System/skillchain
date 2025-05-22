@@ -40,6 +40,7 @@ export interface JobInterface {
     // Fields from JobPreviewInterface
     id: string;
     title: string;
+    recruiter: string;
     location?: string; // Optional as in JobFormData
     duration: JobDuration;
     applicants: number;

@@ -916,6 +916,7 @@ export const fetchJobById = async (
     const jobDetails: JobInterface = {
       id: job.id,
       title: jobContent.title || "",
+      recruiter: job.recruiter,
       location: jobContent.location || "",
       duration: duration,
       applicants: jobContent.applicants || 0,
@@ -998,7 +999,7 @@ export const fetchAllOpenJobs = async (): Promise<JobInterface[]> => {
       functionName: "getAllOpenJobs",
       args: [],
     });
-    
+
     // Transform the raw jobs data into JobInterface format
     const jobs: JobInterface[] = await Promise.all(
       (rawJobs as any[]).map(async (job) => {
@@ -1012,6 +1013,7 @@ export const fetchAllOpenJobs = async (): Promise<JobInterface[]> => {
           return {
             id: job.id,
             title: "",
+            recruiter: job.recruiter,
             duration: JobDuration.FULL_TIME,
             applicants: 0,
             posted: new Date(Number(job.created_at)),
@@ -1040,6 +1042,7 @@ export const fetchAllOpenJobs = async (): Promise<JobInterface[]> => {
         const jobDetails: JobInterface = {
           id: job.id,
           title: jobContent.title || "",
+          recruiter: job.recruiter,
           location: jobContent.location || "",
           duration: duration,
           applicants: jobContent.applicants || 0,

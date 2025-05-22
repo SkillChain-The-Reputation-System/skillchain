@@ -51,18 +51,28 @@ const routeMapping: Record<string, BreadcrumbItem[]> = {
     { title: "Participation", link: pageUrlMapping.participation },
     { title: "Workspace", link: pageUrlMapping.participation_workspace },
   ],
-  "/dashboard/evaluation/pending-solutions": [
-    { title: "Dashboard", link: "/dashboard" },
-    { title: "Evaluation", link: "/dashboard/evaluation" },
+  [pageUrlMapping.evaluation_pendingsolutions]: [
+    { title: "Dashboard", link: pageUrlMapping.dashboard },
+    { title: "Evaluation", link: pageUrlMapping.evaluation },
     {
       title: "Pending Solutions",
-      link: "/dashboard/evaluation/pending-solutions",
+      link: pageUrlMapping.evaluation_pendingsolutions,
     },
   ],
-  "/dashboard/evaluation/evaluated-by-me": [
-    { title: "Dashboard", link: "/dashboard" },
-    { title: "Evaluation", link: "/dashboard/evaluation" },
-    { title: "Evaluated By Me", link: "/dashboard/evaluation/evaluated-by-me" },
+  [pageUrlMapping.evaluation_evaluatedbyme]: [
+    { title: "Dashboard", link: pageUrlMapping.dashboard },
+    { title: "Evaluation", link: pageUrlMapping.evaluation },
+    { title: "Evaluated By Me", link: pageUrlMapping.evaluation_evaluatedbyme },
+  ],
+  [pageUrlMapping.career_available_jobs]: [
+    { title: "Dashboard", link: pageUrlMapping.dashboard },
+    { title: "Career", link: pageUrlMapping.career },
+    { title: "Available Jobs", link: pageUrlMapping.career_available_jobs },
+  ],
+  [pageUrlMapping.career_my_applications]: [
+    { title: "Dashboard", link: pageUrlMapping.dashboard },
+    { title: "Career", link: pageUrlMapping.career },
+    { title: "My Applications", link: pageUrlMapping.career_my_applications },
   ],
 };
 
@@ -117,8 +127,8 @@ export function useBreadcrumbs() {
         { title: "Jobs", link: "/recruiter/jobs" },
         { title: `${displayId}`, link: pathname },
       ];
-    } 
-    
+    }
+
     // If no exact match, fall back to generating breadcrumbs from the path
     const segments = pathname.split("/").filter(Boolean);
     return segments.map((segment, index) => {

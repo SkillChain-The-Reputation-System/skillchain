@@ -984,3 +984,85 @@ export const fetchJobStatus = async (
     return undefined;
   }
 };
+
+/**
+ * Fetch all open jobs
+ * @returns An array of all open jobs
+ */
+export const fetchAllOpenJobs = async (): Promise<JobInterface[]> => {
+  try {
+    // Call the contract function to get all open jobs
+    const rawJobs = await readContract(wagmiConfig, {
+      address: ContractConfig_JobManager.address as `0x${string}`,
+      abi: ContractConfig_JobManager.abi,
+      functionName: "getAllOpenJobs",
+      args: [],
+    });
+    
+    // Transform the raw jobs data into JobInterface format
+    const jobs: JobInterface[] = await Promise.all(
+      (rawJobs as any[]).map(async (job) => {
+        // Fetch the job content from Irys using the content_id
+        const jobContent = (await fetchStringDataOffChain(
+          `https://gateway.irys.xyz/mutable/${job.content_id}`
+        )) as any;
+
+        if (!jobContent) {
+          // Return a minimal job object if content can't be fetched
+          return {
+            id: job.id,
+            title: "",
+            duration: JobDuration.FULL_TIME,
+            applicants: 0,
+            posted: new Date(Number(job.created_at)),
+            status: job.status,
+            description: "",
+            requirements: "",
+            compensation: "",
+            domains: [],
+            domainReputations: {} as Record<Domain, number>,
+            requireGlobalReputation: false,
+            deadline: 0,
+          };
+        }
+
+        // Default to FULL_TIME if duration is not provided
+        let duration: JobDuration = JobDuration.FULL_TIME;
+        try {
+          if (jobContent.duration !== undefined) {
+            duration = Number(jobContent.duration) as JobDuration;
+          }
+        } catch (error) {
+          console.error("Error parsing job duration:", error);
+        }
+
+        // Map the smart contract job and Irys content to JobInterface
+        const jobDetails: JobInterface = {
+          id: job.id,
+          title: jobContent.title || "",
+          location: jobContent.location || "",
+          duration: duration,
+          applicants: jobContent.applicants || 0,
+          posted: new Date(Number(job.created_at)),
+          status: job.status,
+          // Additional fields from JobFormData
+          description: jobContent.description || "",
+          requirements: jobContent.requirements || "",
+          compensation: jobContent.compensation || "",
+          domains: jobContent.domains || [],
+          domainReputations: jobContent.domainReputations || {},
+          requireGlobalReputation: jobContent.requireGlobalReputation || false,
+          globalReputationScore: jobContent.globalReputationScore,
+          deadline: jobContent.deadline || 0,
+        };
+
+        return jobDetails;
+      })
+    );
+
+    return jobs;
+  } catch (error) {
+    console.error("Error fetching all open jobs:", error);
+    return [];
+  }
+};

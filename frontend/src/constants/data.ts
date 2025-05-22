@@ -1,5 +1,24 @@
 import { AccountButtonItem, NavItem } from "types";
 import { pageUrlMapping } from "./navigation";
+import { Domain } from "./system";
+
+// Map each domain to its icon name
+export const DomainIconMap: Record<number, string> = {
+  [Domain.COMPUTER_SCIENCE_FUNDAMENTALS]: "Code",
+  [Domain.SOFTWARE_DEVELOPMENT]: "Code2",
+  [Domain.SYSTEMS_AND_NETWORKING]: "Server",
+  [Domain.CYBERSECURITY]: "Shield",
+  [Domain.DATA_SCIENCE_AND_ANALYTICS]: "BarChart2",
+  [Domain.DATABASE_ADMINISTRATION]: "Database",
+  [Domain.QUALITY_ASSURANCE_AND_TESTING]: "CheckCircle",
+  [Domain.PROJECT_MANAGEMENT]: "ClipboardList",
+  [Domain.USER_EXPERIENCE_AND_DESIGN]: "Layout",
+  [Domain.BUSINESS_ANALYSIS]: "TrendingUp",
+  [Domain.ARTIFICIAL_INTELLIGENCE]: "Cpu",
+  [Domain.BLOCKCHAIN_AND_CRYPTOCURRENCY]: "Bitcoin",
+  [Domain.NETWORK_ADMINISTRATION]: "Wifi",
+  [Domain.CLOUD_COMPUTING]: "Cloud",
+};
 
 //Info: The following data is used for the sidebar navigation and Cmd K bar.
 export const navItems: NavItem[] = [
@@ -10,68 +29,6 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ["d", "d"],
     items: [],
-  },
-  {
-    title: "Account",
-    url: pageUrlMapping.account,
-    icon: "billing",
-    isActive: true,
-
-    items: [
-      {
-        title: "Profile",
-        url: pageUrlMapping.account_profile,
-        icon: "userPen",
-        shortcut: ["m", "m"],
-      },
-      {
-        title: "Settings",
-        url: pageUrlMapping.account_settings,
-        icon: "userPen",
-        shortcut: ["m", "m"],
-      },
-    ],
-  },
-  {
-    title: "Moderation",
-    url: pageUrlMapping.moderation,
-    icon: "ShieldUser",
-    isActive: true,
-    items: [
-      {
-        title: "Pending Challenges",
-        url: pageUrlMapping.moderation_pendingchallenges,
-        icon: "userPen",
-        shortcut: ["m", "m"],
-      },
-      {
-        title: "My Reviews",
-        url: pageUrlMapping.moderation_reviewchallenges,
-        icon: "userPen",
-        shortcut: ["m", "m"],
-      }
-    ],
-  },
-
-  {
-    title: "Contribution",
-    url: pageUrlMapping.contribution,
-    icon: "contribution",
-    isActive: false,
-    items: [
-      {
-        title: "Contribute",
-        url: pageUrlMapping.contribution_contribute,
-        icon: "userPen",
-        shortcut: ["m", "m"],
-      },
-      {
-        title: "My Contributions",
-        url: pageUrlMapping.contribution_my_contributions,
-        icon: "userPen",
-        shortcut: ["m", "m"],
-      },
-    ],
   },
   {
     title: "Participation",
@@ -108,6 +65,88 @@ export const navItems: NavItem[] = [
       {
         title: "Evaluated By Me",
         url: pageUrlMapping.evaluation_evaluatedbyme,
+        icon: "userPen",
+        shortcut: ["m", "m"],
+      },
+    ],
+  },
+  {
+    title: "Contribution",
+    url: pageUrlMapping.contribution,
+    icon: "contribution",
+    isActive: false,
+    items: [
+      {
+        title: "Contribute",
+        url: pageUrlMapping.contribution_contribute,
+        icon: "userPen",
+        shortcut: ["m", "m"],
+      },
+      {
+        title: "My Contributions",
+        url: pageUrlMapping.contribution_my_contributions,
+        icon: "userPen",
+        shortcut: ["m", "m"],
+      },
+    ],
+  },
+  {
+    title: "Moderation",
+    url: pageUrlMapping.moderation,
+    icon: "ShieldUser",
+    isActive: true,
+    items: [
+      {
+        title: "Pending Challenges",
+        url: pageUrlMapping.moderation_pendingchallenges,
+        icon: "userPen",
+        shortcut: ["m", "m"],
+      },
+      {
+        title: "My Reviews",
+        url: pageUrlMapping.moderation_reviewchallenges,
+        icon: "userPen",
+        shortcut: ["m", "m"],
+      },
+    ],
+  },
+
+  {
+    title: "Career",
+    url: pageUrlMapping.career,
+    icon: "BriefcaseBusiness",
+    isActive: false,
+    items: [
+      {
+        title: "Available Jobs",
+        url: pageUrlMapping.career_available_jobs,
+        icon: "userPen",
+        shortcut: ["m", "m"],
+      },
+      {
+        title: "My Applications",
+        url: pageUrlMapping.career_my_applications,
+        icon: "userPen",
+        shortcut: ["m", "m"],
+      },
+    ],
+  },
+  {
+    title: "Account",
+    url: pageUrlMapping.account,
+    icon: "billing",
+    isActive: true,
+
+    items: [
+      {
+        title: "Profile",
+        url: pageUrlMapping.account_profile,
+        icon: "userPen",
+        shortcut: ["m", "m"],
+      },
+      {
+        title: "Settings",
+        url: pageUrlMapping.account_settings,
         icon: "userPen",
         shortcut: ["m", "m"],
       },
@@ -194,8 +233,8 @@ export const account_button_items: AccountButtonItem[] = [
     title: "My participation",
     href: pageUrlMapping.participation_workspace,
     icon: "participation",
-  }
-]
+  },
+];
 
 // Menu items for the recruiter role in the account button dropdown
 export const recruiter_account_button_items: AccountButtonItem[] = [

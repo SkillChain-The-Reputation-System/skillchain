@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Toaster, toast } from "sonner"
 import ChallengeDetailsSkeleton from '@/features/participation/challenge-details-skeleton'
+import ButtonWithAlert from "@/components/button-with-alert";
 import RichTextEditor from "@/components/rich-text-editor";
 
 // Import lucide-react icons
@@ -159,14 +160,16 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
                       </Button>
                     </div>
                   ) : (
-                    <Button
+                    <ButtonWithAlert
                       size="lg"
                       className="shrink-0 bg-zinc-700 text-white cursor-pointer"
-                      onClick={handleJoinChallenge}
                       disabled={joining}
+                      dialogTitle="Confirm joining challenge"
+                      dialogDescription="You will need to pay the Contributor to join this challenge. Are you sure you want to proceed?"
+                      continueAction={handleJoinChallenge}
                     >
                       Join Challenge
-                    </Button>
+                    </ButtonWithAlert>
                   )}
 
                 </div>
@@ -270,14 +273,16 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
                         <p className="text-sm text-muted-foreground">Join now and start working on your solution.</p>
                       </div>
 
-                      <Button
+                      <ButtonWithAlert
                         size="lg"
                         className="shrink-0 bg-zinc-700 text-white cursor-pointer"
-                        onClick={handleJoinChallenge}
                         disabled={joining}
+                        dialogTitle="Confirm joining challenge"
+                        dialogDescription="You will need to pay the Contributor to join this challenge. Are you sure you want to continue?"
+                        continueAction={handleJoinChallenge}
                       >
                         Join Challenge
-                      </Button>
+                      </ButtonWithAlert>
                     </>
                   )}
                 </div>

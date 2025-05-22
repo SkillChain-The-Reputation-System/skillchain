@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Toaster, toast } from "sonner"
 import SolutionDetailsSkeleton from "@/features/evaluation/solution-details-skeleton";
 import RichTextEditor from '@/components/rich-text-editor'
+import ButtonWithAlert from "@/components/button-with-alert";
 
 // Import lucide-react icons
 import {
@@ -224,7 +225,7 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
               <Tabs defaultValue="information">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="information" className="cursor-pointer">Challenge Information</TabsTrigger>
-                  <TabsTrigger value="solution" className="cursor-pointer">Solution</TabsTrigger>
+                  <TabsTrigger value="solution" className="cursor-pointer">Solution Information</TabsTrigger>
                 </TabsList>
                 {/* Challenge info section */}
                 <TabsContent value="information" className="space-y-8">
@@ -434,13 +435,15 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
                             </form>
                           </Form>
 
-                          <Button
-                            className="bg-green-500 hover:bg-green-600 cursor-pointer"
-                            onClick={submitEvaluation}
+                          <ButtonWithAlert
+                            className="bg-green-400 hover:bg-green-600 cursor-pointer"
                             disabled={submitting || evaluation?.isSubmitted}
+                            dialogTitle="Confirm submitting score"
+                            dialogDescription="This action cannot be undone, and the submitted score will impact your reputation. Are you sure you want to proceed?"
+                            continueAction={submitEvaluation}
                           >
                             Submit
-                          </Button>
+                          </ButtonWithAlert>
                         </div>
                       </div>
                     )

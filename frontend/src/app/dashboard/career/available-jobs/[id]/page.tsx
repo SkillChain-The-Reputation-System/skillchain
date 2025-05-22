@@ -79,11 +79,11 @@ function CardSkeleton() {
 
 export default function JobDetailPage() {
   const params = useParams();
-  const router = useRouter();
-  const [job, setJob] = useState<JobInterface | null>(null);
+  const router = useRouter();  const [job, setJob] = useState<JobInterface | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEligible, setIsEligible] = useState<boolean | null>(null);
   const [isCheckingEligibility, setIsCheckingEligibility] = useState(false);
+  const [eligibilityMessage, setEligibilityMessage] = useState<string>("");
   const { address, isConnected } = useAccount();
   const jobId = params.id as string;
 
@@ -106,18 +106,22 @@ export default function JobDetailPage() {
       fetchJobData();
     }
   }, [jobId]);
-
   // Check if user is eligible to apply when job is loaded and user is connected
   useEffect(() => {
     const checkEligibility = async () => {
       if (job && isConnected && address) {
         setIsCheckingEligibility(true);
         try {
-          const eligible = await checkUserValidToApplyForJob(address, jobId);
-          setIsEligible(eligible);
+          const result = await checkUserValidToApplyForJob(address, jobId);
+          setIsEligible(result.isValid);
+          // Store the result message to display if needed
+          if (!result.isValid) {
+            setEligibilityMessage(result.message);
+          }
         } catch (error) {
           console.error("Error checking eligibility:", error);
           setIsEligible(false);
+          setEligibilityMessage("Error verifying eligibility");
         } finally {
           setIsCheckingEligibility(false);
         }
@@ -145,7 +149,6 @@ export default function JobDetailPage() {
         return "bg-slate-100 text-slate-800";
     }
   };
-
   // Get eligibility notification data
   const getEligibilityNotification = () => {
     if (!isConnected) {
@@ -180,7 +183,7 @@ export default function JobDetailPage() {
     if (isEligible === false) {
       return {
         type: "error",
-        message: "You don't meet the requirements for this job",
+        message: eligibilityMessage || "You don't meet the requirements for this job",
         icon: <XCircle className="h-5 w-5 text-red-600" />,
         style: "bg-red-50 border-red-200 text-red-800",
       };
@@ -266,8 +269,7 @@ export default function JobDetailPage() {
               )}
             >
               {JobStatusLabels[job.status]}
-            </Badge>
-            {isJobOpen &&
+            </Badge>            {isJobOpen &&
               (isEligible === false ? (
                 <TooltipProvider>
                   <Tooltip>
@@ -279,7 +281,7 @@ export default function JobDetailPage() {
                       </span>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>You don't meet the requirements for this job</p>
+                      <p>{eligibilityMessage || "You don't meet the requirements for this job"}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -335,7 +337,7 @@ export default function JobDetailPage() {
                             </span>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>You don't meet the requirements for this job</p>
+                            <p>{eligibilityMessage || "You don't meet the requirements for this job"}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>

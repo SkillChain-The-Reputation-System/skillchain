@@ -13,6 +13,7 @@ import {
 import {
   ContractConfig_ChallengeManager,
   ContractConfig_JobManager,
+  ContractConfig_JobApplicationManager,
   ContractConfig_SolutionManager,
   ContractConfig_UserDataManager,
 } from "@/constants/contracts-config";
@@ -424,6 +425,39 @@ export async function updateJobStatus(
     return txHash;
   } catch (error) {
     console.error("Error updating job status:", error);
+    throw error;
+  }
+}
+
+export async function submitJobApplication(
+  address: `0x${string}`,
+  jobId: string,
+): Promise<`0x${string}`> {
+  try {
+    // First simulate the transaction to check for any errors
+    await simulateContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "submitApplication",
+      args: [jobId],
+      account: address,
+    });
+
+    // If simulation passes, execute the actual transaction
+    const txHash = await writeContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "submitApplication",
+      args: [jobId],
+      account: address,
+    });
+
+    // Wait for the transaction to be mined
+    await waitForTransactionReceipt(wagmiConfig, { hash: txHash });
+    
+    return txHash;
+  } catch (error) {
+    console.error("Error submitting job application:", error);
     throw error;
   }
 }

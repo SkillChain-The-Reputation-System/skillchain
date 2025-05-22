@@ -50,6 +50,7 @@ import { format } from "date-fns";
 import { toast } from "react-toastify";
 import { useAccount } from "wagmi";
 import { checkUserValidToApplyForJob } from "@/lib/guards/recruitement";
+import { submitJobApplication } from "@/lib/write-onchain-utils";
 import {
   Tooltip,
   TooltipContent,
@@ -84,8 +85,27 @@ export default function JobDetailPage() {
   const [isEligible, setIsEligible] = useState<boolean | null>(null);
   const [isCheckingEligibility, setIsCheckingEligibility] = useState(false);
   const [eligibilityMessage, setEligibilityMessage] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasApplied, setHasApplied] = useState(false);
   const { address, isConnected } = useAccount();
   const jobId = params.id as string;
+  // Handle job application submission
+  const handleApplyForJob = async () => {
+    if (!address || !jobId || !isEligible) return;
+    
+    setIsSubmitting(true);
+    try {
+      await submitJobApplication(address, jobId);
+      toast.success("Application submitted successfully!");
+      // Update application status
+      setHasApplied(true);
+    } catch (error) {
+      console.error("Error submitting application:", error);
+      toast.error("Failed to submit application. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Fetch job data
   useEffect(() => {
@@ -285,12 +305,24 @@ export default function JobDetailPage() {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
+              ) : hasApplied ? (
+                <Button size="sm" variant="outline" disabled className="text-green-600 border-green-600">
+                  <CheckCircle className="h-4 w-4 mr-1" /> Applied
+                </Button>
               ) : (
                 <Button
                   size="sm"
-                  disabled={isEligible === null || isCheckingEligibility}
+                  disabled={isEligible === null || isCheckingEligibility || isSubmitting}
+                  onClick={handleApplyForJob}
                 >
-                  Apply Now
+                  {isSubmitting ? (
+                    <span className="flex items-center">
+                      <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></span>
+                      Applying...
+                    </span>
+                  ) : (
+                    "Apply Now"
+                  )}
                 </Button>
               ))}
           </div>
@@ -341,12 +373,24 @@ export default function JobDetailPage() {
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
+                    ) : hasApplied ? (
+                      <Button variant="outline" className="mt-2 w-full text-green-600 border-green-600" disabled>
+                        <CheckCircle className="h-4 w-4 mr-2" /> Application Submitted
+                      </Button>
                     ) : (
                       <Button
                         className="mt-2 w-full"
-                        disabled={isEligible === null || isCheckingEligibility}
+                        disabled={isEligible === null || isCheckingEligibility || isSubmitting}
+                        onClick={handleApplyForJob}
                       >
-                        Apply for This Job
+                        {isSubmitting ? (
+                          <span className="flex items-center justify-center">
+                            <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></span>
+                            Applying...
+                          </span>
+                        ) : (
+                          "Apply for This Job"
+                        )}
                       </Button>
                     )}
                   </div>

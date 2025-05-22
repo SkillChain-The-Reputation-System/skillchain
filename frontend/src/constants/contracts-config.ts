@@ -3,6 +3,7 @@ import SolutionManagerArtifact from "./contract-artifacts/SolutionManager.json";
 import UserDataManagerArtifact from "./contract-artifacts/UserDataManager.json";
 import ReputationManagerArtifact from "./contract-artifacts/ReputationManager.json";
 import JobManagerArtifact from "./contract-artifacts/JobManager.json";
+import JobApplicationManagerArtifact from "./contract-artifacts/JobApplicationManager.json";
 
 
 export const ContractConfig_ChallengeManager = {
@@ -20,12 +21,18 @@ export const ContractConfig_ReputationManager = {
     abi: ReputationManagerArtifact.abi,
 };
 
-export const ContractConfig_JobManager = {
+export const ContractConfig_JobApplicationManager = {
     address: '0x8A791620dd6260079BF849Dc5567aDC3F2FdC318', // Change this every time you deploy the contract
+    abi: JobApplicationManagerArtifact.abi,
+};
+
+export const ContractConfig_JobManager = {
+    address: '0x610178dA211FEF7D417bC0e6FeD39F05609AD788', // Change this every time you deploy the contract
     abi: JobManagerArtifact.abi,
 };
 
 export const ContractConfig_UserDataManager = {
-    address: '0x610178dA211FEF7D417bC0e6FeD39F05609AD788', // Change this every time you deploy the contract
+    address: '0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0', // Change this every time you deploy the contract
     abi: UserDataManagerArtifact.abi,
 };
+

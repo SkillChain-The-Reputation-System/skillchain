@@ -58,11 +58,17 @@ async function main(): Promise<void> {
   );
   console.log(">>ReputationManager.json copied");
 
-    fs.copyFileSync(
+  fs.copyFileSync(
     path.join(artifactDir, "JobManager.sol", "JobManager.json"),
     path.join(outputDir, "JobManager.json")
   );
   console.log(">>JobManager.json copied");
+
+  fs.copyFileSync(
+    path.join(artifactDir, "JobApplicationManager.sol", "JobApplicationManager.json"),
+    path.join(outputDir, "JobApplicationManager.json")
+  );
+  console.log(">>JobApplicationManager.json copied");
 
   console.log("All done.");
 }

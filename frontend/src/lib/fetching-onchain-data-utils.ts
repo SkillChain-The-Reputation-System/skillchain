@@ -6,6 +6,7 @@ import {
   ContractConfig_SolutionManager,
   ContractConfig_ReputationManager,
   ContractConfig_JobManager,
+  ContractConfig_JobApplicationManager,
 } from "@/constants/contracts-config";
 import { wagmiConfig } from "@/features/wallet/Web3Provider";
 import {
@@ -1066,6 +1067,36 @@ export const fetchAllOpenJobs = async (): Promise<JobInterface[]> => {
     return jobs;
   } catch (error) {
     console.error("Error fetching all open jobs:", error);
+    return [];
+  }
+};
+
+export const getJobsNotAppliedByUser = async (
+  address: `0x${string}`
+): Promise<JobInterface[]> => {
+  try {
+    // Step 1: Fetch all open jobs
+    const allOpenJobs = await fetchAllOpenJobs();
+    
+    // Step 2: Fetch all applications submitted by the user
+    const userApplications = await readContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "getApplicationsByApplicant",
+      args: [address],
+    }) as any[];
+    
+    // Extract job IDs from user applications
+    const appliedJobIds = new Set(userApplications.map(app => app.job_id));
+    
+    // Step 3: Filter out jobs that the user has already applied for
+    const unappliedJobs = allOpenJobs.filter(job => !appliedJobIds.has(job.id));
+    
+    console.log(`User ${address} has not applied for ${unappliedJobs.length} out of ${allOpenJobs.length} open jobs`);
+    
+    return unappliedJobs;
+  } catch (error) {
+    console.error("Error fetching jobs not applied by user:", error);
     return [];
   }
 };

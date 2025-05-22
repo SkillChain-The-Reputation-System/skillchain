@@ -3,20 +3,25 @@
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Separator } from "@/components/ui/separator";
-import { fetchAllOpenJobs } from "@/lib/fetching-onchain-data-utils";
+import { getJobsNotAppliedByUser } from "@/lib/fetching-onchain-data-utils";
 import { JobInterface } from "@/lib/interfaces";
 import { toast } from "react-toastify";
-import { OpeningJobsTable, columns } from "@/features/jobs-on-user/opening-jobs-table";
+import {
+  OpeningJobsTable,
+  columns,
+} from "@/features/jobs-on-user/opening-jobs-table";
+import { useAccount } from "wagmi";
 
 export default function AvailableJobsPage() {
   const [jobs, setJobs] = useState<JobInterface[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const { address } = useAccount();
 
   useEffect(() => {
     const fetchJobs = async () => {
       try {
         setLoading(true);
-        const fetchedJobs = await fetchAllOpenJobs();
+        const fetchedJobs = await getJobsNotAppliedByUser(address as `0x${string}`);
         setJobs(fetchedJobs);
       } catch (error) {
         console.error("Error fetching open jobs:", error);

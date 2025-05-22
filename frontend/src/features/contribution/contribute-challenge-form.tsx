@@ -115,7 +115,7 @@ export function ContributeChallengeForm() {
               <FormControl>
                 <RichTextEditor
                   {...field}
-                  className="min-h-[250px] border-black dark:border-white border-1 rounded-md bg-slate-50 py-2 px-3 dark:bg-blue-950/15 break-all"
+                  className="w-full max-w-5xl min-h-[250px] border-black dark:border-white border-1 rounded-md bg-slate-50 py-2 px-3 dark:bg-blue-950/15"
                   placeholder="Challenge is about what and its goal"
                 />
               </FormControl>

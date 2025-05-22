@@ -1,13 +1,11 @@
 'use client'
 
 // Import hooks
-import { useEffect } from 'react';
 import { useEditor, EditorContent, Content, ReactNodeViewRenderer } from '@tiptap/react'
 
 // Import TipTap extensions
 import StarterKit from '@tiptap/starter-kit'
 import MenuBar from './menu-bar';
-import TextAlign from '@tiptap/extension-text-align'
 import Highlight from "@tiptap/extension-highlight";
 import Placeholder from '@tiptap/extension-placeholder'
 import Underline from '@tiptap/extension-underline'
@@ -19,8 +17,12 @@ import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import Typography from '@tiptap/extension-typography'
 import { Mathematics } from '@tiptap-pro/extension-mathematics'
 import FileHandler from '@tiptap-pro/extension-file-handler'
+import Table from '@tiptap/extension-table'
+import TableCell from '@tiptap/extension-table-cell'
+import TableHeader from '@tiptap/extension-table-header'
+import TableRow from '@tiptap/extension-table-row'
 
-import LangSelector from './lang-selector'
+import LangSelector from '@/components/rich-text-editor/lang-selector'
 import { all, createLowlight } from 'lowlight'
 
 const lowlight = createLowlight(all)
@@ -55,11 +57,12 @@ export default function RichTextEditor({ value, onChange, className = "", placeh
           }
         ),
         Underline,
-        TextAlign.configure(
-          {
-            types: ['heading', 'paragraph'],
-          }
-        ),
+        Table.configure({
+          resizable: true,
+        }),
+        TableRow,
+        TableHeader,
+        TableCell,
         Subscript,
         Superscript,
         Typography,

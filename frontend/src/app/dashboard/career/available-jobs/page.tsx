@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Separator } from "@/components/ui/separator";
-import { getJobsNotAppliedByUser } from "@/lib/fetching-onchain-data-utils";
+import { fetchJobsNotAppliedByUser } from "@/lib/fetching-onchain-data-utils";
 import { JobInterface } from "@/lib/interfaces";
 import { toast } from "react-toastify";
 import {
@@ -21,7 +21,7 @@ export default function AvailableJobsPage() {
     const fetchJobs = async () => {
       try {
         setLoading(true);
-        const fetchedJobs = await getJobsNotAppliedByUser(address as `0x${string}`);
+        const fetchedJobs = await fetchJobsNotAppliedByUser(address as `0x${string}`);
         setJobs(fetchedJobs);
       } catch (error) {
         console.error("Error fetching open jobs:", error);

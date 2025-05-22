@@ -21,6 +21,7 @@ import {
   EvaluationInterface,
   JobPreviewInterface,
   JobInterface,
+  JobApplicationInterface,
 } from "./interfaces";
 import {
   fetchJsonDataOffChain,
@@ -582,9 +583,7 @@ export const fetchUserReputationScore = async (address: `0x${string}`) => {
   };
 };
 
-export const fetchJobContentID = async (
-  job_id: string
-): Promise<string> => {
+export const fetchJobContentID = async (job_id: string): Promise<string> => {
   try {
     const content_id = await readContract(wagmiConfig, {
       address: ContractConfig_JobManager.address as `0x${string}`,
@@ -592,7 +591,7 @@ export const fetchJobContentID = async (
       functionName: "getJobContentID",
       args: [job_id],
     });
-    
+
     return content_id as string;
   } catch (error) {
     console.error("Error fetching job content ID:", error);
@@ -956,7 +955,7 @@ export const getPossibleJobStatusTransitions = async (
       functionName: "getPossibleStatusTransitions",
       args: [status],
     });
-    
+
     return possibleStatuses as JobStatus[];
   } catch (error) {
     console.error("Error fetching possible job status transitions:", error);
@@ -973,13 +972,13 @@ export const fetchJobStatus = async (
   jobId: string
 ): Promise<JobStatus | undefined> => {
   try {
-    const job = await readContract(wagmiConfig, {
+    const job = (await readContract(wagmiConfig, {
       address: ContractConfig_JobManager.address as `0x${string}`,
       abi: ContractConfig_JobManager.abi,
       functionName: "getJob",
       args: [jobId],
-    }) as any;
-    
+    })) as any;
+
     return job?.status;
   } catch (error) {
     console.error("Error fetching job status:", error);
@@ -1071,32 +1070,127 @@ export const fetchAllOpenJobs = async (): Promise<JobInterface[]> => {
   }
 };
 
-export const getJobsNotAppliedByUser = async (
+export const fetchJobsNotAppliedByUser = async (
   address: `0x${string}`
 ): Promise<JobInterface[]> => {
   try {
     // Step 1: Fetch all open jobs
     const allOpenJobs = await fetchAllOpenJobs();
-    
+
     // Step 2: Fetch all applications submitted by the user
-    const userApplications = await readContract(wagmiConfig, {
+    const userApplications = (await readContract(wagmiConfig, {
       address: ContractConfig_JobApplicationManager.address as `0x${string}`,
       abi: ContractConfig_JobApplicationManager.abi,
       functionName: "getApplicationsByApplicant",
       args: [address],
-    }) as any[];
-    
+    })) as any[];
+
     // Extract job IDs from user applications
-    const appliedJobIds = new Set(userApplications.map(app => app.job_id));
-    
+    const appliedJobIds = new Set(userApplications.map((app) => app.job_id));
+
     // Step 3: Filter out jobs that the user has already applied for
-    const unappliedJobs = allOpenJobs.filter(job => !appliedJobIds.has(job.id));
-    
-    console.log(`User ${address} has not applied for ${unappliedJobs.length} out of ${allOpenJobs.length} open jobs`);
-    
+    const unappliedJobs = allOpenJobs.filter(
+      (job) => !appliedJobIds.has(job.id)
+    );
+
+    console.log(
+      `User ${address} has not applied for ${unappliedJobs.length} out of ${allOpenJobs.length} open jobs`
+    );
+
     return unappliedJobs;
   } catch (error) {
     console.error("Error fetching jobs not applied by user:", error);
+    return [];
+  }
+};
+
+export const fetchJobAppliedByUser = async (
+  address: `0x${string}`
+): Promise<JobInterface[]> => {
+  try {
+    // Step 1: Fetch all job IDs that the user has applied to
+    const jobIds = (await readContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "getJobIDsAppliedByUser",
+      args: [address],
+    })) as string[];
+
+    // Step 2: Fetch detailed information for each job
+    const jobDetailsPromises = jobIds.map((job_id) => fetchJobById(job_id));
+    const jobDetails = await Promise.all(jobDetailsPromises);
+
+    // Step 3: Filter out null values (jobs that couldn't be fetched)
+    const validJobs = jobDetails.filter(
+      (job) => job !== null
+    ) as JobInterface[];
+
+    console.log(`User ${address} has applied for ${validJobs.length} jobs`);
+
+    return validJobs;
+  } catch (error) {
+    console.error("Error fetching jobs applied by user:", error);
+    return [];
+  }
+};
+
+export const fetchJobApplicationByUser = async (
+  address: `0x${string}`
+): Promise<JobApplicationInterface[]> => {
+  try {
+    // Step 1: Fetch all applications submitted by the user from the smart contract
+    const applications = (await readContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "getApplicationsByApplicant",
+      args: [address],
+    })) as any[];
+
+    if (!applications || applications.length === 0) {
+      console.log(`User ${address} has no job applications`);
+      return [];
+    }
+
+    // Step 2: Fetch the full job details for each application and map to JobApplicationInterface
+    const jobApplicationsPromises = applications.map(async (application) => {
+      // Fetch the full job details using the job_id from the application
+      const jobDetails = await fetchJobById(application.job_id);
+
+      if (!jobDetails) {
+        console.error(
+          `Could not fetch job details for job ID: ${application.job_id}`
+        );
+        return null;
+      }
+
+      // Map the application data to the JobApplicationInterface
+      const jobApplication: JobApplicationInterface = {
+        id: application.id,
+        applicant: application.applicant,
+        applied_at: Number(application.applied_at),
+        status: application.status,
+        job: jobDetails,
+      };
+
+      return jobApplication;
+    });
+
+    // Wait for all job fetching promises to resolve
+    const jobApplications = await Promise.all(jobApplicationsPromises);
+
+    // Filter out any null values (applications where we couldn't fetch the job details)
+    const validJobApplications = jobApplications.filter(
+      (application): application is JobApplicationInterface =>
+        application !== null
+    );
+
+    console.log(
+      `Successfully fetched ${validJobApplications.length} job applications for user ${address}`
+    );
+
+    return validJobApplications;
+  } catch (error) {
+    console.error("Error fetching job applications by user:", error);
     return [];
   }
 };

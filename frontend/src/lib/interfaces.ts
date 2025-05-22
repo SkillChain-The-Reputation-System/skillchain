@@ -1,4 +1,4 @@
-import { Domain, ChallengeStatus, QualityFactorAnswer, ChallengeDifficultyLevel, ChallengeSolutionProgress, JobStatus, JobDuration } from "@/constants/system";
+import { Domain, ChallengeStatus, QualityFactorAnswer, ChallengeDifficultyLevel, ChallengeSolutionProgress, JobStatus, JobDuration, JobApplicationStatus } from "@/constants/system";
 
 export interface IrysUploadResponseInterface {
     success: boolean;
@@ -37,25 +37,30 @@ export interface JobPreviewInterface {
 }
 
 export interface JobInterface {
-    // Fields from JobPreviewInterface
     id: string;
     title: string;
     recruiter: string;
-    location?: string; // Optional as in JobFormData
+    location?: string; // Optional
     duration: JobDuration;
     applicants: number;
     posted: Date;
     status: JobStatus;
-    
-    // Additional fields from JobFormData
     description: string;
     requirements: string;
     compensation: string;
-    domains: Domain[]; // Domain enum values
+    domains: Domain[]; 
     domainReputations: Record<Domain, number>;
     requireGlobalReputation: boolean;
     globalReputationScore?: number; // Optional
     deadline: number; // Epoch time in milliseconds
+}
+
+export interface JobApplicationInterface {
+    id: string;
+    applicant: string;
+    applied_at: number;
+    status: JobApplicationStatus;
+    job: JobInterface;  
 }
 
 export interface GetCurrentTimeResponse {

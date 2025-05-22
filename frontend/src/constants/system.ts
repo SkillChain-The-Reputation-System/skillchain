@@ -68,6 +68,16 @@ export enum JobDuration {
   FREELANCE = 3,
 }
 
+export enum JobApplicationStatus {
+  PENDING = 0,
+  REVIEWING = 1,
+  SHORTLISTED = 2,
+  INTERVIEWING = 3,
+  REJECTED = 4,
+  WITHDRAWN = 5,
+  HIRED = 6,
+}
+
 
 export const DomainLabels: Record<Domain, string> = {
   [Domain.COMPUTER_SCIENCE_FUNDAMENTALS]: "Computer Science Fundamentals",
@@ -143,4 +153,14 @@ export const JobStatusLabels: Record<JobStatus, string> = {
   [JobStatus.CLOSED]: "Closed",
   [JobStatus.FILLED]: "Filled",
   [JobStatus.ARCHIVED]: "Archived",
+};
+
+export const ApplicationStatusLabels: Record<JobApplicationStatus, string> = {
+  [JobApplicationStatus.PENDING]: "Pending",
+  [JobApplicationStatus.REVIEWING]: "Reviewing",
+  [JobApplicationStatus.SHORTLISTED]: "Shortlisted",
+  [JobApplicationStatus.INTERVIEWING]: "Interviewing",
+  [JobApplicationStatus.REJECTED]: "Rejected",
+  [JobApplicationStatus.WITHDRAWN]: "Withdrawn",
+  [JobApplicationStatus.HIRED]: "Hired",
 };

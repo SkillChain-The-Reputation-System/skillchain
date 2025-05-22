@@ -288,6 +288,23 @@ contract JobApplicationManager {
         return job_applications[job_id].length;
     }
 
+    /// @notice Get all job IDs that a user has applied to
+    /// @param applicant The address of the applicant
+    /// @return Array of job IDs the applicant has applied to
+    function getJobIDsAppliedByUser(
+        address applicant
+    ) external view returns (bytes32[] memory) {
+        bytes32[] memory app_ids = applicant_applications[applicant];
+        bytes32[] memory job_ids = new bytes32[](app_ids.length);
+
+        for (uint i = 0; i < app_ids.length; i++) {
+            job_ids[i] = applications[app_ids[i]].job_id;
+        }
+
+        return job_ids;
+    }
+
+
     // ========================= SETTER FUNCTIONS =========================
     /// @notice Set the JobManager contract address
     /// @param job_manager_address Address of the JobManager contract

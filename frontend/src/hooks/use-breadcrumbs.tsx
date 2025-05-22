@@ -139,7 +139,7 @@ export function useBreadcrumbs() {
 
       // Check if segment might be a long ID (any segment longer than 10 characters)
       // This catches hex IDs as well as UUIDs and other long identifiers
-      if (segment.length > 10) {
+      if (segment.length > 20) {
         // Shorten IDs to first 8 characters + ellipsis
         title = `${segment.substring(0, 8)}...`;
       }

@@ -18,6 +18,7 @@ import {
   JobDuration,
   JobDurationLabels,
 } from "@/constants/system";
+import { pageUrlMapping } from "@/constants/navigation";
 import { format } from "date-fns";
 import { JobInterface } from "@/lib/interfaces";
 
@@ -118,7 +119,7 @@ export const columns: ColumnDef<JobInterface>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuItem>
               <Link
-                href={`/career/jobs/${job.id}`}
+                href={`${pageUrlMapping.career_available_jobs}/${job.id}`}
                 className="flex w-full items-center justify-start"
               >
                 <Eye className="h-4 w-4 mr-2" />

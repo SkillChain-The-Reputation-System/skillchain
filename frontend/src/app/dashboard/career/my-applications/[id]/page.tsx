@@ -24,7 +24,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { fetchJobApplicationByID } from "@/lib/fetching-onchain-data-utils";
-import { JobApplicationInterface } from "@/lib/interfaces";
+import { JobApplicationWithJobDataInterface } from "@/lib/interfaces";
 import {
   JobStatus,
   JobStatusLabels,
@@ -149,7 +149,7 @@ const ReputationRequirement = ({
 const StatusTimeline = ({
   application,
 }: {
-  application: JobApplicationInterface;
+  application: JobApplicationWithJobDataInterface;
 }) => {
   // Mock status history - in a real implementation, this would come from the application
   const statusHistory = [
@@ -249,7 +249,7 @@ export default function ApplicationDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [application, setApplication] =
-    useState<JobApplicationInterface | null>(null);
+    useState<JobApplicationWithJobDataInterface | null>(null);
   const [loading, setLoading] = useState(true);
   const { address, isConnected } = useAccount();
   const applicationId = params.id as string;

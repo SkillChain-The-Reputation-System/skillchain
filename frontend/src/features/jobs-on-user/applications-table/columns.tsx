@@ -20,10 +20,10 @@ import {
 } from "@/constants/system";
 import { pageUrlMapping } from "@/constants/navigation";
 import { format } from "date-fns";
-import { JobApplicationInterface } from "@/lib/interfaces";
+import { JobApplicationWithJobDataInterface } from "@/lib/interfaces";
 import { Badge } from "@/components/ui/badge";
 
-export const ApplicationColumns: ColumnDef<JobApplicationInterface>[] = [
+export const ApplicationColumns: ColumnDef<JobApplicationWithJobDataInterface>[] = [
   {
     accessorKey: "job.title",
     header: ({ column }) => (

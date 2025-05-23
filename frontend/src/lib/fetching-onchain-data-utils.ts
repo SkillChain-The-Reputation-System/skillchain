@@ -21,8 +21,8 @@ import {
   EvaluationInterface,
   JobPreviewInterface,
   JobInterface,
-  JobApplicationInterface,
-  ApplicantInterface,
+  JobApplicationWithJobDataInterface,
+  JobApplicantionInterface,
 } from "./interfaces";
 import {
   fetchJsonDataOffChain,
@@ -1147,7 +1147,7 @@ export const fetchJobAppliedByUser = async (
 
 export const fetchAllJobApplicationsByUser = async (
   address: `0x${string}`
-): Promise<JobApplicationInterface[]> => {
+): Promise<JobApplicationWithJobDataInterface[]> => {
   try {
     // Step 1: Fetch all applications submitted by the user from the smart contract
     const applications = (await readContract(wagmiConfig, {
@@ -1175,7 +1175,7 @@ export const fetchAllJobApplicationsByUser = async (
       }
 
       // Map the application data to the JobApplicationInterface
-      const jobApplication: JobApplicationInterface = {
+      const jobApplication: JobApplicationWithJobDataInterface = {
         id: application.id,
         applicant: application.applicant,
         applied_at: Number(application.applied_at),
@@ -1191,7 +1191,7 @@ export const fetchAllJobApplicationsByUser = async (
 
     // Filter out any null values (applications where we couldn't fetch the job details)
     const validJobApplications = jobApplications.filter(
-      (application): application is JobApplicationInterface =>
+      (application): application is JobApplicationWithJobDataInterface =>
         application !== null
     );
 
@@ -1208,7 +1208,7 @@ export const fetchAllJobApplicationsByUser = async (
 
 export const fetchJobApplicationByID = async (
   id: string
-): Promise<JobApplicationInterface | null> => {
+): Promise<JobApplicationWithJobDataInterface | null> => {
   try {
     // Step 1: Call the getApplication method in smart contract to fetch application details
     const application = (await readContract(wagmiConfig, {
@@ -1234,7 +1234,7 @@ export const fetchJobApplicationByID = async (
     }
 
     // Step 3: Process and return the JobApplicationInterface object
-    const jobApplication: JobApplicationInterface = {
+    const jobApplication: JobApplicationWithJobDataInterface = {
       id: application.id,
       applicant: application.applicant,
       applied_at: Number(application.applied_at),
@@ -1313,7 +1313,7 @@ export const fetchApplicationCountByJobIDAndStatus = async (
  */
 export const fetchApplicantsByJobID = async (
   job_id: string
-): Promise<ApplicantInterface[]> => {
+): Promise<JobApplicantionInterface[]> => {
   try {
     // Step 1: Call the contract function to get applications for the job
     const applications = await readContract(wagmiConfig, {
@@ -1326,11 +1326,12 @@ export const fetchApplicantsByJobID = async (
     console.log(`Fetched ${applications.length} applications for job ${job_id}`);
     
     // Step 2: Transform contract data to match ApplicantInterface
-    const applicants: ApplicantInterface[] = applications.map((application) => ({
+    const applicants: JobApplicantionInterface[] = applications.map((application) => ({
       id: application.id,  // Use application ID as the unique identifier
       address: application.applicant,  // Applicant's address
       status: application.status,  // Application status
       applied_at: Number(application.applied_at),  // Convert to number if it's returned as a BigInt
+      job_id: application.job_id,  // Job ID
     }));
 
     return applicants;

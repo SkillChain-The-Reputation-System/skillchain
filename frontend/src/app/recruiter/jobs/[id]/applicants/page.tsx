@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { ApplicantsTable } from "@/features/jobs-on-recruiter/applicants-table/data-table";
 import { ApplicantColumns } from "@/features/jobs-on-recruiter/applicants-table/column";
 
-import { ApplicantInterface } from "@/lib/interfaces";
+import { JobApplicantionInterface } from "@/lib/interfaces";
 
 // Lazy load the metrics component for better performance
 const JobApplicantsMetrics = lazy(() =>
@@ -49,7 +49,7 @@ export default function JobApplicantsPage() {
     withdrawn: 0,
     hired: 0,
   }); // State to store real applicant data
-  const [applicants, setApplicants] = useState<ApplicantInterface[]>([]);
+  const [applicants, setApplicants] = useState<JobApplicantionInterface[]>([]);
   // Fetch job data and application counts for each status
   useEffect(() => {
     const fetchJobData = async () => {

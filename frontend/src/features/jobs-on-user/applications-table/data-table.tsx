@@ -47,7 +47,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
-import { JobApplicationInterface } from "@/lib/interfaces";
+import { JobApplicationWithJobDataInterface } from "@/lib/interfaces";
 
 interface ApplicationsTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];

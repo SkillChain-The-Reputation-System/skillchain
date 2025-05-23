@@ -21,9 +21,10 @@ import {
 } from "@/constants/system";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { ApplicantInterface } from "@/lib/interfaces";
+import { JobApplicantionInterface } from "@/lib/interfaces";
+import { pageUrlMapping } from "@/constants/navigation";
 
-export const ApplicantColumns: ColumnDef<ApplicantInterface>[] = [  {
+export const ApplicantColumns: ColumnDef<JobApplicantionInterface>[] = [  {
     accessorKey: "address",
     header: ({ column }) => (
       <Button
@@ -128,7 +129,7 @@ export const ApplicantColumns: ColumnDef<ApplicantInterface>[] = [  {
           <DropdownMenuContent align="end">
             <DropdownMenuItem>
               <Link
-                href={`/recruiter/jobs/${applicant.id}/review`}
+                href={`${pageUrlMapping.recruiter_jobs}/${applicant.job_id}/applicants/${applicant.id}`}
                 className="flex w-full items-center justify-start"
               >
                 View application

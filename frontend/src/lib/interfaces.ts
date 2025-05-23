@@ -56,13 +56,6 @@ export interface JobInterface {
     application_count: number;
 }
 
-export interface JobApplicationInterface {
-    id: string;
-    applicant: string;
-    applied_at: number;
-    status: JobApplicationStatus;
-    job: JobInterface;  
-}
 
 export interface GetCurrentTimeResponse {
     success: boolean;
@@ -148,9 +141,18 @@ export interface EvaluationInterface {
     submittedAt: number | undefined;
 }
 
-export interface ApplicantInterface {
+export interface JobApplicantionInterface {
   id: string;
   address: string;
   status: JobApplicationStatus;
   applied_at: number;
+  job_id: string;
+}
+
+export interface JobApplicationWithJobDataInterface {
+    id: string;
+    applicant: string;
+    applied_at: number;
+    status: JobApplicationStatus;
+    job: JobInterface;  
 }

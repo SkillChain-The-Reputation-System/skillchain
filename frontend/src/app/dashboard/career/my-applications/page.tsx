@@ -4,14 +4,14 @@ import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Separator } from "@/components/ui/separator";
 import { fetchAllJobApplicationsByUser } from "@/lib/fetching-onchain-data-utils";
-import { JobApplicationInterface } from "@/lib/interfaces";
+import { JobApplicationWithJobDataInterface } from "@/lib/interfaces";
 import { toast } from "react-toastify";
 import { ApplicationsTable } from "@/features/jobs-on-user/applications-table/data-table";
 import { ApplicationColumns } from "@/features/jobs-on-user/applications-table/columns";
 import { useAccount } from "wagmi";
 
 export default function MyApplicationsPage() {
-  const [applications, setApplications] = useState<JobApplicationInterface[]>([]);
+  const [applications, setApplications] = useState<JobApplicationWithJobDataInterface[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const { address } = useAccount();
   useEffect(() => {

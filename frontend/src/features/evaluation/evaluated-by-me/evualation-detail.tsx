@@ -87,6 +87,14 @@ interface EvaluationDetailProps {
 }
 
 export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) {
+  const form = useForm<EvaluationFormValues>({
+    resolver: zodResolver(evaluationSchema),
+    defaultValues: {
+      score: 0,
+    },
+    mode: "onChange"
+  });
+
   const { address } = useAccount();
   const router = useRouter();
 
@@ -97,12 +105,9 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
   const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
   const [evaluation, setEvaluation] = useState<EvaluationInterface | null>(null);
 
-  const form = useForm<EvaluationFormValues>({
-    resolver: zodResolver(evaluationSchema),
-    defaultValues: {
-      score: 0,
-    },
-  });
+  const { isValid } = form.formState;
+
+  const isButtonDisabled = !isValid || submitting;
 
   const submitEvaluation = () => {
     form.handleSubmit(async (data: EvaluationFormValues) => {
@@ -379,7 +384,7 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
 
                   <RichTextEditor
                     value={solutionReviewPool.solution.solution}
-                    className="min-h-80 border-black dark:border-white border-1 rounded-md bg-slate-50 py-2 px-3 dark:bg-blue-950/15 break-all"
+                    className="min-h-80 border-black dark:border-white border-1 rounded-md bg-slate-50 py-2 px-3 dark:bg-blue-950/15"
                     editable={false}
                   />
 
@@ -437,7 +442,7 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
 
                           <ButtonWithAlert
                             className="bg-green-400 hover:bg-green-600 cursor-pointer"
-                            disabled={submitting || evaluation?.isSubmitted}
+                            disabled={isButtonDisabled}
                             dialogTitle="Confirm submitting score"
                             dialogDescription="This action cannot be undone, and the submitted score will impact your reputation. Are you sure you want to proceed?"
                             continueAction={submitEvaluation}
@@ -461,8 +466,7 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
             <Button onClick={() => router.push(pageUrlMapping.evaluation_evaluatedbyme)}>Return to Evaluation Workspace</Button>
           </div>
         )
-      )
-      }
+      )}
     </>
   );
 }

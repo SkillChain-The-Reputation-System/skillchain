@@ -430,7 +430,7 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                             <FormControl>
                               <RichTextEditor
                                 {...field}
-                                className="min-h-80 border-black dark:border-white border-1 rounded-md bg-slate-50 py-2 px-3 dark:bg-blue-950/15 break-all"
+                                className="w-full max-w-5xl min-h-80 border-black dark:border-white border-1 rounded-md bg-slate-50 py-2 px-3 dark:bg-blue-950/15"
                                 placeholder="What is your solution about this challenge..."
                                 editable={solution.progress == ChallengeSolutionProgress.IN_PROGRESS}
                               />

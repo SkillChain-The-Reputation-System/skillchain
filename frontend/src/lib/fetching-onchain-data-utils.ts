@@ -864,12 +864,14 @@ export const fetchPreviewJobsByRecruiter = async (
         console.error("Error parsing job duration:", error);
       }
 
+      const applicationCount = await fetchApplicationCount(job.id);
+
       const preview_job_object: JobPreviewInterface = {
         id: job.id,
         title: jobContent?.title || "",
         location: jobContent?.location || "",
         duration: duration,
-        applicants: jobContent?.applicants || 0, // TODO: Add real applicant number here
+        applicants: applicationCount,
         posted: new Date(Number(job.created_at)),
         status: job.status,
       };
@@ -912,6 +914,9 @@ export const fetchJobById = async (
       console.error("Error parsing job duration:", error);
     }
 
+    // Fetch the application count for this job
+    const applicationCount = await fetchApplicationCount(job_id);
+
     // Map the smart contract job and Irys content to JobInterface
     const jobDetails: JobInterface = {
       id: job.id,
@@ -931,6 +936,7 @@ export const fetchJobById = async (
       requireGlobalReputation: jobContent.requireGlobalReputation || false,
       globalReputationScore: jobContent.globalReputationScore,
       deadline: jobContent.deadline || 0,
+      application_count: applicationCount,
     };
 
     return jobDetails;
@@ -1025,6 +1031,7 @@ export const fetchAllOpenJobs = async (): Promise<JobInterface[]> => {
             domainReputations: {} as Record<Domain, number>,
             requireGlobalReputation: false,
             deadline: 0,
+            application_count: 0,
           };
         }
 
@@ -1036,7 +1043,8 @@ export const fetchAllOpenJobs = async (): Promise<JobInterface[]> => {
           }
         } catch (error) {
           console.error("Error parsing job duration:", error);
-        }
+        } // Fetch the application count for this job
+        const applicationCount = await fetchApplicationCount(job.id);
 
         // Map the smart contract job and Irys content to JobInterface
         const jobDetails: JobInterface = {
@@ -1057,6 +1065,7 @@ export const fetchAllOpenJobs = async (): Promise<JobInterface[]> => {
           requireGlobalReputation: jobContent.requireGlobalReputation || false,
           globalReputationScore: jobContent.globalReputationScore,
           deadline: jobContent.deadline || 0,
+          application_count: applicationCount,
         };
 
         return jobDetails;
@@ -1195,8 +1204,7 @@ export const fetchAllJobApplicationsByUser = async (
   }
 };
 
-
-export const fetchJobApplicationByID = async(
+export const fetchJobApplicationByID = async (
   id: string
 ): Promise<JobApplicationInterface | null> => {
   try {
@@ -1232,13 +1240,34 @@ export const fetchJobApplicationByID = async(
       job: jobDetails,
     };
 
-    console.log(
-      `Successfully fetched job application with ID: ${id}`
-    );
+    console.log(`Successfully fetched job application with ID: ${id}`);
 
     return jobApplication;
   } catch (error) {
     console.error("Error fetching job application by ID:", error);
     return null;
   }
-}
+};
+
+/**
+ * Fetch the number of applications for a specific job
+ * @param job_id The ID of the job
+ * @returns The number of applications for the job
+ */
+export const fetchApplicationCount = async (
+  job_id: string
+): Promise<number> => {
+  try {
+    const count = await readContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "getApplicationCount",
+      args: [job_id],
+    });
+
+    return Number(count);
+  } catch (error) {
+    console.error("Error fetching application count:", error);
+    return 0;
+  }
+};

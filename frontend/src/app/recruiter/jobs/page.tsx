@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Separator } from "@/components/ui/separator";
 import { pageUrlMapping } from "@/constants/navigation";
 import { PlusIcon } from "lucide-react";
-import { DataTable, columns } from "@/features/jobs/jobs-table";
+import { DataTable, columns } from "@/features/jobs-on-recruiter/jobs-table";
 import { JobStatus } from "@/constants/system";
 import { JobPreviewInterface } from "@/lib/interfaces";
 import { fetchPreviewJobsByRecruiter } from "@/lib/fetching-onchain-data-utils";

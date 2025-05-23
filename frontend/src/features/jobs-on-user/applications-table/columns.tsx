@@ -62,7 +62,7 @@ export const ApplicationColumns: ColumnDef<JobApplicationInterface>[] = [
     cell: ({ row }) => {
       const status = row.getValue("status") as JobApplicationStatus;
       const statusLabel = ApplicationStatusLabels[status];
-      
+
       // Define status colors
       const getStatusColor = (status: JobApplicationStatus) => {
         switch (status) {
@@ -84,11 +84,9 @@ export const ApplicationColumns: ColumnDef<JobApplicationInterface>[] = [
             return "bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300";
         }
       };
-      
+
       return (
-        <Badge className={`${getStatusColor(status)}`}>
-          {statusLabel}
-        </Badge>
+        <Badge className={`${getStatusColor(status)}`}>{statusLabel}</Badge>
       );
     },
     size: 150,
@@ -113,7 +111,7 @@ export const ApplicationColumns: ColumnDef<JobApplicationInterface>[] = [
           {format(appliedDate, "MMM d, yyyy")}
         </div>
       );
-    },  
+    },
     size: 110,
   },
   {
@@ -121,7 +119,10 @@ export const ApplicationColumns: ColumnDef<JobApplicationInterface>[] = [
     header: "Actions",
     cell: ({ row }) => {
       const application = row.original;
-
+      // Inline component to handle copy logic and feedback
+      const handleCopy = async () => {
+        navigator.clipboard.writeText(application.id);
+      };
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -133,12 +134,17 @@ export const ApplicationColumns: ColumnDef<JobApplicationInterface>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuItem>
               <Link
-                href={`${pageUrlMapping.career_available_jobs}/${application.job.id}`}
+                href={`${pageUrlMapping.career_my_applications}/${application.id}`}
                 className="flex w-full items-center justify-start"
               >
-                <Eye className="h-4 w-4 mr-2" />
-                View job details
+                View application
               </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={handleCopy}
+              className="flex items-center"
+            >
+              Copy Application ID
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

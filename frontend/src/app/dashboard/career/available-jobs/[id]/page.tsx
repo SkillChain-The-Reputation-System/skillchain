@@ -9,27 +9,10 @@ import { cn } from "@/lib/utils";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Calendar,
-  MapPin,
-  Clock,
-  Briefcase,
-  Tags,
-  Award,
-  DollarSign,
-  Users,
-  CalendarCheck,
   AlertTriangle,
   ArrowLeftIcon,
   CheckCircle,
@@ -42,9 +25,6 @@ import { JobInterface } from "@/lib/interfaces";
 import {
   JobStatus,
   JobStatusLabels,
-  JobDurationLabels,
-  DomainLabels,
-  Domain,
 } from "@/constants/system";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
@@ -59,9 +39,9 @@ import {
 } from "@/components/ui/tooltip";
 
 // Lazy load the job component cards
-const JobDetailsCard = lazy(() => import('@/features/jobs-on-user/job-details-card'));
-const JobOverviewCard = lazy(() => import('@/features/jobs-on-user/job-overview-card'));
-const RequiredSkillsCard = lazy(() => import('@/features/jobs-on-user/required-skills-card'));
+const JobDetailsCard = lazy(() => import('@/features/jobs-on-user/opening-job-details/job-details-card'));
+const JobOverviewCard = lazy(() => import('@/features/jobs-on-user/opening-job-details/job-overview-card'));
+const RequiredSkillsCard = lazy(() => import('@/features/jobs-on-user/opening-job-details/required-skills-card'));
 
 // Loading fallback component
 function CardSkeleton() {
@@ -99,9 +79,18 @@ export default function JobDetailPage() {
       toast.success("Application submitted successfully!");
       // Update application status
       setHasApplied(true);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.shortMessage) {
+        toast.error(error.shortMessage);
+      }
+
+      else if (error.message) {
+        toast.error(error.message);
+      }
+      else {
+        toast.error("An error occurred while submitting your application.");
+      }
       console.error("Error submitting application:", error);
-      toast.error("Failed to submit application. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

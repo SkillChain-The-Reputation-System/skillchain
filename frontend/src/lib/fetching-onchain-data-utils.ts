@@ -1134,7 +1134,7 @@ export const fetchJobAppliedByUser = async (
   }
 };
 
-export const fetchJobApplicationByUser = async (
+export const fetchAllJobApplicationsByUser = async (
   address: `0x${string}`
 ): Promise<JobApplicationInterface[]> => {
   try {
@@ -1194,3 +1194,51 @@ export const fetchJobApplicationByUser = async (
     return [];
   }
 };
+
+
+export const fetchJobApplicationByID = async(
+  id: string
+): Promise<JobApplicationInterface | null> => {
+  try {
+    // Step 1: Call the getApplication method in smart contract to fetch application details
+    const application = (await readContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "getApplication",
+      args: [id],
+    })) as any;
+
+    if (!application || !application.id) {
+      console.log(`Application with ID ${id} not found`);
+      return null;
+    }
+
+    // Step 2: Use the job_id from the application to fetch detailed job information
+    const jobDetails = await fetchJobById(application.job_id);
+
+    if (!jobDetails) {
+      console.error(
+        `Could not fetch job details for job ID: ${application.job_id}`
+      );
+      return null;
+    }
+
+    // Step 3: Process and return the JobApplicationInterface object
+    const jobApplication: JobApplicationInterface = {
+      id: application.id,
+      applicant: application.applicant,
+      applied_at: Number(application.applied_at),
+      status: application.status,
+      job: jobDetails,
+    };
+
+    console.log(
+      `Successfully fetched job application with ID: ${id}`
+    );
+
+    return jobApplication;
+  } catch (error) {
+    console.error("Error fetching job application by ID:", error);
+    return null;
+  }
+}

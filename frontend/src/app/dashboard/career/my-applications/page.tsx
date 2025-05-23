@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Separator } from "@/components/ui/separator";
-import { fetchJobApplicationByUser } from "@/lib/fetching-onchain-data-utils";
+import { fetchAllJobApplicationsByUser } from "@/lib/fetching-onchain-data-utils";
 import { JobApplicationInterface } from "@/lib/interfaces";
 import { toast } from "react-toastify";
 import { ApplicationsTable } from "@/features/jobs-on-user/applications-table/data-table";
@@ -18,7 +18,7 @@ export default function MyApplicationsPage() {
     const fetchApplications = async () => {
       try {
         setLoading(true);
-        const fetchedApplications = await fetchJobApplicationByUser(address as `0x${string}`);
+        const fetchedApplications = await fetchAllJobApplicationsByUser(address as `0x${string}`);
         setApplications(fetchedApplications);
       } catch (error) {
         console.error("Error fetching job applications:", error);

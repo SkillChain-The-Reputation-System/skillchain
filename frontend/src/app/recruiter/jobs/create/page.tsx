@@ -1,6 +1,6 @@
 import { buttonVariants } from "@/components/ui/button";
 import { pageUrlMapping } from "@/constants/navigation";
-import CreateJobForm from "@/features/jobs/create/create-job-form";
+import CreateJobForm from "@/features/jobs-on-recruiter/create/create-job-form";
 import { cn } from "@/lib/utils";
 import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";

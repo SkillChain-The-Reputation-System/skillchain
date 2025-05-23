@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Award, CheckCircle } from "lucide-react";
 import { JobInterface } from "@/lib/interfaces";
@@ -26,6 +21,17 @@ export default function RequiredSkillsCard({ job }: RequiredSkillsCardProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          {job.requireGlobalReputation && (
+            <div className="mb-4 pb-4 border-b border-slate-200">
+              <div className="flex items-center gap-2 mb-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span className="font-medium">Global Reputation Required</span>
+              </div>
+              <span className="text-sm text-slate-600">
+                Minimum Score: {job.globalReputationScore}
+              </span>
+            </div>
+          )}
           {job.domains && job.domains.length > 0 ? (
             job.domains.map((domain) => (
               <div key={domain} className="flex flex-col">
@@ -45,20 +51,6 @@ export default function RequiredSkillsCard({ job }: RequiredSkillsCardProps) {
               No specific domains required.
             </span>
           )}
-        
-          {job.requireGlobalReputation &&(
-              <div className="mt-4 pt-4 border-t border-slate-200">
-                <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="font-medium">
-                    Global Reputation Required
-                  </span>
-                </div>
-                <span className="text-sm text-slate-600">
-                  Minimum Score: {job.globalReputationScore}
-                </span>
-              </div>
-            )}
         </div>
       </CardContent>
     </Card>

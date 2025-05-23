@@ -24,7 +24,7 @@ import axios from "axios";
 import { uploadImagesInHTML } from "@/lib/utils";
 import { IrysUploadResponseInterface } from "@/lib/interfaces";
 import { ProfileFormValues } from "@/features/account/profile-settings/profile-form";
-import { JobFormData } from "@/features/jobs/create/create-job-form";
+import { JobFormData } from "@/features/jobs-on-recruiter/create/create-job-form";
 import { JobStatus } from "@/constants/system";
 
 export async function joinReviewPool(

@@ -43,7 +43,7 @@ const contributeChallengeSchema = z.object({
     .max(100, "Title must be less than 100 characters"),
   description: z
     .string()
-    .min(18, "Description must be at least 10 characters")
+    .min(17, "Description must be at least 10 characters")
     .max(10000, "Description must be less than 4000 characters"),
   category: z
     .coerce
@@ -54,9 +54,6 @@ const contributeChallengeSchema = z.object({
 export type ChallengeFormValues = z.infer<typeof contributeChallengeSchema>;
 
 export function ContributeChallengeForm() {
-  const { address } = useAccount(); // get user's current address
-  const [isSubmitDisabled, setIsSubmitDisabled] = useState(false); // for enable/disable submit button
-
   const form = useForm<ChallengeFormValues>({
     resolver: zodResolver(contributeChallengeSchema),
     defaultValues: {
@@ -64,7 +61,16 @@ export function ContributeChallengeForm() {
       description: "",
       category: undefined
     },
+    mode: "onChange",
   });
+
+  const [resetKey, setResetKey] = useState(0); // Re-render components
+  const { address } = useAccount(); // User's current address
+  const [submitting, setSubmitting] = useState(false); // Track submitting state
+  const { isValid } = form.formState; // Track form validation state
+
+  // Submit button should be disabled if form is invalid OR if submitting
+  const isButtonDisabled = !isValid || submitting;
 
   function onSubmit() {
     form.handleSubmit(async (data: ChallengeFormValues) => {
@@ -73,15 +79,17 @@ export function ContributeChallengeForm() {
       }
 
       try {
-        setIsSubmitDisabled(true);
+        setSubmitting(true);
         const txHash = await contributeChallenge(address, data);
         await waitForTransaction(txHash);
-        toast.success("You have successfully contribute this challenge");
-        window.location.reload();
+        toast.success("You have successfully contributed this challenge");
+        // reset form and re-render
+        form.reset()
+        setResetKey(prev => prev + 1);
       } catch (error: any) {
         toast.error("Error occurs. Please try again!");
       } finally {
-        setIsSubmitDisabled(false);
+        setSubmitting(false);
       }
     })();
   }
@@ -119,8 +127,9 @@ export function ContributeChallengeForm() {
                 <FormControl>
                   <RichTextEditor
                     {...field}
-                    className="w-full max-w-5xl min-h-[250px] border-black dark:border-white border-1 rounded-md bg-slate-50 py-2 px-3 dark:bg-blue-950/15"
                     placeholder="Challenge is about what and its goal"
+                    className="w-full max-w-5xl min-h-[250px] border-black dark:border-white border-1 rounded-md bg-slate-50 py-2 px-3 dark:bg-blue-950/15"
+                    key={resetKey}
                   />
                 </FormControl>
                 <FormMessage />
@@ -134,7 +143,7 @@ export function ContributeChallengeForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-lg font-bold">Category</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={""}>
+                <Select onValueChange={field.onChange} defaultValue={""} key={resetKey}>
                   <FormControl>
                     <SelectTrigger className="w-[300px] cursor-pointer border-black dark:border-white border-1 text-[15px]">
                       <SelectValue placeholder="Select category of your challenge" />
@@ -163,7 +172,7 @@ export function ContributeChallengeForm() {
       <ButtonWithAlert
         size="lg"
         className="mt-8 bg-zinc-700 hover:bg-zinc-700/60 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/60"
-        disabled={isSubmitDisabled}
+        disabled={isButtonDisabled}
         dialogTitle="Confirm challenge contribution"
         dialogDescription="This action cannot be undone, and you won't be able to make any edits afterward."
         continueAction={onSubmit}

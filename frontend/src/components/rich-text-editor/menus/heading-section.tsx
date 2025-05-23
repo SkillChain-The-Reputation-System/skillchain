@@ -88,7 +88,7 @@ export function HeadingSection({ editor }: { editor: Editor | null }) {
             <ChevronDown className="size-4" />
           </ToggleTooltip>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-full flex border border-black">
+        <DropdownMenuContent align="start" className="w-full border border-black">
           {actionsConfig.map((action) =>
             renderMenuItem(action)
           )}

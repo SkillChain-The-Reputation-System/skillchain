@@ -15,7 +15,7 @@ export default function MenuBar({ editor }: { editor: Editor | null }) {
   }
 
   return (
-    <div className="flex max-w-5xl overflow-auto border-1 border-black dark:border-white rounded-md p-1 mb-1 bg-slate-50 dark:bg-blue-950/15 space-x-2 z-50">
+    <div className="max-w-5xl border-1 border-black dark:border-white rounded-md p-1 mb-1 bg-slate-50 dark:bg-blue-950/15 space-x-2 z-50">
       <HeadingSection editor={editor} />
 
       <TextDecorationSection editor={editor} />

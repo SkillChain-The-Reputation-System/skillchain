@@ -1,3 +1,4 @@
+// Import UI components
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,41 +23,45 @@ interface ButtonWithAlertProps
   continueAction?: () => void
 }
 
-const ButtonWithAlert = React.forwardRef<HTMLButtonElement, ButtonWithAlertProps>(
-  ({ dialogTitle, dialogDescription, continueAction, children, className, ...props }, ref) => {
-    return (
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button
-            ref={ref}
-            className={cn("cursor-pointer", className)}
-            {...props}
+const ButtonWithAlert: React.FC<ButtonWithAlertProps> = ({
+  dialogTitle,
+  dialogDescription,
+  continueAction,
+  children,
+  className,
+  ...props
+}) => {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button
+          className={cn("cursor-pointer", className)}
+          {...props}
+        >
+          {children}
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+
+        <AlertDialogHeader>
+          <AlertDialogTitle className="font-bold">{dialogTitle}</AlertDialogTitle>
+          <AlertDialogDescription>{dialogDescription}</AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <AlertDialogFooter>
+          <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            className="cursor-pointer bg-zinc-700 hover:bg-zinc-700/60 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/60"
+            onClick={continueAction}
           >
-            {children}
-          </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
+            Continue
+          </AlertDialogAction>
+        </AlertDialogFooter>
 
-          <AlertDialogHeader>
-            <AlertDialogTitle className="font-bold">{dialogTitle}</AlertDialogTitle>
-            <AlertDialogDescription>{dialogDescription}</AlertDialogDescription>
-          </AlertDialogHeader>
-
-          <AlertDialogFooter>
-            <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="cursor-pointer bg-zinc-700 hover:bg-zinc-700/60 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/60"
-              onClick={continueAction}
-            >
-              Continue
-            </AlertDialogAction>
-          </AlertDialogFooter>
-
-        </AlertDialogContent>
-      </AlertDialog>
-    )
-  }
-)
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
 
 ButtonWithAlert.displayName = "ButtonWithAlert";
 

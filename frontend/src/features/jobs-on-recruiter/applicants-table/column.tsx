@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Eye, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, Copy, Eye, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
@@ -11,16 +11,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   JobApplicationStatus,
   ApplicationStatusLabels,
 } from "@/constants/system";
-import { pageUrlMapping } from "@/constants/navigation";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { ApplicantInterface } from "@/lib/interfaces";
 
-export const ApplicantColumns: ColumnDef<ApplicantInterface>[] = [
-  {
+export const ApplicantColumns: ColumnDef<ApplicantInterface>[] = [  {
     accessorKey: "address",
     header: ({ column }) => (
       <Button
@@ -33,9 +36,16 @@ export const ApplicantColumns: ColumnDef<ApplicantInterface>[] = [
       </Button>
     ),
     cell: ({ row }) => (
-      <div className="font-medium break-words line-clamp-2 overflow-hidden text-ellipsis">
-        {row.original.address}
-      </div>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="font-medium truncate overflow-hidden whitespace-nowrap max-w-full cursor-default">
+            {row.original.address}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          {row.original.address}
+        </TooltipContent>
+      </Tooltip>
     ),
     size: 160,
   },
@@ -102,11 +112,11 @@ export const ApplicantColumns: ColumnDef<ApplicantInterface>[] = [
     header: "Actions",
     cell: ({ row }) => {
       const applicant = row.original;
-      
+
       const handleCopy = async () => {
-        navigator.clipboard.writeText(applicant.fullAddress);
+        navigator.clipboard.writeText(applicant.address);
       };
-      
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -121,13 +131,12 @@ export const ApplicantColumns: ColumnDef<ApplicantInterface>[] = [
                 href={`/recruiter/jobs/${applicant.id}/review`}
                 className="flex w-full items-center justify-start"
               >
-                <Eye className="mr-2 h-4 w-4" />
                 View application
               </Link>
-            </DropdownMenuItem>
+            </DropdownMenuItem>{" "}
             <DropdownMenuItem
               onClick={handleCopy}
-              className="flex items-center"
+              className="flex w-full items-center cursor-pointer justify-start"
             >
               Copy Address
             </DropdownMenuItem>

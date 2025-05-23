@@ -22,6 +22,7 @@ import {
   JobPreviewInterface,
   JobInterface,
   JobApplicationInterface,
+  ApplicantInterface,
 } from "./interfaces";
 import {
   fetchJsonDataOffChain,
@@ -1305,5 +1306,37 @@ export const fetchApplicationCountByJobIDAndStatus = async (
   }
 };
 
+/**
+ * Fetch all applicants for a specific job
+ * @param job_id The ID of the job
+ * @returns Array of applicant details
+ */
+export const fetchApplicantsByJobID = async (
+  job_id: string
+): Promise<ApplicantInterface[]> => {
+  try {
+    // Step 1: Call the contract function to get applications for the job
+    const applications = await readContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "getApplicationsByJob",
+      args: [job_id],
+    }) as any[];
 
+    console.log(`Fetched ${applications.length} applications for job ${job_id}`);
+    
+    // Step 2: Transform contract data to match ApplicantInterface
+    const applicants: ApplicantInterface[] = applications.map((application) => ({
+      id: application.id,  // Use application ID as the unique identifier
+      address: application.applicant,  // Applicant's address
+      status: application.status,  // Application status
+      applied_at: Number(application.applied_at),  // Convert to number if it's returned as a BigInt
+    }));
+
+    return applicants;
+  } catch (error) {
+    console.error("Error fetching applicants by job ID:", error);
+    return [];
+  }
+};
 

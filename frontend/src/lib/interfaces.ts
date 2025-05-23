@@ -151,7 +151,6 @@ export interface EvaluationInterface {
 export interface ApplicantInterface {
   id: string;
   address: string;
-  fullAddress: string;
   status: JobApplicationStatus;
   applied_at: number;
 }

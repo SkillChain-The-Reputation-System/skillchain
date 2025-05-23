@@ -6,19 +6,14 @@ import Link from "next/link";
 import {
   fetchApplicationCountByJobIDAndStatus,
   fetchJobById,
+  fetchApplicantsByJobID,
 } from "@/lib/fetching-onchain-data-utils";
-import {
-  JobDuration,
-  JobDurationLabels,
-  JobApplicationStatus,
-} from "@/constants/system";
+import { JobDurationLabels, JobApplicationStatus } from "@/constants/system";
 import { JobInterface } from "@/lib/interfaces";
 import { ArrowLeft, FileEdit, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ApplicantsTable } from "@/features/jobs-on-recruiter/applicants-table/data-table";
-import {
-  ApplicantColumns,
-} from "@/features/jobs-on-recruiter/applicants-table/column";
+import { ApplicantColumns } from "@/features/jobs-on-recruiter/applicants-table/column";
 
 import { ApplicantInterface } from "@/lib/interfaces";
 
@@ -53,46 +48,8 @@ export default function JobApplicantsPage() {
     rejected: 0,
     withdrawn: 0,
     hired: 0,
-  });
-  // Mock applicants data for now
-  const [applicants, setApplicants] = useState<ApplicantInterface[]>([
-    {
-      id: "0x1234567890abcdef",
-      address: "0xaBcD...1234",
-      fullAddress: "0xaBcD1234567890abcdef1234567890abcdef1234",
-      status: JobApplicationStatus.PENDING,
-      applied_at: Date.now() - 86400000 * 2, // 2 days ago
-    },
-    {
-      id: "0x2345678901abcdef",
-      address: "0xbCdE...2345",
-      fullAddress: "0xbCdE2345678901abcdef2345678901abcdef2345",
-      status: JobApplicationStatus.REVIEWING,
-      applied_at: Date.now() - 86400000 * 3, // 3 days ago
-    },
-    {
-      id: "0x3456789012abcdef",
-      address: "0xcDeF...3456",
-      fullAddress: "0xcDeF3456789012abcdef3456789012abcdef3456",
-      status: JobApplicationStatus.SHORTLISTED,
-      applied_at: Date.now() - 86400000 * 4, // 4 days ago
-    },
-    {
-      id: "0x456789012abcdef3",
-      address: "0xdEfA...4567",
-      fullAddress: "0xdEfA456789012abcdef456789012abcdef4567",
-      status: JobApplicationStatus.INTERVIEWING,
-      applied_at: Date.now() - 86400000 * 5, // 5 days ago
-    },
-    {
-      id: "0x56789012abcdef34",
-      address: "0xeFaB...5678",
-      fullAddress: "0xeFaB56789012abcdef56789012abcdef5678",
-      status: JobApplicationStatus.REJECTED,
-      applied_at: Date.now() - 86400000 * 6, // 6 days ago
-    },
-  ]);
-
+  }); // State to store real applicant data
+  const [applicants, setApplicants] = useState<ApplicantInterface[]>([]);
   // Fetch job data and application counts for each status
   useEffect(() => {
     const fetchJobData = async () => {
@@ -100,6 +57,8 @@ export default function JobApplicantsPage() {
       try {
         const fetchedJob = await fetchJobById(jobId);
         setJob(fetchedJob);
+
+        const total = fetchedJob?.application_count || 0;
 
         // Fetch application counts for each status
         const totalPending = await fetchApplicationCountByJobIDAndStatus(
@@ -131,15 +90,6 @@ export default function JobApplicantsPage() {
           JobApplicationStatus.HIRED
         );
 
-        const total =
-          totalPending +
-          totalReviewing +
-          totalShortlisted +
-          totalInterviewing +
-          totalRejected +
-          totalWithdrawn +
-          totalHired;
-
         setCounts({
           total,
           pending: totalPending,
@@ -150,6 +100,10 @@ export default function JobApplicantsPage() {
           withdrawn: totalWithdrawn,
           hired: totalHired,
         });
+
+        // Fetch real applicant data
+        const applicantData = await fetchApplicantsByJobID(jobId);
+        setApplicants(applicantData);
       } catch (error) {
         console.error("Error fetching job data:", error);
       } finally {

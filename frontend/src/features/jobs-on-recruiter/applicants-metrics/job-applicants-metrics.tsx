@@ -19,7 +19,7 @@ export function JobApplicantsMetrics({ counts }: JobApplicantsMetricsProps) {
   return (
     <>
       {/* Key Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 select-none">
         <Card className="p-4 shadow-sm">
           <div className="text-2xl font-bold">{counts.total}</div>
           <div className="text-slate-600">Total Applicants</div>
@@ -39,10 +39,7 @@ export function JobApplicantsMetrics({ counts }: JobApplicantsMetricsProps) {
           <div className="text-2xl font-bold">{counts.rejected + counts.withdrawn}</div>
           <div className="text-slate-600">Rejected</div>
         </Card>
-      </div>
 
-      {/* More detailed metrics - additional row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
         <Card className="p-4 shadow-sm">
           <div className="text-xl font-bold">{counts.reviewing}</div>
           <div className="text-slate-600">Reviewing</div>

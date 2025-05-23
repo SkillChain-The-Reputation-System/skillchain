@@ -1,239 +1,234 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useState, useEffect, Suspense, lazy } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { JobDuration, JobDurationLabels } from "@/constants/system";
-import { ArrowLeft } from "lucide-react";
+import {
+  fetchApplicationCountByJobIDAndStatus,
+  fetchJobById,
+} from "@/lib/fetching-onchain-data-utils";
+import {
+  JobDuration,
+  JobDurationLabels,
+  JobApplicationStatus,
+} from "@/constants/system";
+import { JobInterface } from "@/lib/interfaces";
+import { ArrowLeft, FileEdit, Eye } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ApplicantsTable } from "@/features/jobs-on-recruiter/applicants-table/data-table";
+import {
+  ApplicantColumns,
+} from "@/features/jobs-on-recruiter/applicants-table/column";
+
+import { ApplicantInterface } from "@/lib/interfaces";
+
+// Lazy load the metrics component for better performance
+const JobApplicantsMetrics = lazy(() =>
+  import("@/features/jobs-on-recruiter/applicants-metrics").then((mod) => ({
+    default: mod.JobApplicantsMetrics,
+  }))
+);
 
 export default function JobApplicantsPage() {
   const params = useParams();
-  const jobId = params.id;    
-  const job = {
-    id: jobId,
-    title: "Senior Blockchain Developer",
-    location: "Remote",
-    duration: JobDuration.FULL_TIME,
-    posted: "May 10, 2025",
-    status: "active"
-  };
+  const jobId = params.id as string;
 
-  const applicants = [
+  const [job, setJob] = useState<JobInterface | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [counts, setCounts] = useState<{
+    total: number;
+    pending: number;
+    reviewing: number;
+    shortlisted: number;
+    interviewing: number;
+    rejected: number;
+    withdrawn: number;
+    hired: number;
+  }>({
+    total: 0,
+    pending: 0,
+    reviewing: 0,
+    shortlisted: 0,
+    interviewing: 0,
+    rejected: 0,
+    withdrawn: 0,
+    hired: 0,
+  });
+  // Mock applicants data for now
+  const [applicants, setApplicants] = useState<ApplicantInterface[]>([
     {
-      id: 1,
-      name: "Alex Johnson",
-      email: "alex.johnson@example.com",
-      location: "Berlin, Germany",
-      experience: "5 years",
-      skills: ["Solidity", "React", "TypeScript", "Hardhat"],
-      status: "review",
-      appliedDate: "May 15, 2025"
+      id: "0x1234567890abcdef",
+      address: "0xaBcD...1234",
+      fullAddress: "0xaBcD1234567890abcdef1234567890abcdef1234",
+      status: JobApplicationStatus.PENDING,
+      applied_at: Date.now() - 86400000 * 2, // 2 days ago
     },
     {
-      id: 2,
-      name: "Jamie Smith",
-      email: "jamie.smith@example.com",
-      location: "Remote",
-      experience: "7 years",
-      skills: ["Solidity", "Ethereum", "JavaScript", "Smart Contracts"],
-      status: "interview",
-      appliedDate: "May 14, 2025"
+      id: "0x2345678901abcdef",
+      address: "0xbCdE...2345",
+      fullAddress: "0xbCdE2345678901abcdef2345678901abcdef2345",
+      status: JobApplicationStatus.REVIEWING,
+      applied_at: Date.now() - 86400000 * 3, // 3 days ago
     },
     {
-      id: 3,
-      name: "Morgan Lee",
-      email: "morgan.lee@example.com",
-      location: "New York, USA",
-      experience: "3 years",
-      skills: ["Solidity", "Web3.js", "React"],
-      status: "review",
-      appliedDate: "May 14, 2025"
+      id: "0x3456789012abcdef",
+      address: "0xcDeF...3456",
+      fullAddress: "0xcDeF3456789012abcdef3456789012abcdef3456",
+      status: JobApplicationStatus.SHORTLISTED,
+      applied_at: Date.now() - 86400000 * 4, // 4 days ago
     },
     {
-      id: 4,
-      name: "Taylor Swift",
-      email: "taylor.swift@example.com",
-      location: "Remote",
-      experience: "8 years",
-      skills: ["Solidity", "Ethereum", "DeFi", "TypeScript"],
-      status: "rejected",
-      appliedDate: "May 12, 2025"
+      id: "0x456789012abcdef3",
+      address: "0xdEfA...4567",
+      fullAddress: "0xdEfA456789012abcdef456789012abcdef4567",
+      status: JobApplicationStatus.INTERVIEWING,
+      applied_at: Date.now() - 86400000 * 5, // 5 days ago
     },
     {
-      id: 5,
-      name: "Jordan Casey",
-      email: "jordan.casey@example.com",
-      location: "London, UK",
-      experience: "4 years",
-      skills: ["Smart Contracts", "JavaScript", "React"],
-      status: "review",
-      appliedDate: "May 11, 2025"
+      id: "0x56789012abcdef34",
+      address: "0xeFaB...5678",
+      fullAddress: "0xeFaB56789012abcdef56789012abcdef5678",
+      status: JobApplicationStatus.REJECTED,
+      applied_at: Date.now() - 86400000 * 6, // 6 days ago
+    },
+  ]);
+
+  // Fetch job data and application counts for each status
+  useEffect(() => {
+    const fetchJobData = async () => {
+      setLoading(true);
+      try {
+        const fetchedJob = await fetchJobById(jobId);
+        setJob(fetchedJob);
+
+        // Fetch application counts for each status
+        const totalPending = await fetchApplicationCountByJobIDAndStatus(
+          jobId,
+          JobApplicationStatus.PENDING
+        );
+        const totalReviewing = await fetchApplicationCountByJobIDAndStatus(
+          jobId,
+          JobApplicationStatus.REVIEWING
+        );
+        const totalShortlisted = await fetchApplicationCountByJobIDAndStatus(
+          jobId,
+          JobApplicationStatus.SHORTLISTED
+        );
+        const totalInterviewing = await fetchApplicationCountByJobIDAndStatus(
+          jobId,
+          JobApplicationStatus.INTERVIEWING
+        );
+        const totalRejected = await fetchApplicationCountByJobIDAndStatus(
+          jobId,
+          JobApplicationStatus.REJECTED
+        );
+        const totalWithdrawn = await fetchApplicationCountByJobIDAndStatus(
+          jobId,
+          JobApplicationStatus.WITHDRAWN
+        );
+        const totalHired = await fetchApplicationCountByJobIDAndStatus(
+          jobId,
+          JobApplicationStatus.HIRED
+        );
+
+        const total =
+          totalPending +
+          totalReviewing +
+          totalShortlisted +
+          totalInterviewing +
+          totalRejected +
+          totalWithdrawn +
+          totalHired;
+
+        setCounts({
+          total,
+          pending: totalPending,
+          reviewing: totalReviewing,
+          shortlisted: totalShortlisted,
+          interviewing: totalInterviewing,
+          rejected: totalRejected,
+          withdrawn: totalWithdrawn,
+          hired: totalHired,
+        });
+      } catch (error) {
+        console.error("Error fetching job data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (jobId) {
+      fetchJobData();
     }
-  ];
-
+  }, [jobId]);
   return (
-    <div>
-      <div className="mb-8">
-        <Link href="/recruiter/jobs" className="text-blue-600 hover:text-blue-800 flex items-center gap-1 mb-4">
-          <ArrowLeft /> Back to Jobs
-        </Link>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">{job.title}</h1>
-            <div className="mt-2 flex items-center gap-4 text-slate-600">
-              <span>{job.location}</span>
+    <div className="container px-4 py-6">
+      {/* Back to Jobs Link */}
+      <Link
+        href="/recruiter/jobs"
+        className="flex items-center gap-2 text-blue-600 hover:text-blue-800 mb-6"
+      >
+        <ArrowLeft size={16} />
+        <span>Back to Jobs</span>
+      </Link>
+
+      {/* Job Header Section */}
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">
+            {loading ? "Loading..." : job?.title || "Job Details"}
+          </h1>
+          {job && (
+            <div className="flex flex-wrap items-center gap-2 text-slate-600 max-w-full">
+              <span
+                className="truncate max-w-[200px]"
+                title={job.location || "Remote"}
+              >
+                {job.location || "Remote"}
+              </span>
               <span>•</span>
-              <span>{JobDurationLabels[job.duration]}</span>
+              <span
+                className="truncate max-w-[200px]"
+                title={
+                  job.duration !== undefined
+                    ? JobDurationLabels[job.duration]
+                    : "Unspecified"
+                }
+              >
+                {job.duration !== undefined
+                  ? JobDurationLabels[job.duration]
+                  : "Unspecified"}
+              </span>
             </div>
-          </div>
-          <div className="flex gap-3">
-            <button className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 px-4 py-2 rounded-lg">
-              Edit Job
-            </button>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
-              View Job Post
-            </button>
-          </div>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" className="flex items-center gap-2">
+            <FileEdit size={16} />
+            Edit Job
+          </Button>
+          <Button className="flex items-center gap-2">
+            <Eye size={16} />
+            View Job Post
+          </Button>
         </div>
       </div>
+      {/* Key Metrics Cards - Lazy loaded component */}
+      <Suspense
+        fallback={
+          <div className="h-40 animate-pulse bg-slate-100 rounded-md mb-6"></div>
+        }
+      >
+        <JobApplicantsMetrics counts={counts} />
+      </Suspense>
 
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <div className="text-2xl font-bold">{applicants.length}</div>
-          <div className="text-slate-600">Total Applicants</div>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <div className="text-2xl font-bold">{applicants.filter(a => a.status === 'review').length}</div>
-          <div className="text-slate-600">In Review</div>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <div className="text-2xl font-bold">{applicants.filter(a => a.status === 'interview').length}</div>
-          <div className="text-slate-600">Interviews</div>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <div className="text-2xl font-bold">{applicants.filter(a => a.status === 'rejected').length}</div>
-          <div className="text-slate-600">Rejected</div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-        <div className="flex items-center p-4 border-b">
-          <input
-            type="text"
-            placeholder="Search applicants..."
-            className="flex-1 px-3 py-2 border rounded-lg mr-4"
-          />
-          <select className="px-3 py-2 border rounded-lg bg-white">
-            <option value="all">All statuses</option>
-            <option value="review">In Review</option>
-            <option value="interview">Interview</option>
-            <option value="rejected">Rejected</option>
-          </select>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-slate-50 text-left">
-                <th className="px-6 py-4 text-sm font-medium text-slate-500">Applicant</th>
-                <th className="px-6 py-4 text-sm font-medium text-slate-500">Location</th>
-                <th className="px-6 py-4 text-sm font-medium text-slate-500">Experience</th>
-                <th className="px-6 py-4 text-sm font-medium text-slate-500">Skills</th>
-                <th className="px-6 py-4 text-sm font-medium text-slate-500">Applied</th>
-                <th className="px-6 py-4 text-sm font-medium text-slate-500">Status</th>
-                <th className="px-6 py-4 text-sm font-medium text-slate-500">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {applicants.map((applicant) => (
-                <tr key={applicant.id} className="hover:bg-slate-50">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-medium mr-3">
-                        {applicant.name.charAt(0)}
-                      </div>
-                      <div>
-                        <div className="font-medium">{applicant.name}</div>
-                        <div className="text-slate-600 text-sm">{applicant.email}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-slate-600">{applicant.location}</td>
-                  <td className="px-6 py-4 text-slate-600">{applicant.experience}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-1">
-                      {applicant.skills.map((skill, idx) => (
-                        <span key={idx} className="bg-slate-100 text-slate-700 text-xs px-2 py-0.5 rounded">
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-slate-600">{applicant.appliedDate}</td>
-                  <td className="px-6 py-4">
-                    <StatusBadge status={applicant.status} />
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex space-x-2">
-                      <button className="bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 px-3 py-1 rounded text-sm">
-                        View
-                      </button>
-                      <button className="bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1 rounded text-sm">
-                        Schedule
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="flex items-center justify-between px-6 py-4 border-t">
-          <div className="text-sm text-slate-500">
-            Showing {applicants.length} applicants
-          </div>
-          <div className="flex space-x-1">
-            <button className="px-3 py-1 border rounded bg-white text-slate-600">
-              Previous
-            </button>
-            <button className="px-3 py-1 border rounded bg-blue-50 text-blue-600 font-medium">
-              1
-            </button>
-            <button className="px-3 py-1 border rounded bg-white text-slate-600">
-              Next
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* Applicants Table */}
+      <ApplicantsTable
+        columns={ApplicantColumns}
+        data={applicants}
+        searchPlaceholder="Search applicants by address or ID..."
+        isLoading={loading}
+      />
     </div>
   );
 }
-
-function StatusBadge({ status }: { status: string }) {
-  let bgColor = "bg-slate-100";
-  let textColor = "text-slate-800";
-
-  if (status === "review") {
-    bgColor = "bg-yellow-100";
-    textColor = "text-yellow-800";
-  } else if (status === "interview") {
-    bgColor = "bg-blue-100";
-    textColor = "text-blue-800";
-  } else if (status === "rejected") {
-    bgColor = "bg-red-100";
-    textColor = "text-red-800";
-  }
-
-  const statusDisplay = {
-    review: "In Review",
-    interview: "Interview",
-    rejected: "Rejected"
-  };
-
-  return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${bgColor} ${textColor}`}>
-      {statusDisplay[status as keyof typeof statusDisplay]}
-    </span>
-  );
-}
-

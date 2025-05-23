@@ -34,6 +34,7 @@ import {
   JobDurationLabels,
   JobDuration,
   JobStatus,
+  JobApplicationStatus,
 } from "@/constants/system";
 
 export const fetchUserDataOnChain = async (
@@ -864,7 +865,7 @@ export const fetchPreviewJobsByRecruiter = async (
         console.error("Error parsing job duration:", error);
       }
 
-      const applicationCount = await fetchApplicationCount(job.id);
+      const applicationCount = await fetchApplicationCountByJobID(job.id);
 
       const preview_job_object: JobPreviewInterface = {
         id: job.id,
@@ -915,7 +916,7 @@ export const fetchJobById = async (
     }
 
     // Fetch the application count for this job
-    const applicationCount = await fetchApplicationCount(job_id);
+    const applicationCount = await fetchApplicationCountByJobID(job_id);
 
     // Map the smart contract job and Irys content to JobInterface
     const jobDetails: JobInterface = {
@@ -1044,7 +1045,7 @@ export const fetchAllOpenJobs = async (): Promise<JobInterface[]> => {
         } catch (error) {
           console.error("Error parsing job duration:", error);
         } // Fetch the application count for this job
-        const applicationCount = await fetchApplicationCount(job.id);
+        const applicationCount = await fetchApplicationCountByJobID(job.id);
 
         // Map the smart contract job and Irys content to JobInterface
         const jobDetails: JobInterface = {
@@ -1254,7 +1255,7 @@ export const fetchJobApplicationByID = async (
  * @param job_id The ID of the job
  * @returns The number of applications for the job
  */
-export const fetchApplicationCount = async (
+export const fetchApplicationCountByJobID = async (
   job_id: string
 ): Promise<number> => {
   try {
@@ -1271,3 +1272,38 @@ export const fetchApplicationCount = async (
     return 0;
   }
 };
+
+/**
+ * Fetch the number of applications for a specific job and status
+ * @param job_id The ID of the job
+ * @param status The application status to filter by
+ * @returns The number of applications for the job with the specified status
+ */
+export const fetchApplicationCountByJobIDAndStatus = async (
+  job_id: string,
+  status: JobApplicationStatus
+): Promise<number> => {
+  try {
+    // Get all applications with the specified status
+    const applications = await readContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "getApplicationsByStatus",
+      args: [status],
+    }) as any[];
+
+    // Filter applications to only include those for the specified job
+    // The job_id in the contract is a bytes32 type
+    const filteredApplications = applications.filter(
+      (application) => application.job_id === job_id
+    );
+
+    return filteredApplications.length;
+  } catch (error) {
+    console.error("Error fetching application count by status:", error);
+    return 0;
+  }
+};
+
+
+

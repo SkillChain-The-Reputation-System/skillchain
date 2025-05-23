@@ -147,3 +147,11 @@ export interface EvaluationInterface {
     score: number | undefined;
     submittedAt: number | undefined;
 }
+
+export interface ApplicantInterface {
+  id: string;
+  address: string;
+  fullAddress: string;
+  status: JobApplicationStatus;
+  applied_at: number;
+}

@@ -1,14 +1,17 @@
 import {
   AlertTriangle,
   ArrowRight,
+  ArchiveIcon,
   BarChart2,
   Bitcoin,
   Bolt,
   BookOpenText,
   BookPlus,
+  Calendar,
   Cast,
   ChartNoAxesCombined,
   Check,
+  CheckIcon,
   CheckCircle,
   ChevronLeft,
   ChevronRight,
@@ -24,11 +27,13 @@ import {
   File,
   FileText,
   FilePenLine,
+  FileEdit,
   HelpCircle,
   Image,
   Laptop,
   Layout,
   LayoutDashboardIcon,
+  ListChecks,
   Loader2,
   LogIn,
   LucideIcon,
@@ -36,6 +41,7 @@ import {
   LucideShoppingBag,
   Moon,
   MoreVertical,
+  PauseCircle,
   Pizza,
   Plus,
   Server,
@@ -53,7 +59,10 @@ import {
   UserX2Icon,
   Wifi,
   X,
-  BriefcaseBusiness
+  XCircle,
+  BriefcaseBusiness,
+  FileTextIcon,
+  ListCheck
 } from 'lucide-react';
 
 export type Icon = LucideIcon;
@@ -129,7 +138,18 @@ export const Icons = {
   Layout: Layout,
   TrendingUp: TrendingUp,
   Cpu: Cpu,
-  Bitcoin: Bitcoin,
-  Wifi: Wifi,
-  Cloud: Cloud
+  Bitcoin: Bitcoin,  Wifi: Wifi,
+  Cloud: Cloud, 
+  FileTextIcon: FileTextIcon,
+    // Application status icons
+  Calendar: Calendar,
+  XCircle: XCircle,
+  ListChecks: ListChecks,
+  
+  // Job status icons
+  PauseCircle: PauseCircle,
+  CheckIcon: CheckIcon,
+  FileEdit: FileEdit,
+  ArchiveIcon: ArchiveIcon,
+  ListCheck: ListCheck,
 };

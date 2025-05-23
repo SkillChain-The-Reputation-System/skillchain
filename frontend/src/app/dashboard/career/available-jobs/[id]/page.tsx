@@ -26,6 +26,7 @@ import {
   JobStatus,
   JobStatusLabels,
 } from "@/constants/system";
+import { jobStatusStyles } from "@/constants/styles";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
 import { useAccount } from "wagmi";
@@ -141,22 +142,7 @@ export default function JobDetailPage() {
   }, [job, isConnected, address, jobId]);
   // Get status color based on job status
   const getStatusColor = (status: JobStatus) => {
-    switch (status) {
-      case JobStatus.OPEN:
-        return "bg-green-100 text-green-800";
-      case JobStatus.PAUSED:
-        return "bg-amber-100 text-amber-800";
-      case JobStatus.CLOSED:
-        return "bg-red-100 text-red-800";
-      case JobStatus.FILLED:
-        return "bg-blue-100 text-blue-800";
-      case JobStatus.DRAFT:
-        return "bg-slate-100 text-slate-800";
-      case JobStatus.ARCHIVED:
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-slate-100 text-slate-800";
-    }
+    return jobStatusStyles[status];
   };
   // Get eligibility notification data
   const getEligibilityNotification = () => {

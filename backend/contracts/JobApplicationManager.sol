@@ -198,7 +198,8 @@ contract JobApplicationManager {
         return applications[application_id];
     }
 
-    /// @notice Get all valid statuses that an application can transition to from its current status
+    
+    /// @notice Get all valid statuses that an application can transition to from its current status (For RECRUITERS role!!!)
     /// @param current_status The current status of the application
     /// @return Array of valid status values that can be transitioned to
     function getValidApplicationStatusTransitions(
@@ -210,6 +211,10 @@ contract JobApplicationManager {
         // Check each possible status as a destination
         for (uint i = 0; i < 7; i++) { // There are 7 statuses in the enum
             SystemEnums.ApplicationStatus potential_status = SystemEnums.ApplicationStatus(i);
+            // Skip WITHDRAWN status as recruiters cannot set this status
+            if (potential_status == SystemEnums.ApplicationStatus.WITHDRAWN) {
+                continue;
+            }
             if (isValidStatusTransition(current_status, potential_status)) {
                 valid_transition_count++;
             }
@@ -222,6 +227,10 @@ contract JobApplicationManager {
         uint256 index = 0;
         for (uint i = 0; i < 7; i++) {
             SystemEnums.ApplicationStatus potential_status = SystemEnums.ApplicationStatus(i);
+            // Skip WITHDRAWN status as recruiters cannot set this status
+            if (potential_status == SystemEnums.ApplicationStatus.WITHDRAWN) {
+                continue;
+            }
             if (isValidStatusTransition(current_status, potential_status)) {
                 valid_transitions[index] = potential_status;
                 index++;

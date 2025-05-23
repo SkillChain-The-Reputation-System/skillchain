@@ -17,6 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { JobStatus, JobDuration, JobDurationLabels } from "@/constants/system";
 import { format } from "date-fns";
 import { JobPreviewInterface } from "@/lib/interfaces";
+import { jobStatusHoverStyles } from "@/constants/styles";
 
 export const columns: ColumnDef<JobPreviewInterface>[] = [
   {
@@ -137,27 +138,27 @@ export const columns: ColumnDef<JobPreviewInterface>[] = [
       switch (status) {
         case JobStatus.DRAFT:
           statusText = "Draft";
-          badgeVariant = "bg-gray-100 text-gray-800";
+          badgeVariant = jobStatusHoverStyles[JobStatus.DRAFT];
           break;
         case JobStatus.OPEN:
           statusText = "Open";
-          badgeVariant = "bg-green-100 text-green-800";
+          badgeVariant = jobStatusHoverStyles[JobStatus.OPEN];
           break;
         case JobStatus.PAUSED:
           statusText = "Paused";
-          badgeVariant = "bg-yellow-100 text-yellow-800";
+          badgeVariant = jobStatusHoverStyles[JobStatus.PAUSED];
           break;
         case JobStatus.CLOSED:
           statusText = "Closed";
-          badgeVariant = "bg-red-100 text-red-800";
+          badgeVariant = jobStatusHoverStyles[JobStatus.CLOSED];
           break;
         case JobStatus.FILLED:
           statusText = "Filled";
-          badgeVariant = "bg-blue-100 text-blue-800";
+          badgeVariant = jobStatusHoverStyles[JobStatus.FILLED];
           break;
         case JobStatus.ARCHIVED:
           statusText = "Archived";
-          badgeVariant = "bg-slate-100 text-slate-800";
+          badgeVariant = jobStatusHoverStyles[JobStatus.ARCHIVED];
           break;
         default:
           statusText = "Unknown";

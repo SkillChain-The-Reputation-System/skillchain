@@ -25,7 +25,7 @@ import { uploadImagesInHTML } from "@/lib/utils";
 import { IrysUploadResponseInterface } from "@/lib/interfaces";
 import { ProfileFormValues } from "@/features/account/profile-settings/profile-form";
 import { JobFormData } from "@/features/jobs-on-recruiter/create/create-job-form";
-import { JobStatus } from "@/constants/system";
+import { JobApplicationStatus, JobStatus } from "@/constants/system";
 
 export async function joinReviewPool(
   challengeId: number,
@@ -458,6 +458,43 @@ export async function submitJobApplication(
     return txHash;
   } catch (error) {
     console.error("Error submitting job application:", error);
+    throw error;
+  }
+}
+
+/**
+ * Update a job application status
+ * @param applicationId The application ID
+ * @param newStatus The new application status
+ * @returns The transaction hash
+ */
+export async function updateJobApplicationStatus(
+  applicationId: string,
+  newStatus: JobApplicationStatus
+): Promise<`0x${string}`> {
+  try {
+    // Simulate the transaction to check for errors
+    await simulateContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "updateApplicationStatus",
+      args: [applicationId, newStatus],
+    });
+
+    // Send the transaction
+    const txHash = await writeContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "updateApplicationStatus",
+      args: [applicationId, newStatus],
+    });
+
+    // Wait for transaction to be mined
+    await waitForTransactionReceipt(wagmiConfig, { hash: txHash });
+    
+    return txHash;
+  } catch (error) {
+    console.error("Error updating application status:", error);
     throw error;
   }
 }

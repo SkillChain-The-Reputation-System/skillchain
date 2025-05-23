@@ -34,6 +34,7 @@ import {
   Domain,
   DomainLabels,
 } from "@/constants/system";
+import { applicationStatusStyles, jobStatusStyles } from "@/constants/styles";
 import { format, differenceInDays, formatDistanceToNow } from "date-fns";
 import { toast } from "react-toastify";
 import { useAccount } from "wagmi";
@@ -43,27 +44,10 @@ const ApplicationStatusBadge = ({
   status,
 }: {
   status: JobApplicationStatus;
-}) => {
+}) => {  
   // Status color mapping with dark mode support
   const getStatusColor = (status: JobApplicationStatus) => {
-    switch (status) {
-      case JobApplicationStatus.PENDING:
-        return "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200";
-      case JobApplicationStatus.REVIEWING:
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-      case JobApplicationStatus.SHORTLISTED:
-        return "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200";
-      case JobApplicationStatus.INTERVIEWING:
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200";
-      case JobApplicationStatus.REJECTED:
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-      case JobApplicationStatus.WITHDRAWN:
-        return "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200";
-      case JobApplicationStatus.HIRED:
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200";
-    }
+    return applicationStatusStyles[status];
   };
 
   return (
@@ -78,22 +62,7 @@ const ApplicationStatusBadge = ({
 const JobStatusBadge = ({ status }: { status: JobStatus }) => {
   // Status color mapping with dark mode support
   const getStatusColor = (status: JobStatus) => {
-    switch (status) {
-      case JobStatus.OPEN:
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-      case JobStatus.PAUSED:
-        return "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200";
-      case JobStatus.CLOSED:
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-      case JobStatus.FILLED:
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-      case JobStatus.DRAFT:
-        return "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200";
-      case JobStatus.ARCHIVED:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200";
-      default:
-        return "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200";
-    }
+    return jobStatusStyles[status];
   };
 
   return (
@@ -591,14 +560,15 @@ export default function ApplicationDetailPage() {
                   </p>
                 )}
 
-                {application.status === JobApplicationStatus.SHORTLISTED && (
+                {application.status === JobApplicationStatus.SHORTLISTED && ( 
                   <p className="text-sm text-blue-800 dark:text-blue-300">
                     Congratulations! You've been shortlisted. Prepare for a
                     potential interview.
                   </p>
                 )}
 
-                {application.status === JobApplicationStatus.INTERVIEWING && (
+                {application.status === 
+                JobApplicationStatus.INTERVIEWING && (
                   <div className="text-sm text-blue-800 dark:text-blue-300 space-y-2">
                     <p>
                       Interview scheduled for June 1, 2025 at 10:00 AM in Zoom.

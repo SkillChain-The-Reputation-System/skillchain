@@ -1286,12 +1286,12 @@ export const fetchApplicationCountByJobIDAndStatus = async (
 ): Promise<number> => {
   try {
     // Get all applications with the specified status
-    const applications = await readContract(wagmiConfig, {
+    const applications = (await readContract(wagmiConfig, {
       address: ContractConfig_JobApplicationManager.address as `0x${string}`,
       abi: ContractConfig_JobApplicationManager.abi,
       functionName: "getApplicationsByStatus",
       args: [status],
-    }) as any[];
+    })) as any[];
 
     // Filter applications to only include those for the specified job
     // The job_id in the contract is a bytes32 type
@@ -1316,23 +1316,27 @@ export const fetchApplicantsByJobID = async (
 ): Promise<JobApplicantionInterface[]> => {
   try {
     // Step 1: Call the contract function to get applications for the job
-    const applications = await readContract(wagmiConfig, {
+    const applications = (await readContract(wagmiConfig, {
       address: ContractConfig_JobApplicationManager.address as `0x${string}`,
       abi: ContractConfig_JobApplicationManager.abi,
       functionName: "getApplicationsByJob",
       args: [job_id],
-    }) as any[];
+    })) as any[];
 
-    console.log(`Fetched ${applications.length} applications for job ${job_id}`);
-    
+    console.log(
+      `Fetched ${applications.length} applications for job ${job_id}`
+    );
+
     // Step 2: Transform contract data to match ApplicantInterface
-    const applicants: JobApplicantionInterface[] = applications.map((application) => ({
-      id: application.id,  // Use application ID as the unique identifier
-      address: application.applicant,  // Applicant's address
-      status: application.status,  // Application status
-      applied_at: Number(application.applied_at),  // Convert to number if it's returned as a BigInt
-      job_id: application.job_id,  // Job ID
-    }));
+    const applicants: JobApplicantionInterface[] = applications.map(
+      (application) => ({
+        id: application.id, // Use application ID as the unique identifier
+        address: application.applicant, // Applicant's address
+        status: application.status, // Application status
+        applied_at: Number(application.applied_at), // Convert to number if it's returned as a BigInt
+        job_id: application.job_id, // Job ID
+      })
+    );
 
     return applicants;
   } catch (error) {
@@ -1341,3 +1345,28 @@ export const fetchApplicantsByJobID = async (
   }
 };
 
+/**
+ * Get possible job application status transitions from current status
+ * @param status The current job application status
+ * @returns An array of possible job application statuses that can be transitioned to
+ */
+export async function fetchPossibleApplicationStatusTransitions(
+  status: JobApplicationStatus
+): Promise<JobApplicationStatus[]> {
+  try {
+    const possibleStatuses = await readContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "getValidApplicationStatusTransitions",
+      args: [status],
+    });
+
+    return possibleStatuses as JobApplicationStatus[];
+  } catch (error) {
+    console.error(
+      "Error fetching possible application status transitions:",
+      error
+    );
+    return [];
+  }
+}

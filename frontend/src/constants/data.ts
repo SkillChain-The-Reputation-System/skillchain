@@ -1,6 +1,6 @@
 import { AccountButtonItem, NavItem } from "types";
 import { pageUrlMapping } from "./navigation";
-import { Domain } from "./system";
+import { Domain, JobApplicationStatus, JobStatus } from "./system";
 
 // Map each domain to its icon name
 export const DomainIconMap: Record<number, string> = {
@@ -18,6 +18,27 @@ export const DomainIconMap: Record<number, string> = {
   [Domain.BLOCKCHAIN_AND_CRYPTOCURRENCY]: "Bitcoin",
   [Domain.NETWORK_ADMINISTRATION]: "Wifi",
   [Domain.CLOUD_COMPUTING]: "Cloud",
+};
+
+// Map application status to icon name
+export const ApplicationStatusIconMap: Record<JobApplicationStatus, string> = {
+  [JobApplicationStatus.PENDING]: "FileTextIcon",
+  [JobApplicationStatus.REVIEWING]: "UserSearch",
+  [JobApplicationStatus.SHORTLISTED]: "ListCheck",
+  [JobApplicationStatus.INTERVIEWING]: "Calendar",
+  [JobApplicationStatus.HIRED]: "CheckCircle",
+  [JobApplicationStatus.REJECTED]: "XCircle",
+  [JobApplicationStatus.WITHDRAWN]: "ArrowRight",
+};
+
+// Map job status to icon name
+export const JobStatusIconMap: Record<JobStatus, string> = {
+  [JobStatus.OPEN]: "CheckCircle",
+  [JobStatus.PAUSED]: "PauseCircle",
+  [JobStatus.CLOSED]: "XCircle",
+  [JobStatus.FILLED]: "CheckIcon",
+  [JobStatus.DRAFT]: "FileEdit",
+  [JobStatus.ARCHIVED]: "ArchiveIcon",
 };
 
 //Info: The following data is used for the sidebar navigation and Cmd K bar.

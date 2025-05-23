@@ -66,6 +66,9 @@ import {
   JobDurationLabels,
   DomainLabels,
 } from "@/constants/system";
+import { JobStatusIconMap } from "@/constants/data";
+import { jobStatusHoverStyles, jobStatusIconStyles, jobStatusStyles } from "@/constants/styles";
+import { Icons } from "@/components/icons";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
 
@@ -192,65 +195,25 @@ export default function JobDetailPage() {
       default:
         return "Are you sure you want to change the status of this job?";
     }
-  };
-
-  // Get status icon
+  };  // Get status icon
   const getStatusIcon = (status: JobStatus) => {
-    switch (status) {
-      case JobStatus.OPEN:
-        return <CheckCircle className="h-6 w-6 text-green-500" />;
-      case JobStatus.PAUSED:
-        return <PauseCircle className="h-6 w-6 text-amber-500" />;
-      case JobStatus.CLOSED:
-        return <XCircle className="h-6 w-6 text-red-500" />;
-      case JobStatus.FILLED:
-        return <CheckIcon className="h-6 w-6 text-blue-500" />;
-      case JobStatus.DRAFT:
-        return <FileEdit className="h-6 w-6 text-slate-500" />;
-      case JobStatus.ARCHIVED:
-        return <ArchiveIcon className="h-6 w-6 text-gray-500" />;
-      default:
-        return null;
-    }
+    const iconName = JobStatusIconMap[status];
+    if (!iconName) return null;
+    
+    // Use type assertion to handle the dynamic access
+    const IconComponent = Icons[iconName as keyof typeof Icons];
+    if (!IconComponent) return null;
+    
+    return <IconComponent className={`h-6 w-6 ${jobStatusIconStyles[status]}`} />;
   };
 
   // Get button color for status
   const getStatusButtonColor = (status: JobStatus) => {
-    switch (status) {
-      case JobStatus.OPEN:
-        return "bg-green-100 text-green-800 hover:bg-green-200";
-      case JobStatus.PAUSED:
-        return "bg-amber-100 text-amber-800 hover:bg-amber-200";
-      case JobStatus.CLOSED:
-        return "bg-red-100 text-red-800 hover:bg-red-200";
-      case JobStatus.FILLED:
-        return "bg-blue-100 text-blue-800 hover:bg-blue-200";
-      case JobStatus.DRAFT:
-        return "bg-slate-100 text-slate-800 hover:bg-slate-200";
-      case JobStatus.ARCHIVED:
-        return "bg-gray-100 text-gray-800 hover:bg-gray-200";
-      default:
-        return "bg-slate-100 text-slate-800 hover:bg-slate-200";
-    }
+    return jobStatusHoverStyles[status];
   };
 
   const getStatusColor = (status: JobStatus) => {
-    switch (status) {
-      case JobStatus.OPEN:
-        return "bg-green-100 text-green-800";
-      case JobStatus.PAUSED:
-        return "bg-amber-100 text-amber-800";
-      case JobStatus.CLOSED:
-        return "bg-red-100 text-red-800";
-      case JobStatus.FILLED:
-        return "bg-blue-100 text-blue-800";
-      case JobStatus.DRAFT:
-        return "bg-slate-100 text-slate-800";
-      case JobStatus.ARCHIVED:
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-slate-100 text-slate-800";
-    }
+    return jobStatusStyles[status];
   };
 
   if (loading) {

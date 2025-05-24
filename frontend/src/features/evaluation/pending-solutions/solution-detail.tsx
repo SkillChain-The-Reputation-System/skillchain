@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Toaster, toast } from "sonner"
 import SolutionDetailsSkeleton from "@/features/evaluation/solution-details-skeleton";
 import RichTextEditor from '@/components/rich-text-editor'
+import ButtonWithAlert from "@/components/button-with-alert";
 
 // Import lucide-react icons
 import {
@@ -181,14 +182,16 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
                       Max evaluators
                     </Button>
                   ) : (
-                    <Button
+                    <ButtonWithAlert
                       size="lg"
                       className="shrink-0 bg-zinc-700 text-white cursor-pointer"
-                      onClick={handleJoinEvaluation}
                       disabled={joining}
+                      dialogTitle="Confirm evaluating solution"
+                      dialogDescription="You will need to pay the Submitter to evaluate this solution. Are you sure you want to continue?"
+                      continueAction={handleJoinEvaluation}
                     >
                       Evaluate Solution
-                    </Button>
+                    </ButtonWithAlert>
                   )
                 }
               </div>

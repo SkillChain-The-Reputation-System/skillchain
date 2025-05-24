@@ -6,7 +6,6 @@ import { Editor } from "@tiptap/react";
 import { Link, Unlink } from 'lucide-react'
 
 // Import UI components
-import { Toggle } from '@/components/ui/toggle';
 import { Label } from '@/components/ui/label'
 import {
   Popover,
@@ -15,6 +14,7 @@ import {
 } from "@/components/ui/popover"
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button'
+import ToggleTooltip from "@/components/toggle-tooltip"
 
 export function Hyperlink({ editor }: { editor: Editor | null }) {
   if (!editor) {
@@ -34,9 +34,11 @@ export function Hyperlink({ editor }: { editor: Editor | null }) {
     <>
       <Popover>
         <PopoverTrigger asChild>
-          <Toggle pressed={editor.isActive("link")}>
+          <ToggleTooltip
+            tooltip="Hyperlink"
+          >
             <Link className="size-4" />
-          </Toggle>
+          </ToggleTooltip>
         </PopoverTrigger>
 
         <PopoverContent className="min-w-md border-2 border-black dark:border-white space-y-4">
@@ -47,14 +49,18 @@ export function Hyperlink({ editor }: { editor: Editor | null }) {
             value={linkText}
             onChange={(e) => setLinkText(e.target.value)}
           />
-          <Button onClick={setLink}>Add link</Button>
+          <Button onClick={setLink} className="bg-zinc-700 hover:bg-zinc-700/60 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/60 cursor-pointer">Add link</Button>
         </PopoverContent>
       </Popover>
 
       {editor.isActive("link") && (
-        <Toggle pressed={editor.isActive("link")} onClick={() => editor.chain().focus().unsetLink().run()}>
+        <ToggleTooltip
+          tooltip="Remove link"
+          onClick={() => editor.chain().focus().unsetLink().run()}
+          isActive={editor.isActive("link")}
+        >
           <Unlink className="size-4" />
-        </Toggle>
+        </ToggleTooltip>
       )}
     </>
   )

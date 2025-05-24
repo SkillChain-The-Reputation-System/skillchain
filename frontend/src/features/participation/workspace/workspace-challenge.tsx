@@ -26,6 +26,7 @@ import { Badge } from '@/components/ui/badge'
 import { Toaster, toast } from "sonner"
 import ChallengeDetailsSkeleton from '@/features/participation/challenge-details-skeleton'
 import RichTextEditor from '@/components/rich-text-editor'
+import ButtonWithAlert from "@/components/button-with-alert";
 
 // Import lucide-react icons
 import {
@@ -429,7 +430,7 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                             <FormControl>
                               <RichTextEditor
                                 {...field}
-                                className="min-h-80 border-black dark:border-white border-1 rounded-md bg-slate-50 py-2 px-3 dark:bg-blue-950/15 break-all"
+                                className="w-full max-w-5xl min-h-80 border-black dark:border-white border-1 rounded-md bg-slate-50 py-2 px-3 dark:bg-blue-950/15"
                                 placeholder="What is your solution about this challenge..."
                                 editable={solution.progress == ChallengeSolutionProgress.IN_PROGRESS}
                               />
@@ -450,7 +451,7 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                             <Button
                               variant="outline"
                               size="lg"
-                              className="flex items-center gap-2 cursor-pointer border border-zinc-700"
+                              className="flex items-center cursor-pointer gap-2 c border border-zinc-700"
                               onClick={onSaveDraft}
                               disabled={savingDraft || submitting}
                             >
@@ -458,36 +459,37 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                               Save draft
                             </Button>
 
-                            <Button
-                              variant="outline"
+                            <ButtonWithAlert
                               size="lg"
                               className="flex items-center gap-2 cursor-pointer shrink-0 bg-zinc-700 hover:bg-zinc-700/60 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/60"
-                              onClick={onSubmit}
                               disabled={savingDraft || submitting}
+                              dialogTitle="Confirm submitting solution"
+                              dialogDescription="This action cannot be undone, and you won't be able to edit this solution afterward."
+                              continueAction={onSubmit}
                             >
                               <Send className="h-4 w-4" />
                               Submit
-                            </Button>
+                            </ButtonWithAlert>
                           </>
                         ) : solution.progress == ChallengeSolutionProgress.SUBMITTED ? (
                           <>
-                            <Button
-                              variant="outline"
+                            <ButtonWithAlert
                               size="lg"
                               className="flex items-center gap-2 cursor-pointer border bg-purple-800 hover:bg-purple-800/60 text-white dark:bg-purple-400 dark:hover:bg-purple-400/60 dark:text-black"
-                              onClick={onPutUnderReview}
                               disabled={puttingUnderReview}
+                              dialogTitle="Confirm publishing for Evaluation"
+                              dialogDescription="Your solution will be published to your Evaluators. Are you ready to submit it for evaluation?"
+                              continueAction={onPutUnderReview}
                             >
                               <ArrowBigUpDash className="h-4 w-4" />
                               Put Under Review
-                            </Button>
+                            </ButtonWithAlert>
                           </>
                         ) : (
                           <>
                           </>
                         )
                     }
-
                   </div>
                 </TabsContent>
               </Tabs>

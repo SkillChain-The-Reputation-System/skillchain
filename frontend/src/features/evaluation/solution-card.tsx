@@ -57,12 +57,12 @@ export function SolutionCard({ solutionPreview, onClick, forEvaluator = false }:
                 )
               }
             </div>
-
-            <div
-              className="line-clamp-1 mt-1 text-muted-foreground text-xs font-light disable-click-links no-images break-all"
-              dangerouslySetInnerHTML={{ __html: solutionPreview.solution || "" }}
-            />
           </div>
+
+          <div
+            className="line-clamp-1 mt-1 text-muted-foreground text-xs font-light disable-click-links no-images break-all"
+            dangerouslySetInnerHTML={{ __html: solutionPreview.solution || "" }}
+          />
         </CardHeader>
 
         <CardContent className="flex flex-col text-[11px] text-muted-foreground gap-2">

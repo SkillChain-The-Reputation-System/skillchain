@@ -11,23 +11,11 @@ import { Separator } from "@/components/ui/separator";
 import {
   ArrowDownSquare,
   ArrowUpSquare,
-  BarChart2,
-  Bitcoin,
-  CheckCircle,
-  ClipboardList,
-  Cloud,
-  Code,
-  Code2,
-  Cpu,
-  Database,
-  Layout,
-  Server,
-  Shield,
-  TrendingUp,
   Trophy,
-  Wifi,
 } from "lucide-react";
-import { Domain, DomainLabels } from "@/constants/system";
+import { DomainLabels } from "@/constants/system";
+import { DomainIconMap } from "@/constants/data";
+import { Icons } from "@/components/icons";
 
 interface GeneralInfoProps {
   username?: string | undefined;
@@ -47,24 +35,6 @@ export default function GeneralInfo({
   domain_reputation,
 }: GeneralInfoProps) {
   const [isBioCollapsed, setIsBioCollapsed] = useState(true);
-
-  // Map each domain key to an icon component
-  const DomainIcons: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
-    [Domain.COMPUTER_SCIENCE_FUNDAMENTALS]: Code,
-    [Domain.SOFTWARE_DEVELOPMENT]: Code2,
-    [Domain.SYSTEMS_AND_NETWORKING]: Server,
-    [Domain.CYBERSECURITY]: Shield,
-    [Domain.DATA_SCIENCE_AND_ANALYTICS]: BarChart2,
-    [Domain.DATABASE_ADMINISTRATION]: Database,
-    [Domain.QUALITY_ASSURANCE_AND_TESTING]: CheckCircle,
-    [Domain.PROJECT_MANAGEMENT]: ClipboardList,
-    [Domain.USER_EXPERIENCE_AND_DESIGN]: Layout,
-    [Domain.BUSINESS_ANALYSIS]: TrendingUp,
-    [Domain.ARTIFICIAL_INTELLIGENCE]: Cpu,
-    [Domain.BLOCKCHAIN_AND_CRYPTOCURRENCY]: Bitcoin,
-    [Domain.NETWORK_ADMINISTRATION]: Wifi,
-    [Domain.CLOUD_COMPUTING]: Cloud,
-  };
 
   return (
     <Card className="border-black dark:border-white">
@@ -88,14 +58,15 @@ export default function GeneralInfo({
         </div>
         <div className="grid grid-cols-2 gap-3 w-full">
           {Object.entries(DomainLabels).map(([key, label]) => {
-            const Icon = DomainIcons[key as keyof typeof DomainIcons];
+            const iconName = DomainIconMap[Number(key)];
+            const IconComponent = Icons[iconName as keyof typeof Icons];
             return (
               <div
                 key={key}
                 className="flex justify-between items-center p-2 rounded-lg gap-4"
               >
                 <div className="flex items-center gap-2">
-                  {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
+                  {IconComponent && <IconComponent className="h-4 w-4 text-muted-foreground" />}
                   <span className="text-xs">{label}</span>
                 </div>
                 <span className="text-sm font-medium">

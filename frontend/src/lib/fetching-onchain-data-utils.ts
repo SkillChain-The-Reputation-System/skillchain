@@ -1,9 +1,12 @@
-import { readContract } from "@wagmi/core";
+// filepath: d:\Hai_Tuyen\thesis\skillchain\frontend\src\lib\fetching-onchain-data-utils.ts
+import { readContract, simulateContract } from "@wagmi/core";
 import {
   ContractConfig_ChallengeManager,
   ContractConfig_UserDataManager,
   ContractConfig_SolutionManager,
   ContractConfig_ReputationManager,
+  ContractConfig_JobManager,
+  ContractConfig_JobApplicationManager,
 } from "@/constants/contracts-config";
 import { wagmiConfig } from "@/features/wallet/Web3Provider";
 import {
@@ -15,15 +18,25 @@ import {
   ReviewData,
   UnderReviewSolutionPreview,
   SolutionReviewPool,
-  EvaluationInterface
+  EvaluationInterface,
+  JobPreviewInterface,
+  JobInterface,
+  JobApplicationWithJobDataInterface,
+  JobApplicantionInterface,
 } from "./interfaces";
-import { fetchJsonDataOffChain, fetchStringDataOffChain } from "./fetching-offchain-data-utils";
+import {
+  fetchJsonDataOffChain,
+  fetchStringDataOffChain,
+} from "./fetching-offchain-data-utils";
 import {
   QualityFactorAnswer,
   ChallengeDifficultyLevel,
-  Domain
+  Domain,
+  JobDurationLabels,
+  JobDuration,
+  JobStatus,
+  JobApplicationStatus,
 } from "@/constants/system";
-
 
 export const fetchUserDataOnChain = async (
   address: `0x${string}`
@@ -118,7 +131,7 @@ export const fetchJoinedReviewPoolChallenges = async (
         qualityScore: challenge.quality_score,
         difficultyLevel: challenge.difficulty_level,
         solveTime: challenge.solve_time,
-        completed: challenge.completed
+        completed: challenge.completed,
       };
     })
   );
@@ -152,7 +165,7 @@ export const getChallengeById = async (
     qualityScore: challenge.quality_score,
     difficultyLevel: challenge.difficulty_level,
     solveTime: challenge.solve_time,
-    completed: challenge.completed
+    completed: challenge.completed,
   };
 };
 
@@ -187,17 +200,31 @@ export const getModeratorReviewOfChallenge = async (
       suggested_solve_time: 0,
     };
 
-    if (typeof review_data_raw === "string" ? review_data_raw.trim() !== "" : review_data_raw && Object.keys(review_data_raw).length > 0) {
+    if (
+      typeof review_data_raw === "string"
+        ? review_data_raw.trim() !== ""
+        : review_data_raw && Object.keys(review_data_raw).length > 0
+    ) {
       review_data = {
         relevance: Number(review_data_raw.relevance) as QualityFactorAnswer,
-        technical_correctness: Number(review_data_raw.technical_correctness) as QualityFactorAnswer,
-        completeness: Number(review_data_raw.completeness) as QualityFactorAnswer,
+        technical_correctness: Number(
+          review_data_raw.technical_correctness
+        ) as QualityFactorAnswer,
+        completeness: Number(
+          review_data_raw.completeness
+        ) as QualityFactorAnswer,
         clarity: Number(review_data_raw.clarity) as QualityFactorAnswer,
         originality: Number(review_data_raw.originality) as QualityFactorAnswer,
         unbiased: Number(review_data_raw.unbiased) as QualityFactorAnswer,
-        plagiarism_free: Number(review_data_raw.plagiarism_free) as QualityFactorAnswer,
-        suggested_difficulty: Number(review_data_raw.suggested_difficulty) as ChallengeDifficultyLevel,
-        suggested_category: Number(review_data_raw.suggested_category) as Domain,
+        plagiarism_free: Number(
+          review_data_raw.plagiarism_free
+        ) as QualityFactorAnswer,
+        suggested_difficulty: Number(
+          review_data_raw.suggested_difficulty
+        ) as ChallengeDifficultyLevel,
+        suggested_category: Number(
+          review_data_raw.suggested_category
+        ) as Domain,
         suggested_solve_time: Number(review_data_raw.suggested_solve_time),
       };
     }
@@ -290,7 +317,7 @@ export const fetchContributedChallenges = async (
         qualityScore: challenge.quality_score,
         difficultyLevel: challenge.difficulty_level,
         solveTime: challenge.solve_time,
-        completed: challenge.completed
+        completed: challenge.completed,
       };
     })
   );
@@ -326,7 +353,7 @@ export const fetchPendingChallenges = async (): Promise<
         qualityScore: challenge.quality_score,
         difficultyLevel: challenge.difficulty_level,
         solveTime: challenge.solve_time,
-        completed: challenge.completed
+        completed: challenge.completed,
       };
     })
   );
@@ -362,7 +389,7 @@ export const fetchApprovedChallenges = async (): Promise<
         qualityScore: challenge.quality_score,
         difficultyLevel: challenge.difficulty_level,
         solveTime: challenge.solve_time,
-        completed: challenge.completed
+        completed: challenge.completed,
       };
     })
   );
@@ -398,7 +425,7 @@ export const fetchJoinedChallengesByUser = async (
         qualityScore: challenge.quality_score,
         difficultyLevel: challenge.difficulty_level,
         solveTime: challenge.solve_time,
-        completed: challenge.completed
+        completed: challenge.completed,
       };
     })
   );
@@ -535,7 +562,7 @@ export const fetchSolutionById = async (
     progress: fetchedSolution.progress,
     score: fetchedSolution.score,
   };
-}
+};
 
 export const fetchUserReputationScore = async (address: `0x${string}`) => {
   const global_reputation = (await readContract(wagmiConfig, {
@@ -558,18 +585,40 @@ export const fetchUserReputationScore = async (address: `0x${string}`) => {
   };
 };
 
-export const fetchUnderReviewSolutionsPreview = async (): Promise<UnderReviewSolutionPreview[]> => {
-  const underReviewSolutions = (await readContract(wagmiConfig, {
+export const fetchJobContentID = async (job_id: string): Promise<string> => {
+  try {
+    const content_id = await readContract(wagmiConfig, {
+      address: ContractConfig_JobManager.address as `0x${string}`,
+      abi: ContractConfig_JobManager.abi,
+      functionName: "getJobContentID",
+      args: [job_id],
+    });
+
+    return content_id as string;
+  } catch (error) {
+    console.error("Error fetching job content ID:", error);
+    throw error;
+  }
+};
+
+export const fetchUnderReviewSolutionsPreview = async (): Promise<
+  UnderReviewSolutionPreview[]
+> => {
+  const underReviewSolutions = await readContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
     abi: ContractConfig_SolutionManager.abi,
     functionName: "getUnderReviewSolutionPreview",
     args: [],
-  }));
+  });
 
   const meaningUnderReviewSolutions = await Promise.all(
     (underReviewSolutions as any[]).map(async (solution) => {
-      const challengeTitle = await fetchStringDataOffChain(solution.challenge_title_url);
-      const solutionContent = await fetchStringDataOffChain(`https://gateway.irys.xyz/mutable/${solution.solution_txid}`);
+      const challengeTitle = await fetchStringDataOffChain(
+        solution.challenge_title_url
+      );
+      const solutionContent = await fetchStringDataOffChain(
+        `https://gateway.irys.xyz/mutable/${solution.solution_txid}`
+      );
 
       return {
         solutionId: solution.id,
@@ -586,22 +635,26 @@ export const fetchUnderReviewSolutionsPreview = async (): Promise<UnderReviewSol
   );
 
   return meaningUnderReviewSolutions;
-}
+};
 
 export const fetchUnderReviewSolutionsPreviewByEvaluator = async (
-  address: `0x${string}`,
+  address: `0x${string}`
 ): Promise<UnderReviewSolutionPreview[]> => {
-  const underReviewSolutions = (await readContract(wagmiConfig, {
+  const underReviewSolutions = await readContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
     abi: ContractConfig_SolutionManager.abi,
     functionName: "getSolutionByEvaluator",
     args: [address],
-  }));
+  });
 
   const meaningUnderReviewSolutions = await Promise.all(
     (underReviewSolutions as any[]).map(async (solution) => {
-      const challengeTitle = await fetchStringDataOffChain(solution.challenge_title_url);
-      const solutionContent = await fetchStringDataOffChain(`https://gateway.irys.xyz/mutable/${solution.solution_txid}`);
+      const challengeTitle = await fetchStringDataOffChain(
+        solution.challenge_title_url
+      );
+      const solutionContent = await fetchStringDataOffChain(
+        `https://gateway.irys.xyz/mutable/${solution.solution_txid}`
+      );
 
       return {
         solutionId: solution.id,
@@ -618,89 +671,89 @@ export const fetchUnderReviewSolutionsPreviewByEvaluator = async (
   );
 
   return meaningUnderReviewSolutions;
-}
+};
 
 export const fetchNumberOfJoinedEvaluatorsById = async (
   solution_id: number
 ): Promise<number> => {
-  const numberOfEvaluators = await readContract(wagmiConfig, {
+  const numberOfEvaluators = (await readContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
     abi: ContractConfig_SolutionManager.abi,
     functionName: "getNumberOfJoinedEvaluators",
     args: [solution_id],
-  }) as number;
+  })) as number;
 
   return Number(numberOfEvaluators);
-}
+};
 
 export const fetchNumberOfSubmittedEvaluationById = async (
   solution_id: number
 ): Promise<number> => {
-  const numberOfSubmittedEvaluation = await readContract(wagmiConfig, {
+  const numberOfSubmittedEvaluation = (await readContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
     abi: ContractConfig_SolutionManager.abi,
     functionName: "getNumberOfSubmittedEvaluations",
     args: [solution_id],
-  }) as number;
+  })) as number;
 
   return Number(numberOfSubmittedEvaluation);
-}
+};
 
 export const fetchMaxEvaluatorsForSolutionById = async (
   solution_id: number
 ): Promise<number> => {
-  const totalEvaluators = await readContract(wagmiConfig, {
+  const totalEvaluators = (await readContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
     abi: ContractConfig_SolutionManager.abi,
     functionName: "getMaxEvaluatorsForSolution",
     args: [solution_id],
-  }) as number;
+  })) as number;
 
   return Number(totalEvaluators);
-}
+};
 
 export const fetchTimestampEvaluationCompleted = async (
   solution_id: number
 ): Promise<number | undefined> => {
   try {
-    const timestamp = await readContract(wagmiConfig, {
+    const timestamp = (await readContract(wagmiConfig, {
       address: ContractConfig_SolutionManager.address as `0x${string}`,
       abi: ContractConfig_SolutionManager.abi,
       functionName: "getTimestampEvaluationCompleted",
       args: [solution_id],
-    }) as number;
+    })) as number;
 
     return Number(timestamp);
   } catch (error) {
     return undefined;
   }
-}
+};
 
 export const fetchSolutionReviewPool = async (
   solution_id: number
 ): Promise<SolutionReviewPool | null> => {
-  const solution = await fetchSolutionById(solution_id) as SolutionInterface;
+  const solution = (await fetchSolutionById(solution_id)) as SolutionInterface;
 
   const [
     numberOfEvaluators,
     numberOfSubmittedEvaluation,
     totalEvaluators,
-    timestamp
-  ] = (await Promise.all([
+    timestamp,
+  ] = await Promise.all([
     fetchNumberOfJoinedEvaluatorsById(solution_id),
     fetchNumberOfSubmittedEvaluationById(solution_id),
     fetchMaxEvaluatorsForSolutionById(solution_id),
-    fetchTimestampEvaluationCompleted(solution_id)
-  ]))
+    fetchTimestampEvaluationCompleted(solution_id),
+  ]);
 
   return {
     solution: solution,
     numberOfEvaluators: numberOfEvaluators,
     numberOfSubmittedEvaluation: numberOfSubmittedEvaluation,
     totalEvaluators: totalEvaluators,
-    completedAt: timestamp
-  }
-}
+    completedAt: timestamp,
+  };
+};
 
 export const fetchEvaluatorHasJoinedSolutionState = async (
   address: `0x${string}`,
@@ -714,7 +767,7 @@ export const fetchEvaluatorHasJoinedSolutionState = async (
   })) as boolean;
 
   return has_joined;
-}
+};
 
 export const fetchEvaluatorHasSubmittedSolution = async (
   address: `0x${string}`,
@@ -728,7 +781,7 @@ export const fetchEvaluatorHasSubmittedSolution = async (
   })) as boolean;
 
   return has_submitted;
-}
+};
 
 export const fetchSubmittedEvaluationScore = async (
   address: `0x${string}`,
@@ -746,7 +799,7 @@ export const fetchSubmittedEvaluationScore = async (
   } catch (error) {
     return undefined;
   }
-}
+};
 
 export const fetchTimestampScoreSubmittedByEvaluator = async (
   address: `0x${string}`,
@@ -764,22 +817,556 @@ export const fetchTimestampScoreSubmittedByEvaluator = async (
   } catch (error) {
     return undefined;
   }
-}
+};
 
 export const fetchEvaluationForSolutionByEvaluator = async (
   address: `0x${string}`,
   solution_id: number
 ): Promise<EvaluationInterface> => {
-
-  const [isSubmitted, score, timestamp] = (await Promise.all([
+  const [isSubmitted, score, timestamp] = await Promise.all([
     fetchEvaluatorHasSubmittedSolution(address, solution_id),
     fetchSubmittedEvaluationScore(address, solution_id),
-    fetchTimestampScoreSubmittedByEvaluator(address, solution_id)
-  ]))
+    fetchTimestampScoreSubmittedByEvaluator(address, solution_id),
+  ]);
 
   return {
     isSubmitted: isSubmitted,
     score: score,
-    submittedAt: timestamp
+    submittedAt: timestamp,
+  };
+};
+
+export const fetchPreviewJobsByRecruiter = async (
+  address: `0x${string}`
+): Promise<JobPreviewInterface[]> => {
+  // Call the contract function to get jobs by recruiter
+  const rawJobs = await readContract(wagmiConfig, {
+    address: ContractConfig_JobManager.address as `0x${string}`,
+    abi: ContractConfig_JobManager.abi,
+    functionName: "getJobsByRecruiter",
+    args: [address],
+  });
+
+  console.log("Raw jobs data:", rawJobs);
+
+  // Transform the raw jobs data into JobInterface format
+  const jobs: JobPreviewInterface[] = await Promise.all(
+    (rawJobs as any[]).map(async (job) => {
+      // Fetch the job content from Irys using the content_id
+      const jobContent = (await fetchStringDataOffChain(
+        `https://gateway.irys.xyz/mutable/${job.content_id}`
+      )) as any;
+      let duration: JobDuration = JobDuration.FULL_TIME; // Default to FULL_TIME
+
+      try {
+        if (jobContent && jobContent.duration !== undefined) {
+          duration = Number(jobContent.duration) as JobDuration;
+        }
+      } catch (error) {
+        console.error("Error parsing job duration:", error);
+      }
+
+      const applicationCount = await fetchApplicationCountByJobID(job.id);
+
+      const preview_job_object: JobPreviewInterface = {
+        id: job.id,
+        title: jobContent?.title || "",
+        location: jobContent?.location || "",
+        duration: duration,
+        applicants: applicationCount,
+        posted: new Date(Number(job.created_at)),
+        status: job.status,
+      };
+
+      return preview_job_object;
+    })
+  );
+
+  return jobs;
+};
+
+export const fetchJobById = async (
+  job_id: string
+): Promise<JobInterface | null> => {
+  try {
+    // Call the contract function to get job by ID
+    const job = (await readContract(wagmiConfig, {
+      address: ContractConfig_JobManager.address as `0x${string}`,
+      abi: ContractConfig_JobManager.abi,
+      functionName: "getJob",
+      args: [job_id],
+    })) as any;
+
+    if (!job) return null;
+
+    // Fetch the job content from Irys using the content_id
+    const jobContent = (await fetchStringDataOffChain(
+      `https://gateway.irys.xyz/mutable/${job.content_id}`
+    )) as any;
+
+    if (!jobContent) return null;
+
+    // Default to FULL_TIME if duration is not provided
+    let duration: JobDuration = JobDuration.FULL_TIME;
+    try {
+      if (jobContent.duration !== undefined) {
+        duration = Number(jobContent.duration) as JobDuration;
+      }
+    } catch (error) {
+      console.error("Error parsing job duration:", error);
+    }
+
+    // Fetch the application count for this job
+    const applicationCount = await fetchApplicationCountByJobID(job_id);
+
+    // Map the smart contract job and Irys content to JobInterface
+    const jobDetails: JobInterface = {
+      id: job.id,
+      title: jobContent.title || "",
+      recruiter: job.recruiter,
+      location: jobContent.location || "",
+      duration: duration,
+      applicants: jobContent.applicants || 0,
+      posted: new Date(Number(job.created_at)),
+      status: job.status,
+      // Additional fields from JobFormData
+      description: jobContent.description || "",
+      requirements: jobContent.requirements || "",
+      compensation: jobContent.compensation || "",
+      domains: jobContent.domains || [],
+      domainReputations: jobContent.domainReputations || {},
+      requireGlobalReputation: jobContent.requireGlobalReputation || false,
+      globalReputationScore: jobContent.globalReputationScore,
+      deadline: jobContent.deadline || 0,
+      application_count: applicationCount,
+    };
+
+    return jobDetails;
+  } catch (error) {
+    console.error("Error fetching job by ID:", error);
+    return null;
+  }
+};
+
+/**
+ * Get possible job status transitions from current status
+ * @param status The current job status
+ * @returns An array of possible job statuses that can be transitioned to
+ */
+export const getPossibleJobStatusTransitions = async (
+  status: JobStatus
+): Promise<JobStatus[]> => {
+  try {
+    const possibleStatuses = await readContract(wagmiConfig, {
+      address: ContractConfig_JobManager.address as `0x${string}`,
+      abi: ContractConfig_JobManager.abi,
+      functionName: "getPossibleStatusTransitions",
+      args: [status],
+    });
+
+    return possibleStatuses as JobStatus[];
+  } catch (error) {
+    console.error("Error fetching possible job status transitions:", error);
+    return [];
+  }
+};
+
+/**
+ * Fetch the current status of a job
+ * @param jobId The job ID
+ * @returns The current job status or undefined if there's an error
+ */
+export const fetchJobStatus = async (
+  jobId: string
+): Promise<JobStatus | undefined> => {
+  try {
+    const job = (await readContract(wagmiConfig, {
+      address: ContractConfig_JobManager.address as `0x${string}`,
+      abi: ContractConfig_JobManager.abi,
+      functionName: "getJob",
+      args: [jobId],
+    })) as any;
+
+    return job?.status;
+  } catch (error) {
+    console.error("Error fetching job status:", error);
+    return undefined;
+  }
+};
+
+/**
+ * Fetch all open jobs
+ * @returns An array of all open jobs
+ */
+export const fetchAllOpenJobs = async (): Promise<JobInterface[]> => {
+  try {
+    // Call the contract function to get all open jobs
+    const rawJobs = await readContract(wagmiConfig, {
+      address: ContractConfig_JobManager.address as `0x${string}`,
+      abi: ContractConfig_JobManager.abi,
+      functionName: "getAllOpenJobs",
+      args: [],
+    });
+
+    // Transform the raw jobs data into JobInterface format
+    const jobs: JobInterface[] = await Promise.all(
+      (rawJobs as any[]).map(async (job) => {
+        // Fetch the job content from Irys using the content_id
+        const jobContent = (await fetchStringDataOffChain(
+          `https://gateway.irys.xyz/mutable/${job.content_id}`
+        )) as any;
+
+        if (!jobContent) {
+          // Return a minimal job object if content can't be fetched
+          return {
+            id: job.id,
+            title: "",
+            recruiter: job.recruiter,
+            duration: JobDuration.FULL_TIME,
+            applicants: 0,
+            posted: new Date(Number(job.created_at)),
+            status: job.status,
+            description: "",
+            requirements: "",
+            compensation: "",
+            domains: [],
+            domainReputations: {} as Record<Domain, number>,
+            requireGlobalReputation: false,
+            deadline: 0,
+            application_count: 0,
+          };
+        }
+
+        // Default to FULL_TIME if duration is not provided
+        let duration: JobDuration = JobDuration.FULL_TIME;
+        try {
+          if (jobContent.duration !== undefined) {
+            duration = Number(jobContent.duration) as JobDuration;
+          }
+        } catch (error) {
+          console.error("Error parsing job duration:", error);
+        } // Fetch the application count for this job
+        const applicationCount = await fetchApplicationCountByJobID(job.id);
+
+        // Map the smart contract job and Irys content to JobInterface
+        const jobDetails: JobInterface = {
+          id: job.id,
+          title: jobContent.title || "",
+          recruiter: job.recruiter,
+          location: jobContent.location || "",
+          duration: duration,
+          applicants: jobContent.applicants || 0,
+          posted: new Date(Number(job.created_at)),
+          status: job.status,
+          // Additional fields from JobFormData
+          description: jobContent.description || "",
+          requirements: jobContent.requirements || "",
+          compensation: jobContent.compensation || "",
+          domains: jobContent.domains || [],
+          domainReputations: jobContent.domainReputations || {},
+          requireGlobalReputation: jobContent.requireGlobalReputation || false,
+          globalReputationScore: jobContent.globalReputationScore,
+          deadline: jobContent.deadline || 0,
+          application_count: applicationCount,
+        };
+
+        return jobDetails;
+      })
+    );
+
+    return jobs;
+  } catch (error) {
+    console.error("Error fetching all open jobs:", error);
+    return [];
+  }
+};
+
+export const fetchJobsNotAppliedByUser = async (
+  address: `0x${string}`
+): Promise<JobInterface[]> => {
+  try {
+    // Step 1: Fetch all open jobs
+    const allOpenJobs = await fetchAllOpenJobs();
+
+    // Step 2: Fetch all applications submitted by the user
+    const userApplications = (await readContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "getApplicationsByApplicant",
+      args: [address],
+    })) as any[];
+
+    // Extract job IDs from user applications
+    const appliedJobIds = new Set(userApplications.map((app) => app.job_id));
+
+    // Step 3: Filter out jobs that the user has already applied for
+    const unappliedJobs = allOpenJobs.filter(
+      (job) => !appliedJobIds.has(job.id)
+    );
+
+    console.log(
+      `User ${address} has not applied for ${unappliedJobs.length} out of ${allOpenJobs.length} open jobs`
+    );
+
+    return unappliedJobs;
+  } catch (error) {
+    console.error("Error fetching jobs not applied by user:", error);
+    return [];
+  }
+};
+
+export const fetchJobAppliedByUser = async (
+  address: `0x${string}`
+): Promise<JobInterface[]> => {
+  try {
+    // Step 1: Fetch all job IDs that the user has applied to
+    const jobIds = (await readContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "getJobIDsAppliedByUser",
+      args: [address],
+    })) as string[];
+
+    // Step 2: Fetch detailed information for each job
+    const jobDetailsPromises = jobIds.map((job_id) => fetchJobById(job_id));
+    const jobDetails = await Promise.all(jobDetailsPromises);
+
+    // Step 3: Filter out null values (jobs that couldn't be fetched)
+    const validJobs = jobDetails.filter(
+      (job) => job !== null
+    ) as JobInterface[];
+
+    console.log(`User ${address} has applied for ${validJobs.length} jobs`);
+
+    return validJobs;
+  } catch (error) {
+    console.error("Error fetching jobs applied by user:", error);
+    return [];
+  }
+};
+
+export const fetchAllJobApplicationsByUser = async (
+  address: `0x${string}`
+): Promise<JobApplicationWithJobDataInterface[]> => {
+  try {
+    // Step 1: Fetch all applications submitted by the user from the smart contract
+    const applications = (await readContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "getApplicationsByApplicant",
+      args: [address],
+    })) as any[];
+
+    if (!applications || applications.length === 0) {
+      console.log(`User ${address} has no job applications`);
+      return [];
+    }
+
+    // Step 2: Fetch the full job details for each application and map to JobApplicationInterface
+    const jobApplicationsPromises = applications.map(async (application) => {
+      // Fetch the full job details using the job_id from the application
+      const jobDetails = await fetchJobById(application.job_id);
+
+      if (!jobDetails) {
+        console.error(
+          `Could not fetch job details for job ID: ${application.job_id}`
+        );
+        return null;
+      }
+
+      // Map the application data to the JobApplicationInterface
+      const jobApplication: JobApplicationWithJobDataInterface = {
+        id: application.id,
+        applicant: application.applicant,
+        applied_at: Number(application.applied_at),
+        status: application.status,
+        job: jobDetails,
+      };
+
+      return jobApplication;
+    });
+
+    // Wait for all job fetching promises to resolve
+    const jobApplications = await Promise.all(jobApplicationsPromises);
+
+    // Filter out any null values (applications where we couldn't fetch the job details)
+    const validJobApplications = jobApplications.filter(
+      (application): application is JobApplicationWithJobDataInterface =>
+        application !== null
+    );
+
+    console.log(
+      `Successfully fetched ${validJobApplications.length} job applications for user ${address}`
+    );
+
+    return validJobApplications;
+  } catch (error) {
+    console.error("Error fetching job applications by user:", error);
+    return [];
+  }
+};
+
+export const fetchJobApplicationByID = async (
+  id: string
+): Promise<JobApplicationWithJobDataInterface | null> => {
+  try {
+    // Step 1: Call the getApplication method in smart contract to fetch application details
+    const application = (await readContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "getApplication",
+      args: [id],
+    })) as any;
+
+    if (!application || !application.id) {
+      console.log(`Application with ID ${id} not found`);
+      return null;
+    }
+
+    // Step 2: Use the job_id from the application to fetch detailed job information
+    const jobDetails = await fetchJobById(application.job_id);
+
+    if (!jobDetails) {
+      console.error(
+        `Could not fetch job details for job ID: ${application.job_id}`
+      );
+      return null;
+    }
+
+    // Step 3: Process and return the JobApplicationInterface object
+    const jobApplication: JobApplicationWithJobDataInterface = {
+      id: application.id,
+      applicant: application.applicant,
+      applied_at: Number(application.applied_at),
+      status: application.status,
+      job: jobDetails,
+    };
+
+    console.log(`Successfully fetched job application with ID: ${id}`);
+
+    return jobApplication;
+  } catch (error) {
+    console.error("Error fetching job application by ID:", error);
+    return null;
+  }
+};
+
+/**
+ * Fetch the number of applications for a specific job
+ * @param job_id The ID of the job
+ * @returns The number of applications for the job
+ */
+export const fetchApplicationCountByJobID = async (
+  job_id: string
+): Promise<number> => {
+  try {
+    const count = await readContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "getApplicationCount",
+      args: [job_id],
+    });
+
+    return Number(count);
+  } catch (error) {
+    console.error("Error fetching application count:", error);
+    return 0;
+  }
+};
+
+/**
+ * Fetch the number of applications for a specific job and status
+ * @param job_id The ID of the job
+ * @param status The application status to filter by
+ * @returns The number of applications for the job with the specified status
+ */
+export const fetchApplicationCountByJobIDAndStatus = async (
+  job_id: string,
+  status: JobApplicationStatus
+): Promise<number> => {
+  try {
+    // Get all applications with the specified status
+    const applications = (await readContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "getApplicationsByStatus",
+      args: [status],
+    })) as any[];
+
+    // Filter applications to only include those for the specified job
+    // The job_id in the contract is a bytes32 type
+    const filteredApplications = applications.filter(
+      (application) => application.job_id === job_id
+    );
+
+    return filteredApplications.length;
+  } catch (error) {
+    console.error("Error fetching application count by status:", error);
+    return 0;
+  }
+};
+
+/**
+ * Fetch all applicants for a specific job
+ * @param job_id The ID of the job
+ * @returns Array of applicant details
+ */
+export const fetchApplicantsByJobID = async (
+  job_id: string
+): Promise<JobApplicantionInterface[]> => {
+  try {
+    // Step 1: Call the contract function to get applications for the job
+    const applications = (await readContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "getApplicationsByJob",
+      args: [job_id],
+    })) as any[];
+
+    console.log(
+      `Fetched ${applications.length} applications for job ${job_id}`
+    );
+
+    // Step 2: Transform contract data to match ApplicantInterface
+    const applicants: JobApplicantionInterface[] = applications.map(
+      (application) => ({
+        id: application.id, // Use application ID as the unique identifier
+        address: application.applicant, // Applicant's address
+        status: application.status, // Application status
+        applied_at: Number(application.applied_at), // Convert to number if it's returned as a BigInt
+        job_id: application.job_id, // Job ID
+      })
+    );
+
+    return applicants;
+  } catch (error) {
+    console.error("Error fetching applicants by job ID:", error);
+    return [];
+  }
+};
+
+/**
+ * Get possible job application status transitions from current status
+ * @param status The current job application status
+ * @returns An array of possible job application statuses that can be transitioned to
+ */
+export async function fetchPossibleApplicationStatusTransitions(
+  status: JobApplicationStatus
+): Promise<JobApplicationStatus[]> {
+  try {
+    const possibleStatuses = await readContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "getValidApplicationStatusTransitions",
+      args: [status],
+    });
+
+    return possibleStatuses as JobApplicationStatus[];
+  } catch (error) {
+    console.error(
+      "Error fetching possible application status transitions:",
+      error
+    );
+    return [];
   }
 }

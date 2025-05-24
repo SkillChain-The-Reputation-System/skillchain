@@ -1,4 +1,4 @@
-import { AccountPageHeader } from "@/components/layout/account-page-header";
+import { PageHeader } from "@/components/layout/page-header";
 import { Separator } from "@/components/ui/separator";
 import { sidebarNavItemsProfileSettings } from "@/constants/data";
 import { pageUrlMapping } from "@/constants/navigation";
@@ -11,14 +11,14 @@ export default function SettingsLayout({
 }) {
   return (
     <div className="px-4">
-      <AccountPageHeader
+      <PageHeader
         title="Settings"
         description="Manage your account settings and preferences."
         includeButton={false}
-      ></AccountPageHeader>
+      ></PageHeader>
 
       <Separator className="my-6" />
-      
+
       <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
         <aside className="lg:w-1/5">
           <SidebarNav items={sidebarNavItemsProfileSettings} />

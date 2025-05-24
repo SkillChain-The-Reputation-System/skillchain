@@ -13,6 +13,14 @@ export interface NavItem {
   items?: NavItem[];
 }
 
+export interface AccountButtonItem { 
+  title: string;
+  icon?: keyof typeof Icons;
+  href: string;
+  external?: boolean;
+  onClick?: () => void;
+}
+
 export interface NavItemWithChildren extends NavItem {
   items: NavItemWithChildren[];
 }

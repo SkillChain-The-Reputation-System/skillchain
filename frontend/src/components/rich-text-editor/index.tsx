@@ -24,6 +24,7 @@ import TableRow from '@tiptap/extension-table-row'
 
 import LangSelector from '@/components/rich-text-editor/lang-selector'
 import { all, createLowlight } from 'lowlight'
+import { cn } from "@/lib/utils"
 
 const lowlight = createLowlight(all)
 
@@ -35,9 +36,18 @@ interface RichTextEditorProps {
   className?: string,
   placeholder?: string,
   editable?: boolean
+  error?: boolean
 }
 
-export default function RichTextEditor({ value, onChange, className = "", placeholder = "Write something...", editable = true }: RichTextEditorProps) {
+export default function RichTextEditor({
+  value,
+  onChange,
+  className = "",
+  placeholder = "Write something...",
+  editable = true,
+  error,
+}: RichTextEditorProps
+) {
   const editor = useEditor(
     {
       shouldRerenderOnTransaction: true,
@@ -180,7 +190,14 @@ export default function RichTextEditor({ value, onChange, className = "", placeh
       ],
       editorProps: {
         attributes: {
-          class: className
+          // This is general style for Text Area
+          class: cn(
+            "w-full dark:bg-input/30 border-input min-w-0 bg-transparent transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
+            "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+            editable && "px-3 py-2 rounded-md border border-gray-300 dark:border-input",
+            error && "focus-visible:border-destructive focus-visible:ring-destructive/20 border-destructive ring-destructive/20 dark:ring-destructive/40",
+            className
+          )
         }
       },
       editable: editable,

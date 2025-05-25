@@ -15,7 +15,7 @@ export default function MenuBar({ editor }: { editor: Editor | null }) {
   }
 
   return (
-    <div className="max-w-5xl border-1 border-black dark:border-white rounded-md p-1 mb-1 bg-slate-50 dark:bg-blue-950/15 space-x-2 z-50">
+    <div className="border-gray-300 dark:border-gray-300/30 w-full rounded-md border bg-transparent p-1 mb-1 shadow-xs transition-[color,box-shadow] outline-none space-x-2">
       <HeadingSection editor={editor} />
 
       <TextDecorationSection editor={editor} />

@@ -20,13 +20,22 @@ import {
   TabsTrigger,
   TabsContent
 } from '@/components/ui/tabs'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge'
 import { Toaster, toast } from "sonner"
 import ChallengeDetailsSkeleton from '@/features/participation/challenge-details-skeleton'
 import RichTextEditor from '@/components/rich-text-editor'
-import ButtonWithAlert from "@/components/button-with-alert";
 
 // Import lucide-react icons
 import {
@@ -44,7 +53,8 @@ import {
   Trophy,
   Save,
   Send,
-  CalendarDays
+  CalendarDays,
+  LoaderCircle
 } from "lucide-react";
 
 // Import utils
@@ -97,6 +107,7 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
   const [submitting, setSubmitting] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
   const [puttingUnderReview, setPuttingUnderReview] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
   const [solution, setSolution] = useState<SolutionInterface | null>(null);
@@ -124,6 +135,7 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
         const txHash = await submitSolution(Number(challenge_id), address, data.solution);
         await waitForTransaction(txHash);
         toast.success("You have submitted this solution");
+        setIsDialogOpen(false);
       } catch (error: any) {
         toast.error("Error occurs. Please try again!");
       } finally {
@@ -160,6 +172,7 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
       setPuttingUnderReview(true);
       await putSolutionUnderReview(Number(challenge_id), address);
       toast.success("You've put this solution under review");
+      setIsDialogOpen(false);
     } catch (error: any) {
       toast.error("Error occurs. Please try again!");
     } finally {
@@ -243,10 +256,61 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
           <div>
             <Toaster position="top-right" richColors />
 
+            <AlertDialog open={isDialogOpen}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="font-bold">
+                    {
+                      solution.progress == ChallengeSolutionProgress.IN_PROGRESS ? "Confirm submitting solution"
+                        :
+                        solution.progress == ChallengeSolutionProgress.SUBMITTED && "Confirm publishing for Evaluation"
+                    }
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {
+                      solution.progress == ChallengeSolutionProgress.IN_PROGRESS ? "This action cannot be undone, and you won't be able to edit this solution afterward."
+                        :
+                        solution.progress == ChallengeSolutionProgress.SUBMITTED && "Your solution will be published to your Evaluators. Are you ready to submit it for evaluation?"
+                    }
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel
+                    className="cursor-pointer"
+                    onClick={() => setIsDialogOpen(false)}
+                    disabled={submitting || puttingUnderReview}
+                  >
+                    Cancel
+                  </AlertDialogCancel>
+
+                  <AlertDialogAction
+                    className="cursor-pointer bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80"
+                    onClick={
+                      () => {
+                        if (solution.progress == ChallengeSolutionProgress.IN_PROGRESS) {
+                          onSubmit()
+                        } else if (solution.progress == ChallengeSolutionProgress.SUBMITTED) {
+                          onPutUnderReview()
+                        }
+                      }}
+                    disabled={submitting || puttingUnderReview}
+                  >
+                    {
+                      (submitting || puttingUnderReview) ? (
+                        <div className="flex items-center gap-2">
+                          <LoaderCircle className="h-4 w-4 animate-spin" />
+                          <span>Processing...</span>
+                        </div>
+                      ) : ("Confirm")
+                    }
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
             <Button
-              variant="outline"
               size="sm"
-              className="mb-6 gap-1 text-muted-foreground hover:text-foreground bg-gray-200 cursor-pointer"
+              className="mb-6 gap-1 cursor-pointer"
               onClick={() => router.back()}
             >
               <ArrowLeft className="h-4 w-4" />
@@ -430,7 +494,7 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                             <FormControl>
                               <RichTextEditor
                                 {...field}
-                                className="w-full max-w-5xl min-h-80 border-black dark:border-white border-1 rounded-md bg-slate-50 py-2 px-3 dark:bg-blue-950/15"
+                                className="max-w-5xl min-h-[320px]"
                                 placeholder="What is your solution about this challenge..."
                                 editable={solution.progress == ChallengeSolutionProgress.IN_PROGRESS}
                               />
@@ -451,7 +515,7 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                             <Button
                               variant="outline"
                               size="lg"
-                              className="flex items-center cursor-pointer gap-2 c border border-zinc-700"
+                              className="flex items-center cursor-pointer gap-2 border-gray-300 hover:bg-accent"
                               onClick={onSaveDraft}
                               disabled={savingDraft || submitting}
                             >
@@ -459,34 +523,25 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                               Save draft
                             </Button>
 
-                            <ButtonWithAlert
+                            <Button
                               size="lg"
-                              className="flex items-center gap-2 cursor-pointer shrink-0 bg-zinc-700 hover:bg-zinc-700/60 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/60"
-                              disabled={savingDraft || submitting}
-                              dialogTitle="Confirm submitting solution"
-                              dialogDescription="This action cannot be undone, and you won't be able to edit this solution afterward."
-                              continueAction={onSubmit}
+                              className="flex items-center gap-2 cursor-pointer shrink-0 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80"
+                              onClick={() => setIsDialogOpen(true)}
                             >
                               <Send className="h-4 w-4" />
                               Submit
-                            </ButtonWithAlert>
+                            </Button>
                           </>
-                        ) : solution.progress == ChallengeSolutionProgress.SUBMITTED ? (
+                        ) : solution.progress == ChallengeSolutionProgress.SUBMITTED && (
                           <>
-                            <ButtonWithAlert
+                            <Button
                               size="lg"
                               className="flex items-center gap-2 cursor-pointer border bg-purple-800 hover:bg-purple-800/60 text-white dark:bg-purple-400 dark:hover:bg-purple-400/60 dark:text-black"
-                              disabled={puttingUnderReview}
-                              dialogTitle="Confirm publishing for Evaluation"
-                              dialogDescription="Your solution will be published to your Evaluators. Are you ready to submit it for evaluation?"
-                              continueAction={onPutUnderReview}
+                              onClick={() => setIsDialogOpen(true)}
                             >
                               <ArrowBigUpDash className="h-4 w-4" />
                               Put Under Review
-                            </ButtonWithAlert>
-                          </>
-                        ) : (
-                          <>
+                            </Button>
                           </>
                         )
                     }

@@ -12,13 +12,22 @@ import {
   TabsTrigger,
   TabsContent
 } from '@/components/ui/tabs'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge";
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Toaster, toast } from "sonner"
 import SolutionDetailsSkeleton from "@/features/evaluation/solution-details-skeleton";
 import RichTextEditor from '@/components/rich-text-editor'
-import ButtonWithAlert from "@/components/button-with-alert";
 
 // Import lucide-react icons
 import {
@@ -33,6 +42,7 @@ import {
   UserRoundPen,
   Users,
   XCircle,
+  LoaderCircle
 } from "lucide-react";
 
 // Import utils
@@ -63,11 +73,11 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [joining, setJoining] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const [solutionReviewPool, setSolutionReviewPool] = useState<SolutionReviewPool | null>(null);
   const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
-
-  // for explore solutions
-  const [joining, setJoining] = useState(false);
   const [evaluatorHasJoined, setEvaluatorHasJoined] = useState(false);
 
   const handleJoinEvaluation = async () => {
@@ -85,6 +95,7 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
       const txHash = await joinEvaluationPool(solutionId, address as `0x${string}`);
       await waitForTransaction(txHash);
       toast.success("You have joined the evaluation pool");
+      setIsDialogOpen(false);
     } catch (error) {
       toast.error("Failed to join the evaluation pool");
     } finally {
@@ -138,17 +149,49 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
     <>
       {address && (
         isLoading ? (
-          <div>
-            <SolutionDetailsSkeleton />
-          </div>
+          <SolutionDetailsSkeleton />
         ) : (solutionReviewPool && challenge) ? (
           <div>
             <Toaster position="top-right" richColors />
 
+            <AlertDialog open={isDialogOpen}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="font-bold">Confirm evaluating solution</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    You will need to pay the Submitter to evaluate this solution. Are you sure you want to proceed?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel
+                    className="cursor-pointer"
+                    onClick={() => setIsDialogOpen(false)}
+                    disabled={joining}
+                  >
+                    Cancel
+                  </AlertDialogCancel>
+
+                  <AlertDialogAction
+                    className="cursor-pointer bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80"
+                    onClick={handleJoinEvaluation}
+                    disabled={joining}
+                  >
+                    {
+                      joining ? (
+                        <div className="flex items-center gap-2">
+                          <LoaderCircle className="h-4 w-4 animate-spin" />
+                          <span>Processing...</span>
+                        </div>
+                      ) : ("Confirm")
+                    }
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
             <Button
-              variant="outline"
               size="sm"
-              className="mb-6 gap-1 text-muted-foreground hover:text-foreground bg-gray-200 cursor-pointer"
+              className="mb-6 gap-1 cursor-pointer"
               onClick={() => router.back()}
             >
               <ArrowLeft className="h-4 w-4" />
@@ -182,16 +225,13 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
                       Max evaluators
                     </Button>
                   ) : (
-                    <ButtonWithAlert
+                    <Button
                       size="lg"
-                      className="shrink-0 bg-zinc-700 text-white cursor-pointer"
-                      disabled={joining}
-                      dialogTitle="Confirm evaluating solution"
-                      dialogDescription="You will need to pay the Submitter to evaluate this solution. Are you sure you want to continue?"
-                      continueAction={handleJoinEvaluation}
+                      className="shrink-0 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80 cursor-pointer"
+                      onClick={() => setIsDialogOpen(true)}
                     >
                       Evaluate Solution
-                    </ButtonWithAlert>
+                    </Button>
                   )
                 }
               </div>

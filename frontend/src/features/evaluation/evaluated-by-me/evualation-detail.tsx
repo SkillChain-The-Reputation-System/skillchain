@@ -23,11 +23,20 @@ import {
   FormMessage,
   FormItem,
 } from "@/components/ui/form";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input";
 import { Toaster, toast } from "sonner"
 import SolutionDetailsSkeleton from "@/features/evaluation/solution-details-skeleton";
 import RichTextEditor from '@/components/rich-text-editor'
-import ButtonWithAlert from "@/components/button-with-alert";
 
 // Import lucide-react icons
 import {
@@ -100,14 +109,11 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
 
   const [isLoading, setIsLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const [solutionReviewPool, setSolutionReviewPool] = useState<SolutionReviewPool | null>(null);
   const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
   const [evaluation, setEvaluation] = useState<EvaluationInterface | null>(null);
-
-  const { isValid } = form.formState;
-
-  const isButtonDisabled = !isValid || submitting;
 
   const submitEvaluation = () => {
     form.handleSubmit(async (data: EvaluationFormValues) => {
@@ -120,6 +126,7 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
         const txHash = await submitEvaluationScore(solutionId, address as `0x${string}`, data.score);
         await waitForTransaction(txHash);
         toast.success("Submitted score for this solution");
+        setIsDialogOpen(false);
       } catch {
         toast.error("Error occurs. Please try again!")
       } finally {
@@ -186,10 +193,42 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
           <div>
             <Toaster position="top-right" richColors />
 
+            <AlertDialog open={isDialogOpen}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="font-bold">Confirm submitting score</AlertDialogTitle>
+                  <AlertDialogDescription>This action cannot be undone, and the submitted score will impact your reputation. Are you sure you want to proceed?</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel
+                    className="cursor-pointer"
+                    onClick={() => setIsDialogOpen(false)}
+                    disabled={submitting}
+                  >
+                    Cancel
+                  </AlertDialogCancel>
+
+                  <AlertDialogAction
+                    className="cursor-pointer bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80"
+                    onClick={submitEvaluation}
+                    disabled={submitting}
+                  >
+                    {
+                      submitting ? (
+                        <div className="flex items-center gap-2">
+                          <LoaderCircle className="h-4 w-4 animate-spin" />
+                          <span>Processing...</span>
+                        </div>
+                      ) : ("Confirm")
+                    }
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
             <Button
-              variant="outline"
               size="sm"
-              className="mb-6 gap-1 text-muted-foreground hover:text-foreground bg-gray-200 cursor-pointer"
+              className="mb-6 gap-1 cursor-pointer"
               onClick={() => router.back()}
             >
               <ArrowLeft className="h-4 w-4" />
@@ -219,7 +258,7 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
                       className="shrink-0 bg-amber-800 text-white gap-2"
                       disabled
                     >
-                      <LoaderCircle className="h-4 w-4" />
+                      <LoaderCircle className="h-4 w-4 animate-spin duration-3000" />
                       Evaluating...
                     </Button>
                   )
@@ -384,13 +423,14 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
 
                   <RichTextEditor
                     value={solutionReviewPool.solution.solution}
-                    className="min-h-80 border-black dark:border-white border-1 rounded-md bg-slate-50 py-2 px-3 dark:bg-blue-950/15"
+                    className="min-h-80"
                     editable={false}
                   />
 
+                  <Separator className='bg-black' />
                   {
                     evaluation?.isSubmitted ? (
-                      <div className="mt-10 flex flex-col sm:flex-row justify-between items-center bg-green-100 dark:bg-muted/70 p-6 rounded-lg">
+                      <div className="mt-10 flex flex-col sm:flex-row justify-between items-center bg-green-100 dark:bg-green-900/50 p-6 rounded-lg">
                         {/* Display submitted score */}
                         <div className="flex gap-2">
                           <h3 className="font-bold gap-1">
@@ -426,11 +466,9 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
                                   <FormItem>
                                     <FormControl>
                                       <Input
-                                        value={field.value}
-                                        onChange={field.onChange}
+                                        {...field}
                                         type="number"
                                         placeholder="Enter score..."
-                                        className="border border-black"
                                       />
                                     </FormControl>
                                     <FormMessage />
@@ -440,15 +478,18 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
                             </form>
                           </Form>
 
-                          <ButtonWithAlert
-                            className="bg-green-400 hover:bg-green-600 cursor-pointer"
-                            disabled={isButtonDisabled}
-                            dialogTitle="Confirm submitting score"
-                            dialogDescription="This action cannot be undone, and the submitted score will impact your reputation. Are you sure you want to proceed?"
-                            continueAction={submitEvaluation}
+                          <Button
+                            className="bg-green-700 text-white hover:bg-green-700/80 cursor-pointer"
+                            onClick={
+                              () => form.trigger().then((isValid) => {
+                                if (isValid) {
+                                  setIsDialogOpen(true);
+                                }
+                              })
+                            }
                           >
                             Submit
-                          </ButtonWithAlert>
+                          </Button>
                         </div>
                       </div>
                     )

@@ -13,9 +13,18 @@ import { useAccount } from 'wagmi';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Toaster, toast } from "sonner"
 import ChallengeDetailsSkeleton from '@/features/participation/challenge-details-skeleton'
-import ButtonWithAlert from "@/components/button-with-alert";
 import RichTextEditor from "@/components/rich-text-editor";
 
 // Import lucide-react icons
@@ -27,7 +36,8 @@ import {
   Tag,
   UserRoundPen,
   Users,
-  CheckCircle2
+  CheckCircle2,
+  LoaderCircle
 } from "lucide-react";
 
 // Import utils
@@ -52,13 +62,14 @@ interface ExploreChallengeDetailsProps {
 
 export default function ExploreChallengeDetails({ challenge_id }: ExploreChallengeDetailsProps) {
   const { address } = useAccount();
-
   const router = useRouter();
+
+  const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
+  const [hasJoined, setHasJoined] = useState(false);
 
   const [isLoading, setIsLoading] = useState(true);
   const [joining, setJoining] = useState(false);
-  const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
-  const [hasJoined, setHasJoined] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   async function handleJoinChallenge() {
     if (!address || !challenge) {
@@ -75,6 +86,7 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
       const txHash = await userJoinChallenge(Number(challenge_id), address);
       await waitForTransaction(txHash);
       toast.success("You have joined this challenge");
+      setIsDialogOpen(false);
     } catch (error: any) {
       toast.error("Error occurs. Please try again!");
     } finally {
@@ -136,10 +148,42 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
             <div>
               <Toaster position="top-right" richColors />
 
+              <AlertDialog open={isDialogOpen}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="font-bold">Confirm joining challenge</AlertDialogTitle>
+                    <AlertDialogDescription>You will need to pay the Contributor to join this challenge. Are you sure you want to proceed?</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel
+                      className="cursor-pointer"
+                      onClick={() => setIsDialogOpen(false)}
+                      disabled={joining}
+                    >
+                      Cancel
+                    </AlertDialogCancel>
+
+                    <AlertDialogAction
+                      className="cursor-pointer bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80"
+                      onClick={handleJoinChallenge}
+                      disabled={joining}
+                    >
+                      {
+                        joining ? (
+                          <div className="flex items-center gap-2">
+                            <LoaderCircle className="h-4 w-4 animate-spin" />
+                            <span>Processing...</span>
+                          </div>
+                        ) : ("Confirm")
+                      }
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+
               <Button
-                variant="outline"
                 size="sm"
-                className="mb-6 gap-1 text-muted-foreground hover:text-foreground bg-gray-200 cursor-pointer"
+                className="mb-6 gap-1 cursor-pointer"
                 onClick={() => router.back()}
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -160,18 +204,14 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
                       </Button>
                     </div>
                   ) : (
-                    <ButtonWithAlert
+                    <Button
                       size="lg"
-                      className="shrink-0 bg-zinc-700 text-white cursor-pointer"
-                      disabled={joining}
-                      dialogTitle="Confirm joining challenge"
-                      dialogDescription="You will need to pay the Contributor to join this challenge. Are you sure you want to proceed?"
-                      continueAction={handleJoinChallenge}
+                      className="shrink-0 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80 cursor-pointer"
+                      onClick={() => setIsDialogOpen(true)}
                     >
                       Join Challenge
-                    </ButtonWithAlert>
+                    </Button>
                   )}
-
                 </div>
 
                 <Separator className='bg-black' />
@@ -273,16 +313,13 @@ export default function ExploreChallengeDetails({ challenge_id }: ExploreChallen
                         <p className="text-sm text-muted-foreground">Join now and start working on your solution.</p>
                       </div>
 
-                      <ButtonWithAlert
+                      <Button
                         size="lg"
-                        className="shrink-0 bg-zinc-700 text-white cursor-pointer"
-                        disabled={joining}
-                        dialogTitle="Confirm joining challenge"
-                        dialogDescription="You will need to pay the Contributor to join this challenge. Are you sure you want to continue?"
-                        continueAction={handleJoinChallenge}
+                        className="shrink-0 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80 cursor-pointer"
+                        onClick={() => setIsDialogOpen(true)}
                       >
                         Join Challenge
-                      </ButtonWithAlert>
+                      </Button>
                     </>
                   )}
                 </div>

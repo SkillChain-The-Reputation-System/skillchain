@@ -1,5 +1,15 @@
 import { Domain, ChallengeStatus, QualityFactorAnswer, ChallengeDifficultyLevel, ChallengeSolutionProgress, JobStatus, JobDuration, JobApplicationStatus } from "@/constants/system";
 
+
+export interface UserProfileInterface {
+    address: string;
+    fullname: string;
+    location: string;
+    email: string;
+    avatar_url: string;
+    bio: string;
+}
+
 export interface IrysUploadResponseInterface {
     success: boolean;
     id: string | undefined;
@@ -155,4 +165,9 @@ export interface JobApplicationWithJobDataInterface {
     applied_at: number;
     status: JobApplicationStatus;
     job: JobInterface;  
+}
+
+export interface UserReputationScoreInterface {
+    global_reputation: number;
+    domain_reputation: Record<Domain, number>;
 }

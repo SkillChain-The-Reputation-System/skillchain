@@ -1,5 +1,5 @@
 // filepath: d:\Hai_Tuyen\thesis\skillchain\frontend\src\lib\fetching-onchain-data-utils.ts
-import { readContract, simulateContract } from "@wagmi/core";
+import { readContract } from "@wagmi/core";
 import {
   ContractConfig_ChallengeManager,
   ContractConfig_UserDataManager,

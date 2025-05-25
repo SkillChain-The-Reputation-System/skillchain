@@ -23,7 +23,7 @@ export default function SettingsLayout({
         <aside className="lg:w-1/5">
           <SidebarNav items={sidebarNavItemsProfileSettings} />
         </aside>
-        <div className="flex-1 lg:max-w-2xl">{children}</div>
+        <div className="flex-1">{children}</div>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { Domain, JobStatus } from "@/constants/system";
-import { fetchJobById, fetchUserReputationScore } from "@/lib/fetching-onchain-data-utils";
+import { fetchJobById } from "@/lib/fetching-onchain-data-utils";
+import { getUserReputationScore } from "@/lib/get/get-reputation-score-utils";
 import { GetCurrentTimeResponse } from "@/lib/interfaces";
 
 /**
@@ -49,9 +50,8 @@ export const checkUserValidToApplyForJob = async (
       console.log("Application deadline has passed");
       return { isValid: false, message: "Application deadline has passed" };
     }
-    
-    // 5. Check if user's reputation meets job requirements
-    const userReputation = await fetchUserReputationScore(address);
+      // 5. Check if user's reputation meets job requirements
+    const userReputation = await getUserReputationScore(address);
     
     // Check global reputation if required
     if (job.requireGlobalReputation && job.globalReputationScore !== undefined) {
@@ -69,16 +69,11 @@ export const checkUserValidToApplyForJob = async (
         const requiredScore = job.domainReputations[domainId];
         
         // Check if user has sufficient reputation for this domain
-        if (domainId >= 0 && domainId < userReputation.domain_reputation.length) {
-          const userDomainScore = userReputation.domain_reputation[domainId];
-          
-          if (userDomainScore < requiredScore) {
-            console.log(`User's reputation in domain ${Domain[domainId]} does not meet job requirements`);
-            return { isValid: false, message: `Your reputation in ${Domain[domainId]} does not meet the requirements` };
-          }
-        } else {
-          console.log(`Domain ${Domain[domainId]} not found in user's reputation scores`);
-          return { isValid: false, message: "Error verifying your reputation scores" };
+        const userDomainScore = userReputation.domain_reputation[domainId];
+        
+        if (userDomainScore < requiredScore) {
+          console.log(`User's reputation in domain ${Domain[domainId]} does not meet job requirements`);
+          return { isValid: false, message: `Your reputation in ${Domain[domainId]} does not meet the requirements` };
         }
       }
     }

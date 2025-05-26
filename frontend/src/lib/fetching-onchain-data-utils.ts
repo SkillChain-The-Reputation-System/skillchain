@@ -564,27 +564,6 @@ export const fetchSolutionById = async (
   };
 };
 
-export const fetchUserReputationScore = async (address: `0x${string}`) => {
-  const global_reputation = (await readContract(wagmiConfig, {
-    address: ContractConfig_ReputationManager.address as `0x${string}`,
-    abi: ContractConfig_ReputationManager.abi,
-    functionName: "getGlobalReputation",
-    args: [address],
-  })) as number | bigint;
-
-  const domain_reputation = (await readContract(wagmiConfig, {
-    address: ContractConfig_ReputationManager.address as `0x${string}`,
-    abi: ContractConfig_ReputationManager.abi,
-    functionName: "getAllDomainReputation",
-    args: [address],
-  })) as number[];
-
-  return {
-    global_reputation: Number(global_reputation),
-    domain_reputation: domain_reputation.map((score) => Number(score)),
-  };
-};
-
 export const fetchJobContentID = async (job_id: string): Promise<string> => {
   try {
     const content_id = await readContract(wagmiConfig, {

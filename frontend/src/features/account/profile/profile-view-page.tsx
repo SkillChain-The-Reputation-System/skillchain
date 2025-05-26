@@ -4,18 +4,13 @@ import { useAccount } from "wagmi";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { getUserProfileData } from "@/lib/get/get-user-data-utils";
-import { getUserReputationScore } from "@/lib/get/get-reputation-score";
+import { getUserReputationScore } from "@/lib/get/get-reputation-score-utils";
 import { isUserRegistered } from "@/lib/get/get-user-data-utils";
-import { pageUrlMapping } from "@/constants/navigation";
 import {
   UserProfileInterface,
   UserReputationScoreInterface,
 } from "@/lib/interfaces";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { InfoIcon } from "lucide-react";
 
 // Dynamic imports for better code splitting
 const ProfileHeader = dynamic(() => import("./profile-header").then(mod => ({ default: mod.ProfileHeader })), {

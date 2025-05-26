@@ -30,7 +30,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
 import { Icons } from "../icons";
-import { AccountButton } from "./account-button";
+import { RecruiterAccountButton } from "./recruiter-account-button";
 
 export const company = {
   name: "SkillChain",
@@ -118,7 +118,7 @@ export default function RecruiterSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <AccountButton></AccountButton>
+            <RecruiterAccountButton></RecruiterAccountButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

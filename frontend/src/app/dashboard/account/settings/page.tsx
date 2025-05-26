@@ -1,10 +1,9 @@
-import { Separator } from '@/components/ui/separator';
-import { ProfileForm } from '@/features/account/profile-settings/profile-form';
+import { SettingsContainer } from '@/features/account/profile-settings/settings-container';
 
-export default function SettingsProfilePage() {
+export default function SettingsPage() {
   return (
     <div>
-      <ProfileForm />
+      <SettingsContainer />
     </div>
   );
 }

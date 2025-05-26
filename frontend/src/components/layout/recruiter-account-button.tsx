@@ -1,7 +1,7 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { ChevronsUpDown, LogOut, UserSearch } from "lucide-react";
+import { ChevronsUpDown, LogOut, User } from "lucide-react";
 import { SidebarMenuButton } from "../ui/sidebar";
 import {
   DropdownMenu,
@@ -13,61 +13,68 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { useAccount, useDisconnect } from "wagmi";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { getUserProfileData } from "@/lib/get/get-user-data-utils";
+import { getRecruiterProfileData } from "@/lib/get/get-recruiter-data-utils";
 import { toast } from "react-toastify";
 import { pageUrlMapping } from "@/constants/navigation";
-import { account_button_items } from "@/constants/data";
+import { recruiter_account_button_items } from "@/constants/data";
 import { Icons } from "../icons";
-import { useUser } from "@/contexts/user-context";
-import Link from "next/link";
+import { useRecruiter } from "@/contexts/recruiter-context";
 
-export const AccountButton = () => {
+export const RecruiterAccountButton = () => {
   const [fullname, setFullname] = useState<string | undefined>(undefined);
   const [avatar_url, setAvatar] = useState<string | undefined>(undefined);
+  const [company, setCompany] = useState<string | undefined>(undefined);
   const router = useRouter();
-  const pathname = usePathname();
-
+  
   const { address, isDisconnected, isReconnecting } = useAccount();
   const { disconnect } = useDisconnect();
-  const { userData } = useUser();
+  const { recruiterData } = useRecruiter();
 
   function handleDisconnectWallet() {
     disconnect();
     router.push(pageUrlMapping.home);
   }
+
   function handleDirectToPage(path: string) {
     router.push(path);
   }
 
-  // Update local state when context userData changes
-  useEffect(() => {
-    // Remove debug toasts - only update silently
-    if (userData.fullname !== undefined) {
-      setFullname(userData.fullname);
-    }
-    if (userData.avatar_url !== undefined) {
-      setAvatar(userData.avatar_url);
-    }
-  }, [userData]);
+  function handleSwitchToUser() {
+    router.push(pageUrlMapping.dashboard);
+  }
 
-  // Fetch user data when the component mounts
+  // Update local state when context recruiterData changes
   useEffect(() => {
-    async function handleFetchingUserData() {
+    if (recruiterData.fullname !== undefined) {
+      setFullname(recruiterData.fullname);
+    }
+    if (recruiterData.avatar_url !== undefined) {
+      setAvatar(recruiterData.avatar_url);
+    }
+    if (recruiterData.company !== undefined) {
+      setCompany(recruiterData.company);
+    }
+  }, [recruiterData]);
+
+  // Fetch recruiter data when the component mounts
+  useEffect(() => {
+    async function handleFetchingRecruiterData() {
       try {
-        const userProfile = await getUserProfileData(address as `0x${string}`);
-        if (userProfile) {
-          setFullname(userProfile.fullname);
-          setAvatar(userProfile.avatar_url);
+        const recruiterProfile = await getRecruiterProfileData(address as `0x${string}`);
+        if (recruiterProfile) {
+          setFullname(recruiterProfile.fullname);
+          setAvatar(recruiterProfile.avatar_url);
+          setCompany(recruiterProfile.company);
         }
       } catch (error) {
-        toast.error(`Error fetching user data: ${error}`);
+        toast.error(`Error fetching recruiter data: ${error}`);
       }
     }
 
     if (address) {
-      handleFetchingUserData();
+      handleFetchingRecruiterData();
     }
   }, [address, isDisconnected, isReconnecting]);
 
@@ -79,12 +86,12 @@ export const AccountButton = () => {
           className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
         >
           <Avatar className="h-8 w-8 rounded-lg">
-            <AvatarImage src={avatar_url} alt={"User's avartar - SkillChain"} />
-            <AvatarFallback className="rounded-lg">SK</AvatarFallback>
+            <AvatarImage src={avatar_url} alt={"Recruiter's avatar - SkillChain"} />
+            <AvatarFallback className="rounded-lg">RC</AvatarFallback>
           </Avatar>
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-semibold">{fullname}</span>
-            <span className="truncate text-xs">{address}</span>
+            <span className="truncate text-xs">{company || address}</span>
           </div>
           <ChevronsUpDown className="ml-auto size-4" />
         </SidebarMenuButton>
@@ -100,20 +107,20 @@ export const AccountButton = () => {
             <Avatar className="h-8 w-8 rounded-lg">
               <AvatarImage
                 src={avatar_url}
-                alt={"User's avartar - SkillChain"}
+                alt={"Recruiter's avatar - SkillChain"}
               />
-              <AvatarFallback className="rounded-lg">SK</AvatarFallback>
+              <AvatarFallback className="rounded-lg">RC</AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-semibold">{fullname}</span>
-              <span className="truncate text-xs">{address}</span>
+              <span className="truncate text-xs">{company || address}</span>
             </div>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
 
         <DropdownMenuGroup>
-          {account_button_items.map((item) => {
+          {recruiter_account_button_items.map((item) => {
             const IconComponent = item.icon
               ? Icons[item.icon as keyof typeof Icons]
               : Icons.logo;
@@ -130,11 +137,9 @@ export const AccountButton = () => {
         </DropdownMenuGroup>
 
         <DropdownMenuGroup>
-          <DropdownMenuItem asChild>
-            <Link href={pageUrlMapping.recruiter_dashboard}>
-              <UserSearch />
-              Switch to Recruiter
-            </Link>
+          <DropdownMenuItem onClick={handleSwitchToUser}>
+            <User />
+            Switch to User
           </DropdownMenuItem>
         </DropdownMenuGroup>
 

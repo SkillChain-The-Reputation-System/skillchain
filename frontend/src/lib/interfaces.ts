@@ -10,6 +10,21 @@ export interface UserProfileInterface {
     bio: string;
 }
 
+export interface RecruiterProfileInterface {
+    address: string;
+    fullname: string;
+    company: string;
+    position: string;
+    email: string;
+    avatar_url: string;
+    bio: string;
+    phone?: string;
+    location?: string;
+    website?: string;
+    industry?: string;
+    companySize?: string;
+}
+
 export interface IrysUploadResponseInterface {
     success: boolean;
     id: string | undefined;

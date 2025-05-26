@@ -1,4 +1,5 @@
 "use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -124,7 +125,7 @@ export function ProfileForm() {
           // Initialize context with fetched data
           updateUserData({
             fullname: userProfile.fullname,
-            avatar_url: userProfile.avatar_url
+            avatar_url: userProfile.avatar_url,
           });
         }
       }
@@ -148,21 +149,23 @@ export function ProfileForm() {
         // Update existing profile
         const dataId = await updateProfile(address, data);
         toast.success("Profile updated successfully!");
-        
+
         // Directly update context with submitted data (more reliable)
-        const newAvatarUrl = data.avatar ? URL.createObjectURL(data.avatar) : avatarUrl;
+        const newAvatarUrl = data.avatar
+          ? URL.createObjectURL(data.avatar)
+          : avatarUrl;
         updateUserData({
           fullname: data.fullname || undefined,
-          avatar_url: newAvatarUrl
+          avatar_url: newAvatarUrl,
         });
-        
+
         router.refresh();
       } else {
         // Register new profile
         const txHash = await registerProfile(address as `0x${string}`, data);
         toast.success("Profile registered successfully!");
         setIsRegistered(true);
-        
+
         // Directly update context with submitted data
         const newAvatarUrl = data.avatar ? URL.createObjectURL(data.avatar) : undefined;
         updateUserData({
@@ -183,7 +186,6 @@ export function ProfileForm() {
       setIsSubmitDisabled(false);
     }
   }
-
   return (
     <Card className="w-full mx-auto">
       <CardHeader>

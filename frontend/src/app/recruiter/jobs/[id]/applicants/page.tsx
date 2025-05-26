@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, Suspense, lazy } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
-  fetchApplicationCountByJobIDAndStatus,
+  fetchAllApplicationCountsByJobID,
   fetchJobById,
   fetchApplicantsByJobID,
 } from "@/lib/fetching-onchain-data-utils";
@@ -12,14 +12,14 @@ import { JobDurationLabels, JobApplicationStatus } from "@/constants/system";
 import { JobInterface } from "@/lib/interfaces";
 import { ArrowLeft, FileEdit, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ApplicantsTable } from "@/features/jobs-on-recruiter/applicants-table/data-table";
-import { ApplicantColumns } from "@/features/jobs-on-recruiter/applicants-table/column";
+import { ApplicantsTable } from "@/features/jobs-on-recruiter/applicant/applicants-table/data-table";
+import { ApplicantColumns } from "@/features/jobs-on-recruiter/applicant/applicants-table/column";
 
 import { JobApplicantionInterface } from "@/lib/interfaces";
 
 // Lazy load the metrics component for better performance
 const JobApplicantsMetrics = lazy(() =>
-  import("@/features/jobs-on-recruiter/applicants-metrics").then((mod) => ({
+  import("@/features/jobs-on-recruiter/applicant/applicants-metrics").then((mod) => ({
     default: mod.JobApplicantsMetrics,
   }))
 );
@@ -48,7 +48,9 @@ export default function JobApplicantsPage() {
     rejected: 0,
     withdrawn: 0,
     hired: 0,
-  }); // State to store real applicant data
+  });
+
+  // State to store real applicant data
   const [applicants, setApplicants] = useState<JobApplicantionInterface[]>([]);
   // Fetch job data and application counts for each status
   useEffect(() => {
@@ -57,48 +59,20 @@ export default function JobApplicantsPage() {
       try {
         const fetchedJob = await fetchJobById(jobId);
         setJob(fetchedJob);
-
         const total = fetchedJob?.application_count || 0;
 
-        // Fetch application counts for each status
-        const totalPending = await fetchApplicationCountByJobIDAndStatus(
-          jobId,
-          JobApplicationStatus.PENDING
-        );
-        const totalReviewing = await fetchApplicationCountByJobIDAndStatus(
-          jobId,
-          JobApplicationStatus.REVIEWING
-        );
-        const totalShortlisted = await fetchApplicationCountByJobIDAndStatus(
-          jobId,
-          JobApplicationStatus.SHORTLISTED
-        );
-        const totalInterviewing = await fetchApplicationCountByJobIDAndStatus(
-          jobId,
-          JobApplicationStatus.INTERVIEWING
-        );
-        const totalRejected = await fetchApplicationCountByJobIDAndStatus(
-          jobId,
-          JobApplicationStatus.REJECTED
-        );
-        const totalWithdrawn = await fetchApplicationCountByJobIDAndStatus(
-          jobId,
-          JobApplicationStatus.WITHDRAWN
-        );
-        const totalHired = await fetchApplicationCountByJobIDAndStatus(
-          jobId,
-          JobApplicationStatus.HIRED
-        );
+        // Fetch application counts for all statuses in a single operation
+        const statusCounts = await fetchAllApplicationCountsByJobID(jobId);
 
         setCounts({
           total,
-          pending: totalPending,
-          reviewing: totalReviewing,
-          shortlisted: totalShortlisted,
-          interviewing: totalInterviewing,
-          rejected: totalRejected,
-          withdrawn: totalWithdrawn,
-          hired: totalHired,
+          pending: statusCounts.pending,
+          reviewing: statusCounts.reviewing,
+          shortlisted: statusCounts.shortlisted,
+          interviewing: statusCounts.interviewing,
+          rejected: statusCounts.rejected,
+          withdrawn: statusCounts.withdrawn,
+          hired: statusCounts.hired,
         });
 
         // Fetch real applicant data
@@ -115,6 +89,7 @@ export default function JobApplicantsPage() {
       fetchJobData();
     }
   }, [jobId]);
+
   return (
     <div className="container px-4 py-6">
       {/* Back to Jobs Link */}

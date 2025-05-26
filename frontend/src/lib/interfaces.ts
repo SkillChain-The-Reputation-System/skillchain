@@ -172,6 +172,8 @@ export interface JobApplicantionInterface {
   status: JobApplicationStatus;
   applied_at: number;
   job_id: string;
+  profile_data: UserProfileInterface;
+  reputation_data: UserReputationScoreInterface;
 }
 
 export interface JobApplicationWithJobDataInterface {
@@ -179,6 +181,8 @@ export interface JobApplicationWithJobDataInterface {
     applicant: string;
     applied_at: number;
     status: JobApplicationStatus;
+    profile_data: UserProfileInterface;
+    reputation_data: UserReputationScoreInterface;
     job: JobInterface;  
 }
 

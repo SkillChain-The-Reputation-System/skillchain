@@ -4,7 +4,6 @@ import {
   ContractConfig_ChallengeManager,
   ContractConfig_UserDataManager,
   ContractConfig_SolutionManager,
-  ContractConfig_ReputationManager,
   ContractConfig_JobManager,
   ContractConfig_JobApplicationManager,
 } from "@/constants/contracts-config";
@@ -23,11 +22,15 @@ import {
   JobInterface,
   JobApplicationWithJobDataInterface,
   JobApplicantionInterface,
+  UserProfileInterface,
+  UserReputationScoreInterface,
 } from "./interfaces";
 import {
   fetchJsonDataOffChain,
   fetchStringDataOffChain,
 } from "./fetching-offchain-data-utils";
+import { getUserProfileData } from "./get/get-user-data-utils";
+import { getUserReputationScore } from "./get/get-reputation-score-utils";
 import {
   QualityFactorAnswer,
   ChallengeDifficultyLevel,
@@ -1143,8 +1146,14 @@ export const fetchAllJobApplicationsByUser = async (
 
     // Step 2: Fetch the full job details for each application and map to JobApplicationInterface
     const jobApplicationsPromises = applications.map(async (application) => {
-      // Fetch the full job details using the job_id from the application
-      const jobDetails = await fetchJobById(application.job_id);
+      const applicantAddress = application.applicant as `0x${string}`;
+      
+      // Fetch job details, profile data, and reputation data concurrently
+      const [jobDetails, profileData, reputationData] = await Promise.all([
+        fetchJobById(application.job_id),
+        getUserProfileData(applicantAddress),
+        getUserReputationScore(applicantAddress)
+      ]);
 
       if (!jobDetails) {
         console.error(
@@ -1159,6 +1168,18 @@ export const fetchAllJobApplicationsByUser = async (
         applicant: application.applicant,
         applied_at: Number(application.applied_at),
         status: application.status,
+        profile_data: profileData || {
+          address: applicantAddress,
+          fullname: '',
+          location: '',
+          email: '',
+          avatar_url: '',
+          bio: ''
+        },
+        reputation_data: reputationData || {
+          global_reputation: 0,
+          domain_reputation: {} as Record<Domain, number>
+        },
         job: jobDetails,
       };
 
@@ -1200,10 +1221,16 @@ export const fetchJobApplicationByID = async (
     if (!application || !application.id) {
       console.log(`Application with ID ${id} not found`);
       return null;
-    }
-
-    // Step 2: Use the job_id from the application to fetch detailed job information
-    const jobDetails = await fetchJobById(application.job_id);
+    }    
+    
+    // Step 2: Fetch job details, profile data, and reputation data concurrently
+    const applicantAddress = application.applicant as `0x${string}`;
+    
+    const [jobDetails, profileData, reputationData] = await Promise.all([
+      fetchJobById(application.job_id),
+      getUserProfileData(applicantAddress),
+      getUserReputationScore(applicantAddress)
+    ]);
 
     if (!jobDetails) {
       console.error(
@@ -1218,6 +1245,18 @@ export const fetchJobApplicationByID = async (
       applicant: application.applicant,
       applied_at: Number(application.applied_at),
       status: application.status,
+      profile_data: profileData || {
+        address: applicantAddress,
+        fullname: '',
+        location: '',
+        email: '',
+        avatar_url: '',
+        bio: ''
+      },
+      reputation_data: reputationData || {
+        global_reputation: 0,
+        domain_reputation: {} as Record<Domain, number>
+      },
       job: jobDetails,
     };
 
@@ -1254,38 +1293,6 @@ export const fetchApplicationCountByJobID = async (
 };
 
 /**
- * Fetch the number of applications for a specific job and status
- * @param job_id The ID of the job
- * @param status The application status to filter by
- * @returns The number of applications for the job with the specified status
- */
-export const fetchApplicationCountByJobIDAndStatus = async (
-  job_id: string,
-  status: JobApplicationStatus
-): Promise<number> => {
-  try {
-    // Get all applications with the specified status
-    const applications = (await readContract(wagmiConfig, {
-      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
-      abi: ContractConfig_JobApplicationManager.abi,
-      functionName: "getApplicationsByStatus",
-      args: [status],
-    })) as any[];
-
-    // Filter applications to only include those for the specified job
-    // The job_id in the contract is a bytes32 type
-    const filteredApplications = applications.filter(
-      (application) => application.job_id === job_id
-    );
-
-    return filteredApplications.length;
-  } catch (error) {
-    console.error("Error fetching application count by status:", error);
-    return 0;
-  }
-};
-
-/**
  * Fetch all applicants for a specific job
  * @param job_id The ID of the job
  * @returns Array of applicant details
@@ -1306,14 +1313,36 @@ export const fetchApplicantsByJobID = async (
       `Fetched ${applications.length} applications for job ${job_id}`
     );
 
-    // Step 2: Transform contract data to match ApplicantInterface
-    const applicants: JobApplicantionInterface[] = applications.map(
-      (application) => ({
-        id: application.id, // Use application ID as the unique identifier
-        address: application.applicant, // Applicant's address
-        status: application.status, // Application status
-        applied_at: Number(application.applied_at), // Convert to number if it's returned as a BigInt
-        job_id: application.job_id, // Job ID
+    // Step 2: Transform contract data and fetch additional profile and reputation data
+    const applicants: JobApplicantionInterface[] = await Promise.all(
+      applications.map(async (application) => {
+        const applicantAddress = application.applicant as `0x${string}`;
+        
+        // Fetch profile data and reputation data concurrently
+        const [profileData, reputationData] = await Promise.all([
+          getUserProfileData(applicantAddress),
+          getUserReputationScore(applicantAddress)
+        ]);
+
+        return {
+          id: application.id, // Use application ID as the unique identifier
+          address: application.applicant, // Applicant's address
+          status: application.status, // Application status
+          applied_at: Number(application.applied_at), // Convert to number if it's returned as a BigInt
+          job_id: application.job_id, // Job ID
+          profile_data: profileData || {
+            address: applicantAddress,
+            fullname: '',
+            location: '',
+            email: '',
+            avatar_url: '',
+            bio: ''
+          }, // Use empty profile if not found
+          reputation_data: reputationData || {
+            global_reputation: 0,
+            domain_reputation: {} as Record<Domain, number>
+          } // Use empty reputation if not found
+        };
       })
     );
 
@@ -1349,3 +1378,81 @@ export async function fetchPossibleApplicationStatusTransitions(
     return [];
   }
 }
+
+/**
+ * Fetch all application counts for a specific job in a single operation
+ * @param job_id The ID of the job
+ * @returns Object containing counts for each application status
+ */
+export const fetchAllApplicationCountsByJobID = async (
+  job_id: string
+): Promise<{
+  pending: number;
+  reviewing: number;
+  shortlisted: number;
+  interviewing: number;
+  rejected: number;
+  withdrawn: number;
+  hired: number;
+}> => {
+  try {
+    // Get all applications for the job in a single contract call
+    const applications = (await readContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "getApplicationsByJob",
+      args: [job_id],
+    })) as any[];
+
+    // Initialize counters for each status
+    const counts = {
+      pending: 0,
+      reviewing: 0,
+      shortlisted: 0,
+      interviewing: 0,
+      rejected: 0,
+      withdrawn: 0,
+      hired: 0,
+    };
+
+    // Count applications by status
+    applications.forEach((application) => {
+      switch (application.status) {
+        case JobApplicationStatus.PENDING:
+          counts.pending++;
+          break;
+        case JobApplicationStatus.REVIEWING:
+          counts.reviewing++;
+          break;
+        case JobApplicationStatus.SHORTLISTED:
+          counts.shortlisted++;
+          break;
+        case JobApplicationStatus.INTERVIEWING:
+          counts.interviewing++;
+          break;
+        case JobApplicationStatus.REJECTED:
+          counts.rejected++;
+          break;
+        case JobApplicationStatus.WITHDRAWN:
+          counts.withdrawn++;
+          break;
+        case JobApplicationStatus.HIRED:
+          counts.hired++;
+          break;
+      }
+    });
+
+    return counts;
+  } catch (error) {
+    console.error("Error fetching all application counts by job ID:", error);
+    return {
+      pending: 0,
+      reviewing: 0,
+      shortlisted: 0,
+      interviewing: 0,
+      rejected: 0,
+      withdrawn: 0,
+      hired: 0,
+    };
+  }
+};

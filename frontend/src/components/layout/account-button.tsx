@@ -1,12 +1,7 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import {
-  ChevronsUpDown,
-  LogOut,
-  User,
-  UserSearch,
-} from "lucide-react";
+import { ChevronsUpDown, LogOut, User, UserSearch } from "lucide-react";
 import { SidebarMenuButton } from "../ui/sidebar";
 import {
   DropdownMenu,
@@ -20,21 +15,24 @@ import {
 import { useAccount, useDisconnect } from "wagmi";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { fetchUserDataOnChain } from "@/lib/fetching-onchain-data-utils";
+import { getUserProfileData } from "@/lib/get/get-user-data-utils";
 import { toast } from "react-toastify";
 import { pageUrlMapping } from "@/constants/navigation";
 import { account_button_items } from "@/constants/data";
 import { recruiter_account_button_items } from "@/constants/data";
 import { Icons } from "../icons";
+import { useUser } from "@/contexts/user-context";
 
 export const AccountButton = () => {
-  const [username, setUsername] = useState<string | undefined>(undefined);
+  const [fullname, setFullname] = useState<string | undefined>(undefined);
   const [avatar_url, setAvatar] = useState<string | undefined>(undefined);
   const [isRecruiter, setIsRecruiter] = useState<boolean>(false);
   const router = useRouter();
   const pathname = usePathname();
+  
   const { address, isDisconnected, isReconnecting } = useAccount();
   const { disconnect } = useDisconnect();
+  const { userData } = useUser();
 
   function handleDisconnectWallet() {
     disconnect();
@@ -44,23 +42,34 @@ export const AccountButton = () => {
   function handleDirectToPage(path: string) {
     router.push(path);
   }
-
   // Update recruiter status when pathname changes
   useEffect(() => {
     setIsRecruiter(pathname.startsWith("/recruiter"));
   }, [pathname]);
 
+  // Update local state when context userData changes
+  useEffect(() => {
+    // Remove debug toasts - only update silently
+    if (userData.fullname !== undefined) {
+      setFullname(userData.fullname);
+    }
+    if (userData.avatar_url !== undefined) {
+      setAvatar(userData.avatar_url);
+    }
+  }, [userData]);
+
   // Fetch user data when the component mounts
   useEffect(() => {
     async function handleFetchingUserData() {
-      await fetchUserDataOnChain(address as `0x${string}`)
-        .then(async ({ username, avatar_url, bio_url }) => {
-          setUsername(username);
-          setAvatar(avatar_url);
-        })
-        .catch((error) => {
-          toast.error(`Error fetching user data: ${error.message}`);
-        });
+      try {
+        const userProfile = await getUserProfileData(address as `0x${string}`);
+        if (userProfile) {
+          setFullname(userProfile.fullname);
+          setAvatar(userProfile.avatar_url);
+        }
+      } catch (error) {
+        toast.error(`Error fetching user data: ${error}`);
+      }
     }
 
     if (address) {
@@ -80,7 +89,7 @@ export const AccountButton = () => {
             <AvatarFallback className="rounded-lg">SK</AvatarFallback>
           </Avatar>
           <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold">{username}</span>
+            <span className="truncate font-semibold">{fullname}</span>
             <span className="truncate text-xs">{address}</span>
           </div>
           <ChevronsUpDown className="ml-auto size-4" />
@@ -102,7 +111,7 @@ export const AccountButton = () => {
               <AvatarFallback className="rounded-lg">SK</AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-semibold">{username}</span>
+              <span className="truncate font-semibold">{fullname}</span>
               <span className="truncate text-xs">{address}</span>
             </div>
           </div>
@@ -110,7 +119,6 @@ export const AccountButton = () => {
         <DropdownMenuSeparator />
 
         <DropdownMenuGroup>
-          {" "}
           {isRecruiter
             ? // Display recruiter menu items
               recruiter_account_button_items.map((item) => {

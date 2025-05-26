@@ -25,6 +25,7 @@ import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/contexts/user-context";
 import { CircularAvatarInput } from "./circular-avatar-input";
 import {
   FormField,
@@ -78,6 +79,9 @@ export function ProfileForm() {
   // Get the connected user's address
   const { address } = useAccount();
 
+  // Get user context for updating user data
+  const { updateUserData } = useUser();
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues,
@@ -116,6 +120,12 @@ export function ProfileForm() {
             email: userProfile.email,
             bio: userProfile.bio,
           });
+
+          // Initialize context with fetched data
+          updateUserData({
+            fullname: userProfile.fullname,
+            avatar_url: userProfile.avatar_url
+          });
         }
       }
 
@@ -138,13 +148,29 @@ export function ProfileForm() {
         // Update existing profile
         const dataId = await updateProfile(address, data);
         toast.success("Profile updated successfully!");
-        router.refresh(); // Refresh the page to reflect the changes
+        
+        // Directly update context with submitted data (more reliable)
+        const newAvatarUrl = data.avatar ? URL.createObjectURL(data.avatar) : avatarUrl;
+        updateUserData({
+          fullname: data.fullname || undefined,
+          avatar_url: newAvatarUrl
+        });
+        
+        router.refresh();
       } else {
         // Register new profile
         const txHash = await registerProfile(address as `0x${string}`, data);
         toast.success("Profile registered successfully!");
         setIsRegistered(true);
-        router.refresh(); // Refresh the page to reflect the changes
+        
+        // Directly update context with submitted data
+        const newAvatarUrl = data.avatar ? URL.createObjectURL(data.avatar) : undefined;
+        updateUserData({
+          fullname: data.fullname || undefined,
+          avatar_url: newAvatarUrl
+        });
+        
+        router.refresh();
       }
     } catch (error: any) {
       const errorMessage = error?.message || "An unexpected error occurred";

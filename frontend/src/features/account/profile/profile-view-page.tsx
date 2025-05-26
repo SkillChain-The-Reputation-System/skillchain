@@ -4,12 +4,18 @@ import { useAccount } from "wagmi";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { getUserProfileData } from "@/lib/get/get-user-data-utils";
 import { getUserReputationScore } from "@/lib/get/get-reputation-score";
+import { isUserRegistered } from "@/lib/get/get-user-data-utils";
+import { pageUrlMapping } from "@/constants/navigation";
 import {
   UserProfileInterface,
   UserReputationScoreInterface,
 } from "@/lib/interfaces";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { InfoIcon } from "lucide-react";
 
 // Dynamic imports for better code splitting
 const ProfileHeader = dynamic(() => import("./profile-header").then(mod => ({ default: mod.ProfileHeader })), {
@@ -32,6 +38,10 @@ const NoWalletConnected = dynamic(() => import("./no-wallet-connected").then(mod
   ssr: false,
 });
 
+const RegistrationNotificationBanner = dynamic(() => import("./registration-notification-banner").then(mod => ({ default: mod.RegistrationNotificationBanner })), {
+  ssr: false,
+});
+
 export default function ProfileViewPage() {
   const { address } = useAccount();
   const [profileData, setProfileData] = useState<UserProfileInterface | null>(
@@ -41,6 +51,8 @@ export default function ProfileViewPage() {
     useState<UserReputationScoreInterface | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isLoadingReputation, setIsLoadingReputation] = useState(true);
+  const [isRegistered, setIsRegistered] = useState<boolean>(false);
+  const [isLoadingRegistration, setIsLoadingRegistration] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchUserProfile = async () => {
@@ -58,7 +70,6 @@ export default function ProfileViewPage() {
       setIsLoadingProfile(false);
     }
   };
-
   const fetchReputationScores = async () => {
     if (!address) return;
 
@@ -75,10 +86,25 @@ export default function ProfileViewPage() {
     }
   };
 
+  const checkUserRegistration = async () => {
+    if (!address) return;
+
+    try {
+      setIsLoadingRegistration(true);
+      const userRegistered = await isUserRegistered(address as `0x${string}`);
+      setIsRegistered(userRegistered);
+    } catch (error) {
+      console.error("Error checking user registration:", error);
+      setError("Failed to check registration status");
+    } finally {
+      setIsLoadingRegistration(false);
+    }
+  };
   useEffect(() => {
     if (address) {
       fetchUserProfile();
       fetchReputationScores();
+      checkUserRegistration();
     }
   }, [address]);
 
@@ -94,9 +120,14 @@ export default function ProfileViewPage() {
   if (!address) {
     return <NoWalletConnected />;
   }
-
   return (
     <div className="space-y-6">
+      {/* Registration Notification Banner */}
+      <RegistrationNotificationBanner
+        isRegistered={isRegistered}
+        isLoading={isLoadingRegistration}
+      />
+
       {/* Profile Header */}
       <ProfileHeader
         profileData={profileData}

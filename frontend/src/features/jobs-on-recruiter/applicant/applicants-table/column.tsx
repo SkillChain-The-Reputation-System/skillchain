@@ -24,32 +24,80 @@ import { Badge } from "@/components/ui/badge";
 import { JobApplicantionInterface } from "@/lib/interfaces";
 import { pageUrlMapping } from "@/constants/navigation";
 import { applicationStatusStyles } from "@/constants/styles";
+import Image from "next/image";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export const ApplicantColumns: ColumnDef<JobApplicantionInterface>[] = [  {
-    accessorKey: "address",
+export const ApplicantColumns: ColumnDef<JobApplicantionInterface>[] = [
+  {
+    accessorKey: "profile_data.avatar_url",
+    header: "Avatar",
+    cell: ({ row }) => (
+      <div className="flex items-center justify-start">
+        <Avatar className="h-10 w-10">
+          <AvatarImage
+            src={row.original.profile_data?.avatar_url || ""}
+            alt={row.original.profile_data?.fullname || "Applicant"}
+          />
+          <AvatarFallback>
+            {row.original.profile_data?.fullname
+              ?.split(" ")
+              .map((n) => n[0])
+              .join("")
+              .toUpperCase() || "AP"}
+          </AvatarFallback>
+        </Avatar>
+      </div>
+    ),
+    size: 80,
+  },
+  {
+    accessorKey: "profile_data.fullname",
     header: ({ column }) => (
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         className="w-full justify-start"
       >
-        Applicant
+        Full Name
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
     cell: ({ row }) => (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="font-medium truncate overflow-hidden whitespace-nowrap max-w-full cursor-default">
-            {row.original.address}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>
-          {row.original.address}
-        </TooltipContent>
-      </Tooltip>
+      <div className="font-medium">{row.original.profile_data.fullname}</div>
     ),
     size: 160,
+  },
+  {
+    accessorKey: "address",
+    header: "Address",
+    cell: ({ row }) => (
+      <div className="flex items-center gap-2">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 hover:bg-gray-100 cursor-pointer"
+              onClick={async () => {
+                await navigator.clipboard.writeText(row.original.address);
+              }}
+            >
+              <Copy className="h-3 w-3" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Copy address</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="font-medium truncate overflow-hidden whitespace-nowrap max-w-full cursor-default">
+              {row.original.address}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>{row.original.address}</TooltipContent>
+        </Tooltip>
+      </div>
+    ),
+    size: 200,
   },
   {
     accessorKey: "status",
@@ -98,10 +146,6 @@ export const ApplicantColumns: ColumnDef<JobApplicantionInterface>[] = [  {
     cell: ({ row }) => {
       const applicant = row.original;
 
-      const handleCopy = async () => {
-        navigator.clipboard.writeText(applicant.address);
-      };
-
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -118,12 +162,6 @@ export const ApplicantColumns: ColumnDef<JobApplicantionInterface>[] = [  {
               >
                 View application
               </Link>
-            </DropdownMenuItem>{" "}
-            <DropdownMenuItem
-              onClick={handleCopy}
-              className="flex w-full items-center cursor-pointer justify-start"
-            >
-              Copy Address
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

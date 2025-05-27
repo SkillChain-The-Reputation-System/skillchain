@@ -1,183 +1,96 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import "hardhat/console.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract UserDataManager {
+    // ================= STRUCTS =================
     // Struct to hold user data
     struct User {
-        string username;
-        string avartar_url;
-        string bio_url;
+        address user_address;
+        string data_id; // Unique identifier for the user's data stored on Irys.
     }
 
-    // Mapping to store user data by their wallet address
+    // ================= STATE VARIABLES =================
+    // Mapping to store user data: address => User
     mapping(address => User) private users;
-    // Mapping to track used usernames
-    mapping(string => bool) private usernameTaken;
 
+    // Mapping to check if an address is a registered user: address => bool
+    mapping(address => bool) private user_registered;
+
+    // ================= MODIFIERS =================
+    /**
+     * @notice Modifier to check if a user is registered.
+     * @param _user_address The address to check for registration.
+     */
+    modifier onlyRegisteredUser(address _user_address) {
+        require(user_registered[_user_address], "User not registered");
+        _;
+    }
+
+    /**
+     * @notice Modifier to check if a user is not already registered.
+     * @param _user_address The address to check for registration.
+     */
+    modifier onlyUnregisteredUser(address _user_address) {
+        require(!user_registered[_user_address], "User already registered");
+        _;
+    }
+
+    // ================= EVENTS =================
     // Events for user management activities
-    event UsernameUpdated(address indexed user_address, string username);
-    event AvatarUpdated(address indexed user_address, string avatar_url);
-    event BioUpdated(address indexed user_address, string bio_url);
-    event NoDataUpdated(address indexed user_address);
+    event UserDataUpdated(address indexed user_address, string data_id);
 
-    // Set all user data at once
-    function setUserPersonalData(
-        string calldata _username,
-        string calldata _avatar_url,
-        string calldata _bio_url
-    ) external {
-        bool is_username_requested_not_empty = bytes(_username).length > 0;
-        bool is_username_available = checkUsernameAvailable(_username);
-        bool is_avartar_url_not_empty = bytes(_avatar_url).length > 0;
-        bool is_bio_url_not_empty = bytes(_bio_url).length > 0;
-        // Check if new data is not the same as existing data
-        bool is_username_not_duplicated = !Strings.equal(
-            users[msg.sender].username,
-            _username
-        );
-        bool is_avatar_url_not_duplicated = !Strings.equal(
-            users[msg.sender].avartar_url,
-            _avatar_url
-        );
-        bool is_bio_url_not_duplicated = !Strings.equal(
-            users[msg.sender].bio_url,
-            _bio_url
-        );
+    // ================= METHODS =================
+    /**
+     * @notice Registers a new user with the provided data ID.
+     * @param _data_id The unique identifier for the user's data stored on Irys.
+     * Emits a {UserDataUpdated} event upon successful registration.
+     */
+    function registerNewUser(
+        string calldata _data_id
+    ) external onlyUnregisteredUser(msg.sender) {
+        // Ensure the data ID is not empty
+        require(bytes(_data_id).length > 0, "Data ID cannot be empty");
 
-        // console.log("Input data");
-        // console.log("username: %s", _username);
-        // console.log("avatar CID: %s", _avatar_url);
-        // console.log("bio: %s", _bio_url);
+        // Create a new User struct and store it in the mapping
+        users[msg.sender] = User({user_address: msg.sender, data_id: _data_id});
 
-        // console.log("is_username_requested_not_empty: %s", is_username_requested_not_empty);
-        // console.log("is_username_available: %s", is_username_available);
-        // console.log("is_avartar_cid_not_empty: %s", is_avartar_url_not_empty);
-        // console.log("is_bio_not_empty: %s", is_bio_url_not_empty);
-        // console.log("is_username_not_duplicated: %s", is_username_not_duplicated);
-        // console.log("is_avatar_url_not_duplicated: %s", is_avatar_url_not_duplicated);
-        // console.log("is_bio_url_not_duplicated: %s", is_bio_url_not_duplicated);
+        // Mark the user as registered
+        user_registered[msg.sender] = true;
 
-        // If all conditions are not met, revert the transaction since no update is needed
-        if (
-            !is_username_requested_not_empty &&
-            !is_username_available &&
-            !is_avartar_url_not_empty &&
-            !is_bio_url_not_empty &&
-            !is_username_not_duplicated &&
-            !is_avatar_url_not_duplicated &&
-            !is_bio_url_not_duplicated
-        ) {
-            // Emit an event for no data update
-            emit NoDataUpdated(msg.sender);
-            // Revert the transaction
-            revert("No data to update");
-        }
-
-        // Update username only if it is not empty, is available and is not duplicated
-        if (is_username_requested_not_empty && is_username_available && is_username_not_duplicated) {
-            // console.log(
-            //     "[Contract_Log] Client (%s) Updating their username from (%s) to: (%s)",
-            //     msg.sender,
-            //     users[msg.sender].username,                
-            //     _username
-            // );
-            setUsername(_username);
-        }
-
-        // Update avatar CID only if it is not empty and is not duplicated
-        if (is_avartar_url_not_empty && is_avatar_url_not_duplicated) {
-            // console.log(
-            //     "[Contract_Log] Client (%s) Updating avatar CID to: %s",
-            //     msg.sender,
-            //     _cid_avatar
-            // );
-            setAvatar(_avatar_url);
-        }
-
-        // Update bio only if it is not empty and is not duplicated
-        if (is_bio_url_not_empty && is_bio_url_not_duplicated) {
-            // console.log(
-            //     "[Contract_Log] Client (%s) Updating bio to: %s",
-            //     msg.sender,
-            //     _bio
-            // );
-            setBio(_bio_url);
-        }
+        emit UserDataUpdated(msg.sender, _data_id);
     }
 
-    function setUsername(string calldata _username) public {
-        // // Ensure the user has already registered a username
-        // require(bytes(users[msg.sender].username).length > 0, "Username not registered");
-        // // Ensure the username, avatar CID, and bio are not empty
-        // require(bytes(_username).length > 0, "Username cannot be empty");
-        // // Ensure the new username is not already taken
-        // require(!usernameTaken[_username], "Username already taken");
-
-        // Mark old username as available
-        usernameTaken[users[msg.sender].username] = false;
-        // Update the username in the mapping
-        users[msg.sender].username = _username;
-        // Mark new username as taken
-        usernameTaken[_username] = true;
-
-        // Emit an event for the username update
-        // console.log("Username of (%s) updated to: %s", msg.sender, users[msg.sender].username);
-        emit UsernameUpdated(msg.sender, users[msg.sender].username);
+    // ================= GETTERS =================
+    /**
+     * @notice Checks if a user is already registered.
+     * @param _user_address The address to check.
+     * @return bool Returns true if the user is registered, false otherwise.
+     */
+    function isUserRegistered(
+        address _user_address
+    ) external view returns (bool) {
+        return user_registered[_user_address];
     }
 
-    function setAvatar(string calldata _avatar_url) public {
-        // // Ensure the avatar CID is not empty
-        // require(bytes(_cid_avatar).length > 0, "Avatar CID cannot be empty");
-
-        // Update the avatar CID in the mapping
-        users[msg.sender].avartar_url = _avatar_url;
-
-        // Emit an event for the avatar update
-        // console.log("Avatar of (%s) updated to: %s", msg.sender, users[msg.sender].avartar_url);
-        emit AvatarUpdated(msg.sender, _avatar_url);
+    /**
+     * @notice Gets the data ID of a registered user.
+     * @param _user_address The address of the user.
+     * @return string The data ID of the user.
+     */
+    function getUserDataId(
+        address _user_address
+    ) external view onlyRegisteredUser(_user_address) returns (string memory) {
+        return users[_user_address].data_id;
     }
 
-    function setBio(string calldata _bio_url) public {
-        // // Ensure the bio is not empty
-        // require(bytes(_bio).length > 0, "Bio cannot be empty");
-
-        // Update the bio in the mapping
-        users[msg.sender].bio_url = _bio_url;
-
-        // Emit an event for the bio update
-        // console.log("Bio of (%s) updated to: %s", msg.sender, users[msg.sender].bio_url);
-        emit BioUpdated(msg.sender, _bio_url);
-    }
-
-    // Get username
-    function getUsername(
-        address user_address
-    ) public view returns (string memory) {
-        // console.log("Username of (%s) is: %s", user_address, users[user_address].username);
-        return users[user_address].username;
-    }
-
-    // Get avatar CID
-    function getAvatar(
-        address user_address
-    ) public view returns (string memory) {
-        // console.log("Avatar of (%s) is: %s", user_address, users[user_address].avartar_url);
-        return users[user_address].avartar_url;
-    }
-
-    // Get bio
-    function getBio(address user_address) public view returns (string memory) {
-        // console.log("Bio of (%s) is: %s", user_address, users[user_address].bio_url);
-        return users[user_address].bio_url;
-    }
-
-    // Check if a username is available
-    function checkUsernameAvailable(
-        string calldata _username
-    ) public view returns (bool) {
-        // console.log("Usename (%s) is available: %s", _username, !usernameTaken[_username]);
-        return !usernameTaken[_username];
+    /**
+     * @notice Gets the complete user object for a registered user.
+     * @param _user_address The address of the user.
+     * @return User The complete user struct containing address and data ID.
+     */
+    function getUser(
+        address _user_address
+    ) external view onlyRegisteredUser(_user_address) returns (User memory) {
+        return users[_user_address];
     }
 }

@@ -1,5 +1,30 @@
 import { Domain, ChallengeStatus, QualityFactorAnswer, ChallengeDifficultyLevel, ChallengeSolutionProgress, JobStatus, JobDuration, JobApplicationStatus } from "@/constants/system";
 
+
+export interface UserProfileInterface {
+    address: string;
+    fullname: string;
+    location: string;
+    email: string;
+    avatar_url: string;
+    bio: string;
+}
+
+export interface RecruiterProfileInterface {
+    address: string;
+    fullname: string;
+    company: string;
+    position: string;
+    email: string;
+    avatar_url: string;
+    bio: string;
+    phone?: string;
+    location?: string;
+    website?: string;
+    industry?: string;
+    companySize?: string;
+}
+
 export interface IrysUploadResponseInterface {
     success: boolean;
     id: string | undefined;
@@ -53,8 +78,7 @@ export interface JobInterface {
     requireGlobalReputation: boolean;
     globalReputationScore?: number; // Optional
     deadline: number; // Epoch time in milliseconds
-    application_count: number;
-}
+    }
 
 
 export interface GetCurrentTimeResponse {
@@ -147,6 +171,8 @@ export interface JobApplicantionInterface {
   status: JobApplicationStatus;
   applied_at: number;
   job_id: string;
+  profile_data: UserProfileInterface;
+  reputation_data: UserReputationScoreInterface;
 }
 
 export interface JobApplicationWithJobDataInterface {
@@ -154,5 +180,12 @@ export interface JobApplicationWithJobDataInterface {
     applicant: string;
     applied_at: number;
     status: JobApplicationStatus;
+    profile_data: UserProfileInterface;
+    reputation_data: UserReputationScoreInterface;
     job: JobInterface;  
+}
+
+export interface UserReputationScoreInterface {
+    global_reputation: number;
+    domain_reputation: Record<Domain, number>;
 }

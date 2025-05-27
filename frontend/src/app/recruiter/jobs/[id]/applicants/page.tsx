@@ -63,7 +63,7 @@ export default function JobApplicantsPage() {
       try {
         const fetchedJob = await fetchJobById(jobId);
         setJob(fetchedJob);
-        const total = fetchedJob?.application_count || 0;
+        const total = fetchedJob?.applicants || 0;
 
         // Fetch application counts for all statuses in a single operation
         const statusCounts = await fetchAllApplicationCountsByJobID(jobId);
@@ -95,14 +95,14 @@ export default function JobApplicantsPage() {
   }, [jobId]);
 
   return (
-    <div className="container px-4 py-6">
-      {/* Back to Jobs Link */}
+    <div className="px-4 py-6">
+      {/* Back to Job Post Link */}
       <Link
-        href="/recruiter/jobs"
+        href={`${pageUrlMapping.recruiter_jobs}/${jobId}`}
         className={cn(buttonVariants(), "mb-4 flex-1 items-center gap-2")}
       >
         <ArrowLeft size={16} />
-        <span>Back to Jobs</span>
+        <span>Back to Job Post</span>
       </Link>
 
       {/* Job Header Section */}
@@ -137,19 +137,14 @@ export default function JobApplicantsPage() {
         </div>
         <div className="flex gap-2">
           <Link
-            className={cn(buttonVariants({variant: "outline"}), "flex items-center gap-2")}
+            className={cn(
+              buttonVariants({ variant: "outline" }),
+              "flex items-center gap-2"
+            )}
             href={`${pageUrlMapping.recruiter_jobs}/${jobId}/edit`}
           >
             <FileEdit size={16} />
             Edit Job
-          </Link>
-
-          <Link
-            className={cn(buttonVariants({variant: "default"}), "flex items-center gap-2")}
-            href={`${pageUrlMapping.recruiter_jobs}/${jobId}`}
-          >
-            <Eye size={16} />
-            View Job Post
           </Link>
         </div>
       </div>

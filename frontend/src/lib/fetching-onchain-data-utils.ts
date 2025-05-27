@@ -908,7 +908,7 @@ export const fetchJobById = async (
       recruiter: job.recruiter,
       location: jobContent.location || "",
       duration: duration,
-      applicants: jobContent.applicants || 0,
+      applicants: applicationCount,
       posted: new Date(Number(job.created_at)),
       status: job.status,
       // Additional fields from JobFormData
@@ -920,7 +920,6 @@ export const fetchJobById = async (
       requireGlobalReputation: jobContent.requireGlobalReputation || false,
       globalReputationScore: jobContent.globalReputationScore,
       deadline: jobContent.deadline || 0,
-      application_count: applicationCount,
     };
 
     return jobDetails;
@@ -1037,7 +1036,7 @@ export const fetchAllOpenJobs = async (): Promise<JobInterface[]> => {
           recruiter: job.recruiter,
           location: jobContent.location || "",
           duration: duration,
-          applicants: jobContent.applicants || 0,
+          applicants: applicationCount,
           posted: new Date(Number(job.created_at)),
           status: job.status,
           // Additional fields from JobFormData
@@ -1049,7 +1048,6 @@ export const fetchAllOpenJobs = async (): Promise<JobInterface[]> => {
           requireGlobalReputation: jobContent.requireGlobalReputation || false,
           globalReputationScore: jobContent.globalReputationScore,
           deadline: jobContent.deadline || 0,
-          application_count: applicationCount,
         };
 
         return jobDetails;

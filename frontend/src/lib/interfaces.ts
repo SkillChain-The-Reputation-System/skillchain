@@ -78,8 +78,7 @@ export interface JobInterface {
     requireGlobalReputation: boolean;
     globalReputationScore?: number; // Optional
     deadline: number; // Epoch time in milliseconds
-    application_count: number;
-}
+    }
 
 
 export interface GetCurrentTimeResponse {

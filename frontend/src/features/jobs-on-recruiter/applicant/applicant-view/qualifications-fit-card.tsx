@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckIcon, TrophyIcon } from "lucide-react";
+import { CheckIcon, TrophyIcon, XIcon } from "lucide-react";
 import { JobApplicationWithJobDataInterface } from "@/lib/interfaces";
 import { DomainLabels } from "@/constants/system";
 import { DomainIconMap } from "@/constants/data";
@@ -56,7 +56,7 @@ export default function QualificationsFitCard({
                     {meetsRequirement ? (
                       <CheckIcon className="h-3 w-3 ml-1 text-green-600" />
                     ) : (
-                      <span className="text-red-600 ml-1">✗</span>
+                      <XIcon className="h-3 w-3 ml-1 text-red-600" />
                     )}
                   </Badge>
                 );
@@ -86,11 +86,10 @@ export default function QualificationsFitCard({
                       <span>Global Reputation</span>
                       <span>
                         {userGlobalRep}/{requiredGlobalRep}
-                      </span>
-                      {meetsGlobalRequirement ? (
+                      </span>                      {meetsGlobalRequirement ? (
                         <CheckIcon className="h-3 w-3 ml-1 text-green-600" />
                       ) : (
-                        <span className="text-red-600 ml-1">✗</span>
+                        <XIcon className="h-3 w-3 ml-1 text-red-600" />
                       )}
                     </Badge>
                   );

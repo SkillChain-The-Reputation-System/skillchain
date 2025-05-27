@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, ArrowLeftIcon, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { PageHeader } from "@/components/layout/page-header";
 import { toast } from "react-toastify";
@@ -16,6 +16,10 @@ import { JobApplicationWithJobDataInterface } from "@/lib/interfaces";
 import { JobApplicationStatus } from "@/constants/system";
 import { ApplicationStatusLabels } from "@/constants/system";
 import { MockInterviewData } from "./types";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { pageUrlMapping } from "@/constants/navigation";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 // Dynamic imports for better code splitting
 const ApplicantProfileCard = dynamic(() => import("./applicant-profile-card"), {
@@ -211,7 +215,7 @@ export default function ApplicationDetailContainer() {
   }
 
   return (
-    <div className="px-4 pb-10 max-w-7xl mx-auto overflow-x-hidden">
+    <div className="px-4 pb-10 mx-auto overflow-x-hidden">
       {/* Status Change Dialog */}
       <StatusChangeDialog
         isOpen={isDialogOpen}
@@ -228,6 +232,14 @@ export default function ApplicationDetailContainer() {
         <PageHeader
           title="Application Details"
           description={`Review the application for ${application.job.title}`}
+          actions={
+            <Link
+              href={`${pageUrlMapping.recruiter_jobs}/${jobId}/applicants`}
+              className={cn(buttonVariants(), "text-xs md:text-sm")}
+            >
+              <ArrowLeftIcon /> Back to Applicants
+            </Link>
+          }
         />
         <Separator className="my-4 bg-gray-300 dark:bg-gray-700" />
       </div>

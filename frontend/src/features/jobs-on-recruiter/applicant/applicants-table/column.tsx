@@ -77,7 +77,7 @@ export const ApplicantColumns: ColumnDef<JobApplicantionInterface>[] = [
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 hover:bg-gray-100"
+              className="h-6 w-6 p-0 hover:bg-gray-100 cursor-pointer"
               onClick={async () => {
                 await navigator.clipboard.writeText(row.original.address);
               }}

@@ -189,11 +189,14 @@ export interface UserReputationScoreInterface {
     global_reputation: number;
     domain_reputation: Record<Domain, number>;
 }
+
 export interface BriefMeetingInterface {
     id: string;
     applicant: UserProfileInterface;
     position: string;
     duration: JobDuration;
+    scheduledAt: number;
+    endedAt: number;
     date: Date;
     fromTime: string;
     toTime: string
@@ -203,12 +206,12 @@ export interface BriefMeetingInterface {
 export interface MeetingRoomInterface {
     id: string;
     roomId: string;
+    application: JobApplicationWithJobDataInterface,
+    scheduledAt: number;
+    endedAt: number;
     date: Date;
     fromTime: string;
     toTime: string;
     status: MeetingStatus;
     note: string | undefined;
-    applicant: UserProfileInterface;
-    applicantReputation: UserReputationScoreInterface;
-    job: JobInterface;
 }

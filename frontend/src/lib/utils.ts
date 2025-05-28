@@ -40,15 +40,15 @@ export async function uploadImagesInHTML(html: string) {
   }
 }
 
-export function generateRoomID(address: string, applicant: string, date: Date, fromTime: string, toTime: string) {
+export function generateRoomID(applicantion: string, date: Date, fromTime: string, toTime: string) {
   const meetingDate = new Date(date)
   const [fromHours, toHours] = fromTime.split(':').map(Number)
-  const [fromMinutes, toMinutes] = fromTime.split(':').map(Number)
+  const [fromMinutes, toMinutes] = toTime.split(':').map(Number)
 
   const fromDateTime = meetingDate.setHours(fromHours, fromMinutes, 0, 0);
   const toDateTime = meetingDate.setHours(toHours, toMinutes, 0, 0);
 
-  const hash = crypto.createHash('sha1').update(address + applicant + fromDateTime + toDateTime).digest('hex').slice(0, 10)
+  const hash = crypto.createHash('sha1').update(applicantion + fromDateTime + toDateTime).digest('hex').slice(0, 10)
 
   return `interview-room-${hash}`
 }

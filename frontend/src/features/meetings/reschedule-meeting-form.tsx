@@ -73,7 +73,7 @@ export default function RescheduleMeetingForm({ meeting_id }: RescheduleMeetingF
     resolver: zodResolver(formSchema),
     defaultValues: {
       jobId: "",
-      applicant: "",
+      application: "",
       fromTime: "",
       toTime: "",
     },
@@ -112,8 +112,8 @@ export default function RescheduleMeetingForm({ meeting_id }: RescheduleMeetingF
         setMeeting(fetchedMeeting)
         if (fetchedMeeting) {
           form.reset({
-            jobId: fetchedMeeting.job.id,
-            applicant: fetchedMeeting.applicant.address,
+            jobId: fetchedMeeting.application.job.id,
+            application: fetchedMeeting.application.id,
             date: new Date(fetchedMeeting.date),
             fromTime: fetchedMeeting.fromTime,
             toTime: fetchedMeeting.toTime,
@@ -154,127 +154,33 @@ export default function RescheduleMeetingForm({ meeting_id }: RescheduleMeetingF
           <div>Loading meeting information...</div>
         </div>
       ) : (
-        <div className="mx-auto max-w-3xl mt-5">
-          <Toaster position="top-right" richColors />
+        meeting ? (
+          <div className="mx-auto max-w-3xl mt-5">
+            <Toaster position="top-right" richColors />
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-2xl font-bold">
-                Reschedule Interview Meeting
-              </CardTitle>
-              <CardDescription>Reschedule this meeting for a time that works for you</CardDescription>
-            </CardHeader>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-2xl font-bold">
+                  Reschedule Interview Meeting
+                </CardTitle>
+                <CardDescription>Reschedule this meeting for a time that works for you</CardDescription>
+              </CardHeader>
 
-            <CardContent>
-              <Form {...form}>
-                <form className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="jobId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Job Position</FormLabel>
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <FormControl>
-                            <SelectTrigger className="min-w-md cursor-pointer" disabled>
-                              {meeting?.job.title}
-                            </SelectTrigger>
-                          </FormControl>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="applicant"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Applicant</FormLabel>
-                        <Select value={field.value} onValueChange={field.onChange} disabled>
-                          <FormControl>
-                            <SelectTrigger className="min-h-10 min-w-md cursor-pointer">
-                              <div className="flex items-center gap-2">
-                                <Avatar>
-                                  <AvatarImage
-                                    src={meeting?.applicant.avatar_url}
-                                    alt={meeting?.applicant.address}
-                                  />
-                                </Avatar>
-
-                                {meeting?.applicant.fullname ? meeting.applicant.fullname : meeting?.applicant.address}
-                              </div>
-                            </SelectTrigger>
-                          </FormControl>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="date"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Meeting Date</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                className={cn(
-                                  "w-[240px] pl-3 text-left font-normal border-gray-300 border cursor-pointer bg-white hover:bg-white dark:border-input  dark:bg-input/30",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP")
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={(date) => date < new Date()}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="grid grid-cols-2">
+              <CardContent>
+                <Form {...form}>
+                  <form className="space-y-6">
                     <FormField
                       control={form.control}
-                      name="fromTime"
+                      name="jobId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>From Time</FormLabel>
+                          <FormLabel>Job Position</FormLabel>
                           <Select value={field.value} onValueChange={field.onChange}>
                             <FormControl>
-                              <SelectTrigger className="w-[125px] cursor-pointer">
-                                <SelectValue placeholder="Start at" />
+                              <SelectTrigger className="min-w-md cursor-pointer" disabled>
+                                {meeting.application.job.title}
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent className="max-h-80">
-                              {timeSlots.map((time) => (
-                                <SelectItem key={time.value} value={time.value} className="cursor-pointer">
-                                  <div className="flex items-center gap-2">
-                                    <Clock className="h-4 w-4" />
-                                    {time.value}
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
                           </Select>
                           <FormMessage />
                         </FormItem>
@@ -283,20 +189,85 @@ export default function RescheduleMeetingForm({ meeting_id }: RescheduleMeetingF
 
                     <FormField
                       control={form.control}
-                      name="toTime"
+                      name="application"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>To Time</FormLabel>
-                          <Select value={field.value} onValueChange={field.onChange} >
+                          <FormLabel>Applicant</FormLabel>
+                          <Select value={field.value} onValueChange={field.onChange} disabled>
                             <FormControl>
-                              <SelectTrigger className="w-[125px] cursor-pointer">
-                                <SelectValue placeholder="End at" />
+                              <SelectTrigger className="min-h-10 min-w-md cursor-pointer">
+                                <div className="flex items-center gap-2">
+                                  <Avatar>
+                                    <AvatarImage
+                                      src={meeting.application.profile_data.avatar_url}
+                                      alt={meeting.application.applicant}
+                                    />
+                                  </Avatar>
+
+                                  {meeting.application.profile_data.fullname ? meeting.application.profile_data.fullname : meeting.application.applicant}
+                                </div>
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent className="max-h-80">
-                              {timeSlots
-                                .filter((time) => !watchedFromTime || time.value > watchedFromTime)
-                                .map((time) => (
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Meeting Date</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  className={cn(
+                                    "w-[240px] pl-3 text-left font-normal border-gray-300 border cursor-pointer bg-white hover:bg-white dark:border-input  dark:bg-input/30",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "PPP")
+                                  ) : (
+                                    <span>Pick a date</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) => date < new Date()}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-2">
+                      <FormField
+                        control={form.control}
+                        name="fromTime"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>From Time</FormLabel>
+                            <Select value={field.value} onValueChange={field.onChange}>
+                              <FormControl>
+                                <SelectTrigger className="w-[125px] cursor-pointer">
+                                  <SelectValue placeholder="Start at" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="max-h-80">
+                                {timeSlots.map((time) => (
                                   <SelectItem key={time.value} value={time.value} className="cursor-pointer">
                                     <div className="flex items-center gap-2">
                                       <Clock className="h-4 w-4" />
@@ -304,64 +275,97 @@ export default function RescheduleMeetingForm({ meeting_id }: RescheduleMeetingF
                                     </div>
                                   </SelectItem>
                                 ))}
-                            </SelectContent>
-                          </Select>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="toTime"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>To Time</FormLabel>
+                            <Select value={field.value} onValueChange={field.onChange} >
+                              <FormControl>
+                                <SelectTrigger className="w-[125px] cursor-pointer">
+                                  <SelectValue placeholder="End at" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="max-h-80">
+                                {timeSlots
+                                  .filter((time) => !watchedFromTime || time.value > watchedFromTime)
+                                  .map((time) => (
+                                    <SelectItem key={time.value} value={time.value} className="cursor-pointer">
+                                      <div className="flex items-center gap-2">
+                                        <Clock className="h-4 w-4" />
+                                        {time.value}
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {watchedFromTime && watchedToTime && (
+                      <div className="rounded-md bg-blue-100 dark:bg-blue-950 p-3">
+                        <p className="flex text-sm text-blue-800 dark:text-white items-center gap-2">
+                          <Clock className="max-h-4 max-w-4" />
+                          Meeting duration: {calculateMeetingDuration(watchedFromTime, watchedToTime)} minutes
+                        </p>
+                      </div>
+                    )}
+
+                    <FormField
+                      control={form.control}
+                      name="note"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Note for Applicant (Optional)</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Add any additional information or instructions for the applicant..."
+                              className="resize-none min-h-40"
+                              {...field}
+                            />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                  </div>
+                  </form>
+                </Form>
 
-                  {watchedFromTime && watchedToTime && (
-                    <div className="rounded-md bg-blue-100 dark:bg-blue-950 p-3">
-                      <p className="flex text-sm text-blue-800 dark:text-white items-center gap-2">
-                        <Clock className="max-h-4 max-w-4" />
-                        Meeting duration: {calculateMeetingDuration(watchedFromTime, watchedToTime)} minutes
-                      </p>
-                    </div>
+                <Button
+                  size="lg"
+                  className="cursor-pointer mt-10 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80"
+                  onClick={handleRescheduleMeeting}
+                  disabled={rescheduling}
+                >
+                  {rescheduling ? (
+                    <>
+                      <LoaderCircle className="max-h-4 max-w-4 animate-spin" />
+                      Rescheduling...
+                    </>
+                  ) : (
+                    <>
+                      <CalendarCog className="max-h-4 max-w-4" />
+                      Reschedule
+                    </>
                   )}
-
-                  <FormField
-                    control={form.control}
-                    name="note"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Note for Applicant (Optional)</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Add any additional information or instructions for the applicant..."
-                            className="resize-none min-h-40"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </form>
-              </Form>
-
-              <Button
-                size="lg"
-                className="cursor-pointer mt-10 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80"
-                onClick={handleRescheduleMeeting}
-                disabled={rescheduling}
-              >
-                {rescheduling ? (
-                  <>
-                    <LoaderCircle className="max-h-4 max-w-4 animate-spin" />
-                    Rescheduling...
-                  </>
-                ) : (
-                  <>
-                    <CalendarCog className="max-h-4 max-w-4" />
-                    Reschedule
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          <></>
+        )
       )}
     </div>
   )

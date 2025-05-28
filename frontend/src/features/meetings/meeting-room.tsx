@@ -50,6 +50,7 @@ import {
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Toaster, toast } from "sonner"
 
 import {
@@ -69,7 +70,6 @@ import { MeetingRoomInterface } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
 import { calculateMeetingDuration } from "./time-utils";
 import { cancelMeeting, completeMeeting } from "@/lib/write-onchain-utils";
-import { Skeleton } from "@/components/ui/skeleton";
 
 const JAAS_API_KEY = process.env.JAAS_API_KEY as string
 
@@ -339,32 +339,32 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
                 <div className="flex justify-between items-center">
                   <div className="space-y-4">
                     <div className="space-y-1">
-                      <p className="text-lg font-bold">{meeting.applicant.fullname}</p>
-                      <p className="text-muted-foreground text-sm">{meeting.applicant.address}</p>
+                      <p className="text-lg font-bold">{meeting.application.profile_data.fullname}</p>
+                      <p className="text-muted-foreground text-sm">{meeting.application.applicant}</p>
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{meeting.applicant.email}</span>
+                        <span className="text-sm">{meeting.application.profile_data.email}</span>
                       </div>
 
                       <div className="flex items-center gap-2">
                         <MapPinHouse className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{meeting.applicant.location}</span>
+                        <span className="text-sm">{meeting.application.profile_data.location}</span>
                       </div>
 
                       <div className="flex items-center gap-2">
                         <MessageSquareText className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground italic">{meeting.applicant.bio}</span>
+                        <span className="text-sm text-muted-foreground italic">{meeting.application.profile_data.bio}</span>
                       </div>
                     </div>
                   </div>
 
                   <Avatar className="h-35 w-35">
                     <AvatarImage
-                      src={meeting.applicant.avatar_url}
-                      alt={meeting.applicant.address}
+                      src={meeting.application.profile_data.avatar_url}
+                      alt={meeting.application.applicant}
                     />
                   </Avatar>
                 </div>
@@ -374,13 +374,13 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
                 <p className="font-bold text-lg">Reputations</p>
 
                 <div className="grid grid-cols-3 gap-2">
-                  {meeting.job.domains.map((domain) =>
-                    <Badge key={domain}>{DomainLabels[domain as Domain]} : {meeting.applicantReputation.domain_reputation[domain]}</Badge>
+                  {meeting.application.job.domains.map((domain) =>
+                    <Badge key={domain}>{DomainLabels[domain as Domain]} : {meeting.application.reputation_data.domain_reputation[domain]}</Badge>
                   )}
                 </div>
 
-                {meeting.job.requireGlobalReputation &&
-                  <Badge className="mt-8">Global Reputation : {meeting.applicantReputation.global_reputation}</Badge>
+                {meeting.application.job.requireGlobalReputation &&
+                  <Badge className="mt-8">Global Reputation : {meeting.application.reputation_data.global_reputation}</Badge>
                 }
               </CardContent>
             </Card>
@@ -396,21 +396,21 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
                 <div className="space-y-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-4">
-                      <p className="text-lg font-bold">{meeting.job.title}</p>
+                      <p className="text-lg font-bold">{meeting.application.job.title}</p>
                       <Badge
-                        className={(jobStatusStyles[meeting.job.status as JobStatus])}
+                        className={(jobStatusStyles[meeting.application.job.status as JobStatus])}
                       >
-                        {JobStatusLabels[meeting.job.status as JobStatus]}
+                        {JobStatusLabels[meeting.application.job.status as JobStatus]}
                       </Badge>
                     </div>
 
                     <div className="flex h-4 items-center gap-3">
                       <p className="text-muted-foreground text-sm">
-                        {JobDurationLabels[meeting.job.duration as JobDuration]}
+                        {JobDurationLabels[meeting.application.job.duration as JobDuration]}
                       </p>
                       <Separator orientation="vertical" className="bg-gray-500" />
                       <p className="text-muted-foreground text-sm">
-                        Posted on {format(meeting.job.posted, "PPP")} at {format(meeting.job.posted, "HH:mm")}
+                        Posted on {format(meeting.application.job.posted, "PPP")} at {format(meeting.application.job.posted, "HH:mm")}
                       </p>
                     </div>
                   </div>
@@ -419,15 +419,14 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground text-sm">
-                        {meeting.job.applicants} applicants
+                        {meeting.application.job.applicants} applicants
                       </span>
                     </div>
 
                     <div className="flex items-center gap-2">
                       <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground text-sm">
-                        {meeting.job.compensation}
-                        {/* {mockData.jobInfo.salary} */}
+                        {meeting.application.job.compensation}
                       </span>
                     </div>
 
@@ -435,8 +434,7 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
                       <MapPinned className="h-4 w-4 text-muted-foreground" />
                       <span className="flex gap-1.5 text-muted-foreground text-sm">
                         Work at
-                        <p className="italic">{meeting.job.location}</p>
-                        {/* <p className="italic">{mockData.jobInfo.location}</p> */}
+                        <p className="italic">{meeting.application.job.location}</p>
                       </span>
                     </div>
                   </div>
@@ -451,20 +449,20 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
                     <TabsTrigger value="reputation-requirements" className="cursor-pointer">Reputation Requirements</TabsTrigger>
                   </TabsList>
                   <TabsContent value="job-description">
-                    <div className="wrap-break-word text-muted-foreground text-sm">{meeting.job.description}</div>
+                    <div className="wrap-break-word text-muted-foreground text-sm">{meeting.application.job.description}</div>
                   </TabsContent>
                   <TabsContent value="job-requirement">
-                    <div className="wrap-break-word text-muted-foreground text-sm">{meeting.job.requirements}</div>
+                    <div className="wrap-break-word text-muted-foreground text-sm">{meeting.application.job.requirements}</div>
                   </TabsContent>
                   <TabsContent value="reputation-requirements">
                     <div className="grid grid-cols-3 gap-2">
-                      {meeting.job.domains.map((domain) =>
-                        <Badge key={domain}>{DomainLabels[domain as Domain]} : {meeting.job.domainReputations[domain]}</Badge>
+                      {meeting.application.job.domains.map((domain) =>
+                        <Badge key={domain}>{DomainLabels[domain as Domain]} : {meeting.application.job.domainReputations[domain]}</Badge>
                       )}
                     </div>
 
-                    {meeting.job.requireGlobalReputation &&
-                      <Badge className="mt-8">Global Reputation : {meeting.job.globalReputationScore}</Badge>
+                    {meeting.application.job.requireGlobalReputation &&
+                      <Badge className="mt-8">Global Reputation : {meeting.application.job.globalReputationScore}</Badge>
                     }
                   </TabsContent>
                 </Tabs>
@@ -494,6 +492,12 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
                   <h5 className="font-bold mb-1">Duration</h5>
                   <p className="text-sm text-muted-foreground">
                     {calculateMeetingDuration(meeting.fromTime, meeting.toTime)} minutes
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <h5 className="font-bold mb-1">Scheduled on</h5>
+                  <p className="text-sm text-muted-foreground">
+                    {format(meeting.scheduledAt, "PPP")}
                   </p>
                 </div>
               </div>

@@ -7,9 +7,11 @@ import { useState, useEffect } from "react";
 import {
   CalendarIcon,
   CalendarPlus,
+  Check,
   Clock,
   Loader,
-  LoaderCircle
+  LoaderCircle,
+  X
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -50,7 +52,7 @@ import { cn } from "@/lib/utils";
 import { timeSlots, calculateMeetingDuration } from "./time-utils";
 import { JobApplicationStatus, JobStatus } from "@/constants/system";
 import { JobPreviewInterface, JobApplicantionInterface } from "@/lib/interfaces";
-import { fetchPreviewJobsByRecruiter, fetchApplicantsByJobID } from "@/lib/fetching-onchain-data-utils";
+import { fetchPreviewJobsByRecruiter, fetchApplicantsByJobID, fetchIsApplicationHasMeeting } from "@/lib/fetching-onchain-data-utils";
 import { scheduleMeeting } from "@/lib/write-onchain-utils";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -58,7 +60,7 @@ import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
 export const formSchema = z.object({
   jobId: z.string().min(1, "A specific job is required"),
-  applicant: z.string().min(1, "An applicant is required"),
+  application: z.string().min(1, "An applicant is required"), /// Notice: Select Item displays applicant but this field will get application ID 
   date: z.date({
     required_error: "Date of the meeting is required",
   }),
@@ -78,11 +80,14 @@ export default function ScheduleMeetingForm() {
   const [jobs, setJobs] = useState<JobPreviewInterface[]>([]);
   const [applications, setApplications] = useState<JobApplicantionInterface[]>([]);
 
+  const [isHasMeeting, setIsHasMeeting] = useState<boolean>(false);
+  const [stateLoading, setStateLoading] = useState<boolean>(false);
+
   const form = useForm<ScheduleMeetingFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       jobId: "",
-      applicant: "",
+      application: "",
       fromTime: "",
       toTime: "",
     },
@@ -90,6 +95,7 @@ export default function ScheduleMeetingForm() {
   })
 
   const watchedJobID = form.watch("jobId")
+  const watchedApplication = form.watch("application")
   const watchedFromTime = form.watch("fromTime")
   const watchedToTime = form.watch("toTime")
 
@@ -144,7 +150,7 @@ export default function ScheduleMeetingForm() {
 
         const validApplications = fetchedApplications.filter((application) => application.status === JobApplicationStatus.SHORTLISTED)
         setApplications(validApplications);
-        form.setValue("applicant", "")
+        form.setValue("application", "")
       } catch (error) {
         console.error("Error fetching applicants:", error);
         toast.error("Failed to fetch applicants. Please try again.");
@@ -155,6 +161,25 @@ export default function ScheduleMeetingForm() {
 
     fetchApplicants();
   }, [watchedJobID]);
+
+  useEffect(() => {
+    const fetchIsHasMeeting = async () => {
+      if (!watchedApplication) return;
+
+      try {
+        setStateLoading(true);
+        const fetchedState = await fetchIsApplicationHasMeeting(watchedApplication);
+        setIsHasMeeting(fetchedState);
+      } catch (error) {
+        console.error("Error fetching applicants:", error);
+        toast.error("Failed to fetch applicants. Please try again.");
+      } finally {
+        setStateLoading(false);
+      }
+    }
+
+    fetchIsHasMeeting();
+  }, [watchedApplication])
 
   useEffect(() => {
     if (watchedFromTime && watchedToTime) {
@@ -213,7 +238,7 @@ export default function ScheduleMeetingForm() {
               {watchedJobID && (
                 <FormField
                   control={form.control}
-                  name="applicant"
+                  name="application"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Applicant</FormLabel>
@@ -227,7 +252,7 @@ export default function ScheduleMeetingForm() {
                           <SelectContent>
                             {applications.length > 0 ? (
                               applications.map((application) => (
-                                <SelectItem key={application.id} value={application.address} className="cursor-pointer">
+                                <SelectItem key={application.id} value={application.id} className="cursor-pointer">
                                   <Avatar>
                                     <AvatarImage
                                       src={application.profile_data.avatar_url}
@@ -254,134 +279,159 @@ export default function ScheduleMeetingForm() {
                 />
               )}
 
-              {form.watch("applicant") && (
-                <>
-                  <FormField
-                    control={form.control}
-                    name="date"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Meeting Date</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                className={cn(
-                                  "w-[240px] pl-3 text-left font-normal border-gray-300 border cursor-pointer bg-white hover:bg-white dark:border-input  dark:bg-input/30",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP")
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={(date) => date < new Date()}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="grid grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name="fromTime"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>From Time</FormLabel>
-                          <Select value={field.value} onValueChange={field.onChange}>
-                            <FormControl>
-                              <SelectTrigger className="w-[125px] cursor-pointer">
-                                <SelectValue placeholder="Start at" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent className="max-h-80">
-                              {timeSlots.map((time) => (
-                                <SelectItem key={time.value} value={time.value} className="cursor-pointer">
-                                  <div className="flex items-center gap-2">
-                                    <Clock className="h-4 w-4" />
-                                    {time.value}
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="toTime"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>To Time</FormLabel>
-                          <Select value={field.value} onValueChange={field.onChange} >
-                            <FormControl>
-                              <SelectTrigger className="w-[125px] cursor-pointer">
-                                <SelectValue placeholder="End at" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent className="max-h-80">
-                              {timeSlots
-                                .filter((time) => !watchedFromTime || time.value > watchedFromTime)
-                                .map((time) => (
-                                  <SelectItem key={time.value} value={time.value} className="cursor-pointer">
-                                    <div className="flex items-center gap-2">
-                                      <Clock className="h-4 w-4" />
-                                      {time.value}
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  {watchedFromTime && watchedToTime && (
-                    <div className="rounded-md bg-blue-100 dark:bg-blue-950 p-3">
-                      <p className="flex text-sm text-blue-800 dark:text-white items-center gap-2">
-                        <Clock className="max-h-4 max-w-4" />
-                        Meeting duration: {calculateMeetingDuration(watchedFromTime, watchedToTime)} minutes
-                      </p>
+              {watchedApplication && (
+                stateLoading ? (
+                  <div className="p-2 w-md flex items-center gap-2 bg-gray-200 rounded-md">
+                    <Loader className="animate-spin h-4 w-4 stroke-gray-700" />
+                    <div className="text-sm text-gray-700">
+                      Checking if you already has a meeting for this applicant...
                     </div>
-                  )}
+                  </div>
+                ) : (
+                  isHasMeeting ? (
+                    <div className="p-2 w-md flex items-center gap-2 bg-red-100 dark:bg-red-800 rounded-md">
+                      <X className="h-4 w-4 stroke-red-700 dark:stroke-red-100" />
+                      <div className="text-sm text-red-700 dark:text-red-100">
+                        You've already has a meeting for this applicant
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="p-2 w-md flex items-center gap-2 bg-green-100 dark:bg-green-800 rounded-md">
+                        <Check className="h-4 w-4 stroke-green-700 dark:stroke-green-100" />
+                        <div className="text-sm text-green-700 dark:text-green-100">
+                          It's available to schedule this meeting
+                        </div>
+                      </div>
 
-                  <FormField
-                    control={form.control}
-                    name="note"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Note for Applicant (Optional)</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Add any additional information or instructions for the applicant..."
-                            className="resize-none min-h-40"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
+                      <FormField
+                        control={form.control}
+                        name="date"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Meeting Date</FormLabel>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <FormControl>
+                                  <Button
+                                    className={cn(
+                                      "w-[240px] pl-3 text-left font-normal border-gray-300 border cursor-pointer bg-white hover:bg-white dark:border-input  dark:bg-input/30",
+                                      !field.value && "text-muted-foreground"
+                                    )}
+                                  >
+                                    {field.value ? (
+                                      format(field.value, "PPP")
+                                    ) : (
+                                      <span>Pick a date</span>
+                                    )}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                  </Button>
+                                </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={field.value}
+                                  onSelect={field.onChange}
+                                  disabled={(date) => date < new Date()}
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="grid grid-cols-2">
+                        <FormField
+                          control={form.control}
+                          name="fromTime"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>From Time</FormLabel>
+                              <Select value={field.value} onValueChange={field.onChange}>
+                                <FormControl>
+                                  <SelectTrigger className="w-[125px] cursor-pointer">
+                                    <SelectValue placeholder="Start at" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent className="max-h-80">
+                                  {timeSlots.map((time) => (
+                                    <SelectItem key={time.value} value={time.value} className="cursor-pointer">
+                                      <div className="flex items-center gap-2">
+                                        <Clock className="h-4 w-4" />
+                                        {time.value}
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="toTime"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>To Time</FormLabel>
+                              <Select value={field.value} onValueChange={field.onChange} >
+                                <FormControl>
+                                  <SelectTrigger className="w-[125px] cursor-pointer">
+                                    <SelectValue placeholder="End at" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent className="max-h-80">
+                                  {timeSlots
+                                    .filter((time) => !watchedFromTime || time.value > watchedFromTime)
+                                    .map((time) => (
+                                      <SelectItem key={time.value} value={time.value} className="cursor-pointer">
+                                        <div className="flex items-center gap-2">
+                                          <Clock className="h-4 w-4" />
+                                          {time.value}
+                                        </div>
+                                      </SelectItem>
+                                    ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {watchedFromTime && watchedToTime && (
+                        <div className="rounded-md bg-blue-100 dark:bg-blue-950 p-3">
+                          <p className="flex text-sm text-blue-800 dark:text-white items-center gap-2">
+                            <Clock className="max-h-4 max-w-4" />
+                            Meeting duration: {calculateMeetingDuration(watchedFromTime, watchedToTime)} minutes
+                          </p>
+                        </div>
+                      )}
+
+                      <FormField
+                        control={form.control}
+                        name="note"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Note for Applicant (Optional)</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Add any additional information or instructions for the applicant..."
+                                className="resize-none min-h-40"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </>
+                  )
+                )
               )}
             </form>
           </Form>
@@ -390,7 +440,7 @@ export default function ScheduleMeetingForm() {
             size="lg"
             className="cursor-pointer mt-10 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80"
             onClick={handleScheduleMeeting}
-            disabled={scheduling}
+            disabled={scheduling || isHasMeeting}
           >
             {scheduling ? (
               <>

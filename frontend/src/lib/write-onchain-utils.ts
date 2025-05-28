@@ -474,12 +474,20 @@ export async function scheduleMeeting(
   address: `0x${string}`,
   data: ScheduleMeetingFormData
 ): Promise<`0x${string}`> {
-  const roomId = generateRoomID(address, data.applicant, data.date, data.fromTime, data.toTime);
+  const roomId = generateRoomID(data.application, data.date, data.fromTime, data.toTime);
 
   const { data: job_content_upload_res } =
     await axios.post<IrysUploadResponseInterface>(
       "/api/irys/upload/upload-string",
-      { data: JSON.stringify(data) }
+      {
+        data: JSON.stringify({
+          roomId: roomId,
+          date: data.date,
+          fromTime: data.fromTime,
+          toTime: data.toTime,
+          note: data.note,
+        })
+      }
     );
 
   // Send the transaction
@@ -487,7 +495,7 @@ export async function scheduleMeeting(
     address: ContractConfig_MeetingManager.address as `0x${string}`,
     abi: ContractConfig_MeetingManager.abi,
     functionName: "scheduleMeeting",
-    args: [roomId, job_content_upload_res.id],
+    args: [data.application, job_content_upload_res.id],
     account: address,
   });
 
@@ -500,6 +508,8 @@ export async function rescheduleMeeting(
   meeting_id: string,
   data: ScheduleMeetingFormData
 ) {
+  const roomId = generateRoomID(data.application, data.date, data.fromTime, data.toTime);
+
   try {
     const txid = await fetchMeetingTxIdById(meeting_id);
 
@@ -509,7 +519,13 @@ export async function rescheduleMeeting(
       await axios.post<IrysUploadResponseInterface>(
         "/api/irys/upload/upload-string",
         {
-          data: JSON.stringify(data),
+          data: JSON.stringify({
+            roomId: roomId,
+            date: data.date,
+            fromTime: data.fromTime,
+            toTime: data.toTime,
+            note: data.note,
+          }),
           tags: tags
         }
       );

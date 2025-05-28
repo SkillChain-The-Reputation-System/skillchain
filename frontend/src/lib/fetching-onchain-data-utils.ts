@@ -1474,21 +1474,21 @@ export async function fetchMeetingsByRecruiter(
 
     const briefMeetingLists = await Promise.all(
       fetchedMeetings.map(async (fetchedMeeting) => {
-        const meetingData = await fetchStringDataOffChain(`https://gateway.irys.xyz/mutable/${fetchedMeeting.txid}`) as any;
-
-        const [job, applicantInfo] = await Promise.all([
-          await fetchJobById(meetingData.jobId) as JobInterface,
-          await getUserProfileData(meetingData.applicant) as UserProfileInterface
+        const [meetingData, application] = await Promise.all([
+          await fetchStringDataOffChain(`https://gateway.irys.xyz/mutable/${fetchedMeeting.txid}`) as any,
+          await fetchJobApplicationByID(fetchedMeeting.application_id) as JobApplicationWithJobDataInterface
         ])
 
         return {
           id: fetchedMeeting.id,
-          applicant: applicantInfo,
-          position: job.title,
+          applicant: application.profile_data,
+          position: application.job.title,
+          duration: application.job.duration,
+          scheduledAt: Number(fetchedMeeting.created_at),
+          endedAt: Number(fetchedMeeting.ended_at),
           date: meetingData.date,
           fromTime: meetingData.fromTime,
           toTime: meetingData.toTime,
-          duration: job.duration,
           status: fetchedMeeting.status,
         } as BriefMeetingInterface
       })
@@ -1516,27 +1516,22 @@ export async function fetchMeetingRoomById(
       args: [meeting_id],
     })) as any;
 
-    const meetingData = await fetchStringDataOffChain(`https://gateway.irys.xyz/mutable/${fetchedMeeting.txid}`) as any;
-
-    const [job, applicantInfo, applicantReputation] = await Promise.all(
-      [
-        await fetchJobById(meetingData.jobId) as JobInterface,
-        await getUserProfileData(meetingData.applicant) as UserProfileInterface,
-        await getUserReputationScore(meetingData.applicant) as UserReputationScoreInterface
-      ]
-    )
+    const [meetingData, application] = await Promise.all([
+      await fetchStringDataOffChain(`https://gateway.irys.xyz/mutable/${fetchedMeeting.txid}`) as any,
+      await fetchJobApplicationByID(fetchedMeeting.application_id) as JobApplicationWithJobDataInterface
+    ])
 
     return {
       id: fetchedMeeting.id,
-      roomId: fetchedMeeting.room_id,
+      roomId: meetingData.roomId,
+      application: application,
+      scheduledAt: Number(fetchedMeeting.created_at),
+      endedAt: Number(fetchedMeeting.ended_at),
       date: meetingData.date,
       fromTime: meetingData.fromTime,
       toTime: meetingData.toTime,
       note: meetingData.note,
       status: fetchedMeeting.status,
-      applicant: applicantInfo,
-      applicantReputation: applicantReputation,
-      job: job
     };
   }
   catch (error) {
@@ -1568,4 +1563,17 @@ export async function fetchMeetingTxIdById(
     );
     return null;
   }
+}
+
+export async function fetchIsApplicationHasMeeting(
+  application_id: string
+): Promise<boolean> {
+  const fetchedState = (await readContract(wagmiConfig, {
+    address: ContractConfig_MeetingManager.address as `0x${string}`,
+    abi: ContractConfig_MeetingManager.abi,
+    functionName: "checkApplicationHasAMeeting",
+    args: [application_id],
+  })) as boolean;
+
+  return fetchedState;
 }

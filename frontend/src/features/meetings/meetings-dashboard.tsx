@@ -28,6 +28,7 @@ import { Toaster, toast } from "sonner"
 import {
   Briefcase,
   CalendarDays,
+  CalendarPlus2,
   Clock,
   Eye,
   Info,
@@ -46,6 +47,7 @@ import { cancelMeeting } from "@/lib/write-onchain-utils";
 import { BriefMeetingInterface } from "@/lib/interfaces";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
 export default function MeetingsDashboard() {
   const router = useRouter();
@@ -183,6 +185,12 @@ export default function MeetingsDashboard() {
               </TableHead>
               <TableHead className="font-bold p-3">
                 <div className="flex items-center gap-2">
+                  <CalendarPlus2 className="h-4 w-4" />
+                  Scheduled on
+                </div>
+              </TableHead>
+              <TableHead className="font-bold p-3">
+                <div className="flex items-center gap-2">
                   <CalendarDays className="h-4 w-4" />
                   Meeting Date
                 </div>
@@ -199,7 +207,7 @@ export default function MeetingsDashboard() {
                   Status
                 </div>
               </TableHead>
-              <TableHead className="font-bold p-3">
+              <TableHead className="w-17 font-bold p-3">
                 {/* Action column */}
               </TableHead>
             </TableRow>
@@ -207,7 +215,7 @@ export default function MeetingsDashboard() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="place-items-center p-7">
+                <TableCell colSpan={7} className="place-items-center p-7">
                   <Loader className="h-8 w-8 animate-spin" />
                 </TableCell>
               </TableRow>
@@ -215,7 +223,17 @@ export default function MeetingsDashboard() {
               meetingList.length > 0 ? (
                 meetingList.map((meeting) => (
                   <TableRow key={meeting.id} className="hover:bg-accent/80 border-gray-300 dark:border-input">
-                    <TableCell className="p-3">{meeting.applicant.fullname ? meeting.applicant.fullname : meeting.applicant.address}</TableCell>
+                    <TableCell className="p-3">
+                      <div className="flex gap-2 items-center">
+                        <Avatar>
+                          <AvatarImage
+                            src={meeting.applicant.avatar_url}
+                            alt={meeting.applicant.address}
+                          />
+                        </Avatar>
+                        {meeting.applicant.fullname ? meeting.applicant.fullname : meeting.applicant.address}
+                      </div>
+                    </TableCell>
                     <TableCell className="p-3">
                       <div className="flex flex-col gap-1">
                         {meeting.position}
@@ -223,6 +241,9 @@ export default function MeetingsDashboard() {
                           {JobDurationLabels[meeting.duration as JobDuration]}
                         </div>
                       </div>
+                    </TableCell>
+                    <TableCell className="p-3">
+                      {format(meeting.scheduledAt, "PPP")}
                     </TableCell>
                     <TableCell className="p-3">
                       <div className="flex flex-col gap-1">
@@ -245,7 +266,7 @@ export default function MeetingsDashboard() {
                             variant="ghost"
                             className="cursor-pointer"
                           >
-                            <MoreHorizontal className="h-5 w-5" />
+                            <MoreHorizontal />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -284,7 +305,7 @@ export default function MeetingsDashboard() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="p-7 text-center">
+                  <TableCell colSpan={7} className="p-7 text-center">
                     No results
                   </TableCell>
                 </TableRow>

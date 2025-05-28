@@ -11,15 +11,15 @@ import {
   Calendar,
   CheckCircle,
   CircleDollarSign,
-  Loader,
+  FolderX,
   Mail,
   MapPinHouse,
   MapPinned,
+  MessageSquareText,
   MoreHorizontal,
   PenLine,
-  Phone,
   Presentation,
-  User,
+  UserRound,
   Users,
   Video,
   VideoOff,
@@ -64,34 +64,17 @@ import {
 } from "@/constants/system";
 import { jobStatusStyles, meetingStatusStyles } from "@/constants/styles";
 import { format } from "date-fns";
-import {
-  fetchMeetingRoomById,
-  fetchUserDomainReputationScore,
-  fetchUserGlobalReputationScore
-} from "@/lib/fetching-onchain-data-utils";
+import { fetchMeetingRoomById } from "@/lib/fetching-onchain-data-utils";
 import { MeetingRoomInterface } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
 import { calculateMeetingDuration } from "./time-utils";
 import { cancelMeeting, completeMeeting } from "@/lib/write-onchain-utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const JAAS_API_KEY = process.env.JAAS_API_KEY as string
 
 if (JAAS_API_KEY === undefined) {
   throw new Error(`${JAAS_API_KEY} environment variable is not defined.`);
-}
-
-const mockData = {
-  applicantInfo: {
-    fullName: 'Noelle',
-    email: 'noelle@genshin.com',
-    phoneNumber: '+69 123456789',
-    location: 'Mondstadt, Teyvat'
-  },
-  jobInfo: {
-    salary: '$11,000 - $13,000',
-    location: 'Ly Tu Trong, Ben Nghe Ward, District 1, Ho Chi Minh City, Vietnam'
-  },
-  roomID: 'interview-noelle-3017240'
 }
 
 interface MeetingRoomProps {
@@ -107,9 +90,6 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isMeetingReady, setIsMeetingReady] = useState<boolean>(false);
   const [isInterviewing, setIsInterviewing] = useState<boolean>(false);
-
-  const [domainReputation, setDomainReputation] = useState<Record<number, number>>();
-  const [globalReputation, setGlobalReputation] = useState<number>();
 
   const [meeting, setMeeting] = useState<MeetingRoomInterface | null>(null);
 
@@ -180,22 +160,6 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
         setIsLoading(true);
         const fetchedMeeting = await fetchMeetingRoomById(roomId);
         setMeeting(fetchedMeeting);
-
-        if (fetchedMeeting) {
-          fetchedMeeting.job.domains.map(async (domain) => {
-            const fetchedDomainReputation = await fetchUserDomainReputationScore(fetchedMeeting.applicant as `0x${string}`, domain as Domain);
-
-            setDomainReputation(prev => ({
-              ...prev,
-              [domain]: fetchedDomainReputation,
-            }));
-          })
-
-          if (fetchedMeeting.job.requireGlobalReputation) {
-            const fetchedGlobalReputation = await fetchUserGlobalReputationScore(fetchedMeeting.applicant as `0x${string}`);
-            setGlobalReputation(fetchedGlobalReputation)
-          }
-        }
       } catch (error) {
         console.error("Error fetching meetings:", error);
         toast.error("Failed to fetch jobs. Please try again.");
@@ -221,8 +185,92 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
 
   return (
     isLoading ? (
-      <div className="w-full h-120 flex justify-center items-center">
-        <Loader className="h-30 w-30 animate-spin text-muted-foreground" />
+      <div className="mt-5 space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-5">
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-10 w-[400px]" />
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-between items-center">
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-[200px]" />
+                  <Skeleton className="h-5 w-[300px]" />
+                </div>
+
+                <Skeleton className="h-35 w-35 rounded-full" />
+              </div>
+
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-[250px]" />
+                <Skeleton className="h-5 w-[200px]" />
+                <Skeleton className="h-5 w-[300px]" />
+              </div>
+
+              <Separator className="my-4 border-gray-300" />
+
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-[350px]" />
+                <Skeleton className="h-5 w-[175px]" />
+                <Skeleton className="h-5 w-[250px]" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-10 w-[400px]" />
+            </CardHeader>
+            <CardContent>
+              <div className="my-3 space-y-3">
+                <Skeleton className="h-10 w-[200px]" />
+                <Skeleton className="h-10 w-[300px]" />
+              </div>
+
+              <div className="py-3 space-y-2">
+                <Skeleton className="h-5 w-[250px]" />
+                <Skeleton className="h-5 w-[200px]" />
+                <Skeleton className="h-5 w-[300px]" />
+              </div>
+
+              <Separator className="my-4 border-gray-300" />
+
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-[350px]" />
+                <Skeleton className="h-5 w-[175px]" />
+                <Skeleton className="h-5 w-[250px]" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-10 w-[400px]" />
+          </CardHeader>
+          <CardContent>
+            <div className="my-3 space-y-3">
+              <Skeleton className="h-10 w-[200px]" />
+              <Skeleton className="h-10 w-[300px]" />
+            </div>
+
+            <Separator className="my-4 border-gray-300" />
+
+            <div className="py-3 space-y-2">
+              <Skeleton className="h-5 w-[400px]" />
+              <Skeleton className="h-5 w-[200px]" />
+              <Skeleton className="h-5 w-[300px]" />
+            </div>
+
+            <Separator className="my-4 border-gray-300" />
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-[350px]" />
+              <Skeleton className="h-5 w-[600px]" />
+              <Skeleton className="h-5 w-[440px]" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     ) : (
       meeting ? (
@@ -283,7 +331,7 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-xl font-bold">
-                  <User />
+                  <UserRound />
                   Applicant Information
                 </CardTitle>
               </CardHeader>
@@ -291,50 +339,48 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
                 <div className="flex justify-between items-center">
                   <div className="space-y-4">
                     <div className="space-y-1">
-                      <p className="text-lg font-bold">Noelle</p>
-                      <p className="text-muted-foreground text-sm">{meeting.applicant}</p>
+                      <p className="text-lg font-bold">{meeting.applicant.fullname}</p>
+                      <p className="text-muted-foreground text-sm">{meeting.applicant.address}</p>
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{mockData.applicantInfo.email}</span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{mockData.applicantInfo.phoneNumber}</span>
+                        <span className="text-sm">{meeting.applicant.email}</span>
                       </div>
 
                       <div className="flex items-center gap-2">
                         <MapPinHouse className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{mockData.applicantInfo.location}</span>
+                        <span className="text-sm">{meeting.applicant.location}</span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <MessageSquareText className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground italic">{meeting.applicant.bio}</span>
                       </div>
                     </div>
                   </div>
 
                   <Avatar className="h-35 w-35">
                     <AvatarImage
-                      src="https://i.pinimg.com/736x/8f/13/5c/8f135c93a94a54d9da854f389cf80a8f.jpg"
-                      alt="A66"
+                      src={meeting.applicant.avatar_url}
+                      alt={meeting.applicant.address}
                     />
                   </Avatar>
                 </div>
 
                 <Separator className="my-4 bg-gray-300" />
 
-                <p className="font-bold text-lg">Applicant's Reputations</p>
+                <p className="font-bold text-lg">Reputations</p>
 
-                {domainReputation && (
-                  <div className="grid grid-cols-3 gap-2">
-                    {meeting.job.domains.map((domain) =>
-                      <Badge key={domain}>{DomainLabels[domain as Domain]} : {domainReputation[domain]}</Badge>
-                    )}
-                  </div>
-                )}
+                <div className="grid grid-cols-3 gap-2">
+                  {meeting.job.domains.map((domain) =>
+                    <Badge key={domain}>{DomainLabels[domain as Domain]} : {meeting.applicantReputation.domain_reputation[domain]}</Badge>
+                  )}
+                </div>
 
                 {meeting.job.requireGlobalReputation &&
-                  <Badge className="mt-8">Global Reputation : {globalReputation}</Badge>
+                  <Badge className="mt-8">Global Reputation : {meeting.applicantReputation.global_reputation}</Badge>
                 }
               </CardContent>
             </Card>
@@ -373,7 +419,7 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground text-sm">
-                        {meeting.job.application_count} applicants
+                        {meeting.job.applicants} applicants
                       </span>
                     </div>
 
@@ -405,10 +451,10 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
                     <TabsTrigger value="reputation-requirements" className="cursor-pointer">Reputation Requirements</TabsTrigger>
                   </TabsList>
                   <TabsContent value="job-description">
-                    <p className="text-muted-foreground text-sm">{meeting.job.description}</p>
+                    <div className="wrap-break-word text-muted-foreground text-sm">{meeting.job.description}</div>
                   </TabsContent>
                   <TabsContent value="job-requirement">
-                    <p className="text-muted-foreground text-sm">{meeting.job.requirements}</p>
+                    <div className="wrap-break-word text-muted-foreground text-sm">{meeting.job.requirements}</div>
                   </TabsContent>
                   <TabsContent value="reputation-requirements">
                     <div className="grid grid-cols-3 gap-2">
@@ -514,14 +560,23 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
                   displayName: 'Recruiter',
                   email: 'recruiter@example.com'
                 }}
-                // eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtYjA0MjRkZjA0MDY3NDk2MWIwZDQzN2MwMmI0NmNlYTcvMzM2OTA1LVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NDg0MjA5NTMsImV4cCI6MTc0ODQyODE1MywibmJmIjoxNzQ4NDIwOTQ4LCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtYjA0MjRkZjA0MDY3NDk2MWIwZDQzN2MwMmI0NmNlYTciLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOnRydWUsIm91dGJvdW5kLWNhbGwiOnRydWUsInNpcC1vdXRib3VuZC1jYWxsIjpmYWxzZSwidHJhbnNjcmlwdGlvbiI6dHJ1ZSwicmVjb3JkaW5nIjp0cnVlfSwidXNlciI6eyJoaWRkZW4tZnJvbS1yZWNvcmRlciI6ZmFsc2UsIm1vZGVyYXRvciI6dHJ1ZSwibmFtZSI6Im1pbmhkYXR0cmFuMTE5OSIsImlkIjoiZ29vZ2xlLW9hdXRoMnwxMTIwMzY4Mjg2ODkzMjMwMTkwMzciLCJhdmF0YXIiOiIiLCJlbWFpbCI6Im1pbmhkYXR0cmFuMTE5OUBnbWFpbC5jb20ifX0sInJvb20iOiIqIn0.ITCkz7WWzYB8dRLlP-Nf66JvBd1jSrDWQxOPQjJ8B52cujPbGCQcafUyIUtKiwl2Rc3tynHj0t0Jd5YL_rOwy3G7egjb1fP_fs_nXA_Vz5XVutb45lXsD9cMlLJ0ELbGtzAVAC1tanK7Egd6CAk-AiS9uuuawZl1IGwAduh-NO_Y_AzVXcx9Xfx1Sh_WuLAxFu_27DrKX1XDeSHQKIxFyNj7LxxoT8XDh0H09FcLomcbfp15ESaurvMRAkdrLcMaXh9t3bnzFeAZns67qqbFBaJFP9xsRZakJrQOHw-dwSWF0klQPjmJxXroaS4TzN_dEjdTB4x1O7IpwVc8o6JlzQ
                 getIFrameRef={(iframeRef) => { iframeRef.style.height = '650px'; setIsMeetingReady(true); }}
               />
             </div>
           )}
         </div>
       ) : (
-        <></>
+        <div className="flex flex-col gap-4 items-center py-30">
+          <div className="bg-gray-300 rounded-full">
+            <FolderX className="p-4 h-30 w-30" />
+          </div>
+          <div className="text-center">
+            <h2 className="text-xl font-bold mb-2">Meeting not found</h2>
+            <p className="text-muted-foreground mb-6">
+              The meeting you're looking for doesn't exist or you haven't joined this meeting.
+            </p>
+          </div>
+        </div>
       )
     )
   )

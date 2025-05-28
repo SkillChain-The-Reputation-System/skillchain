@@ -175,16 +175,7 @@ export const navItems: NavItem[] = [
   },
 ];
 
-export const sidebarNavItemsProfileSettings = [
-  {
-    title: "Profile",
-    href: "#",
-  },
-  {
-    title: "Account",
-    href: "##",
-  },
-];
+
 
 export const quality_factors_questions = [
   {

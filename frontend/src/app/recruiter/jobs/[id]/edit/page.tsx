@@ -215,10 +215,10 @@ export default function EditJobPage() {
   return (
     <div>
       <Link
-        href={pageUrlMapping.recruiter_jobs}
+        href={`${pageUrlMapping.recruiter_jobs}/${jobId}`}
         className={cn(buttonVariants(), "text-xs md:text-sm mb-4")}
       >
-        <ArrowLeftIcon className="mr-2 h-4 w-4" /> Back to Jobs
+        <ArrowLeftIcon className="mr-2 h-4 w-4" /> Back to Job Post
       </Link>
       <Card className="w-full">
         <CardHeader>

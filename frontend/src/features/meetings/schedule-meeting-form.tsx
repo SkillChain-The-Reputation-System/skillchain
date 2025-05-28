@@ -54,6 +54,7 @@ import { fetchPreviewJobsByRecruiter, fetchApplicantsByJobID } from "@/lib/fetch
 import { scheduleMeeting } from "@/lib/write-onchain-utils";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
 export const formSchema = z.object({
   jobId: z.string().min(1, "A specific job is required"),
@@ -143,7 +144,6 @@ export default function ScheduleMeetingForm() {
 
         const validApplications = fetchedApplications.filter((application) => application.status === JobApplicationStatus.SHORTLISTED)
         setApplications(validApplications);
-
         form.setValue("applicant", "")
       } catch (error) {
         console.error("Error fetching applicants:", error);
@@ -220,7 +220,7 @@ export default function ScheduleMeetingForm() {
                       <div className="flex items-center gap-2">
                         <Select value={field.value} onValueChange={field.onChange} disabled={applicantsLoading}>
                           <FormControl>
-                            <SelectTrigger className="min-w-md cursor-pointer">
+                            <SelectTrigger className="min-h-10 min-w-md cursor-pointer">
                               <SelectValue placeholder="Select an applicant" />
                             </SelectTrigger>
                           </FormControl>
@@ -228,7 +228,14 @@ export default function ScheduleMeetingForm() {
                             {applications.length > 0 ? (
                               applications.map((application) => (
                                 <SelectItem key={application.id} value={application.address} className="cursor-pointer">
-                                  {application.address}
+                                  <Avatar>
+                                    <AvatarImage
+                                      src={application.profile_data.avatar_url}
+                                      alt={application.profile_data.address}
+                                    />
+                                  </Avatar>
+
+                                  {application.profile_data.fullname ? application.profile_data.fullname : application.profile_data.address}
                                 </SelectItem>
                               ))
                             ) : (

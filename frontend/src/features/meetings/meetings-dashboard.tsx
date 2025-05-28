@@ -169,13 +169,13 @@ export default function MeetingsDashboard() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="xl:w-sm font-bold p-3">
+              <TableHead className="xl:w-xs font-bold p-3">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4" />
                   Applicant
                 </div>
               </TableHead>
-              <TableHead className="xl:w-3xs font-bold p-3">
+              <TableHead className="xl:w-2xs font-bold p-3">
                 <div className="flex items-center gap-2">
                   <Briefcase className="h-4 w-4" />
                   Position
@@ -215,7 +215,7 @@ export default function MeetingsDashboard() {
               meetingList.length > 0 ? (
                 meetingList.map((meeting) => (
                   <TableRow key={meeting.id} className="hover:bg-accent/80 border-gray-300 dark:border-input">
-                    <TableCell className="p-3">{meeting.applicant}</TableCell>
+                    <TableCell className="p-3">{meeting.applicant.fullname ? meeting.applicant.fullname : meeting.applicant.address}</TableCell>
                     <TableCell className="p-3">
                       <div className="flex flex-col gap-1">
                         {meeting.position}

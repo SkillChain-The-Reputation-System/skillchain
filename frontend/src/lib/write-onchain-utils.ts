@@ -9,14 +9,12 @@ import {
   writeContract,
   waitForTransactionReceipt,
   simulateContract,
-  readContract,
 } from "@wagmi/core";
 import {
   ContractConfig_ChallengeManager,
   ContractConfig_JobManager,
   ContractConfig_JobApplicationManager,
   ContractConfig_SolutionManager,
-  ContractConfig_UserDataManager,
   ContractConfig_MeetingManager,
 } from "@/constants/contracts-config";
 import { wagmiConfig } from "@/features/wallet/Web3Provider";
@@ -25,7 +23,6 @@ import { ChallengeFormValues } from "@/features/contribution/contribute-challeng
 import axios from "axios";
 import { uploadImagesInHTML, generateRoomID } from "@/lib/utils";
 import { IrysUploadResponseInterface } from "@/lib/interfaces";
-import { ProfileFormValues } from "@/features/account/profile-settings/profile-form";
 import { JobFormData } from "@/features/jobs-on-recruiter/create/create-job-form";
 import { JobApplicationStatus, JobStatus, MeetingStatus } from "@/constants/system";
 import { ScheduleMeetingFormData } from "@/features/meetings/schedule-meeting-form";
@@ -284,35 +281,6 @@ export async function submitEvaluationScore(
     abi: ContractConfig_SolutionManager.abi,
     functionName: "evaluatorSubmitScore",
     args: [solutionId, score],
-    account: address,
-  });
-
-  return txHash;
-}
-
-export async function updateProfile(
-  address: `0x${string}`,
-  data: ProfileFormValues
-) {
-  // No worry about the data duplicated on Irys because it will be handled by Irys itself
-  // Upload data to Irys parallelly
-  const [{ data: image_upload_res_data }, { data: bio_upload_res_data }] =
-    await Promise.all([
-      axios.post<IrysUploadResponseInterface>(
-        "/api/irys/upload/upload-file",
-        data.avatar
-      ),
-      axios.post<IrysUploadResponseInterface>(
-        "/api/irys/upload/upload-string",
-        { data: data.bio }
-      ),
-    ]);
-
-  const txHash = await writeContract(wagmiConfig, {
-    address: ContractConfig_UserDataManager.address as `0x${string}`,
-    abi: ContractConfig_UserDataManager.abi,
-    functionName: "setUserPersonalData",
-    args: [data.username, image_upload_res_data.url, bio_upload_res_data.url],
     account: address,
   });
 

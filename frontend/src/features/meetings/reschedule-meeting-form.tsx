@@ -53,6 +53,8 @@ import { rescheduleMeeting } from "@/lib/write-onchain-utils";
 import { fetchMeetingRoomById } from "@/lib/fetching-onchain-data-utils";
 import { formSchema, ScheduleMeetingFormData } from "./schedule-meeting-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { MeetingRoomInterface } from "@/lib/interfaces";
 
 interface RescheduleMeetingFormProps {
   meeting_id: string
@@ -65,8 +67,7 @@ export default function RescheduleMeetingForm({ meeting_id }: RescheduleMeetingF
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [rescheduling, setRescheduling] = useState<boolean>(false);
 
-  const [jobName, setJobName] = useState("");
-  const [applicant, setApplicant] = useState("");
+  const [meeting, setMeeting] = useState<MeetingRoomInterface | null>(null);
 
   const form = useForm<ScheduleMeetingFormData>({
     resolver: zodResolver(formSchema),
@@ -108,18 +109,16 @@ export default function RescheduleMeetingForm({ meeting_id }: RescheduleMeetingF
 
         const fetchedMeeting = await fetchMeetingRoomById(meeting_id);
 
+        setMeeting(fetchedMeeting)
         if (fetchedMeeting) {
           form.reset({
             jobId: fetchedMeeting.job.id,
-            applicant: fetchedMeeting.applicant,
+            applicant: fetchedMeeting.applicant.address,
             date: new Date(fetchedMeeting.date),
             fromTime: fetchedMeeting.fromTime,
             toTime: fetchedMeeting.toTime,
             note: fetchedMeeting.note
           })
-
-          setJobName(fetchedMeeting.job.title)
-          setApplicant(fetchedMeeting.applicant)
         }
       } catch (error) {
         console.error("Error fetching meeting:", error);
@@ -150,8 +149,9 @@ export default function RescheduleMeetingForm({ meeting_id }: RescheduleMeetingF
       </Button>
 
       {isLoading ? (
-        <div className="w-full h-120 flex justify-center items-center">
-          <Loader className="h-30 w-30 animate-spin text-muted-foreground" />
+        <div className="w-full h-120 flex flex-col gap-4 justify-center items-center">
+          <Loader className="h-20 w-20 animate-spin duration-2500 text-muted-foreground" />
+          <div>Loading meeting information...</div>
         </div>
       ) : (
         <div className="mx-auto max-w-3xl mt-5">
@@ -174,15 +174,13 @@ export default function RescheduleMeetingForm({ meeting_id }: RescheduleMeetingF
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Job Position</FormLabel>
-                        <div className="flex items-center gap-2">
-                          <Select value={field.value} onValueChange={field.onChange}>
-                            <FormControl>
-                              <SelectTrigger className="min-w-md cursor-pointer" disabled>
-                                {jobName}
-                              </SelectTrigger>
-                            </FormControl>
-                          </Select>
-                        </div>
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <FormControl>
+                            <SelectTrigger className="min-w-md cursor-pointer" disabled>
+                              {meeting?.job.title}
+                            </SelectTrigger>
+                          </FormControl>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -194,15 +192,22 @@ export default function RescheduleMeetingForm({ meeting_id }: RescheduleMeetingF
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Applicant</FormLabel>
-                        <div className="flex items-center gap-2">
-                          <Select value={field.value} onValueChange={field.onChange} disabled>
-                            <FormControl>
-                              <SelectTrigger className="min-w-md cursor-pointer">
-                                {applicant}
-                              </SelectTrigger>
-                            </FormControl>
-                          </Select>
-                        </div>
+                        <Select value={field.value} onValueChange={field.onChange} disabled>
+                          <FormControl>
+                            <SelectTrigger className="min-h-10 min-w-md cursor-pointer">
+                              <div className="flex items-center gap-2">
+                                <Avatar>
+                                  <AvatarImage
+                                    src={meeting?.applicant.avatar_url}
+                                    alt={meeting?.applicant.address}
+                                  />
+                                </Avatar>
+
+                                {meeting?.applicant.fullname ? meeting.applicant.fullname : meeting?.applicant.address}
+                              </div>
+                            </SelectTrigger>
+                          </FormControl>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}

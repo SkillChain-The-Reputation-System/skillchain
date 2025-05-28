@@ -70,6 +70,12 @@ async function main(): Promise<void> {
   );
   console.log(">>JobApplicationManager.json copied");
 
+  fs.copyFileSync(
+    path.join(artifactDir, "MeetingManager.sol", "MeetingManager.json"),
+    path.join(outputDir, "MeetingManager.json")
+  );
+  console.log(">>MeetingManager.json copied");
+
   console.log("All done.");
 }
 

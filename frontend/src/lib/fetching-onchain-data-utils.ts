@@ -7,6 +7,7 @@ import {
   ContractConfig_ReputationManager,
   ContractConfig_JobManager,
   ContractConfig_JobApplicationManager,
+  ContractConfig_MeetingManager,
 } from "@/constants/contracts-config";
 import { wagmiConfig } from "@/features/wallet/Web3Provider";
 import {
@@ -23,6 +24,8 @@ import {
   JobInterface,
   JobApplicationWithJobDataInterface,
   JobApplicantionInterface,
+  BriefMeetingInterface,
+  MeetingRoomInterface,
 } from "./interfaces";
 import {
   fetchJsonDataOffChain,
@@ -584,6 +587,33 @@ export const fetchUserReputationScore = async (address: `0x${string}`) => {
     domain_reputation: domain_reputation.map((score) => Number(score)),
   };
 };
+
+export const fetchUserGlobalReputationScore = async (
+  address: `0x${string}`,
+): Promise<number> => {
+  const global_reputation = (await readContract(wagmiConfig, {
+    address: ContractConfig_ReputationManager.address as `0x${string}`,
+    abi: ContractConfig_ReputationManager.abi,
+    functionName: "getGlobalReputation",
+    args: [address],
+  })) as number | bigint;
+
+  return Number(global_reputation);
+}
+
+export const fetchUserDomainReputationScore = async (
+  address: `0x${string}`,
+  domain: Domain,
+): Promise<number> => {
+  const domain_reputaion = (await readContract(wagmiConfig, {
+    address: ContractConfig_ReputationManager.address as `0x${string}`,
+    abi: ContractConfig_ReputationManager.abi,
+    functionName: "getDomainReputation",
+    args: [address, domain],
+  })) as number | bigint;
+
+  return Number(domain_reputaion);
+}
 
 export const fetchJobContentID = async (job_id: string): Promise<string> => {
   try {
@@ -1368,5 +1398,105 @@ export async function fetchPossibleApplicationStatusTransitions(
       error
     );
     return [];
+  }
+}
+
+/**
+ * Following functions is for fetching meeting-related data on chain
+ */
+export async function fetchMeetingsByRecruiter(
+  address: `0x${string}`
+): Promise<BriefMeetingInterface[]> {
+  try {
+    const fetchedMeetings = (await readContract(wagmiConfig, {
+      address: ContractConfig_MeetingManager.address as `0x${string}`,
+      abi: ContractConfig_MeetingManager.abi,
+      functionName: "getMeetingsByRecruiter",
+      args: [address],
+    })) as any[];
+
+    const briefMeetingLists = await Promise.all(
+      fetchedMeetings.map(async (fetchedMeeting) => {
+        const meetingData = await fetchStringDataOffChain(`https://gateway.irys.xyz/mutable/${fetchedMeeting.txid}`) as any;
+        const job = await fetchJobById(meetingData.jobId) as JobInterface;
+
+        return {
+          id: fetchedMeeting.id,
+          applicant: meetingData.applicant,
+          position: job.title,
+          date: meetingData.date,
+          fromTime: meetingData.fromTime,
+          toTime: meetingData.toTime,
+          duration: job.duration,
+          status: fetchedMeeting.status,
+        } as BriefMeetingInterface
+      })
+    ) as BriefMeetingInterface[];
+
+    return briefMeetingLists;
+  }
+  catch (error) {
+    console.error(
+      "Error fetching possible application status transitions:",
+      error
+    );
+    return [];
+  }
+}
+
+export async function fetchMeetingRoomById(
+  meeting_id: string
+): Promise<MeetingRoomInterface | null> {
+  try {
+    const fetchedMeeting = (await readContract(wagmiConfig, {
+      address: ContractConfig_MeetingManager.address as `0x${string}`,
+      abi: ContractConfig_MeetingManager.abi,
+      functionName: "getMeetingById",
+      args: [meeting_id],
+    })) as any;
+
+    const meetingData = await fetchStringDataOffChain(`https://gateway.irys.xyz/mutable/${fetchedMeeting.txid}`) as any;
+    const job = await fetchJobById(meetingData.jobId) as JobInterface;
+
+    return {
+      id: fetchedMeeting.id,
+      roomId: fetchedMeeting.room_id,
+      date: meetingData.date,
+      fromTime: meetingData.fromTime,
+      toTime: meetingData.toTime,
+      note: meetingData.note,
+      status: fetchedMeeting.status,
+      applicant: meetingData.applicant,
+      job: job
+    };
+  }
+  catch (error) {
+    console.error(
+      "Error fetching possible application status transitions:",
+      error
+    );
+    return null;
+  }
+}
+
+export async function fetchMeetingTxIdById(
+  meeting_id: string
+): Promise<string | null> {
+  try {
+    const fetchedTxId = (await readContract(wagmiConfig, {
+      address: ContractConfig_MeetingManager.address as `0x${string}`,
+      abi: ContractConfig_MeetingManager.abi,
+      functionName: "getMeetingTxIdById",
+      args: [meeting_id],
+    })) as string;
+
+    return fetchedTxId;
+  }
+  catch (error) {
+    console.error(
+      "Error fetching possible application status transitions:",
+      error
+    );
+    return null;
   }
 }

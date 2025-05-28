@@ -1,4 +1,4 @@
-import { Domain, ChallengeStatus, QualityFactorAnswer, ChallengeDifficultyLevel, ChallengeSolutionProgress, JobStatus, JobDuration, JobApplicationStatus } from "@/constants/system";
+import { Domain, ChallengeStatus, QualityFactorAnswer, ChallengeDifficultyLevel, ChallengeSolutionProgress, JobStatus, JobDuration, JobApplicationStatus, MeetingStatus } from "@/constants/system";
 
 export interface IrysUploadResponseInterface {
     success: boolean;
@@ -48,7 +48,7 @@ export interface JobInterface {
     description: string;
     requirements: string;
     compensation: string;
-    domains: Domain[]; 
+    domains: Domain[];
     domainReputations: Record<Domain, number>;
     requireGlobalReputation: boolean;
     globalReputationScore?: number; // Optional
@@ -142,11 +142,11 @@ export interface EvaluationInterface {
 }
 
 export interface JobApplicantionInterface {
-  id: string;
-  address: string;
-  status: JobApplicationStatus;
-  applied_at: number;
-  job_id: string;
+    id: string;
+    address: string;
+    status: JobApplicationStatus;
+    applied_at: number;
+    job_id: string;
 }
 
 export interface JobApplicationWithJobDataInterface {
@@ -154,5 +154,28 @@ export interface JobApplicationWithJobDataInterface {
     applicant: string;
     applied_at: number;
     status: JobApplicationStatus;
-    job: JobInterface;  
+    job: JobInterface;
+}
+
+export interface BriefMeetingInterface {
+    id: string;
+    applicant: string;
+    position: string;
+    duration: JobDuration;
+    date: Date;
+    fromTime: string;
+    toTime: string
+    status: MeetingStatus;
+}
+
+export interface MeetingRoomInterface {
+    id: string;
+    roomId: string;
+    date: Date;
+    fromTime: string;
+    toTime: string;
+    status: MeetingStatus;
+    note: string | undefined;
+    applicant: string;
+    job: JobInterface;
 }

@@ -16,11 +16,13 @@ async function main(): Promise<void> {
     "constants",
     "contract-artifacts"
   );
+  const contractNames: string[] = []
 
   console.log("Deploying Ignition modules…");
   for (const file of fs
     .readdirSync(modulesDir)
-    .filter((f) => f.match(/\.(js|ts)$/))) {
+    .filter((f) => f.match(/\.(js|ts)$/))
+  ) {
     const modulePath = path.join(modulesDir, file);
     const relativePath = path.relative(process.cwd(), modulePath);
     console.log(`>> Deploying ${file}`);
@@ -28,54 +30,29 @@ async function main(): Promise<void> {
       `npx hardhat ignition deploy ${relativePath} --network localhost`,
       { stdio: "inherit" }
     );
+
+    contractNames.push(path.basename(file, path.extname(file)))
   }
 
-  console.log(`Ensuring output folder exists at ${outputDir}…`);
+  console.log(`Ensuring output folder exists at ${outputDir}...`);
   fs.mkdirSync(outputDir, { recursive: true });
-  console.log("Copying ABI files:");
+  console.log("- Copying ABI files:");
 
-  fs.copyFileSync(
-    path.join(artifactDir, "UserDataManager.sol", "UserDataManager.json"),
-    path.join(outputDir, "UserDataManager.json")
-  );
-  console.log(">>UserDataManager.json copied");
+  for (const contractName of contractNames) {
+    const contractDir = path.join(artifactDir, `${contractName}.sol`);
+    const abiFilePath = path.join(contractDir, `${contractName}.json`);
 
-  fs.copyFileSync(
-    path.join(artifactDir, "ChallengeManager.sol", "ChallengeManager.json"),
-    path.join(outputDir, "ChallengeManager.json")
-  );
-  console.log(">>ChallengeManager.json copied");
+    if (!fs.existsSync(abiFilePath)) {
+      console.error(`! ABI file not found for ${contractName} at ${abiFilePath}`);
+      continue;
+    }
 
-  fs.copyFileSync(
-    path.join(artifactDir, "SolutionManager.sol", "SolutionManager.json"),
-    path.join(outputDir, "SolutionManager.json")
-  );
-  console.log(">>SolutionManager.json copied");
-
-  fs.copyFileSync(
-    path.join(artifactDir, "ReputationManager.sol", "ReputationManager.json"),
-    path.join(outputDir, "ReputationManager.json")
-  );
-  console.log(">>ReputationManager.json copied");
-
-  fs.copyFileSync(
-    path.join(artifactDir, "JobManager.sol", "JobManager.json"),
-    path.join(outputDir, "JobManager.json")
-  );
-  console.log(">>JobManager.json copied");
-
-  fs.copyFileSync(
-    path.join(artifactDir, "JobApplicationManager.sol", "JobApplicationManager.json"),
-    path.join(outputDir, "JobApplicationManager.json")
-  );
-  console.log(">>JobApplicationManager.json copied");
-
-  fs.copyFileSync(
-    path.join(artifactDir, "MeetingManager.sol", "MeetingManager.json"),
-    path.join(outputDir, "MeetingManager.json")
-  );
-  console.log(">>MeetingManager.json copied");
-
+    fs.copyFileSync(
+      abiFilePath,
+      path.join(outputDir, `${contractName}.json`)
+    )
+    console.log(`${contractName}.json copied`)
+  }
   console.log("All done.");
 }
 

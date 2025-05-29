@@ -72,16 +72,17 @@ export const formSchema = z.object({
 export type ScheduleMeetingFormData = z.infer<typeof formSchema>;
 
 export default function ScheduleMeetingForm() {
+  // Loading states
   const [jobsLoading, setJobsLoading] = useState<boolean>(false);
   const [applicantsLoading, setApplicantsLoading] = useState<boolean>(false);
   const [scheduling, setScheduling] = useState<boolean>(false);
-
-  const { address } = useAccount();
+  const [stateLoading, setStateLoading] = useState<boolean>(false);
+  // Data state for fetching
   const [jobs, setJobs] = useState<JobPreviewInterface[]>([]);
   const [applications, setApplications] = useState<JobApplicantionInterface[]>([]);
-
   const [isHasMeeting, setIsHasMeeting] = useState<boolean>(false);
-  const [stateLoading, setStateLoading] = useState<boolean>(false);
+  // Other
+  const { address } = useAccount();
 
   const form = useForm<ScheduleMeetingFormData>({
     resolver: zodResolver(formSchema),
@@ -94,6 +95,7 @@ export default function ScheduleMeetingForm() {
     mode: "onChange"
   })
 
+  // Reactive form fields that trigger side effects
   const watchedJobID = form.watch("jobId")
   const watchedApplication = form.watch("application")
   const watchedFromTime = form.watch("fromTime")
@@ -219,11 +221,15 @@ export default function ScheduleMeetingForm() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {jobs.map((job) => (
-                            <SelectItem key={job.id} value={job.id} className="cursor-pointer">
-                              {job.title}
-                            </SelectItem>
-                          ))}
+                          {jobs.length > 0 ? (
+                            jobs.map((job) => (
+                              <SelectItem key={job.id} value={job.id} className="cursor-pointer">
+                                {job.title}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <Label className="text-muted-foreground text-sm italic">No valid job positions found</Label>
+                          )}
                         </SelectContent>
                       </Select>
 
@@ -284,7 +290,7 @@ export default function ScheduleMeetingForm() {
                   <div className="p-2 w-md flex items-center gap-2 bg-gray-200 rounded-md">
                     <Loader className="animate-spin h-4 w-4 stroke-gray-700" />
                     <div className="text-sm text-gray-700">
-                      Checking if you already has a meeting for this applicant...
+                      Checking if you've already scheduled a meeting for this applicant...
                     </div>
                   </div>
                 ) : (
@@ -292,7 +298,7 @@ export default function ScheduleMeetingForm() {
                     <div className="p-2 w-md flex items-center gap-2 bg-red-100 dark:bg-red-800 rounded-md">
                       <X className="h-4 w-4 stroke-red-700 dark:stroke-red-100" />
                       <div className="text-sm text-red-700 dark:text-red-100">
-                        You've already has a meeting for this applicant
+                        You've already scheduled a meeting for this applicant
                       </div>
                     </div>
                   ) : (
@@ -457,6 +463,5 @@ export default function ScheduleMeetingForm() {
         </CardContent>
       </Card>
     </div>
-
   )
 }

@@ -150,6 +150,7 @@ export default function ScheduleMeetingForm() {
 
         const validApplications = fetchedApplications.filter((application) => application.status === JobApplicationStatus.SHORTLISTED)
         setApplications(validApplications);
+        setIsHasMeeting(false);
         form.setValue("application", "")
       } catch (error) {
         console.error("Error fetching applicants:", error);
@@ -259,8 +260,7 @@ export default function ScheduleMeetingForm() {
                                       alt={application.profile_data.address}
                                     />
                                   </Avatar>
-
-                                  {application.profile_data.fullname ? application.profile_data.fullname : application.profile_data.address}
+                                  {application.profile_data.fullname ?? application.profile_data.address}
                                 </SelectItem>
                               ))
                             ) : (

@@ -204,7 +204,7 @@ export default function RescheduleMeetingForm({ meeting_id }: RescheduleMeetingF
                                     />
                                   </Avatar>
 
-                                  {meeting.application.profile_data.fullname ? meeting.application.profile_data.fullname : meeting.application.applicant}
+                                  {meeting.application.profile_data.fullname ?? meeting.application.applicant}
                                 </div>
                               </SelectTrigger>
                             </FormControl>

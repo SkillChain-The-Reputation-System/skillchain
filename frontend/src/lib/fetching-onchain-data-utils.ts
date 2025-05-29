@@ -1482,13 +1482,17 @@ export async function fetchMeetingsByRecruiter(
         return {
           id: fetchedMeeting.id,
           applicant: application.profile_data,
-          position: application.job.title,
-          duration: application.job.duration,
+          job: {
+            position: application.job.title,
+            duration: application.job.duration,
+          },
           scheduledAt: Number(fetchedMeeting.created_at),
           endedAt: Number(fetchedMeeting.ended_at),
-          date: meetingData.date,
-          fromTime: meetingData.fromTime,
-          toTime: meetingData.toTime,
+          meetingDate: {
+            date: meetingData.date,
+            fromTime: meetingData.fromTime,
+            toTime: meetingData.toTime,
+          },
           status: fetchedMeeting.status,
         } as BriefMeetingInterface
       })

@@ -17,3 +17,50 @@ export const calculateMeetingDuration = (fromTime: string, toTime: string): numb
 
   return toTotalMinutes - fromTotalMinutes
 }
+
+export const renderMeetingUntilTime = (date: Date, fromTime: string, toTime: string) => {
+  const now = new Date();
+
+  function parseTimeToDate(date: Date, timeString: string): Date {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    const result = new Date(date);
+    result.setHours(hours, minutes, 0, 0);
+    return result;
+  }
+
+  const fromDateTime = parseTimeToDate(date, fromTime);
+  const toDateTime = parseTimeToDate(date, toTime);
+
+  let targetTime: Date;
+  let isUpcoming: boolean;
+
+  if (now < fromDateTime) {
+    // Event hasn't started yet
+    targetTime = fromDateTime;
+    isUpcoming = true;
+  } else if (now <= toDateTime) {
+    // Event is currently happening
+    return "Happening now";
+  } else {
+    // Event has ended
+    targetTime = toDateTime;
+    isUpcoming = false;
+  }
+
+  const diffMs = Math.abs(targetTime.getTime() - now.getTime());
+
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays >= 1) {
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ${isUpcoming ? 'remaining' : 'ago'}`;
+  } else if (diffHours >= 1) {
+    return `${diffHours} hour${diffHours > 1 ? 's' : ''} ${isUpcoming ? 'remaining' : 'ago'}`;
+  } else if (diffMinutes >= 1) {
+    return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ${isUpcoming ? 'remaining' : 'ago'}`;
+  } else {
+    // Less than or equal to 1 minute
+    return isUpcoming ? 'Starting soon' : 'Just ended';
+  }
+}

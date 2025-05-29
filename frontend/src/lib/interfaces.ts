@@ -193,13 +193,17 @@ export interface UserReputationScoreInterface {
 export interface BriefMeetingInterface {
     id: string;
     applicant: UserProfileInterface;
-    position: string;
-    duration: JobDuration;
+    job: {
+        position: string;
+        duration: JobDuration;
+    };
     scheduledAt: number;
     endedAt: number;
-    date: Date;
-    fromTime: string;
-    toTime: string
+    meetingDate: {
+        date: Date;
+        fromTime: string;
+        toTime: string
+    }
     status: MeetingStatus;
 }
 

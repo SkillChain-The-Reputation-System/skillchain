@@ -182,6 +182,9 @@ contract MeetingManager {
         return meetings[id].txid;
     }
 
+    /// @notice Get check if this application already has a pending meeting
+    /// @param _application_id The Application ID
+    /// @return Boolean
     function checkApplicationHasAMeeting(
         bytes32 _application_id
     ) public view returns (bool) {

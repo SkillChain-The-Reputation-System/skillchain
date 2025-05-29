@@ -373,7 +373,7 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
 
                 <p className="font-bold text-lg">Reputations</p>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-rows-3 gap-2">
                   {meeting.application.job.domains.map((domain) =>
                     <Badge key={domain}>{DomainLabels[domain as Domain]} : {meeting.application.reputation_data.domain_reputation[domain]}</Badge>
                   )}
@@ -455,7 +455,7 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
                     <div className="wrap-break-word text-muted-foreground text-sm">{meeting.application.job.requirements}</div>
                   </TabsContent>
                   <TabsContent value="reputation-requirements">
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-rows-3 gap-2">
                       {meeting.application.job.domains.map((domain) =>
                         <Badge key={domain}>{DomainLabels[domain as Domain]} : {meeting.application.job.domainReputations[domain]}</Badge>
                       )}

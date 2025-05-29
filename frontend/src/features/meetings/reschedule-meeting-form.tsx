@@ -53,7 +53,7 @@ import { rescheduleMeeting } from "@/lib/write-onchain-utils";
 import { fetchMeetingRoomById } from "@/lib/fetching-onchain-data-utils";
 import { formSchema, ScheduleMeetingFormData } from "./schedule-meeting-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MeetingRoomInterface } from "@/lib/interfaces";
 
 interface RescheduleMeetingFormProps {
@@ -199,12 +199,19 @@ export default function RescheduleMeetingForm({ meeting_id }: RescheduleMeetingF
                                 <div className="flex items-center gap-2">
                                   <Avatar>
                                     <AvatarImage
-                                      src={meeting.application.profile_data.avatar_url}
-                                      alt={meeting.application.applicant}
+                                      src={meeting.application.profile_data.avatar_url || ""}
+                                      alt={meeting.application.applicant || "Applicant"}
                                     />
+                                    <AvatarFallback>
+                                      {meeting.application.profile_data.fullname
+                                        .split(" ")
+                                        .map((n) => n[0])
+                                        .join("")
+                                        .toUpperCase() || "AP"}
+                                    </AvatarFallback>
                                   </Avatar>
 
-                                  {meeting.application.profile_data.fullname ?? meeting.application.applicant}
+                                  {meeting.application.profile_data.fullname || meeting.application.applicant}
                                 </div>
                               </SelectTrigger>
                             </FormControl>

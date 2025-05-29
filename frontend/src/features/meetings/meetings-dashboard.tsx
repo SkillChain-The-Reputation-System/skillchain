@@ -135,18 +135,24 @@ export default function MeetingsDashboard() {
       },
       cell: ({ row }) => {
         const applicant = row.original.applicant;
-        const name = applicant.fullname ?? applicant.address;
-
         return (
           <div className="flex items-center gap-2">
             <Avatar>
               <AvatarImage
-                src={applicant.avatar_url}
-                alt={name}
+                src={applicant.avatar_url || ""}
+                alt={applicant.address || "Applicant"}
               />
-              <AvatarFallback>{name}</AvatarFallback>
+              <AvatarFallback>
+                {applicant.fullname
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase() || "AP"}
+              </AvatarFallback>
             </Avatar>
-            {name}
+            <div className="line-clamp-1">
+              {applicant.fullname || applicant.address}
+            </div>
           </div>
         )
       },

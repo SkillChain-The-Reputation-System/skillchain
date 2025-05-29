@@ -47,7 +47,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -339,33 +339,40 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
                 <div className="flex justify-between items-center">
                   <div className="space-y-4">
                     <div className="space-y-1">
-                      <p className="text-lg font-bold">{meeting.application.profile_data.fullname}</p>
+                      <p className="text-lg font-bold">{meeting.application.profile_data.fullname || "Unknown Name"}</p>
                       <p className="text-muted-foreground text-sm">{meeting.application.applicant}</p>
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{meeting.application.profile_data.email}</span>
+                        <span className="text-sm">{meeting.application.profile_data.email || "no registered email"}</span>
                       </div>
 
                       <div className="flex items-center gap-2">
                         <MapPinHouse className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{meeting.application.profile_data.location}</span>
+                        <span className="text-sm">{meeting.application.profile_data.location || "no registered residence"}</span>
                       </div>
 
                       <div className="flex items-center gap-2">
                         <MessageSquareText className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground italic">{meeting.application.profile_data.bio}</span>
+                        <span className="text-sm text-muted-foreground">{meeting.application.profile_data.bio || "no registered bio"}</span>
                       </div>
                     </div>
                   </div>
 
                   <Avatar className="h-35 w-35">
                     <AvatarImage
-                      src={meeting.application.profile_data.avatar_url}
-                      alt={meeting.application.applicant}
+                      src={meeting.application.profile_data.avatar_url || ""}
+                      alt={meeting.application.applicant || "Applicant"}
                     />
+                    <AvatarFallback>
+                      {meeting.application.profile_data.fullname
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase() || "AP"}
+                    </AvatarFallback>
                   </Avatar>
                 </div>
 
@@ -432,9 +439,8 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
 
                     <div className="flex items-center gap-2">
                       <MapPinned className="h-4 w-4 text-muted-foreground" />
-                      <span className="flex gap-1.5 text-muted-foreground text-sm">
-                        Work at
-                        <p className="italic">{meeting.application.job.location}</p>
+                      <span className="flex gap-1.5 text-muted-foreground items-center text-sm italic">
+                        {meeting.application.job.location}
                       </span>
                     </div>
                   </div>

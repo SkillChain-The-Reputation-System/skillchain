@@ -56,7 +56,7 @@ import { fetchPreviewJobsByRecruiter, fetchApplicantsByJobID, fetchIsApplication
 import { scheduleMeeting } from "@/lib/write-onchain-utils";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const formSchema = z.object({
   jobId: z.string().min(1, "A specific job is required"),
@@ -262,11 +262,18 @@ export default function ScheduleMeetingForm() {
                                 <SelectItem key={application.id} value={application.id} className="cursor-pointer">
                                   <Avatar>
                                     <AvatarImage
-                                      src={application.profile_data.avatar_url}
-                                      alt={application.profile_data.address}
+                                      src={application.profile_data.avatar_url || ""}
+                                      alt={application.profile_data.address || "Applicant"}
                                     />
+                                    <AvatarFallback>
+                                      {application.profile_data.fullname
+                                        ?.split(" ")
+                                        .map((n) => n[0])
+                                        .join("")
+                                        .toUpperCase() || "AP"}
+                                    </AvatarFallback>
                                   </Avatar>
-                                  {application.profile_data.fullname ?? application.profile_data.address}
+                                  {application.profile_data.fullname || application.profile_data.address}
                                 </SelectItem>
                               ))
                             ) : (

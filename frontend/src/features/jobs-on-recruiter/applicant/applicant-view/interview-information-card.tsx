@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -9,44 +10,61 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import {
-  VideoIcon,
-  Clock,
-  Users,
-  Settings,
-  Trash2,
-  CalendarCheck,
-} from "lucide-react";
+import { VideoIcon, CalendarCheck, Loader2 } from "lucide-react";
 import { format } from "date-fns";
-import { JobApplicationStatus } from "@/constants/system";
-import { MockInterviewData } from "./types";
-import { toast } from "react-toastify";
+import { JobApplicationStatus, MeetingStatusLabels } from "@/constants/system";
+import { BriefMeetingInterface } from "@/lib/interfaces";
+import { useRouter } from "next/navigation";
+import { pageUrlMapping } from "@/constants/navigation";
+import { fetchBriefMeetingByApplicationId } from "@/lib/fetching-onchain-data-utils";
+import { meetingStatusStyles } from "@/constants/styles";
+import { Badge } from "@/components/ui/badge";
+import { Clock, Calendar } from "lucide-react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 interface InterviewInformationCardProps {
   applicationStatus: JobApplicationStatus;
-  mockInterviewData: MockInterviewData;
+  applicationId: string;
 }
 
 export default function InterviewInformationCard({
   applicationStatus,
-  mockInterviewData,
+  applicationId,
 }: InterviewInformationCardProps) {
-  // Interview management functions with toast notifications
-  const handleRescheduleMeeting = () => {
-    toast.info("Interview rescheduled successfully!");
-  };
+  const router = useRouter();
+  const [meetingData, setMeetingData] = useState<BriefMeetingInterface | null>(
+    null
+  );
+  const [loading, setLoading] = useState(false);
 
-  const handleCancelMeeting = () => {
-    toast.error("Interview meeting cancelled!");
-  };
+  // Fetch meeting data when application status is SHORTLISTED
+  useEffect(() => {
+    const fetchMeetingData = async () => {
+      if (
+        applicationStatus === JobApplicationStatus.SHORTLISTED &&
+        applicationId
+      ) {
+        try {
+          setLoading(true);
+          console.log("Fetching meeting data for application:", applicationId);
+          const meeting = await fetchBriefMeetingByApplicationId(applicationId);
+          console.log("Meeting data:", meeting);
+          setMeetingData(meeting);
+        } catch (error) {
+          console.error("Error fetching meeting data:", error);
+          setMeetingData(null);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setMeetingData(null);
+        setLoading(false);
+      }
+    };
 
-  const handleSendInvitation = () => {
-    toast.success("Interview invitation sent to candidate!");
-  };
-
-  const handleUpdateNotes = () => {
-    toast.success("Interview notes updated!");
-  };
+    fetchMeetingData();
+  }, [applicationStatus, applicationId]);
 
   return (
     <Card>
@@ -55,122 +73,108 @@ export default function InterviewInformationCard({
         <CardDescription>Schedule and meeting details</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {applicationStatus === JobApplicationStatus.INTERVIEWING ? (
+        {applicationStatus === JobApplicationStatus.SHORTLISTED ? (
           <>
-            {/* Current Interview Status */}
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
-              <div className="flex items-center space-x-2 mb-3">
-                <Users className="h-4 w-4 text-green-600" />
-                <span className="text-sm font-medium text-green-800 dark:text-green-200">
-                  Status: Interview Scheduled
-                </span>
-              </div>
-              <p className="text-sm text-green-700 dark:text-green-300">
-                The interview has been scheduled. Use the management options
-                below to update or modify the interview.
-              </p>
-            </div>
-
-            {/* Interview Details */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground">
-                  Date & Time
-                </h4>
-                <p className="font-medium">
-                  {format(mockInterviewData.scheduledDate, "PPP")} at{" "}
-                  {format(mockInterviewData.scheduledDate, "p")}
+            {loading ? (
+              <div className="text-center py-8">
+                <Loader2 className="h-8 w-8 mx-auto mb-4 animate-spin text-muted-foreground" />
+                <p className="text-muted-foreground">
+                  Loading interview information...
                 </p>
               </div>
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground">
-                  Duration
-                </h4>
-                <p className="font-medium">
-                  {mockInterviewData.duration} minutes
-                </p>
-              </div>
-            </div>
+            ) : meetingData ? (
+              <>
+                {/* Interview Details */}
+                <div className="space-y-6">
+                  {/* Meeting Status */}
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-medium text-muted-foreground">
+                      Meeting Status
+                    </h4>
+                    <Badge
+                      className={cn(
+                        meetingStatusStyles[meetingData.status],
+                        "select-none"
+                      )}
+                    >
+                      {MeetingStatusLabels[meetingData.status]}
+                    </Badge>
+                  </div>
 
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground">
-                Meeting Link
-              </h4>
-              <div className="flex items-center space-x-2 mt-1 overflow-hidden">
-                <VideoIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                <a
-                  href={mockInterviewData.meetingLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 underline text-sm truncate"
-                >
-                  {mockInterviewData.meetingLink}
-                </a>
-              </div>
-            </div>
-
-            {mockInterviewData.additionalNotes && (
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground">
-                  Additional Notes
-                </h4>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {mockInterviewData.additionalNotes}
+                  {/* Meeting Schedule */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-medium text-muted-foreground flex items-center">
+                      Schedule
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="p-3 rounded-lg bg-muted/30">
+                        <p className="text-xs font-medium text-muted-foreground mb-1">
+                          Date
+                        </p>
+                        <p className="font-medium text-sm">
+                          {format(
+                            new Date(meetingData.meetingDate.date),
+                            "PPP"
+                          )}
+                        </p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted/30">
+                        <p className="text-xs font-medium text-muted-foreground mb-1">
+                          Time
+                        </p>
+                        <p className="font-medium flex items-center gap-1 text-sm">
+                          <Clock className="h-3 w-3" />
+                          {meetingData.meetingDate.fromTime} -{" "}
+                          {meetingData.meetingDate.toTime}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <Separator />
+                {/* Interview Management Actions */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Interview Management
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <Link
+                      href={`/recruiter/meetings/${meetingData.id}/reschedule`}
+                    >
+                      <Button
+                        variant="outline"
+                        className="w-full cursor-pointer"
+                      >
+                        <CalendarCheck className="mr-2 h-4 w-4" /> Reschedule
+                      </Button>
+                    </Link>
+                    <Link href={`/recruiter/meetings/${meetingData.id}`}>
+                      <Button className="w-full cursor-pointer">
+                        <VideoIcon className="mr-2 h-4 w-4" /> Meeting Room
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-6 text-muted-foreground">
+                <CalendarCheck className="h-10 w-10 mx-auto mb-4 opacity-50" />
+                <p>
+                  No interview has been scheduled yet. Click below to schedule
+                  an interview.
                 </p>
+                <Link href={pageUrlMapping.recruiter_schedule}>
+                  <Button className="mt-4">Schedule Interview</Button>
+                </Link>
               </div>
             )}
-
-            <Separator />
-
-            {/* Interview Management Actions */}
-            <div className="space-y-3">
-              <h4 className="text-sm font-medium text-muted-foreground">
-                Interview Management
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Button
-                  onClick={handleSendInvitation}
-                  className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700"
-                >
-                  <VideoIcon className="h-4 w-4" />
-                  <span>Send Invitation</span>
-                </Button>
-
-                <Button
-                  onClick={handleRescheduleMeeting}
-                  variant="outline"
-                  className="flex items-center space-x-2 border-amber-200 text-amber-700 hover:bg-amber-50"
-                >
-                  <Clock className="h-4 w-4" />
-                  <span>Reschedule</span>
-                </Button>
-
-                <Button
-                  onClick={handleUpdateNotes}
-                  variant="outline"
-                  className="flex items-center space-x-2 border-purple-200 text-purple-700 hover:bg-purple-50"
-                >
-                  <Settings className="h-4 w-4" />
-                  <span>Update Notes</span>
-                </Button>
-
-                <Button
-                  onClick={handleCancelMeeting}
-                  variant="destructive"
-                  className="flex items-center space-x-2"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  <span>Cancel Interview</span>
-                </Button>
-              </div>
-            </div>
           </>
         ) : (
           <div className="text-center py-8 text-muted-foreground">
             <VideoIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>
               Interview information will appear here once the application moves
-              to interviewing stage.
+              to shortlisted stage.
             </p>
           </div>
         )}

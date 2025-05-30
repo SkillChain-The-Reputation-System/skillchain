@@ -25,7 +25,7 @@ export const ApplicationStatusIconMap: Record<JobApplicationStatus, string> = {
   [JobApplicationStatus.PENDING]: "FileTextIcon",
   [JobApplicationStatus.REVIEWING]: "UserSearch",
   [JobApplicationStatus.SHORTLISTED]: "ListCheck",
-  [JobApplicationStatus.INTERVIEWING]: "Calendar",
+  [JobApplicationStatus.INTERVIEWED]: "Calendar",
   [JobApplicationStatus.HIRED]: "CheckCircle",
   [JobApplicationStatus.REJECTED]: "XCircle",
   [JobApplicationStatus.WITHDRAWN]: "ArrowRight",

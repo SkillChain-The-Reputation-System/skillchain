@@ -1,12 +1,7 @@
 "use client";
 
 import { MapPin, Briefcase, CalendarCheck, MoreHorizontal } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -16,7 +11,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { JobInterface } from "@/lib/interfaces";
-import { JobStatus, JobStatusLabels, JobDurationLabels } from "@/constants/system";
+import {
+  JobStatus,
+  JobStatusLabels,
+  JobDurationLabels,
+} from "@/constants/system";
 import { JobStatusIconMap } from "@/constants/data";
 import { jobStatusIconStyles, jobStatusStyles } from "@/constants/styles";
 import { Icons } from "@/components/icons";
@@ -40,11 +39,13 @@ export default function JobDetailsCard({
   const getStatusIcon = (status: JobStatus) => {
     const iconName = JobStatusIconMap[status];
     if (!iconName) return null;
-    
+
     const IconComponent = Icons[iconName as keyof typeof Icons];
     if (!IconComponent) return null;
-    
-    return <IconComponent className={`h-6 w-6 ${jobStatusIconStyles[status]}`} />;
+
+    return (
+      <IconComponent className={`h-6 w-6 ${jobStatusIconStyles[status]}`} />
+    );
   };
 
   const getStatusColor = (status: JobStatus) => {
@@ -112,11 +113,23 @@ export default function JobDetailsCard({
           </div>
           <div className="flex items-center gap-2">
             <Briefcase className="h-4 w-4 text-slate-500" />
-            <span>{JobDurationLabels[job.duration]}</span>
+            <span
+              className="truncate"
+              title={JobDurationLabels[job.duration] || "Unknown"}
+            >
+              {JobDurationLabels[job.duration]}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <CalendarCheck className="h-4 w-4 text-slate-500" />
-            <span>
+            <span
+              className="truncate"
+              title={
+                job.deadline
+                  ? `Apply by ${new Date(job.deadline).toLocaleDateString()}`
+                  : "No deadline"
+              }
+            >
               {job.deadline
                 ? `Apply by ${new Date(job.deadline).toLocaleDateString()}`
                 : "No deadline"}

@@ -12,10 +12,9 @@ import {
   fetchPossibleApplicationStatusTransitions,
 } from "@/lib/fetching-onchain-data-utils";
 import { updateJobApplicationStatus } from "@/lib/write-onchain-utils";
-import { JobApplicationWithJobDataInterface } from "@/lib/interfaces";
+import { JobApplicationInterface } from "@/lib/interfaces";
 import { JobApplicationStatus } from "@/constants/system";
 import { ApplicationStatusLabels } from "@/constants/system";
-import { MockInterviewData } from "./types";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { pageUrlMapping } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
@@ -57,33 +56,25 @@ const StatusChangeDialog = dynamic(() => import("./status-change-dialog"), {
   ssr: false,
 });
 
-// Mock interview data
-const mockInterviewData: MockInterviewData = {
-  scheduledDate: new Date(2025, 5, 30, 14, 0), // June 30, 2025, 2:00 PM
-  duration: 60, // minutes
-  meetingLink: "https://meet.google.com/abc-defg-hij",
-  additionalNotes:
-    "Please prepare a brief presentation about your previous projects",
-};
-
 export default function ApplicationDetailContainer() {
   const params = useParams();
   const jobId = params.id as string;
   const applicationId = params["applicant-id"] as string;
-
   const [application, setApplication] =
-    useState<JobApplicationWithJobDataInterface | null>(null);
+    useState<JobApplicationInterface | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [applicationStatus, setApplicationStatus] =
     useState<JobApplicationStatus | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState<JobApplicationStatus | null>(null);
+
   const [possibleStatuses, setPossibleStatuses] = useState<
     JobApplicationStatus[]
   >([]);
   const [statusLoading, setStatusLoading] = useState(false);
 
+  // Fetch application data and possible status transitions
   useEffect(() => {
     const fetchApplicationData = async () => {
       try {
@@ -259,14 +250,12 @@ export default function ApplicationDetailContainer() {
             statusLoading={statusLoading}
             onStatusChange={handleStatusChange}
             removePointerEventsFromBody={removePointerEventsFromBody}
-          />
-
+          />{" "}
           {/* Interview Information Card */}
           <InterviewInformationCard
             applicationStatus={applicationStatus!}
-            mockInterviewData={mockInterviewData}
+            applicationId={applicationId}
           />
-
           {/* Job Requirements and Fit */}
           <QualificationsFitCard application={application} />
         </div>

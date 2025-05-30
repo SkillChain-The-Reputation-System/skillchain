@@ -79,7 +79,7 @@ contract UserDataManager {
      */
     function getUserDataId(
         address _user_address
-    ) external view onlyRegisteredUser(_user_address) returns (string memory) {
+    ) external view returns (string memory) {
         return users[_user_address].data_id;
     }
 
@@ -90,7 +90,7 @@ contract UserDataManager {
      */
     function getUser(
         address _user_address
-    ) external view onlyRegisteredUser(_user_address) returns (User memory) {
+    ) external view returns (User memory) {
         return users[_user_address];
     }
 }

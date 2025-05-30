@@ -21,13 +21,13 @@ import {
 } from "@/constants/system";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { JobApplicantionInterface } from "@/lib/interfaces";
+import { BriefJobApplicantionInterface } from "@/lib/interfaces";
 import { pageUrlMapping } from "@/constants/navigation";
 import { applicationStatusStyles } from "@/constants/styles";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export const ApplicantColumns: ColumnDef<JobApplicantionInterface>[] = [
+export const ApplicantColumns: ColumnDef<BriefJobApplicantionInterface>[] = [
   {
     accessorKey: "profile_data.avatar_url",
     header: "Avatar",
@@ -36,14 +36,14 @@ export const ApplicantColumns: ColumnDef<JobApplicantionInterface>[] = [
         <Avatar className="h-10 w-10">
           <AvatarImage
             src={row.original.profile_data?.avatar_url || ""}
-            alt={row.original.profile_data?.fullname || "Applicant"}
+            alt={row.original.profile_data?.fullname || "Anounymous User"}
           />
           <AvatarFallback>
             {row.original.profile_data?.fullname
               ?.split(" ")
               .map((n) => n[0])
               .join("")
-              .toUpperCase() || "AP"}
+              .toUpperCase() || "AU"}
           </AvatarFallback>
         </Avatar>
       </div>
@@ -61,16 +61,18 @@ export const ApplicantColumns: ColumnDef<JobApplicantionInterface>[] = [
         Full Name
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
-    ),
-    cell: ({ row }) => (
-      <div className="font-medium">{row.original.profile_data.fullname}</div>
-    ),
-    size: 160,
-  },
-  {
-    accessorKey: "address",
-    header: "Address",
-    cell: ({ row }) => (
+        ),
+        cell: ({ row }) => (
+      <div className="font-medium">
+        {row.original.profile_data.fullname || "Anonymous User"}
+      </div>
+        ),
+        size: 160,
+      },
+      {
+        accessorKey: "address",
+        header: "Address",
+        cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <Tooltip>
           <TooltipTrigger asChild>

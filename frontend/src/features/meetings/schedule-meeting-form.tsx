@@ -51,8 +51,8 @@ import { format } from "date-fns"
 import { cn } from "@/lib/utils";
 import { timeSlots, calculateMeetingDuration } from "./time-utils";
 import { JobApplicationStatus, JobStatus } from "@/constants/system";
-import { JobPreviewInterface, JobApplicantionInterface } from "@/lib/interfaces";
-import { fetchPreviewJobsByRecruiter, fetchApplicantsByJobID, fetchIsApplicationHasMeeting } from "@/lib/fetching-onchain-data-utils";
+import { JobPreviewInterface, BriefJobApplicantionInterface } from "@/lib/interfaces";
+import { fetchPreviewJobsByRecruiter, fetchBriefApplicationByJobID, fetchIsApplicationHasMeeting } from "@/lib/fetching-onchain-data-utils";
 import { scheduleMeeting } from "@/lib/write-onchain-utils";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -79,7 +79,7 @@ export default function ScheduleMeetingForm() {
   const [stateLoading, setStateLoading] = useState<boolean>(false);
   // Data state for fetching
   const [jobs, setJobs] = useState<JobPreviewInterface[]>([]);
-  const [applications, setApplications] = useState<JobApplicantionInterface[]>([]);
+  const [applications, setApplications] = useState<BriefJobApplicantionInterface[]>([]);
   const [isHasMeeting, setIsHasMeeting] = useState<boolean>(false);
   // Other
   const { address } = useAccount();
@@ -148,7 +148,7 @@ export default function ScheduleMeetingForm() {
 
       try {
         setApplicantsLoading(true);
-        const fetchedApplications = await fetchApplicantsByJobID(watchedJobID);
+        const fetchedApplications = await fetchBriefApplicationByJobID(watchedJobID);
 
         const validApplications = fetchedApplications.filter((application) => application.status === JobApplicationStatus.SHORTLISTED)
         setApplications(validApplications);

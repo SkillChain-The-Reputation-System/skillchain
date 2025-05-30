@@ -21,12 +21,13 @@ import {
   EvaluationInterface,
   JobPreviewInterface,
   JobInterface,
-  JobApplicationWithJobDataInterface,
-  JobApplicantionInterface,
+  JobApplicationInterface,
+  BriefJobApplicantionInterface,
   UserProfileInterface,
   UserReputationScoreInterface,
   BriefMeetingInterface,
   MeetingRoomInterface,
+  JobApplicationMetricsInterface,
 } from "./interfaces";
 import {
   fetchJsonDataOffChain,
@@ -1128,9 +1129,9 @@ export const fetchJobAppliedByUser = async (
   }
 };
 
-export const fetchAllJobApplicationsByUser = async (
+export const fetchJobApplicationsByUser = async (
   address: `0x${string}`
-): Promise<JobApplicationWithJobDataInterface[]> => {
+): Promise<JobApplicationInterface[]> => {
   try {
     // Step 1: Fetch all applications submitted by the user from the smart contract
     const applications = (await readContract(wagmiConfig, {
@@ -1164,7 +1165,7 @@ export const fetchAllJobApplicationsByUser = async (
       }
 
       // Map the application data to the JobApplicationInterface
-      const jobApplication: JobApplicationWithJobDataInterface = {
+      const jobApplication: JobApplicationInterface = {
         id: application.id,
         applicant: application.applicant,
         applied_at: Number(application.applied_at),
@@ -1192,7 +1193,7 @@ export const fetchAllJobApplicationsByUser = async (
 
     // Filter out any null values (applications where we couldn't fetch the job details)
     const validJobApplications = jobApplications.filter(
-      (application): application is JobApplicationWithJobDataInterface =>
+      (application): application is JobApplicationInterface =>
         application !== null
     );
 
@@ -1209,7 +1210,7 @@ export const fetchAllJobApplicationsByUser = async (
 
 export const fetchJobApplicationByID = async (
   id: string
-): Promise<JobApplicationWithJobDataInterface | null> => {
+): Promise<JobApplicationInterface | null> => {
   try {
     // Step 1: Call the getApplication method in smart contract to fetch application details
     const application = (await readContract(wagmiConfig, {
@@ -1241,7 +1242,7 @@ export const fetchJobApplicationByID = async (
     }
 
     // Step 3: Process and return the JobApplicationInterface object
-    const jobApplication: JobApplicationWithJobDataInterface = {
+    const jobApplication: JobApplicationInterface = {
       id: application.id,
       applicant: application.applicant,
       applied_at: Number(application.applied_at),
@@ -1298,9 +1299,9 @@ export const fetchApplicationCountByJobID = async (
  * @param job_id The ID of the job
  * @returns Array of applicant details
  */
-export const fetchApplicantsByJobID = async (
+export const fetchBriefApplicationByJobID = async (
   job_id: string
-): Promise<JobApplicantionInterface[]> => {
+): Promise<BriefJobApplicantionInterface[]> => {
   try {
     // Step 1: Call the contract function to get applications for the job
     const applications = (await readContract(wagmiConfig, {
@@ -1315,7 +1316,7 @@ export const fetchApplicantsByJobID = async (
     );
 
     // Step 2: Transform contract data and fetch additional profile and reputation data
-    const applicants: JobApplicantionInterface[] = await Promise.all(
+    const applicants: BriefJobApplicantionInterface[] = await Promise.all(
       applications.map(async (application) => {
         const applicantAddress = application.applicant as `0x${string}`;
 
@@ -1387,15 +1388,7 @@ export async function fetchPossibleApplicationStatusTransitions(
  */
 export const fetchAllApplicationCountsByJobID = async (
   job_id: string
-): Promise<{
-  pending: number;
-  reviewing: number;
-  shortlisted: number;
-  interviewing: number;
-  rejected: number;
-  withdrawn: number;
-  hired: number;
-}> => {
+): Promise<JobApplicationMetricsInterface> => {
   try {
     // Get all applications for the job in a single contract call
     const applications = (await readContract(wagmiConfig, {
@@ -1406,11 +1399,12 @@ export const fetchAllApplicationCountsByJobID = async (
     })) as any[];
 
     // Initialize counters for each status
-    const counts = {
+    const counts:JobApplicationMetricsInterface = {
+      total: 0,
       pending: 0,
       reviewing: 0,
       shortlisted: 0,
-      interviewing: 0,
+      interviewed: 0,
       rejected: 0,
       withdrawn: 0,
       hired: 0,
@@ -1428,8 +1422,8 @@ export const fetchAllApplicationCountsByJobID = async (
         case JobApplicationStatus.SHORTLISTED:
           counts.shortlisted++;
           break;
-        case JobApplicationStatus.INTERVIEWING:
-          counts.interviewing++;
+        case JobApplicationStatus.INTERVIEWED:
+          counts.interviewed++;
           break;
         case JobApplicationStatus.REJECTED:
           counts.rejected++;
@@ -1443,14 +1437,17 @@ export const fetchAllApplicationCountsByJobID = async (
       }
     });
 
+    counts.total = applications.length; 
+
     return counts;
   } catch (error) {
     console.error("Error fetching all application counts by job ID:", error);
     return {
+      total: 0,
       pending: 0,
       reviewing: 0,
       shortlisted: 0,
-      interviewing: 0,
+      interviewed: 0,
       rejected: 0,
       withdrawn: 0,
       hired: 0,
@@ -1476,7 +1473,7 @@ export async function fetchMeetingsByRecruiter(
       fetchedMeetings.map(async (fetchedMeeting) => {
         const [meetingData, application] = await Promise.all([
           await fetchStringDataOffChain(`https://gateway.irys.xyz/mutable/${fetchedMeeting.txid}`) as any,
-          await fetchJobApplicationByID(fetchedMeeting.application_id) as JobApplicationWithJobDataInterface
+          await fetchJobApplicationByID(fetchedMeeting.application_id) as JobApplicationInterface
         ])
 
         return {
@@ -1509,6 +1506,48 @@ export async function fetchMeetingsByRecruiter(
   }
 }
 
+export async function fetchBriefMeetingByApplicationId(
+  application_id: string
+): Promise<BriefMeetingInterface | null> {
+  try {
+    const fetchedMeeting = (await readContract(wagmiConfig, {
+      address: ContractConfig_MeetingManager.address as `0x${string}`,
+      abi: ContractConfig_MeetingManager.abi,
+      functionName: "getMeetingByApplication",
+      args: [application_id],
+    })) as any;
+
+    const [meetingData, application] = await Promise.all([
+      await fetchStringDataOffChain(`https://gateway.irys.xyz/mutable/${fetchedMeeting.txid}`) as any,
+      await fetchJobApplicationByID(fetchedMeeting.application_id) as JobApplicationInterface
+    ])
+
+    return {
+      id: fetchedMeeting.id,
+      applicant: application.profile_data,
+      job: {
+        position: application.job.title,
+        duration: application.job.duration,
+      },
+      scheduledAt: Number(fetchedMeeting.created_at),
+      endedAt: Number(fetchedMeeting.ended_at),
+      meetingDate: {
+        date: meetingData.date,
+        fromTime: meetingData.fromTime,
+        toTime: meetingData.toTime,
+      },
+      status: fetchedMeeting.status,
+    } as BriefMeetingInterface;
+  }
+  catch (error) {
+    console.error(
+      "Error fetching brief meeting by Application ID:",
+      error
+    );
+    return null;
+  }
+}
+
 export async function fetchMeetingRoomById(
   meeting_id: string
 ): Promise<MeetingRoomInterface | null> {
@@ -1522,7 +1561,7 @@ export async function fetchMeetingRoomById(
 
     const [meetingData, application] = await Promise.all([
       await fetchStringDataOffChain(`https://gateway.irys.xyz/mutable/${fetchedMeeting.txid}`) as any,
-      await fetchJobApplicationByID(fetchedMeeting.application_id) as JobApplicationWithJobDataInterface
+      await fetchJobApplicationByID(fetchedMeeting.application_id) as JobApplicationInterface
     ])
 
     return {
@@ -1546,6 +1585,7 @@ export async function fetchMeetingRoomById(
     return null;
   }
 }
+
 
 export async function fetchMeetingTxIdById(
   meeting_id: string

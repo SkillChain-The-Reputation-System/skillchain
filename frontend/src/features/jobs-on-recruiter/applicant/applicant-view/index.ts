@@ -4,4 +4,3 @@ export { default as JobApplicationDetailsCard } from "./job-application-details-
 export { default as InterviewInformationCard } from "./interview-information-card";
 export { default as QualificationsFitCard } from "./qualifications-fit-card";
 export { default as StatusChangeDialog } from "./status-change-dialog";
-export * from "./types";

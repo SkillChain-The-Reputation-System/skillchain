@@ -21,7 +21,7 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { format } from "date-fns";
-import { JobApplicationWithJobDataInterface } from "@/lib/interfaces";
+import { JobApplicationInterface } from "@/lib/interfaces";
 import { JobApplicationStatus } from "@/constants/system";
 import { ApplicationStatusLabels } from "@/constants/system";
 import {
@@ -32,7 +32,7 @@ import { Icons } from "@/components/icons";
 import { ApplicationStatusIconMap } from "@/constants/data";
 
 interface JobApplicationDetailsCardProps {
-  application: JobApplicationWithJobDataInterface;
+  application: JobApplicationInterface;
   possibleStatuses: JobApplicationStatus[];
   statusLoading: boolean;
   onStatusChange: (status: string) => void;

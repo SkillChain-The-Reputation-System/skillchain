@@ -24,7 +24,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { fetchJobApplicationByID } from "@/lib/fetching-onchain-data-utils";
-import { JobApplicationWithJobDataInterface } from "@/lib/interfaces";
+import { JobApplicationInterface } from "@/lib/interfaces";
 import {
   JobStatus,
   JobStatusLabels,
@@ -118,7 +118,7 @@ const ReputationRequirement = ({
 const StatusTimeline = ({
   application,
 }: {
-  application: JobApplicationWithJobDataInterface;
+  application: JobApplicationInterface;
 }) => {
   // Mock status history - in a real implementation, this would come from the application
   const statusHistory = [
@@ -146,10 +146,10 @@ const StatusTimeline = ({
           },
         ]
       : []),
-    ...(application.status >= JobApplicationStatus.INTERVIEWING
+    ...(application.status >= JobApplicationStatus.INTERVIEWED
       ? [
           {
-            status: JobApplicationStatus.INTERVIEWING,
+            status: JobApplicationStatus.INTERVIEWED,
             date: new Date(application.applied_at + 259200000), // 3 days after applying
             isActive: true,
           },
@@ -218,7 +218,7 @@ export default function ApplicationDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [application, setApplication] =
-    useState<JobApplicationWithJobDataInterface | null>(null);
+    useState<JobApplicationInterface | null>(null);
   const [loading, setLoading] = useState(true);
   const { address, isConnected } = useAccount();
   const applicationId = params.id as string;
@@ -568,7 +568,7 @@ export default function ApplicationDetailPage() {
                 )}
 
                 {application.status === 
-                JobApplicationStatus.INTERVIEWING && (
+                JobApplicationStatus.INTERVIEWED && (
                   <div className="text-sm text-blue-800 dark:text-blue-300 space-y-2">
                     <p>
                       Interview scheduled for June 1, 2025 at 10:00 AM in Zoom.

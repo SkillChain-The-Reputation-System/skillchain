@@ -10,11 +10,11 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { JobApplicationWithJobDataInterface } from "@/lib/interfaces";
+import { JobApplicationInterface } from "@/lib/interfaces";
 import { DomainLabels } from "@/constants/system";
 
 interface ApplicantProfileCardProps {
-  application: JobApplicationWithJobDataInterface;
+  application: JobApplicationInterface;
 }
 
 export default function ApplicantProfileCard({

@@ -9,13 +9,13 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckIcon, TrophyIcon, XIcon } from "lucide-react";
-import { JobApplicationWithJobDataInterface } from "@/lib/interfaces";
+import { JobApplicationInterface } from "@/lib/interfaces";
 import { DomainLabels } from "@/constants/system";
 import { DomainIconMap } from "@/constants/data";
 import { Icons } from "@/components/icons";
 
 interface QualificationsFitCardProps {
-  application: JobApplicationWithJobDataInterface;
+  application: JobApplicationInterface;
 }
 
 export default function QualificationsFitCard({

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ArrowLeftIcon, Loader2 } from "lucide-react";
-import { JobApplicationWithJobDataInterface } from "@/lib/interfaces";
+import { JobApplicationInterface } from "@/lib/interfaces";
 import { JobApplicationStatus } from "@/constants/system";
 import { ApplicationStatusLabels } from "@/constants/system";
 import {
@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 interface StatusChangeDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  application: JobApplicationWithJobDataInterface | null;
+  application: JobApplicationInterface | null;
   newStatus: JobApplicationStatus | null;
   onConfirm: () => void;
   statusLoading: boolean;
@@ -50,8 +50,8 @@ export default function StatusChangeDialog({
         return "Moving this application to reviewing stage will indicate you're currently reviewing the candidate.";
       case JobApplicationStatus.SHORTLISTED:
         return "Shortlisting this candidate will move them to the next step in the hiring process.";
-      case JobApplicationStatus.INTERVIEWING:
-        return "Moving this application to interviewing stage means you're ready to schedule an interview.";
+      case JobApplicationStatus.INTERVIEWED:
+        return "Moving this application to interviewed stage means that you have completed the interview process with the candidate.";
       case JobApplicationStatus.REJECTED:
         return "Rejecting this application will notify the candidate that they are no longer being considered.";
       case JobApplicationStatus.HIRED:

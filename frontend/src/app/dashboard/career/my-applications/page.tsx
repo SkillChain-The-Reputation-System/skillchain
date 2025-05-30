@@ -3,22 +3,22 @@
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Separator } from "@/components/ui/separator";
-import { fetchAllJobApplicationsByUser } from "@/lib/fetching-onchain-data-utils";
-import { JobApplicationWithJobDataInterface } from "@/lib/interfaces";
+import { fetchJobApplicationsByUser } from "@/lib/fetching-onchain-data-utils";
+import { JobApplicationInterface } from "@/lib/interfaces";
 import { toast } from "react-toastify";
 import { ApplicationsTable } from "@/features/jobs-on-user/applications-table/data-table";
 import { ApplicationColumns } from "@/features/jobs-on-user/applications-table/columns";
 import { useAccount } from "wagmi";
 
 export default function MyApplicationsPage() {
-  const [applications, setApplications] = useState<JobApplicationWithJobDataInterface[]>([]);
+  const [applications, setApplications] = useState<JobApplicationInterface[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const { address } = useAccount();
   useEffect(() => {
     const fetchApplications = async () => {
       try {
         setLoading(true);
-        const fetchedApplications = await fetchAllJobApplicationsByUser(address as `0x${string}`);
+        const fetchedApplications = await fetchJobApplicationsByUser(address as `0x${string}`);
         setApplications(fetchedApplications);
       } catch (error) {
         console.error("Error fetching job applications:", error);

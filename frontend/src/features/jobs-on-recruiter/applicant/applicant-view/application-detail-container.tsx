@@ -250,7 +250,7 @@ export default function ApplicationDetailContainer() {
             statusLoading={statusLoading}
             onStatusChange={handleStatusChange}
             removePointerEventsFromBody={removePointerEventsFromBody}
-          />{" "}
+          />
           {/* Interview Information Card */}
           <InterviewInformationCard
             applicationStatus={applicationStatus!}

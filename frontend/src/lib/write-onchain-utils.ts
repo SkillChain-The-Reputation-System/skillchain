@@ -24,7 +24,11 @@ import axios from "axios";
 import { uploadImagesInHTML, generateRoomID } from "@/lib/utils";
 import { IrysUploadResponseInterface } from "@/lib/interfaces";
 import { JobFormData } from "@/features/jobs-on-recruiter/create/create-job-form";
-import { JobApplicationStatus, JobStatus, MeetingStatus } from "@/constants/system";
+import {
+  JobApplicationStatus,
+  JobStatus,
+  MeetingStatus,
+} from "@/constants/system";
 import { ScheduleMeetingFormData } from "@/features/meetings/schedule-meeting-form";
 
 export async function joinReviewPool(
@@ -313,10 +317,7 @@ export async function createJob(address: `0x${string}`, _data: JobFormData) {
   return txHash;
 }
 
-export async function updateJobContent(
-  jobId: string,
-  _data: JobFormData
-) {
+export async function updateJobContent(jobId: string, _data: JobFormData) {
   try {
     // Get the content_id from the smart contract using the fetching function
     const content_id = await fetchJobContentID(jobId);
@@ -359,7 +360,8 @@ export async function updateJobStatus(
     switch (newStatus) {
       case JobStatus.OPEN:
         // From DRAFT to OPEN (publish) or from PAUSED to OPEN (resume)
-        functionName = currentStatus === JobStatus.DRAFT ? "publishJob" : "resumeJob";
+        functionName =
+          currentStatus === JobStatus.DRAFT ? "publishJob" : "resumeJob";
         break;
       case JobStatus.PAUSED:
         functionName = "pauseJob";
@@ -402,7 +404,7 @@ export async function updateJobStatus(
 
 export async function submitJobApplication(
   address: `0x${string}`,
-  jobId: string,
+  jobId: string
 ): Promise<`0x${string}`> {
   try {
     // First simulate the transaction to check for any errors
@@ -470,11 +472,55 @@ export async function updateJobApplicationStatus(
   }
 }
 
+/**
+ * Withdraw a job application (only by the applicant)
+ * @param address The address of the applicant
+ * @param applicationId The application ID to withdraw
+ * @returns The transaction hash
+ */
+export async function withdrawJobApplication(
+  address: `0x${string}`,
+  applicationId: string
+): Promise<`0x${string}`> {
+  try {
+    // Simulate the transaction to check for errors
+    await simulateContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "withdrawApplication",
+      args: [applicationId],
+      account: address,
+    });
+
+    // Send the transaction
+    const txHash = await writeContract(wagmiConfig, {
+      address: ContractConfig_JobApplicationManager.address as `0x${string}`,
+      abi: ContractConfig_JobApplicationManager.abi,
+      functionName: "withdrawApplication",
+      args: [applicationId],
+      account: address,
+    });
+
+    // Wait for transaction to be mined
+    await waitForTransactionReceipt(wagmiConfig, { hash: txHash });
+
+    return txHash;
+  } catch (error) {
+    console.error("Error withdrawing job application:", error);
+    throw error;
+  }
+}
+
 export async function scheduleMeeting(
   address: `0x${string}`,
   data: ScheduleMeetingFormData
 ): Promise<`0x${string}`> {
-  const roomId = generateRoomID(data.application, data.date, data.fromTime, data.toTime);
+  const roomId = generateRoomID(
+    data.application,
+    data.date,
+    data.fromTime,
+    data.toTime
+  );
 
   const { data: job_content_upload_res } =
     await axios.post<IrysUploadResponseInterface>(
@@ -486,7 +532,7 @@ export async function scheduleMeeting(
           fromTime: data.fromTime,
           toTime: data.toTime,
           note: data.note,
-        })
+        }),
       }
     );
 
@@ -508,7 +554,12 @@ export async function rescheduleMeeting(
   meeting_id: string,
   data: ScheduleMeetingFormData
 ) {
-  const roomId = generateRoomID(data.application, data.date, data.fromTime, data.toTime);
+  const roomId = generateRoomID(
+    data.application,
+    data.date,
+    data.fromTime,
+    data.toTime
+  );
 
   try {
     const txid = await fetchMeetingTxIdById(meeting_id);
@@ -526,7 +577,7 @@ export async function rescheduleMeeting(
             toTime: data.toTime,
             note: data.note,
           }),
-          tags: tags
+          tags: tags,
         }
       );
 
@@ -540,7 +591,6 @@ export async function completeMeeting(
   address: `0x${string}`,
   meeting_id: string
 ): Promise<`0x${string}`> {
-
   const txHash = await writeContract(wagmiConfig, {
     address: ContractConfig_MeetingManager.address as `0x${string}`,
     abi: ContractConfig_MeetingManager.abi,
@@ -558,7 +608,6 @@ export async function cancelMeeting(
   address: `0x${string}`,
   meeting_id: string
 ): Promise<`0x${string}`> {
-
   const txHash = await writeContract(wagmiConfig, {
     address: ContractConfig_MeetingManager.address as `0x${string}`,
     abi: ContractConfig_MeetingManager.abi,

@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useAccount } from "wagmi";
 import dynamic from "next/dynamic";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { fetchJobApplicationByID } from "@/lib/fetching-onchain-data-utils";
+import { withdrawJobApplication } from "@/lib/write-onchain-utils";
 import { JobApplicationInterface } from "@/lib/interfaces";
 import { JobApplicationStatus } from "@/constants/system";
 import { toast } from "react-toastify";
@@ -43,7 +45,106 @@ const ApplicationStatusCard = dynamic(
   }
 );
 
-// Loading fallback component
+// Loading fallback components for each card type
+function ApplicationStatusCardSkeleton() {
+  return (
+    <div className="border rounded-xl shadow-sm space-y-6">
+      {/* Header */}
+      <div className="p-6 pb-0">
+        <div className="flex items-center justify-between mb-4">
+          <div className="h-7 w-48 bg-slate-200 animate-pulse rounded-md"></div>
+          <div className="h-6 w-24 bg-slate-200 animate-pulse rounded-full"></div>
+        </div>
+      </div>
+      
+      {/* Application Overview */}
+      <div className="px-6 space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-3">
+            <div className="h-4 w-32 bg-slate-200 animate-pulse rounded"></div>
+            <div className="h-10 bg-slate-200 animate-pulse rounded-lg"></div>
+          </div>
+          <div className="space-y-3">
+            <div className="h-4 w-28 bg-slate-200 animate-pulse rounded"></div>
+            <div className="h-10 bg-slate-200 animate-pulse rounded-lg"></div>
+          </div>
+        </div>
+        <div className="h-px bg-slate-200"></div>
+      </div>
+
+      {/* Reputation Requirements */}
+      <div className="px-6 space-y-4">
+        <div className="h-6 w-56 bg-slate-200 animate-pulse rounded"></div>
+        <div className="flex gap-2 flex-wrap">
+          <div className="h-6 w-20 bg-slate-200 animate-pulse rounded-full"></div>
+          <div className="h-6 w-24 bg-slate-200 animate-pulse rounded-full"></div>
+        </div>
+        <div className="h-px bg-slate-200"></div>
+      </div>
+
+      {/* Status Alert */}
+      <div className="px-6 pb-6">
+        <div className="h-16 bg-slate-200 animate-pulse rounded-lg"></div>
+      </div>
+    </div>
+  );
+}
+
+function ApplicationJobOverviewCardSkeleton() {
+  return (
+    <div className="border rounded-xl shadow-sm">
+      {/* Header */}
+      <div className="p-6 pb-0">
+        <div className="h-6 w-32 bg-slate-200 animate-pulse rounded"></div>
+      </div>
+      
+      {/* Content */}
+      <div className="p-6 pt-4 space-y-4">
+        {/* Job details list */}
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="grid grid-cols-2 gap-4 items-center py-2">
+            <div className="flex items-center gap-2">
+              <div className="h-4 w-4 bg-slate-200 animate-pulse rounded"></div>
+              <div className="h-4 w-20 bg-slate-200 animate-pulse rounded"></div>
+            </div>
+            <div className="flex justify-end">
+              <div className="h-4 w-24 bg-slate-200 animate-pulse rounded"></div>
+            </div>
+          </div>
+        ))}
+        
+        {/* Status section */}
+        <div className="grid grid-cols-2 gap-4 items-center py-2 pt-4 border-t">
+          <div className="h-4 w-16 bg-slate-200 animate-pulse rounded"></div>
+          <div className="flex justify-end">
+            <div className="h-6 w-20 bg-slate-200 animate-pulse rounded-full"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ApplicationJobDetailsCardSkeleton() {
+  return (
+    <div className="border rounded-xl shadow-sm">
+      {/* Header */}
+      <div className="p-6 pb-0">
+        <div className="h-6 w-28 bg-slate-200 animate-pulse rounded"></div>
+      </div>
+      
+      {/* Content */}
+      <div className="p-6 pt-4 space-y-3">
+        {/* Three dialog buttons */}
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="h-10 bg-slate-200 animate-pulse rounded-lg"></div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Generic fallback for dynamic imports
 function CardSkeleton() {
   return (
     <div className="border rounded-xl py-6 shadow-sm space-y-4">
@@ -61,6 +162,7 @@ function CardSkeleton() {
 export default function ApplicationDetailContainer() {
   const params = useParams();
   const router = useRouter();
+  const { address } = useAccount();
   const [application, setApplication] =
     useState<JobApplicationInterface | null>(null);
   const [loading, setLoading] = useState(true);
@@ -87,17 +189,22 @@ export default function ApplicationDetailContainer() {
       fetchApplicationData();
     }
   }, [applicationId]);
-
   // Handle application withdrawal
   const handleWithdrawApplication = async () => {
-    // This would be implemented with actual blockchain interaction
-    toast.info("Application withdrawal feature will be implemented soon.");
+    if (!address) {
+      toast.error("Please connect your wallet to withdraw the application");
+      return;
+    }
 
-    // Mock implementation for UI demo
-    /*
     try {
-      // await withdrawApplication(applicationId);
+      toast.info("Withdrawing application...");
+      
+      // Call the blockchain function to withdraw the application
+      const txHash = await withdrawJobApplication(address, applicationId);
+      
       toast.success("Application withdrawn successfully!");
+      console.log("Withdrawal transaction hash:", txHash);
+      
       // Update application status locally for immediate UI feedback
       if (application) {
         setApplication({
@@ -109,22 +216,31 @@ export default function ApplicationDetailContainer() {
       console.error("Error withdrawing application:", error);
       toast.error("Failed to withdraw application. Please try again later.");
     }
-    */
   };
-
   if (loading) {
     return (
       <div>
         <div className="flex flex-col space-y-8">
-          <div className="h-8 w-64 bg-slate-200 animate-pulse rounded-md" />
+          {/* Page header skeleton */}
+          <div className="space-y-2">
+            <div className="h-8 w-64 bg-slate-200 animate-pulse rounded-md" />
+            <div className="h-4 w-48 bg-slate-200 animate-pulse rounded-md" />
+          </div>
+          
+          {/* Separator */}
+          <div className="h-px bg-slate-200"></div>
+          
+          {/* Main content layout matching the actual structure */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <div className="h-32 bg-slate-200 animate-pulse rounded-lg" />
-              <div className="h-64 bg-slate-200 animate-pulse rounded-lg" />
+            {/* Left Column (Application Status - Main Component) */}
+            <div className="lg:col-span-2">
+              <ApplicationStatusCardSkeleton />
             </div>
+
+            {/* Right Column (Overview & Job Details) */}
             <div className="space-y-6">
-              <div className="h-48 bg-slate-200 animate-pulse rounded-lg" />
-              <div className="h-32 bg-slate-200 animate-pulse rounded-lg" />
+              <ApplicationJobOverviewCardSkeleton />
+              <ApplicationJobDetailsCardSkeleton />
             </div>
           </div>
         </div>

@@ -34,9 +34,10 @@ export const applicationStatusStyles = {
   [JobApplicationStatus.PENDING]: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200",
   [JobApplicationStatus.REVIEWING]: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200",
   [JobApplicationStatus.SHORTLISTED]: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-200",
+  
   [JobApplicationStatus.INTERVIEWED]: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-200",
   [JobApplicationStatus.REJECTED]: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200",
-  [JobApplicationStatus.WITHDRAWN]: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-200",
+  [JobApplicationStatus.WITHDRAWN]: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200",
   [JobApplicationStatus.HIRED]: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200",
 };
 
@@ -47,7 +48,7 @@ export const applicationStatusHoverStyles = {
   [JobApplicationStatus.SHORTLISTED]: "bg-indigo-100 text-indigo-800 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-200 dark:hover:bg-indigo-800/40",
   [JobApplicationStatus.INTERVIEWED]: "bg-purple-100 text-purple-800 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-200 dark:hover:bg-purple-800/40",
   [JobApplicationStatus.REJECTED]: "bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-200 dark:hover:bg-red-800/40",
-  [JobApplicationStatus.WITHDRAWN]: "bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-900/30 dark:text-gray-200 dark:hover:bg-gray-800/40",
+  [JobApplicationStatus.WITHDRAWN]: "bg-orange-100 text-orange-800 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-200 dark:hover:bg-orange-800/40",
   [JobApplicationStatus.HIRED]: "bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-200 dark:hover:bg-green-800/40",
 };
 
@@ -80,7 +81,7 @@ export const applicationStatusIconStyles = {
   [JobApplicationStatus.SHORTLISTED]: "text-indigo-500",
   [JobApplicationStatus.INTERVIEWED]: "text-purple-500",
   [JobApplicationStatus.REJECTED]: "text-red-500",
-  [JobApplicationStatus.WITHDRAWN]: "text-gray-500",
+  [JobApplicationStatus.WITHDRAWN]: "text-orange-500",
   [JobApplicationStatus.HIRED]: "text-green-500",
 };
 

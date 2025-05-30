@@ -112,7 +112,7 @@ export default function SearchBar({
             value={searchLocalQuery}
             onChange={handleSearchChange}
             placeholder="Search challenges..."
-            className="pl-10 pr-10 border-black dark:border-white border"
+            className="pl-10 pr-10 select-none"
           />
           {searchLocalQuery && (
             <Button
@@ -130,12 +130,12 @@ export default function SearchBar({
         <div className="flex gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-full px-3 text-sm gap-1 border-black dark:border-white border">
+              <Button variant="outline" size="sm" className="h-full px-3 text-sm gap-1 select-none cursor-pointer">
                 <ArrowUpDown className="h-3.5 w-3.5 mr-1" />
                 {ChallengeSortOptionLabels[sortLocalOption as ChallengeSortOption]}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-50 border-black dark:border-white border">
+            <DropdownMenuContent align="end" className="w-50">
               <DropdownMenuLabel>Sort Challenges</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuRadioGroup
@@ -146,7 +146,7 @@ export default function SearchBar({
                   (Object.values(ChallengeSortOption) as unknown as number[])
                     .filter((v) => typeof v === "number")
                     .map((num) => (
-                      <DropdownMenuRadioItem key={num} value={num.toString()}>
+                      <DropdownMenuRadioItem key={num} value={num.toString()} className="cursor-pointer">
                         {ChallengeSortOptionLabels[num as ChallengeSortOption]}
                       </DropdownMenuRadioItem>
                     ))
@@ -158,7 +158,7 @@ export default function SearchBar({
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-full px-3 text-sm gap-1 border-black dark:border-white border">
+              <Button variant="outline" size="sm" className="h-full px-3 text-sm gap-1 select-none cursor-pointer">
                 <Filter className="h-3.5 w-3.5 mr-1" />
                 Filters
                 {activeFilterCount > 0 && (
@@ -174,7 +174,7 @@ export default function SearchBar({
 
               <DropdownMenuGroup>
                 <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
+                  <DropdownMenuSubTrigger className="cursor-pointer">
                     <span>Domain</span>
                     {domainLocalFilter != null && (
                       <Badge variant="secondary" className="ml-auto">
@@ -184,7 +184,7 @@ export default function SearchBar({
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent className="border-black dark:border-white border">
-                      <DropdownMenuItem onClick={() => handleDomainChange(null)}>
+                      <DropdownMenuItem onClick={() => handleDomainChange(null)} className="cursor-pointer">
                         <span>All Domains</span>
                         {domainLocalFilter == null && <Check className="ml-auto h-4 w-4" />}
                       </DropdownMenuItem>
@@ -193,7 +193,7 @@ export default function SearchBar({
                         (Object.values(Domain) as unknown as number[])
                           .filter((v) => typeof v === "number")
                           .map((num) => (
-                            <DropdownMenuItem key={num} onClick={() => handleDomainChange(num)}>
+                            <DropdownMenuItem key={num} onClick={() => handleDomainChange(num)} className="cursor-pointer">
                               {DomainLabels[num as Domain]}
                             </DropdownMenuItem>
                           ))
@@ -210,7 +210,7 @@ export default function SearchBar({
               <DropdownMenuItem
                 disabled={activeFilterCount === 0}
                 onClick={handleClearFilters}
-                className="text-center justify-center font-medium"
+                className="text-center justify-center font-medium cursor-pointer"
               >
                 Clear All Filters
               </DropdownMenuItem>

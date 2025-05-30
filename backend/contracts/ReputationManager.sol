@@ -6,9 +6,11 @@ import "./Constants.sol";
 
 // TODO: add access control to the modules. Currently, anyone can call the update functions.
 contract ReputationManager {
-    // ================== LOCAL CONSTANTS ==================
+    // ============================== LOCAL CONSTANTS ==============================
     uint256 public constant N_DOMAIN = 14; // Maximum number of domains
 
+
+    // ============================== STATE VARIABLES ==============================
     // domain-specific reputation: user => domain => score (can be negative)
     mapping(address => mapping(SystemEnums.Domain => int256))
         public domain_reputation;
@@ -16,7 +18,7 @@ contract ReputationManager {
     // global reputation = sum of all domainReputation
     mapping(address => int256) public global_reputation;
 
-    // --- EVENTS ---
+    // ============================== EVENTS ==============================
     event ReputationChanged(
         address indexed _user,
         SystemEnums.Domain indexed _domain,
@@ -26,9 +28,8 @@ contract ReputationManager {
     );
     event ModuleUpdated(string _module_type, address _module_address);
 
-    // --- MODIFIERS ---
+    // ============================== MODIFIERS ==============================
     // TODO: add access control to the modules
-
     modifier ensureValidValues(uint256 _threshold) {
         require(
             _threshold > 0 && _threshold < Weights.BASE_WEIGHT,
@@ -37,10 +38,10 @@ contract ReputationManager {
         _;
     }
 
-    // --- ADMIN FUNCTIONS ---
+    // ============================== ADMIN FUNCTIONS ==============================
     // TODO: add admin functions to the modules for updating after deployment
 
-    // --- UPDATE FUNCTIONS ---
+    // ============================== UPDATE FUNCTIONS ==============================
     /// @notice Called after a solution is finalized -> Update the user's reputation who submitted the solution
     /// @param _user                address whose reputation to update
     /// @param _domain              the challenge domain
@@ -148,7 +149,7 @@ contract ReputationManager {
         _applyReputationChange(_moderator, _domain, delta);
     }
 
-    // --- INTERNAL FUNCTIONS ---
+    // ============================== INTERNAL FUNCTIONS ==============================
     function _applyReputationChange(
         address _user,
         SystemEnums.Domain _domain,
@@ -245,7 +246,7 @@ contract ReputationManager {
         return delta;
     }
 
-    // --- GETTER FUNCTIONS ---
+    // ============================== GETTER FUNCTIONS ==============================
     function getDomainReputation(
         address _user,
         SystemEnums.Domain _domain

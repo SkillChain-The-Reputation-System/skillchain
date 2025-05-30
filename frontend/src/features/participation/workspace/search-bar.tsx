@@ -9,7 +9,6 @@ import {
   X,
   Filter,
   Check,
-  ArrowUpDown
 } from "lucide-react"
 
 // Import UI components
@@ -27,15 +26,11 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 
 // Import utils
 import {
-  ChallengeSortOption,
-  ChallengeSortOptionLabels,
   Domain,
   DomainLabels,
   ChallengeSolutionProgress,
@@ -69,7 +64,6 @@ export default function SearchBar({ onSearch, onFilterChange, searchQuery, domai
     onFilterChange({
       domain,
       progress: progressFilter,
-      // difficulty: difficultyFilter,
     })
   }
 
@@ -77,7 +71,6 @@ export default function SearchBar({ onSearch, onFilterChange, searchQuery, domai
     onFilterChange({
       domain: domainFilter,
       progress,
-      // difficulty: difficultyFilter,
     })
   }
 
@@ -105,7 +98,7 @@ export default function SearchBar({ onSearch, onFilterChange, searchQuery, domai
             value={query}
             onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Search your works..."
-            className="pl-10 pr-10 border-black dark:border-white border"
+            className="pl-10 pr-10 select-none"
           />
           {query && (
             <Button
@@ -121,37 +114,9 @@ export default function SearchBar({ onSearch, onFilterChange, searchQuery, domai
         </div>
 
         <div className="flex gap-2">
-          {/* <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-full px-3 text-sm gap-1 border-black dark:border-white border">
-                <ArrowUpDown className="h-3.5 w-3.5 mr-1" />
-                {ChallengeSortOptionLabels[sortLocalOption as ChallengeSortOption]}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-50 border-black dark:border-white border">
-              <DropdownMenuLabel>Sort Challenges</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuRadioGroup
-                value={sortLocalOption.toString()}
-                onValueChange={(value) => handleSortChange(Number(value) as ChallengeSortOption)}
-              >
-                {
-                  (Object.values(ChallengeSortOption) as unknown as number[])
-                    .filter((v) => typeof v === "number")
-                    .map((num) => (
-                      <DropdownMenuRadioItem key={num} value={num.toString()}>
-                        {ChallengeSortOptionLabels[num as ChallengeSortOption]}
-                      </DropdownMenuRadioItem>
-                    ))
-                }
-              </DropdownMenuRadioGroup>
-
-            </DropdownMenuContent>
-          </DropdownMenu> */}
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-full px-3 text-sm gap-1 border-black dark:border-white border">
+              <Button variant="outline" size="sm" className="h-full px-3 text-sm gap-1 cursor-pointer">
                 <Filter className="h-3.5 w-3.5 mr-1" />
                 Filters
                 {activeFilterCount > 0 && (
@@ -167,7 +132,7 @@ export default function SearchBar({ onSearch, onFilterChange, searchQuery, domai
 
               <DropdownMenuGroup>
                 <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
+                  <DropdownMenuSubTrigger className="cursor-pointer">
                     <span>Domain</span>
                     {domainFilter != null && (
                       <Badge variant="secondary" className="ml-auto">
@@ -176,8 +141,8 @@ export default function SearchBar({ onSearch, onFilterChange, searchQuery, domai
                     )}
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
-                    <DropdownMenuSubContent className="border-black dark:border-white border">
-                      <DropdownMenuItem onClick={() => handleDomainChange(null)}>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuItem onClick={() => handleDomainChange(null)} className="cursor-pointer">
                         <span>All Domains</span>
                         {domainFilter == null && <Check className="ml-auto h-4 w-4" />}
                       </DropdownMenuItem>
@@ -186,7 +151,7 @@ export default function SearchBar({ onSearch, onFilterChange, searchQuery, domai
                         (Object.values(Domain) as unknown as number[])
                           .filter((v) => typeof v === "number")
                           .map((num) => (
-                            <DropdownMenuItem key={num} onClick={() => handleDomainChange(num)}>
+                            <DropdownMenuItem key={num} onClick={() => handleDomainChange(num)} className="cursor-pointer">
                               {DomainLabels[num as Domain]}
                             </DropdownMenuItem>
                           ))
@@ -196,7 +161,7 @@ export default function SearchBar({ onSearch, onFilterChange, searchQuery, domai
                 </DropdownMenuSub>
 
                 <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
+                  <DropdownMenuSubTrigger className="cursor-pointer">
                     <span>Progress</span>
                     {progressFilter != null && (
                       <Badge variant="secondary" className="ml-auto">
@@ -205,8 +170,8 @@ export default function SearchBar({ onSearch, onFilterChange, searchQuery, domai
                     )}
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
-                    <DropdownMenuSubContent className="border-black dark:border-white border">
-                      <DropdownMenuItem onClick={() => handleProgressChange(null)}>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuItem onClick={() => handleProgressChange(null)} className="cursor-pointer">
                         <span>All Progresses</span>
                         {progressFilter == null && <Check className="ml-auto h-4 w-4" />}
                       </DropdownMenuItem>
@@ -215,7 +180,7 @@ export default function SearchBar({ onSearch, onFilterChange, searchQuery, domai
                         (Object.values(ChallengeSolutionProgress) as unknown as number[])
                           .filter((v) => typeof v === "number")
                           .map((num) => (
-                            <DropdownMenuItem key={num} onClick={() => handleProgressChange(num)}>
+                            <DropdownMenuItem key={num} onClick={() => handleProgressChange(num)} className="cursor-pointer">
                               {ChallengeSolutionProgressLabels[num as ChallengeSolutionProgress]}
                             </DropdownMenuItem>
                           ))
@@ -232,7 +197,7 @@ export default function SearchBar({ onSearch, onFilterChange, searchQuery, domai
               <DropdownMenuItem
                 disabled={activeFilterCount === 0}
                 onClick={handleClearFilters}
-                className="text-center justify-center font-medium"
+                className="text-center justify-center font-medium cursor-pointer"
               >
                 Clear All Filters
               </DropdownMenuItem>

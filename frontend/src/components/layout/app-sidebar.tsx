@@ -35,7 +35,7 @@ import { AccountButton } from "./account-button";
 export const company = {
   name: "SkillChain",
   logo: GalleryVerticalEnd,
-  plan: "Enterprise",
+  plan: "User",
 };
 
 export default function AppSidebar() {
@@ -57,7 +57,7 @@ export default function AppSidebar() {
       </SidebarHeader>
       <SidebarContent className="overflow-x-hidden">
         <SidebarGroup>
-          <SidebarGroupLabel>Overview</SidebarGroupLabel>
+          <SidebarGroupLabel>User Dashboard</SidebarGroupLabel>
           <SidebarMenu>
             {navItems.map((item) => {
               const Icon = item.icon ? Icons[item.icon] : Icons.logo;

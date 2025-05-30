@@ -38,7 +38,7 @@ export function SolutionCard({ solutionPreview, onClick, forEvaluator = false }:
   return (
     <>
       <Card
-        className="w-full h-full group gap-2 overflow-hidden bg-blue-100 dark:bg-blue-950/60 transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-lg dark:hover:shadow-blue-900/20 border-transparent hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer select-none"
+        className="w-full h-full group gap-2 overflow-hidden bg-blue-100 dark:bg-blue-950/60 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-lg dark:hover:shadow-blue-900/20 border-transparent hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer select-none"
         onClick={() => onClick(solutionPreview.solutionId)}
       >
         <CardHeader>
@@ -51,18 +51,18 @@ export function SolutionCard({ solutionPreview, onClick, forEvaluator = false }:
               {
                 forEvaluator && (
                   solutionPreview.progress == ChallengeSolutionProgress.UNDER_REVIEW ?
-                    <LoaderCircle className="h-full max-h-5.5 w-full max-w-5.5 text-yellow-500" />
+                    <LoaderCircle className="h-full max-h-5.5 w-full max-w-5.5 text-yellow-500 animate-spin duration-2500" />
                     :
                     <Check className="h-full max-h-5.5 w-full max-w-5.5 text-green-600" />
                 )
               }
             </div>
-
-            <div
-              className="line-clamp-1 mt-1 text-muted-foreground text-xs font-light disable-click-links no-images break-all"
-              dangerouslySetInnerHTML={{ __html: solutionPreview.solution || "" }}
-            />
           </div>
+
+          <div
+            className="line-clamp-1 mt-1 text-muted-foreground text-xs font-light disable-click-links no-images break-all"
+            dangerouslySetInnerHTML={{ __html: solutionPreview.solution || "" }}
+          />
         </CardHeader>
 
         <CardContent className="flex flex-col text-[11px] text-muted-foreground gap-2">

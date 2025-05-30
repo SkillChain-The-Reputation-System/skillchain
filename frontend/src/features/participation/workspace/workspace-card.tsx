@@ -38,7 +38,7 @@ export function WorkspaceCard({ previewChallenge, onClick }: WorkspaceCardProps)
   return (
     <>
       <Card
-        className="w-full h-full group gap-2 overflow-hidden bg-blue-100 dark:bg-blue-950/60 transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-lg dark:hover:shadow-blue-900/20 border-transparent hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer select-none"
+        className="w-full h-full group gap-2 overflow-hidden bg-blue-100 dark:bg-blue-950/60 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-lg dark:hover:shadow-blue-900/20 border-transparent hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer select-none"
         onClick={() => onClick(previewChallenge.challengeId)}>
         <CardHeader>
           <div className="flex justify-between items-baseline">

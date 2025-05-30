@@ -1,9 +1,6 @@
-import { AccountPageHeader } from "@/components/layout/account-page-header";
-import PageContainer from "@/components/layout/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import { Separator } from "@/components/ui/separator";
-import { Settings } from "lucide-react";
 import type { Metadata } from "next";
-import { pageUrlMapping } from "@/constants/navigation";
 
 export const metadata: Metadata = {
   title: "Profile",
@@ -18,15 +15,14 @@ export default async function DashboardLayout({
   return (
     <div>
       <div className="flex flex-col px-4">
-        <AccountPageHeader
+        <PageHeader
           title="Profile"
           description="View your profile information and your activity on SkillChain."
-        ></AccountPageHeader>
+        ></PageHeader>
 
         <Separator className="my-6" />
+        <div>{children}</div>
       </div>
-      
-      <PageContainer>{children}</PageContainer>
     </div>
   );
 }

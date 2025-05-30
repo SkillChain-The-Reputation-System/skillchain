@@ -1,17 +1,9 @@
-import { Separator } from '@/components/ui/separator';
-import { ProfileForm } from '@/features/account/profile-settings/profile-form';
+import { SettingsContainer } from '@/features/account/profile-settings/settings-container';
 
-export default function SettingsProfilePage() {
+export default function SettingsPage() {
   return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium">Profile</h3>
-        <p className="text-sm text-muted-foreground">
-          This is how others will see you on the site.
-        </p>
-      </div>
-      <Separator />
-      <ProfileForm />
+    <div>
+      <SettingsContainer />
     </div>
   );
 }

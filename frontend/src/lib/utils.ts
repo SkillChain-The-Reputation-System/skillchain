@@ -2,6 +2,7 @@ import axios from "axios";
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { IrysUploadResponseInterface } from "@/lib/interfaces";
+import crypto from "crypto"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -37,4 +38,17 @@ export async function uploadImagesInHTML(html: string) {
   } catch (error: any) {
     throw error;
   }
+}
+
+export function generateRoomID(applicantion: string, date: Date, fromTime: string, toTime: string) {
+  const meetingDate = new Date(date)
+  const [fromHours, toHours] = fromTime.split(':').map(Number)
+  const [fromMinutes, toMinutes] = toTime.split(':').map(Number)
+
+  const fromDateTime = meetingDate.setHours(fromHours, fromMinutes, 0, 0);
+  const toDateTime = meetingDate.setHours(toHours, toMinutes, 0, 0);
+
+  const hash = crypto.createHash('sha1').update(applicantion + fromDateTime + toDateTime).digest('hex').slice(0, 10)
+
+  return `interview-room-${hash}`
 }

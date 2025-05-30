@@ -1,6 +1,13 @@
 "use client";
 
-import { MapPin, Briefcase, CalendarCheck, MoreHorizontal } from "lucide-react";
+import { useState } from "react";
+import {
+  MapPin,
+  Briefcase,
+  CalendarCheck,
+  MoreHorizontal,
+  ArrowLeftIcon,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,6 +17,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { JobInterface } from "@/lib/interfaces";
 import {
   JobStatus,
@@ -17,14 +35,21 @@ import {
   JobDurationLabels,
 } from "@/constants/system";
 import { JobStatusIconMap } from "@/constants/data";
-import { jobStatusIconStyles, jobStatusStyles } from "@/constants/styles";
+import {
+  jobStatusIconStyles,
+  jobStatusStyles,
+  jobStatusHoverStyles,
+} from "@/constants/styles";
 import { Icons } from "@/components/icons";
+import { updateJobStatus } from "@/lib/write-onchain-utils";
+import { toast } from "react-toastify";
+import { cn } from "@/lib/utils";
 
 interface JobDetailsCardProps {
   job: JobInterface;
   possibleStatuses: JobStatus[];
   statusLoading: boolean;
-  onStatusChange: (status: JobStatus) => void;
+  onJobUpdate: () => Promise<void>;
   removePointerEventsFromBody: () => void;
 }
 
@@ -32,9 +57,62 @@ export default function JobDetailsCard({
   job,
   possibleStatuses,
   statusLoading,
-  onStatusChange,
+  onJobUpdate,
   removePointerEventsFromBody,
 }: JobDetailsCardProps) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<JobStatus | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // Get status change message
+  const getStatusChangeMessage = (
+    currentStatus: JobStatus,
+    newStatus: JobStatus
+  ): string => {
+    switch (newStatus) {
+      case JobStatus.OPEN:
+        return currentStatus === JobStatus.DRAFT
+          ? "Publishing this job will make it visible to all users."
+          : "Resuming this job will make it visible to users again.";
+      case JobStatus.PAUSED:
+        return "Pausing this job will temporarily hide it from users.";
+      case JobStatus.CLOSED:
+        return "Closing this job will permanently end the application process.";
+      case JobStatus.FILLED:
+        return "Marking this job as filled will indicate that the position has been successfully filled.";
+      case JobStatus.ARCHIVED:
+        return "Archiving this job will move it to your archived jobs section.";
+      default:
+        return "Are you sure you want to change the status of this job?";
+    }
+  };
+
+  // Get status button color for status
+  const getStatusButtonColor = (status: JobStatus) => {
+    return jobStatusHoverStyles[status];
+  };
+  // Handle status change confirmation
+  const handleStatusChangeConfirm = async () => {
+    if (!selectedStatus) return;
+
+    try {
+      setIsUpdating(true);
+      await updateJobStatus(job.id, selectedStatus);
+
+      // Show success message
+      toast.success(`Job status updated to ${JobStatusLabels[selectedStatus]}`);
+
+      // Trigger parent component to reload fresh data
+      await onJobUpdate();
+    } catch (error) {
+      console.error("Error updating job status:", error);
+      toast.error("Failed to update job status. Please try again later.");
+    } finally {
+      setIsUpdating(false);
+      setIsDialogOpen(false);
+      setSelectedStatus(null);
+    }
+  };
   // Get status icon
   const getStatusIcon = (status: JobStatus) => {
     const iconName = JobStatusIconMap[status];
@@ -87,7 +165,8 @@ export default function JobDetailsCard({
                   }`}
                   onClick={() => {
                     removePointerEventsFromBody();
-                    onStatusChange(status);
+                    setSelectedStatus(status);
+                    setIsDialogOpen(true);
                   }}
                 >
                   {getStatusIcon(status)}
@@ -201,6 +280,67 @@ export default function JobDetailsCard({
           </TabsContent>
         </Tabs>
       </CardContent>
+
+      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Change Job Status</AlertDialogTitle>
+            <AlertDialogDescription>
+              {selectedStatus
+                ? getStatusChangeMessage(job.status, selectedStatus)
+                : "Change the status of this job?"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {selectedStatus && (
+            <div className="flex justify-center items-center gap-5 py-6">
+              <div className="flex flex-col items-center">
+                {getStatusIcon(job.status)}
+                <span className="mt-2 text-sm font-medium">
+                  {JobStatusLabels[job.status]}
+                </span>
+              </div>
+
+              <ArrowLeftIcon className="h-5 w-5 transform rotate-180" />
+
+              <div className="flex flex-col items-center">
+                {getStatusIcon(selectedStatus)}
+                <span className="mt-2 text-sm font-medium">
+                  {JobStatusLabels[selectedStatus]}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              disabled={isUpdating}
+              onClick={() => {
+                setSelectedStatus(null);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleStatusChangeConfirm}
+              disabled={isUpdating}
+              className={cn(
+                selectedStatus ? getStatusButtonColor(selectedStatus) : "",
+                "cursor-pointer"
+              )}
+            >
+              {isUpdating ? (
+                <>
+                  <span className="animate-spin mr-2">◌</span>
+                  Processing...
+                </>
+              ) : (
+                "Confirm Change"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

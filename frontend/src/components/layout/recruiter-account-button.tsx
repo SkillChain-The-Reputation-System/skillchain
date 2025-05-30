@@ -64,9 +64,9 @@ export const RecruiterAccountButton = () => {
       try {
         const recruiterProfile = await getRecruiterProfileData(address as `0x${string}`);
         if (recruiterProfile) {
-          setFullname(recruiterProfile.fullname);
-          setAvatar(recruiterProfile.avatar_url);
-          setCompany(recruiterProfile.company);
+          setFullname(recruiterProfile.recruiter_fullname);
+          setAvatar(recruiterProfile.recruiter_avatar_url);
+          setCompany(recruiterProfile.company_name);
         }
       } catch (error) {
         toast.error(`Error fetching recruiter data: ${error}`);

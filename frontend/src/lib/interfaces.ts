@@ -11,18 +11,21 @@ export interface UserProfileInterface {
 }
 
 export interface RecruiterProfileInterface {
-    address: string;
-    fullname: string;
-    company: string;
-    position: string;
-    email: string;
-    avatar_url: string;
-    bio: string;
-    phone?: string;
-    location?: string;
-    website?: string;
-    industry?: string;
-    companySize?: string;
+    // Recruiter info
+    recruiter_address: string;
+    recruiter_fullname: string;
+    recruiter_email: string;
+    recruiter_phone: string;
+    recruiter_position: string;
+    recruiter_bio: string;
+    recruiter_avatar_url: string;
+    // Company info
+    company_name: string;
+    company_website: string;
+    company_location: string;
+    company_industry: string;
+    company_size: string;
+    company_description: string;
 }
 
 export interface IrysUploadResponseInterface {

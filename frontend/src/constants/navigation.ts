@@ -27,6 +27,7 @@ export const pageUrlMapping = {
     recruiter_jobs: "/recruiter/jobs",
     recruiter_jobs_create: "/recruiter/jobs/create",
     recruiter_meetings: "/recruiter/meetings",
+    recruiter_schedule: "/recruiter/meetings/schedule",
     recruiter_meeting_room: "/recruiter/meetings/:roomId",
     recruiter_insights: "/recruiter/insights",
     recruiter_account: "/recruiter/account"

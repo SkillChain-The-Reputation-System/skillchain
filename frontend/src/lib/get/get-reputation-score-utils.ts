@@ -31,7 +31,7 @@ export const getUserReputationScore = async (
 
     // Convert the array to a Record<Domain, number> as required by the interface
     const domain_reputation: Record<Domain, number> = {} as Record<Domain, number>;
-    
+
     // Map each domain index to its corresponding reputation score
     for (let i = 0; i < 14; i++) {
       domain_reputation[i as Domain] = Number(domain_reputation_array[i]);
@@ -46,3 +46,30 @@ export const getUserReputationScore = async (
     throw error;
   }
 };
+
+export const getUserGlobalReputationScore = async (
+  address: `0x${string}`,
+): Promise<number> => {
+  const global_reputation = (await readContract(wagmiConfig, {
+    address: ContractConfig_ReputationManager.address as `0x${string}`,
+    abi: ContractConfig_ReputationManager.abi,
+    functionName: "getGlobalReputation",
+    args: [address],
+  })) as number | bigint;
+
+  return Number(global_reputation);
+}
+
+export const getUserDomainReputationScore = async (
+  address: `0x${string}`,
+  domain: Domain,
+): Promise<number> => {
+  const domain_reputaion = (await readContract(wagmiConfig, {
+    address: ContractConfig_ReputationManager.address as `0x${string}`,
+    abi: ContractConfig_ReputationManager.abi,
+    functionName: "getDomainReputation",
+    args: [address, domain],
+  })) as number | bigint;
+
+  return Number(domain_reputaion);
+}

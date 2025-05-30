@@ -13,13 +13,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import ToggleTooltip from "@/components/toggle-tooltip"
 
 export function ImageUploader({ editor }: { editor: Editor | null }) {
   if (!editor) {
     return null
   }
-
-  const [showUploader, setShowUploader] = useState(false);
 
   const { isDragActive, getRootProps, getInputProps } = useDropzone({
     accept: {
@@ -31,7 +30,6 @@ export function ImageUploader({ editor }: { editor: Editor | null }) {
       if (file) {
         const file_url = URL.createObjectURL(file);
         editor.chain().focus().setImage({ src: file_url }).run();
-        setShowUploader(false);
       }
     },
   });
@@ -39,9 +37,11 @@ export function ImageUploader({ editor }: { editor: Editor | null }) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Toggle pressed={showUploader}>
+        <ToggleTooltip
+          tooltip="Image Upload"
+        >
           <ImagePlus />
-        </Toggle>
+        </ToggleTooltip>
       </PopoverTrigger>
 
       <PopoverContent className="min-w-md border-2 border-black dark:border-white space-y-4">

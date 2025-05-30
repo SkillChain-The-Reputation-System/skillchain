@@ -78,6 +78,11 @@ export enum JobApplicationStatus {
   HIRED = 6,
 }
 
+export enum MeetingStatus {
+  PENDING = 0,
+  COMPLETED = 1,
+  CANCELLED = 2
+}
 
 export const DomainLabels: Record<Domain, string> = {
   [Domain.COMPUTER_SCIENCE_FUNDAMENTALS]: "Computer Science Fundamentals",
@@ -164,3 +169,9 @@ export const ApplicationStatusLabels: Record<JobApplicationStatus, string> = {
   [JobApplicationStatus.WITHDRAWN]: "Withdrawn",
   [JobApplicationStatus.HIRED]: "Hired",
 };
+
+export const MeetingStatusLabels: Record<MeetingStatus, string> = {
+  [MeetingStatus.PENDING]: "Pending",
+  [MeetingStatus.COMPLETED]: "Completed",
+  [MeetingStatus.CANCELLED]: "Cancelled",
+}

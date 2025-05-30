@@ -6,6 +6,7 @@ import {
   ContractConfig_SolutionManager,
   ContractConfig_JobManager,
   ContractConfig_JobApplicationManager,
+  ContractConfig_MeetingManager,
 } from "@/constants/contracts-config";
 import { wagmiConfig } from "@/features/wallet/Web3Provider";
 import {
@@ -24,6 +25,8 @@ import {
   JobApplicantionInterface,
   UserProfileInterface,
   UserReputationScoreInterface,
+  BriefMeetingInterface,
+  MeetingRoomInterface,
 } from "./interfaces";
 import {
   fetchJsonDataOffChain,
@@ -40,6 +43,7 @@ import {
   JobStatus,
   JobApplicationStatus,
 } from "@/constants/system";
+import { Meie_Script } from "next/font/google";
 
 export const fetchUserDataOnChain = async (
   address: `0x${string}`
@@ -566,7 +570,6 @@ export const fetchSolutionById = async (
     score: fetchedSolution.score,
   };
 };
-
 export const fetchJobContentID = async (job_id: string): Promise<string> => {
   try {
     const content_id = await readContract(wagmiConfig, {
@@ -1145,7 +1148,7 @@ export const fetchAllJobApplicationsByUser = async (
     // Step 2: Fetch the full job details for each application and map to JobApplicationInterface
     const jobApplicationsPromises = applications.map(async (application) => {
       const applicantAddress = application.applicant as `0x${string}`;
-      
+
       // Fetch job details, profile data, and reputation data concurrently
       const [jobDetails, profileData, reputationData] = await Promise.all([
         fetchJobById(application.job_id),
@@ -1219,11 +1222,11 @@ export const fetchJobApplicationByID = async (
     if (!application || !application.id) {
       console.log(`Application with ID ${id} not found`);
       return null;
-    }    
-    
+    }
+
     // Step 2: Fetch job details, profile data, and reputation data concurrently
     const applicantAddress = application.applicant as `0x${string}`;
-    
+
     const [jobDetails, profileData, reputationData] = await Promise.all([
       fetchJobById(application.job_id),
       getUserProfileData(applicantAddress),
@@ -1315,7 +1318,7 @@ export const fetchApplicantsByJobID = async (
     const applicants: JobApplicantionInterface[] = await Promise.all(
       applications.map(async (application) => {
         const applicantAddress = application.applicant as `0x${string}`;
-        
+
         // Fetch profile data and reputation data concurrently
         const [profileData, reputationData] = await Promise.all([
           getUserProfileData(applicantAddress),
@@ -1454,3 +1457,127 @@ export const fetchAllApplicationCountsByJobID = async (
     };
   }
 };
+
+/**
+ * Following functions is for fetching meeting-related data on chain
+ */
+export async function fetchMeetingsByRecruiter(
+  address: `0x${string}`
+): Promise<BriefMeetingInterface[]> {
+  try {
+    const fetchedMeetings = (await readContract(wagmiConfig, {
+      address: ContractConfig_MeetingManager.address as `0x${string}`,
+      abi: ContractConfig_MeetingManager.abi,
+      functionName: "getMeetingsByRecruiter",
+      args: [address],
+    })) as any[];
+
+    const briefMeetingLists = await Promise.all(
+      fetchedMeetings.map(async (fetchedMeeting) => {
+        const [meetingData, application] = await Promise.all([
+          await fetchStringDataOffChain(`https://gateway.irys.xyz/mutable/${fetchedMeeting.txid}`) as any,
+          await fetchJobApplicationByID(fetchedMeeting.application_id) as JobApplicationWithJobDataInterface
+        ])
+
+        return {
+          id: fetchedMeeting.id,
+          applicant: application.profile_data,
+          job: {
+            position: application.job.title,
+            duration: application.job.duration,
+          },
+          scheduledAt: Number(fetchedMeeting.created_at),
+          endedAt: Number(fetchedMeeting.ended_at),
+          meetingDate: {
+            date: meetingData.date,
+            fromTime: meetingData.fromTime,
+            toTime: meetingData.toTime,
+          },
+          status: fetchedMeeting.status,
+        } as BriefMeetingInterface
+      })
+    ) as BriefMeetingInterface[];
+
+    return briefMeetingLists;
+  }
+  catch (error) {
+    console.error(
+      "Error fetching possible application status transitions:",
+      error
+    );
+    return [];
+  }
+}
+
+export async function fetchMeetingRoomById(
+  meeting_id: string
+): Promise<MeetingRoomInterface | null> {
+  try {
+    const fetchedMeeting = (await readContract(wagmiConfig, {
+      address: ContractConfig_MeetingManager.address as `0x${string}`,
+      abi: ContractConfig_MeetingManager.abi,
+      functionName: "getMeetingById",
+      args: [meeting_id],
+    })) as any;
+
+    const [meetingData, application] = await Promise.all([
+      await fetchStringDataOffChain(`https://gateway.irys.xyz/mutable/${fetchedMeeting.txid}`) as any,
+      await fetchJobApplicationByID(fetchedMeeting.application_id) as JobApplicationWithJobDataInterface
+    ])
+
+    return {
+      id: fetchedMeeting.id,
+      roomId: meetingData.roomId,
+      application: application,
+      scheduledAt: Number(fetchedMeeting.created_at),
+      endedAt: Number(fetchedMeeting.ended_at),
+      date: meetingData.date,
+      fromTime: meetingData.fromTime,
+      toTime: meetingData.toTime,
+      note: meetingData.note,
+      status: fetchedMeeting.status,
+    };
+  }
+  catch (error) {
+    console.error(
+      "Error fetching possible application status transitions:",
+      error
+    );
+    return null;
+  }
+}
+
+export async function fetchMeetingTxIdById(
+  meeting_id: string
+): Promise<string | null> {
+  try {
+    const fetchedTxId = (await readContract(wagmiConfig, {
+      address: ContractConfig_MeetingManager.address as `0x${string}`,
+      abi: ContractConfig_MeetingManager.abi,
+      functionName: "getMeetingTxIdById",
+      args: [meeting_id],
+    })) as string;
+
+    return fetchedTxId;
+  }
+  catch (error) {
+    console.error(
+      "Error fetching possible application status transitions:",
+      error
+    );
+    return null;
+  }
+}
+
+export async function fetchIsApplicationHasMeeting(
+  application_id: string
+): Promise<boolean> {
+  const fetchedState = (await readContract(wagmiConfig, {
+    address: ContractConfig_MeetingManager.address as `0x${string}`,
+    abi: ContractConfig_MeetingManager.abi,
+    functionName: "checkApplicationHasAMeeting",
+    args: [application_id],
+  })) as boolean;
+
+  return fetchedState;
+}

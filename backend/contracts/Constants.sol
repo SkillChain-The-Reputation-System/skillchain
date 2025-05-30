@@ -50,23 +50,30 @@ library SystemEnums {
 
     // --- Job Status Constants ---
     enum JobStatus {
-        DRAFT, 
+        DRAFT,
         OPEN,
         PAUSED,
         CLOSED,
-        FILLED, 
+        FILLED,
         ARCHIVED
     }
 
     // --- Job Application Status Constants ---
     enum ApplicationStatus {
-        PENDING,            // Initial state when application is submitted
-        REVIEWING,          // Application is being reviewed
-        SHORTLISTED,        // Candidate is shortlisted
-        INTERVIEWING,       // Candidate is in interview process
-        REJECTED,           // Application was rejected
-        WITHDRAWN,          // Applicant withdrew their application
-        HIRED               // Applicant was hired for the position
+        PENDING, // Initial state when application is submitted
+        REVIEWING, // Application is being reviewed
+        SHORTLISTED, // Candidate is shortlisted
+        INTERVIEWING, // Candidate is in interview process
+        REJECTED, // Application was rejected
+        WITHDRAWN, // Applicant withdrew their application
+        HIRED // Applicant was hired for the position
+    }
+
+    // --- Meeting Status Constants ---
+    enum MeetingStatus {
+        PENDING,
+        COMPLETED,
+        CANCELLED
     }
 }
 

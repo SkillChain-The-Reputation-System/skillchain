@@ -1,16 +1,11 @@
-import MeetingRoom from "@/features/meetings/meeting-room";
+import ScheduleMeetingForm from "@/features/meetings/schedule-meeting-form";
 import { pageUrlMapping } from "@/constants/navigation";
 import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 
-export default async function MeetingRoomPage({
-  params,
-}: {
-  params: Promise<{ roomId: string }>;
-}) {
-  const { roomId } = await params;
+export default function ScheduleMeetingPage() {
 
   return (
     <div>
@@ -21,7 +16,7 @@ export default async function MeetingRoomPage({
         <ArrowLeftIcon /> Back to Meetings
       </Link>
 
-      <MeetingRoom roomId={roomId} />
+      <ScheduleMeetingForm />
     </div>
-  );
+  )
 }

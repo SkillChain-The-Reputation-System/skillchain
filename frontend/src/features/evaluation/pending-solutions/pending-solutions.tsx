@@ -174,14 +174,13 @@ export default function PendingSolutions({ query, sort, domain, page }: PendingS
               </div>
             </div>
           ) : (
-            <div className="text-center py-12">
+            <div className="text-center py-20">
               <h3 className="text-lg font-bold mb-2">No matching solutions found</h3>
               <p className="text-muted-foreground mb-4">
                 Try adjusting your search or filters to find what you're looking for.
               </p>
               <Button
-                variant="outline"
-                className="bg-gray-300"
+                className="cursor-pointer"
                 onClick={handleClearFilter}
               >
                 Clear All Filters
@@ -189,9 +188,7 @@ export default function PendingSolutions({ query, sort, domain, page }: PendingS
             </div>
           )
         ) : (
-          <div>
-            <EmptySolution />
-          </div>
+          <EmptySolution />
         )
       }
     </>

@@ -3,6 +3,7 @@ import {
   fetchSolutionTxIdByUserAndChallengeId,
   fetchJobContentID,
   fetchJobStatus,
+  fetchMeetingTxIdById,
 } from "@/lib/fetching-onchain-data-utils";
 import {
   writeContract,
@@ -14,15 +15,17 @@ import {
   ContractConfig_JobManager,
   ContractConfig_JobApplicationManager,
   ContractConfig_SolutionManager,
+  ContractConfig_MeetingManager,
 } from "@/constants/contracts-config";
 import { wagmiConfig } from "@/features/wallet/Web3Provider";
 import { ModeratorReviewValues } from "@/features/moderation/review-challenge-form";
 import { ChallengeFormValues } from "@/features/contribution/contribute-challenge-form";
 import axios from "axios";
-import { uploadImagesInHTML } from "@/lib/utils";
+import { uploadImagesInHTML, generateRoomID } from "@/lib/utils";
 import { IrysUploadResponseInterface } from "@/lib/interfaces";
 import { JobFormData } from "@/features/jobs-on-recruiter/create/create-job-form";
-import { JobApplicationStatus, JobStatus } from "@/constants/system";
+import { JobApplicationStatus, JobStatus, MeetingStatus } from "@/constants/system";
+import { ScheduleMeetingFormData } from "@/features/meetings/schedule-meeting-form";
 
 export async function joinReviewPool(
   challengeId: number,
@@ -347,11 +350,11 @@ export async function updateJobStatus(
   jobId: string,
   newStatus: JobStatus
 ): Promise<`0x${string}`> {
- try {
+  try {
     let functionName: string;
     // Get current job status to determine correct transition method
     const currentStatus = await fetchJobStatus(jobId);
-    
+
     // Select the appropriate contract function based on the status transition
     switch (newStatus) {
       case JobStatus.OPEN:
@@ -389,7 +392,7 @@ export async function updateJobStatus(
     });
 
     await waitForTransactionReceipt(wagmiConfig, { hash: txHash });
-    
+
     return txHash;
   } catch (error) {
     console.error("Error updating job status:", error);
@@ -422,7 +425,7 @@ export async function submitJobApplication(
 
     // Wait for the transaction to be mined
     await waitForTransactionReceipt(wagmiConfig, { hash: txHash });
-    
+
     return txHash;
   } catch (error) {
     console.error("Error submitting job application:", error);
@@ -459,10 +462,112 @@ export async function updateJobApplicationStatus(
 
     // Wait for transaction to be mined
     await waitForTransactionReceipt(wagmiConfig, { hash: txHash });
-    
+
     return txHash;
   } catch (error) {
     console.error("Error updating application status:", error);
     throw error;
   }
+}
+
+export async function scheduleMeeting(
+  address: `0x${string}`,
+  data: ScheduleMeetingFormData
+): Promise<`0x${string}`> {
+  const roomId = generateRoomID(data.application, data.date, data.fromTime, data.toTime);
+
+  const { data: job_content_upload_res } =
+    await axios.post<IrysUploadResponseInterface>(
+      "/api/irys/upload/upload-string",
+      {
+        data: JSON.stringify({
+          roomId: roomId,
+          date: data.date,
+          fromTime: data.fromTime,
+          toTime: data.toTime,
+          note: data.note,
+        })
+      }
+    );
+
+  // Send the transaction
+  const txHash = await writeContract(wagmiConfig, {
+    address: ContractConfig_MeetingManager.address as `0x${string}`,
+    abi: ContractConfig_MeetingManager.abi,
+    functionName: "scheduleMeeting",
+    args: [data.application, job_content_upload_res.id],
+    account: address,
+  });
+
+  await waitForTransactionReceipt(wagmiConfig, { hash: txHash });
+
+  return txHash;
+}
+
+export async function rescheduleMeeting(
+  meeting_id: string,
+  data: ScheduleMeetingFormData
+) {
+  const roomId = generateRoomID(data.application, data.date, data.fromTime, data.toTime);
+
+  try {
+    const txid = await fetchMeetingTxIdById(meeting_id);
+
+    const tags = [{ name: "Root-TX", value: txid }];
+
+    const { data: job_content_upload_res } =
+      await axios.post<IrysUploadResponseInterface>(
+        "/api/irys/upload/upload-string",
+        {
+          data: JSON.stringify({
+            roomId: roomId,
+            date: data.date,
+            fromTime: data.fromTime,
+            toTime: data.toTime,
+            note: data.note,
+          }),
+          tags: tags
+        }
+      );
+
+    return job_content_upload_res.id;
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function completeMeeting(
+  address: `0x${string}`,
+  meeting_id: string
+): Promise<`0x${string}`> {
+
+  const txHash = await writeContract(wagmiConfig, {
+    address: ContractConfig_MeetingManager.address as `0x${string}`,
+    abi: ContractConfig_MeetingManager.abi,
+    functionName: "completeMeeting",
+    args: [meeting_id],
+    account: address,
+  });
+
+  await waitForTransactionReceipt(wagmiConfig, { hash: txHash });
+
+  return txHash;
+}
+
+export async function cancelMeeting(
+  address: `0x${string}`,
+  meeting_id: string
+): Promise<`0x${string}`> {
+
+  const txHash = await writeContract(wagmiConfig, {
+    address: ContractConfig_MeetingManager.address as `0x${string}`,
+    abi: ContractConfig_MeetingManager.abi,
+    functionName: "cancelMeeting",
+    args: [meeting_id],
+    account: address,
+  });
+
+  await waitForTransactionReceipt(wagmiConfig, { hash: txHash });
+
+  return txHash;
 }

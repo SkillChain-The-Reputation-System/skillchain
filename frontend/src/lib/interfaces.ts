@@ -1,4 +1,4 @@
-import { Domain, ChallengeStatus, QualityFactorAnswer, ChallengeDifficultyLevel, ChallengeSolutionProgress, JobStatus, JobDuration, JobApplicationStatus } from "@/constants/system";
+import { Domain, ChallengeStatus, QualityFactorAnswer, ChallengeDifficultyLevel, ChallengeSolutionProgress, JobStatus, JobDuration, JobApplicationStatus, MeetingStatus } from "@/constants/system";
 
 
 export interface UserProfileInterface {
@@ -73,12 +73,12 @@ export interface JobInterface {
     description: string;
     requirements: string;
     compensation: string;
-    domains: Domain[]; 
+    domains: Domain[];
     domainReputations: Record<Domain, number>;
     requireGlobalReputation: boolean;
     globalReputationScore?: number; // Optional
     deadline: number; // Epoch time in milliseconds
-    }
+}
 
 
 export interface GetCurrentTimeResponse {
@@ -166,13 +166,13 @@ export interface EvaluationInterface {
 }
 
 export interface JobApplicantionInterface {
-  id: string;
-  address: string;
-  status: JobApplicationStatus;
-  applied_at: number;
-  job_id: string;
-  profile_data: UserProfileInterface;
-  reputation_data: UserReputationScoreInterface;
+    id: string;
+    address: string;
+    status: JobApplicationStatus;
+    applied_at: number;
+    job_id: string;
+    profile_data: UserProfileInterface;
+    reputation_data: UserReputationScoreInterface;
 }
 
 export interface JobApplicationWithJobDataInterface {
@@ -182,10 +182,40 @@ export interface JobApplicationWithJobDataInterface {
     status: JobApplicationStatus;
     profile_data: UserProfileInterface;
     reputation_data: UserReputationScoreInterface;
-    job: JobInterface;  
+    job: JobInterface;
 }
 
 export interface UserReputationScoreInterface {
     global_reputation: number;
     domain_reputation: Record<Domain, number>;
+}
+
+export interface BriefMeetingInterface {
+    id: string;
+    applicant: UserProfileInterface;
+    job: {
+        position: string;
+        duration: JobDuration;
+    };
+    scheduledAt: number;
+    endedAt: number;
+    meetingDate: {
+        date: Date;
+        fromTime: string;
+        toTime: string
+    }
+    status: MeetingStatus;
+}
+
+export interface MeetingRoomInterface {
+    id: string;
+    roomId: string;
+    application: JobApplicationWithJobDataInterface,
+    scheduledAt: number;
+    endedAt: number;
+    date: Date;
+    fromTime: string;
+    toTime: string;
+    status: MeetingStatus;
+    note: string | undefined;
 }

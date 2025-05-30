@@ -150,8 +150,12 @@ export default function ScheduleMeetingForm() {
         setApplicantsLoading(true);
         const fetchedApplications = await fetchApplicantsByJobID(watchedJobID);
 
-        const validApplications = fetchedApplications.filter((application) => application.status === JobApplicationStatus.SHORTLISTED)
-        setApplications(validApplications);
+        // this is correct code in the end
+        // const validApplications = fetchedApplications.filter((application) => application.status === JobApplicationStatus.SHORTLISTED)
+        // setApplications(validApplications);
+
+        setApplications(fetchedApplications); // this is for test in SC-19, Insights Page
+
         setIsHasMeeting(false);
         form.setValue("application", "")
       } catch (error) {

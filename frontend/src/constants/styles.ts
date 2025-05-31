@@ -7,7 +7,9 @@ import {
   MeetingStatus
 } from "./system";
 
-// Styles of status badge (light and dark mode)
+/**
+ * Styles of status on Badge Component (light and dark mode)
+ **/
 export const statusStyles = {
   [ChallengeStatus.PENDING]:
     "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-200 dark:hover:bg-yellow-900/30",
@@ -50,8 +52,6 @@ export const applicationStatusHoverStyles = {
   [JobApplicationStatus.WITHDRAWN]: "bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-900/30 dark:text-gray-200 dark:hover:bg-gray-800/40",
   [JobApplicationStatus.HIRED]: "bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-200 dark:hover:bg-green-800/40",
 };
-
-
 
 // Job status badge styles with light/dark mode
 export const jobStatusStyles = {
@@ -100,4 +100,29 @@ export const meetingStatusStyles = {
   [MeetingStatus.CANCELLED]: "bg-red-100 text-red-800 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-200 dark:hover:bg-red-900/30"
 }
 
+/**
+ * Fill color on Interfaces in system.ts for Chart
+ **/
 
+export const jobStatusChartColor = {
+  [JobStatus.OPEN]: "var(--color-green-500)",
+  [JobStatus.PAUSED]: "var(--color-amber-400)",
+  [JobStatus.CLOSED]: "var(--color-red-600)",
+  [JobStatus.FILLED]: "var(--color-blue-600)",
+  [JobStatus.DRAFT]: "var(--color-slate-400)",
+  [JobStatus.ARCHIVED]: "var(--color-gray-600",
+}
+
+export const applicationStatusChartColor = {
+  [JobApplicationStatus.PENDING]: "var(--color-yellow-500)",
+  [JobApplicationStatus.REVIEWING]: "var(--color-blue-600)",
+  [JobApplicationStatus.SHORTLISTED]: "var(--color-violet-500)",
+  [JobApplicationStatus.INTERVIEWING]: "var(--color-purple-500)",
+  [JobApplicationStatus.HIRED]: "var(--color-green-600)",
+}
+
+export const meetingStatusChartColor = {
+  [MeetingStatus.PENDING]: "var(--color-yellow-500)",
+  [MeetingStatus.COMPLETED]: "var(--color-green-600)",
+  [MeetingStatus.CANCELLED]: "var(--color-red-600)"
+}

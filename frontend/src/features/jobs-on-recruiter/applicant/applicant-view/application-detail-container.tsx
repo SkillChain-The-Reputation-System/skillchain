@@ -52,10 +52,6 @@ const QualificationsFitCard = dynamic(
   }
 );
 
-const StatusChangeDialog = dynamic(() => import("./status-change-dialog"), {
-  ssr: false,
-});
-
 export default function ApplicationDetailContainer() {
   const params = useParams();
   const jobId = params.id as string;
@@ -66,8 +62,6 @@ export default function ApplicationDetailContainer() {
   const [error, setError] = useState<string | null>(null);
   const [applicationStatus, setApplicationStatus] =
     useState<JobApplicationStatus | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newStatus, setNewStatus] = useState<JobApplicationStatus | null>(null);
 
   const [possibleStatuses, setPossibleStatuses] = useState<
     JobApplicationStatus[]
@@ -113,12 +107,30 @@ export default function ApplicationDetailContainer() {
 
     fetchApplicationData();
   }, [applicationId]);
+  
+  // Function to refresh application data after status update
+  const refreshApplicationData = async () => {
+    try {
+      setStatusLoading(true);
+      const applicationData = await fetchJobApplicationByID(applicationId);
+      if (applicationData) {
+        setApplication(applicationData);
+        setApplicationStatus(applicationData.status);
 
-  const handleStatusChange = (value: string) => {
-    const status = parseInt(value) as JobApplicationStatus;
-    if (application && status !== application.status) {
-      setNewStatus(status);
-      setIsDialogOpen(true);
+        // Update possible status transitions for the new status
+        if (applicationData.status === JobApplicationStatus.WITHDRAWN) {
+          setPossibleStatuses([]);
+        } else {
+          const transitions = await fetchPossibleApplicationStatusTransitions(
+            applicationData.status
+          );
+          setPossibleStatuses(transitions);
+        }
+      }
+    } catch (error) {
+      console.error("Error refreshing application data:", error);
+    } finally {
+      setStatusLoading(false);
     }
   };
 
@@ -126,63 +138,6 @@ export default function ApplicationDetailContainer() {
     if (document.body.style.pointerEvents === "none") {
       document.body.style.pointerEvents = "";
     }
-  };
-
-  const confirmStatusChange = async () => {
-    if (!application || !newStatus) return;
-
-    try {
-      setStatusLoading(true);
-      await updateJobApplicationStatus(applicationId, newStatus);
-
-      // Clear dialog state first
-      setIsDialogOpen(false);
-
-      // Update application status locally
-      setApplication((prevApplication) => {
-        if (!prevApplication) return null;
-        return {
-          ...prevApplication,
-          status: newStatus,
-        };
-      });
-      setApplicationStatus(newStatus); // Show success message
-      toast.success(
-        `Application status updated to ${
-          ApplicationStatusLabels[
-            newStatus as keyof typeof ApplicationStatusLabels
-          ]
-        }`
-      );
-
-      // Update possible transitions for the new status
-      try {
-        if (newStatus === JobApplicationStatus.WITHDRAWN) {
-          setPossibleStatuses([]);
-        } else {
-          const transitions = await fetchPossibleApplicationStatusTransitions(
-            newStatus
-          );
-          setPossibleStatuses(transitions);
-        }
-      } catch (transitionError) {
-        console.error("Error fetching status transitions:", transitionError);
-        setPossibleStatuses([]);
-      }
-    } catch (error) {
-      console.error("Error updating application status:", error);
-      toast.error(
-        "Failed to update application status. Please try again later."
-      );
-    } finally {
-      setStatusLoading(false);
-      setNewStatus(null);
-    }
-  };
-
-  const handleDialogCancel = () => {
-    setIsDialogOpen(false);
-    setNewStatus(null);
   };
 
   if (loading) {
@@ -204,20 +159,8 @@ export default function ApplicationDetailContainer() {
       </div>
     );
   }
-
   return (
     <div className="px-4 pb-10 mx-auto overflow-x-hidden">
-      {/* Status Change Dialog */}
-      <StatusChangeDialog
-        isOpen={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        application={application}
-        newStatus={newStatus}
-        onConfirm={confirmStatusChange}
-        statusLoading={statusLoading}
-        onCancel={handleDialogCancel}
-      />
-
       {/* Header */}
       <div className="mb-8">
         <PageHeader
@@ -248,7 +191,7 @@ export default function ApplicationDetailContainer() {
             application={application}
             possibleStatuses={possibleStatuses}
             statusLoading={statusLoading}
-            onStatusChange={handleStatusChange}
+            onApplicationUpdate={refreshApplicationData}
             removePointerEventsFromBody={removePointerEventsFromBody}
           />
           {/* Interview Information Card */}

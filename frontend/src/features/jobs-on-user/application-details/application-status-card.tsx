@@ -227,67 +227,62 @@ export default function ApplicationStatusCard({
                 })()
               )}
             </div>
-
-            {/* Domain Reputation Requirements */}
-            {Object.keys(job.domainReputations).length > 0 && (
-              <div>
-                <h4 className="font-medium mb-2">Required Domains</h4>
-                <div className="flex flex-wrap gap-2 overflow-x-auto pb-2">
-                  {isLoadingReputation ? (
-                    <Badge
-                      variant="outline"
-                      className="whitespace-nowrap flex items-center gap-1 select-none"
-                    >
-                      <span>Loading domain reputation...</span>
-                    </Badge>
-                  ) : reputationError ? (
-                    <Badge
-                      variant="destructive"
-                      className="whitespace-nowrap flex items-center gap-1 select-none"
-                    >
-                      <AlertTriangle className="h-3 w-3" />
-                      <span>Error loading domain reputation</span>
-                    </Badge>
-                  ) : (
-                    Object.entries(job.domainReputations).map(
-                      ([domainStr, requiredScore]) => {
-                        const domain = parseInt(domainStr) as Domain;
-                        const userScore = userDomainRep[domain] || 0;
-                        const meetsRequirement = userScore >= requiredScore;
-                        const iconName = DomainIconMap[domain];
-                        const DomainIcon =
-                          Icons[iconName as keyof typeof Icons];
-
-                        return (
-                          <Badge
-                            key={domain}
-                            variant={
-                              meetsRequirement ? "default" : "destructive"
-                            }
-                            className="whitespace-nowrap flex items-center gap-1 select-none"
-                          >
-                            {DomainIcon && <DomainIcon className="h-3 w-3" />}
-                            {DomainLabels[domain]}
-                            <span>
-                              {userScore}/{requiredScore}
-                            </span>
-                            {meetsRequirement ? (
-                              <CheckIcon className="h-3 w-3 ml-1 text-green-600" />
-                            ) : (
-                              <XIcon className="h-3 w-3 ml-1 text-red-600" />
-                            )}
-                          </Badge>
-                        );
-                      }
-                    )
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         )}
 
-        <Separator />
+        {/* Domain Reputation Requirements */}
+        {Object.keys(job.domainReputations).length > 0 && (
+          <div>
+            <h4 className="font-medium mb-2">Required Domains</h4>
+            <div className="flex flex-wrap gap-2 overflow-x-auto pb-2">
+              {isLoadingReputation ? (
+                <Badge
+                  variant="outline"
+                  className="whitespace-nowrap flex items-center gap-1 select-none"
+                >
+                  <span>Loading domain reputation...</span>
+                </Badge>
+              ) : reputationError ? (
+                <Badge
+                  variant="destructive"
+                  className="whitespace-nowrap flex items-center gap-1 select-none"
+                >
+                  <AlertTriangle className="h-3 w-3" />
+                  <span>Error loading domain reputation</span>
+                </Badge>
+              ) : (
+                Object.entries(job.domainReputations).map(
+                  ([domainStr, requiredScore]) => {
+                    const domain = parseInt(domainStr) as Domain;
+                    const userScore = userDomainRep[domain] || 0;
+                    const meetsRequirement = userScore >= requiredScore;
+                    const iconName = DomainIconMap[domain];
+                    const DomainIcon = Icons[iconName as keyof typeof Icons];
+
+                    return (
+                      <Badge
+                        key={domain}
+                        variant={meetsRequirement ? "default" : "destructive"}
+                        className="whitespace-nowrap flex items-center gap-1 select-none"
+                      >
+                        {DomainIcon && <DomainIcon className="h-3 w-3" />}
+                        {DomainLabels[domain]}
+                        <span>
+                          {userScore}/{requiredScore}
+                        </span>
+                        {meetsRequirement ? (
+                          <CheckIcon className="h-3 w-3 ml-1 text-green-600" />
+                        ) : (
+                          <XIcon className="h-3 w-3 ml-1 text-red-600" />
+                        )}
+                      </Badge>
+                    );
+                  }
+                )
+              )}
+            </div>
+          </div>
+        )}
       </CardContent>
 
       <CardContent>

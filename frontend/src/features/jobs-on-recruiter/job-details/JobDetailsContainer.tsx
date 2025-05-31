@@ -113,7 +113,7 @@ export default function JobDetailsContainer() {
     }
   };
 
-  // Remove pointer events helper
+  // After updating job status, the "pointer events" is set to "none" on the body html, making the whole page uninteractive. This function is used to remove that bug.
   const removePointerEventsFromBody = () => {
     if (document.body.style.pointerEvents === "none") {
       document.body.style.pointerEvents = "";

@@ -30,7 +30,7 @@ export default function TopApplicants({ jobsApplication }: TopApplicantsProps) {
     <Card>
       <CardHeader>
         <CardTitle className="font-bold text-xl">Returning Applicants</CardTitle>
-        <CardDescription>Applicants that interests in your job postings</CardDescription>
+        <CardDescription>Applicants interested in your job postings</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

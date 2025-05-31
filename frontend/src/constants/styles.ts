@@ -110,7 +110,7 @@ export const jobStatusChartColor = {
   [JobStatus.CLOSED]: "var(--color-red-600)",
   [JobStatus.FILLED]: "var(--color-blue-600)",
   [JobStatus.DRAFT]: "var(--color-slate-400)",
-  [JobStatus.ARCHIVED]: "var(--color-gray-600",
+  [JobStatus.ARCHIVED]: "var(--color-gray-600)",
 }
 
 export const applicationStatusChartColor = {

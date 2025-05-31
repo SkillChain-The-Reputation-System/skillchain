@@ -92,7 +92,7 @@ async function seedJobs() {
         jobsInfo[job.recruiter_pvk].push(id);
       }
     } catch (error) {
-      console.error(`Error processing challenge ${index + 1}:`, error);
+      console.error(`Error processing job ${index + 1}:`, error);
     }
   }
 }

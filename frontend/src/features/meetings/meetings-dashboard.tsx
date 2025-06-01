@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Toaster, toast } from "sonner"
 
 import {
@@ -125,52 +126,55 @@ export default function MeetingsDashboard() {
   const columns: ColumnDef<BriefMeetingInterface>[] = [
     {
       accessorKey: "applicant",
-      header: () => {
-        return (
-          <div className="flex items-center gap-2">
-            <UserRound className="h-4 w-4" />
-            Applicant
-          </div>
-        )
-      },
+      header: () => (
+        <div className="flex items-center gap-2">
+          <UserRound className="h-4 w-4" />
+          Applicant
+        </div>
+      ),
       cell: ({ row }) => {
         const applicant = row.original.applicant;
         return (
-          <div className="flex items-center gap-2">
-            <Avatar>
-              <AvatarImage
-                src={applicant.avatar_url || ""}
-                alt={applicant.address || "Applicant"}
-              />
-              <AvatarFallback>
-                {applicant.fullname
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase() || "AP"}
-              </AvatarFallback>
-            </Avatar>
-            <div className="line-clamp-1">
-              {applicant.fullname || applicant.address}
-            </div>
-          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-2">
+                <Avatar>
+                  <AvatarImage
+                    src={applicant.avatar_url || ""}
+                    alt={applicant.address || "Applicant"}
+                  />
+                  <AvatarFallback>
+                    {applicant.fullname
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase() || "AP"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="line-clamp-1">
+                  {applicant.fullname || applicant.address}
+                </div>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent align="start">
+              {applicant.address}
+            </TooltipContent>
+          </Tooltip>
         )
       },
       accessorFn: (row) => {
         const applicant = row.applicant;
-        return applicant.fullname ?? applicant.address;
+        return applicant.fullname || applicant.address;
       },
     },
     {
       id: "job",
-      header: () => {
-        return (
-          <div className="flex items-center gap-2">
-            <Briefcase className="h-4 w-4" />
-            Position
-          </div>
-        )
-      },
+      header: () => (
+        <div className="flex items-center gap-2">
+          <Briefcase className="h-4 w-4" />
+          Position
+        </div>
+      ),
       cell: ({ row }) => {
         const job = row.original.job
         return (
@@ -187,14 +191,12 @@ export default function MeetingsDashboard() {
     },
     {
       accessorKey: "scheduledAt",
-      header: () => {
-        return (
-          <div className="flex items-center gap-2">
-            <CalendarPlus2 className="h-4 w-4" />
-            Scheduled on
-          </div>
-        )
-      },
+      header: () => (
+        <div className="flex items-center gap-2">
+          <CalendarPlus2 className="h-4 w-4" />
+          Scheduled on
+        </div>
+      ),
       cell: ({ row }) => {
         const scheduledAt = row.original.scheduledAt
 
@@ -205,14 +207,12 @@ export default function MeetingsDashboard() {
     },
     {
       id: "meetingDate",
-      header: () => {
-        return (
-          <div className="flex items-center gap-2">
-            <CalendarDays className="h-4 w-4" />
-            Meeting Date
-          </div>
-        )
-      },
+      header: () => (
+        <div className="flex items-center gap-2">
+          <CalendarDays className="h-4 w-4" />
+          Meeting Date
+        </div>
+      ),
       cell: ({ row }) => {
         const meetingDate = row.original.meetingDate
         return (
@@ -225,14 +225,12 @@ export default function MeetingsDashboard() {
     },
     {
       id: "untilEvent",
-      header: () => {
-        return (
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Until Event
-          </div>
-        )
-      },
+      header: () => (
+        <div className="flex items-center gap-2">
+          <Clock className="h-4 w-4" />
+          Until Event
+        </div>
+      ),
       cell: ({ row }) => {
         const meetingDate = row.original.meetingDate
 
@@ -243,14 +241,12 @@ export default function MeetingsDashboard() {
     },
     {
       accessorKey: "status",
-      header: () => {
-        return (
-          <div className="flex items-center gap-2">
-            <Info className="h-4 w-4" />
-            Status
-          </div>
-        )
-      },
+      header: () => (
+        <div className="flex items-center gap-2">
+          <Info className="h-4 w-4" />
+          Status
+        </div>
+      ),
       cell: ({ row }) => {
         const status = row.original.status
 
@@ -264,6 +260,7 @@ export default function MeetingsDashboard() {
     },
     {
       id: "actions",
+      header: "Actions",
       cell: ({ row }) => {
         const id = row.original.id
         const status = row.original.status
@@ -383,10 +380,10 @@ export default function MeetingsDashboard() {
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="bg-accent">
+              <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} className="font-bold">
+                    <TableHead key={header.id}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(

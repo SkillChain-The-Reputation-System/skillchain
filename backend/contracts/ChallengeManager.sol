@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.19;
 import "hardhat/console.sol";
 import "./SolutionManager.sol";
 import "./Constants.sol";
@@ -667,6 +667,37 @@ contract ChallengeManager {
             review_pool[_challenge_id]
                 .moderator_reviews[_moderator_address]
                 .review_txid;
+    }
+
+    function getScoreDeviationOfModeratorReview(
+        uint256 _challenge_id,
+        address _moderator_address
+    ) public view returns (uint256) {
+        // Validate that the challenge exists
+        require(_challenge_id < total_challenges, "Challenge does not exist");
+        
+        // Moderator must have joined the review pool
+        require(
+            review_pool[_challenge_id].moderator_to_join_status[
+                _moderator_address
+            ],
+            "Moderator has not joined the review pool"
+        );
+        
+        // Get the moderator's review score
+        uint256 moderator_score = review_pool[_challenge_id]
+            .moderator_reviews[_moderator_address]
+            .review_score;
+        
+        // Get the challenge's final quality score
+        uint256 final_quality_score = challenges[_challenge_id].quality_score;
+        
+        // Calculate and return the absolute deviation
+        if (moderator_score >= final_quality_score) {
+            return moderator_score - final_quality_score;
+        } else {
+            return final_quality_score - moderator_score;
+        }
     }
 
     // ================= SEEDING METHODS =================

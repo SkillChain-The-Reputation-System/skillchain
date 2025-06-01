@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.19;
 
 library SystemEnums {
     // --- Domains Constants ---
@@ -101,6 +101,15 @@ library SystemConsts {
     uint256 public constant THRESHOLD_OF_EVALUATION_DEVIATION = 60; // Threshold for evaluation deviation (= Final solution score - Score give by reviewer)
     uint256 public constant THRESHOLD_OF_CHALLENGE_QUALITY_SCORE = 80; // Threshold for challenge quality score
     uint256 public constant THRESHOLD_OF_MODERATION_DEVIATION = 60; // Threshold for moderation deviation (Final challenge quality - Score give by moderator)
+
+
+    // ================= REWARD AND PENALTY =================
+    uint256 public constant REWARD_DEVIATION_THRESHOLD = 70; 
+    uint256 public constant MAX_DEVIATION = 100; // The max score of a challenge can have
+    uint256 public constant STAKE_PENALTY_RATE = 0.3e18; // gamma - maximum of 30% the stake will be penalized 
+    uint256 public constant STAKE_INFLUENCE_COEFFICIENT = 0.4e18; // beta
+    uint256 public constant REWARD_DISTRIBUTION_SPREAD = 0.8e18; // alpha 
+
 }
 
 library MathUtils {

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, Suspense, lazy } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { PageHeader } from "@/components/layout/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -39,10 +40,16 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-// Lazy load the job component cards
-const JobDetailsCard = lazy(() => import('@/features/jobs-on-user/opening-job-details/job-details-card'));
-const JobOverviewCard = lazy(() => import('@/features/jobs-on-user/opening-job-details/job-overview-card'));
-const RequiredSkillsCard = lazy(() => import('@/features/jobs-on-user/opening-job-details/required-skills-card'));
+// Dynamic load the job component cards
+const JobDetailsCard = dynamic(() => import('@/features/jobs-on-user/opening-job-details/job-details-card'), {
+  loading: () => <CardSkeleton />
+});
+const JobOverviewCard = dynamic(() => import('@/features/jobs-on-user/opening-job-details/job-overview-card'), {
+  loading: () => <CardSkeleton />
+});
+const RequiredSkillsCard = dynamic(() => import('@/features/jobs-on-user/opening-job-details/required-skills-card'), {
+  loading: () => <CardSkeleton />
+});
 
 // Loading fallback component
 function CardSkeleton() {
@@ -304,24 +311,12 @@ export default function JobDetailPage() {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            {job && (
-              <Suspense fallback={<CardSkeleton />}>
-                <JobDetailsCard job={job} />
-              </Suspense>
-            )}
+            {job && <JobDetailsCard job={job} />}
           </div>
 
           <div className="space-y-6">
-            {job && (
-              <Suspense fallback={<CardSkeleton />}>
-                <JobOverviewCard job={job} />
-              </Suspense>
-            )}
-            {job && (
-              <Suspense fallback={<CardSkeleton />}>
-                <RequiredSkillsCard job={job} />
-              </Suspense>
-            )}
+            {job && <JobOverviewCard job={job} />}
+            {job && <RequiredSkillsCard job={job} />}
             {isJobOpen && (
               <Card className="bg-primary/5 border-primary/20">
                 <CardContent className="pt-6">

@@ -372,11 +372,12 @@ contract JobApplicationManager {
             current_status == SystemEnums.ApplicationStatus.SHORTLISTED
         ) {
             return
-                new_status == SystemEnums.ApplicationStatus.INTERVIEWING ||
+                new_status == SystemEnums.ApplicationStatus.INTERVIEWED ||
+                new_status == SystemEnums.ApplicationStatus.HIRED ||
                 new_status == SystemEnums.ApplicationStatus.REJECTED ||
                 new_status == SystemEnums.ApplicationStatus.WITHDRAWN;
         } else if (
-            current_status == SystemEnums.ApplicationStatus.INTERVIEWING
+            current_status == SystemEnums.ApplicationStatus.INTERVIEWED
         ) {
             return
                 new_status == SystemEnums.ApplicationStatus.HIRED ||

@@ -1,10 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Domain, DomainLabels, JobDuration, JobDurationLabels } from "@/constants/system";
+import {
+  Domain,
+  DomainLabels,
+  JobDuration,
+  JobDurationLabels,
+} from "@/constants/system";
 import * as z from "zod";
+import { CalendarIcon, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -27,11 +33,20 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { pageUrlMapping } from "@/constants/navigation";
 import { createJob } from "@/lib/write-onchain-utils";
 import { useAccount } from "wagmi";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { timeSlots } from "@/features/meetings/time-utils";
 
 // Use domains from the system constants
 const DOMAINS = Object.entries(Domain)
@@ -49,7 +64,8 @@ const formSchema = z.object({
     .min(20, { message: "Description must be at least 20 characters" }),
   requirements: z
     .string()
-    .min(10, { message: "Requirements must be at least 10 characters" }),  location: z.string().optional(),
+    .min(10, { message: "Requirements must be at least 10 characters" }),
+  location: z.string().optional(),
   duration: z.number(),
   compensation: z.string(),
   domains: z
@@ -58,6 +74,10 @@ const formSchema = z.object({
   domainReputations: z.record(z.string(), z.number().min(0)),
   requireGlobalReputation: z.boolean(),
   globalReputationScore: z.number().min(0).optional(),
+  deadlineDate: z.date({
+    required_error: "Application deadline date is required",
+  }),
+  deadlineTime: z.string().min(1, "Application deadline time is required"),
   deadline: z.number(), // Stores deadline as epoch time in milliseconds
 });
 
@@ -69,7 +89,6 @@ export default function CreateJobForm() {
   const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
   const { address } = useAccount();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   // Initialize form with default values
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -84,9 +103,25 @@ export default function CreateJobForm() {
       domainReputations: {},
       requireGlobalReputation: false,
       globalReputationScore: 0,
+      deadlineTime: "",
       deadline: 0, // Epoch time in milliseconds
     },
   });
+
+  // Watch for deadline date and time changes to combine them
+  const watchedDeadlineDate = form.watch("deadlineDate");
+  const watchedDeadlineTime = form.watch("deadlineTime");
+
+  // Update the deadline when date or time changes
+  useEffect(() => {
+    if (watchedDeadlineDate && watchedDeadlineTime) {
+      const [hours, minutes] = watchedDeadlineTime.split(":").map(Number);
+      const deadlineDateTime = new Date(watchedDeadlineDate);
+      deadlineDateTime.setHours(hours, minutes, 0, 0);
+      form.setValue("deadline", deadlineDateTime.getTime());
+    }
+  }, [watchedDeadlineDate, watchedDeadlineTime, form]);
+
   // Handle domain selection
   const handleDomainChange = (domainId: string, checked: boolean) => {
     let updatedDomains = [...selectedDomains];
@@ -162,7 +197,6 @@ export default function CreateJobForm() {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="description"
@@ -180,7 +214,6 @@ export default function CreateJobForm() {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="requirements"
@@ -198,7 +231,6 @@ export default function CreateJobForm() {
                 </FormItem>
               )}
             />
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -230,11 +262,20 @@ export default function CreateJobForm() {
                         <SelectTrigger>
                           <SelectValue placeholder="Select job duration" />
                         </SelectTrigger>
-                      </FormControl>                      <SelectContent>
-                        <SelectItem value={JobDuration.FULL_TIME.toString()}>{JobDurationLabels[JobDuration.FULL_TIME]}</SelectItem>
-                        <SelectItem value={JobDuration.PART_TIME.toString()}>{JobDurationLabels[JobDuration.PART_TIME]}</SelectItem>
-                        <SelectItem value={JobDuration.CONTRACT.toString()}>{JobDurationLabels[JobDuration.CONTRACT]}</SelectItem>
-                        <SelectItem value={JobDuration.FREELANCE.toString()}>{JobDurationLabels[JobDuration.FREELANCE]}</SelectItem>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value={JobDuration.FULL_TIME.toString()}>
+                          {JobDurationLabels[JobDuration.FULL_TIME]}
+                        </SelectItem>
+                        <SelectItem value={JobDuration.PART_TIME.toString()}>
+                          {JobDurationLabels[JobDuration.PART_TIME]}
+                        </SelectItem>
+                        <SelectItem value={JobDuration.CONTRACT.toString()}>
+                          {JobDurationLabels[JobDuration.CONTRACT]}
+                        </SelectItem>
+                        <SelectItem value={JobDuration.FREELANCE.toString()}>
+                          {JobDurationLabels[JobDuration.FREELANCE]}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -242,7 +283,6 @@ export default function CreateJobForm() {
                 )}
               />
             </div>
-
             <FormField
               control={form.control}
               name="compensation"
@@ -259,79 +299,86 @@ export default function CreateJobForm() {
                 </FormItem>
               )}
             />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="deadlineDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Application Deadline Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            className={cn(
+                              "w-[240px] pl-3 text-left font-normal border-gray-300 border cursor-pointer bg-white hover:bg-white dark:border-input dark:bg-input/30",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) => date < new Date()}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="deadline"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Application Deadline</FormLabel>
-                  <FormControl>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input
-                        type="date"
-                        value={
-                          field.value
-                            ? new Date(field.value).toISOString().split("T")[0]
-                            : ""
-                        }
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            // Preserve existing time if any, or set to 00:00
-                            const currentDate = field.value
-                              ? new Date(field.value)
-                              : new Date();
-                            const newDate = new Date(e.target.value);
-                            newDate.setHours(
-                              currentDate.getHours(),
-                              currentDate.getMinutes(),
-                              0,
-                              0
-                            );
-                            field.onChange(newDate.getTime()); // Store as epoch time in milliseconds
-                          }
-                        }}
-                      />
-                      <Input
-                        type="time"
-                        value={
-                          field.value
-                            ? `${String(
-                                new Date(field.value).getHours()
-                              ).padStart(2, "0")}:${String(
-                                new Date(field.value).getMinutes()
-                              ).padStart(2, "0")}`
-                            : "00:00"
-                        }
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            // Preserve existing date, update the time
-                            const currentDate = field.value
-                              ? new Date(field.value)
-                              : new Date();
-                            const [hours, minutes] = e.target.value
-                              .split(":")
-                              .map(Number);
-                            currentDate.setHours(hours, minutes, 0, 0); // Set time but keep seconds and ms at 0
-                            field.onChange(currentDate.getTime()); // Store as epoch time in milliseconds
-                          }
-                        }}
-                      />
-                    </div>
-                  </FormControl>
-                  <FormDescription>
-                    Specify both date and time for the deadline
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
+              <FormField
+                control={form.control}
+                name="deadlineTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Application Deadline Time</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger className="w-[240px] cursor-pointer">
+                          <SelectValue placeholder="Select time" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="max-h-80">
+                        {timeSlots.map((time) => (
+                          <SelectItem
+                            key={time.value}
+                            value={time.value}
+                            className="cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4" />
+                              {time.label}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <FormDescription>
+              Choose the deadline date and time for applications
+            </FormDescription>
             <div className="space-y-3">
               <FormLabel>Skills Domains</FormLabel>
               <FormDescription>
                 Select at least one domain relevant to this job
-              </FormDescription>{" "}
+              </FormDescription>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {DOMAINS.map((domain) => (
                   <div key={domain.id} className="flex items-center space-x-2">
@@ -357,12 +404,11 @@ export default function CreateJobForm() {
                 </p>
               )}
             </div>
-
             {selectedDomains.length > 0 && (
               <div className="space-y-3">
                 <FormLabel>Required Reputation Scores by Domain</FormLabel>
                 <div className="space-y-3">
-                  {" "}
+                  
                   {selectedDomains.map((domainId) => {
                     const domain = DOMAINS.find((d) => d.id === domainId);
                     return (
@@ -409,7 +455,6 @@ export default function CreateJobForm() {
                 </div>
               </div>
             )}
-
             <FormField
               control={form.control}
               name="requireGlobalReputation"
@@ -425,7 +470,6 @@ export default function CreateJobForm() {
                 </FormItem>
               )}
             />
-
             {form.watch("requireGlobalReputation") && (
               <FormField
                 control={form.control}
@@ -462,7 +506,6 @@ export default function CreateJobForm() {
                 )}
               />
             )}
-
             <div className="flex justify-end space-x-4 pt-4">
               <Button
                 variant="outline"

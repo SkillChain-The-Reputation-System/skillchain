@@ -6,16 +6,16 @@ import Link from "next/link";
 import {
   fetchAllApplicationCountsByJobID,
   fetchJobById,
-  fetchApplicantsByJobID,
+  fetchBriefApplicationByJobID,
 } from "@/lib/fetching-onchain-data-utils";
 import { JobDurationLabels, JobApplicationStatus } from "@/constants/system";
-import { JobInterface } from "@/lib/interfaces";
+import { JobApplicationMetricsInterface, JobInterface } from "@/lib/interfaces";
 import { ArrowLeft, FileEdit, Eye } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ApplicantsTable } from "@/features/jobs-on-recruiter/applicant/applicants-table/data-table";
 import { ApplicantColumns } from "@/features/jobs-on-recruiter/applicant/applicants-table/column";
 
-import { JobApplicantionInterface } from "@/lib/interfaces";
+import { BriefJobApplicationInterface } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
 import { pageUrlMapping } from "@/constants/navigation";
 
@@ -34,28 +34,19 @@ export default function JobApplicantsPage() {
 
   const [job, setJob] = useState<JobInterface | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [counts, setCounts] = useState<{
-    total: number;
-    pending: number;
-    reviewing: number;
-    shortlisted: number;
-    interviewing: number;
-    rejected: number;
-    withdrawn: number;
-    hired: number;
-  }>({
+  const [counts, setCounts] = useState<JobApplicationMetricsInterface>({
     total: 0,
     pending: 0,
     reviewing: 0,
     shortlisted: 0,
-    interviewing: 0,
+    interviewed: 0,
     rejected: 0,
     withdrawn: 0,
     hired: 0,
   });
 
   // State to store real applicant data
-  const [applicants, setApplicants] = useState<JobApplicantionInterface[]>([]);
+  const [applicants, setApplicants] = useState<BriefJobApplicationInterface[]>([]);
   // Fetch job data and application counts for each status
   useEffect(() => {
     const fetchJobData = async () => {
@@ -73,14 +64,14 @@ export default function JobApplicantsPage() {
           pending: statusCounts.pending,
           reviewing: statusCounts.reviewing,
           shortlisted: statusCounts.shortlisted,
-          interviewing: statusCounts.interviewing,
+          interviewed: statusCounts.interviewed,
           rejected: statusCounts.rejected,
           withdrawn: statusCounts.withdrawn,
           hired: statusCounts.hired,
         });
 
         // Fetch real applicant data
-        const applicantData = await fetchApplicantsByJobID(jobId);
+        const applicantData = await fetchBriefApplicationByJobID(jobId);
         setApplicants(applicantData);
       } catch (error) {
         console.error("Error fetching job data:", error);

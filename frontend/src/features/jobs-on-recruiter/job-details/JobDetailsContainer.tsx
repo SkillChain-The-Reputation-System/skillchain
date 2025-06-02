@@ -7,18 +7,13 @@ import {
   fetchJobById,
   getPossibleJobStatusTransitions,
 } from "@/lib/fetching-onchain-data-utils";
-import { updateJobStatus } from "@/lib/write-onchain-utils";
 import { JobInterface } from "@/lib/interfaces";
-import { JobStatus, JobStatusLabels } from "@/constants/system";
+import { JobStatus } from "@/constants/system";
 import { toast } from "react-toastify";
 
 // Dynamic imports with loading states
 const JobDetailsHeader = dynamic(() => import("./JobDetailsHeader"), {
   loading: () => <div className="h-20 bg-slate-200 animate-pulse rounded-md" />,
-});
-
-const JobStatusDialog = dynamic(() => import("./JobStatusDialog"), {
-  loading: () => null,
 });
 
 const JobDetailsCard = dynamic(() => import("./JobDetailsCard"), {
@@ -50,8 +45,6 @@ export default function JobDetailsContainer() {
   const [job, setJob] = useState<JobInterface | null>(null);
   const [loading, setLoading] = useState(true);
   const [statusLoading, setStatusLoading] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newStatus, setNewStatus] = useState<JobStatus | null>(null);
   const [possibleStatuses, setPossibleStatuses] = useState<JobStatus[]>([]);
   const jobId = params.id as string;
 
@@ -89,68 +82,42 @@ export default function JobDetailsContainer() {
 
     if (jobId) {
       fetchJobData();
-    }
-  }, [jobId]);
-  // Handle status change
-  const handleStatusChange = (status: JobStatus) => {
-    if (job && status !== job.status) {
-      setNewStatus(status);
-      setIsDialogOpen(true);
+    }  }, [jobId]);
+  // Handle job update by reloading data
+  const handleJobUpdate = async () => {
+    try {
+      setStatusLoading(true);
+      const jobData = await fetchJobById(jobId);
+      setJob(jobData);
+
+      // Get possible status transitions for the updated job
+      if (jobData) {
+        try {
+          const transitions = await getPossibleJobStatusTransitions(
+            jobData.status
+          );
+          setPossibleStatuses(transitions);
+        } catch (transitionError) {
+          console.error(
+            "Error fetching status transitions:",
+            transitionError
+          );
+          setPossibleStatuses([]);
+        }
+      }
+    } catch (error) {
+      console.error("Error reloading job details:", error);
+      toast.error("Failed to reload job details. Please try again later.");
+    } finally {
+      setStatusLoading(false);
     }
   };
 
-  // Remove pointer events helper
+  // After updating job status, the "pointer events" is set to "none" on the body html, making the whole page uninteractive. This function is used to remove that bug.
   const removePointerEventsFromBody = () => {
     if (document.body.style.pointerEvents === "none") {
       document.body.style.pointerEvents = "";
     }
-  };
-
-  // Confirm status change
-  const confirmStatusChange = async () => {
-    if (!job || !newStatus) return;
-
-    try {
-      setStatusLoading(true);
-      await updateJobStatus(jobId, newStatus);
-
-      // Clear dialog state first
-      setIsDialogOpen(false);
-
-      // Update job status locally
-      setJob((prevJob) => {
-        if (!prevJob) return null;
-        return {
-          ...prevJob,
-          status: newStatus,
-        };
-      });
-
-      // Show success message
-      toast.success(`Job status updated to ${JobStatusLabels[newStatus]}`);
-
-      // Update possible transitions for the new status in a separate operation
-      try {
-        const transitions = await getPossibleJobStatusTransitions(newStatus);
-        setPossibleStatuses(transitions);
-      } catch (transitionError) {
-        console.error("Error fetching status transitions:", transitionError);
-        // Set empty transitions as fallback
-        setPossibleStatuses([]);
-      }
-    } catch (error) {
-      console.error("Error updating job status:", error);
-      toast.error("Failed to update job status. Please try again later.");
-    } finally {
-      setStatusLoading(false);
-      setNewStatus(null);
-    }
-  };
-
-  // Handle dialog cancel
-  const handleDialogCancel = () => {
-    setIsDialogOpen(false);
-    setNewStatus(null);
   };
   if (loading) {
     return (
@@ -174,18 +141,6 @@ export default function JobDetailsContainer() {
         <JobDetailsHeader job={job} jobId={jobId} />
       </Suspense>
 
-      <Suspense fallback={null}>
-        <JobStatusDialog
-          isOpen={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
-          job={job}
-          newStatus={newStatus}
-          statusLoading={statusLoading}
-          onConfirm={confirmStatusChange}
-          onCancel={handleDialogCancel}
-        />
-      </Suspense>
-
       <div className="flex flex-col space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
@@ -194,7 +149,7 @@ export default function JobDetailsContainer() {
                 job={job}
                 possibleStatuses={possibleStatuses}
                 statusLoading={statusLoading}
-                onStatusChange={handleStatusChange}
+                onJobUpdate={handleJobUpdate}
                 removePointerEventsFromBody={removePointerEventsFromBody}
               />
             </Suspense>

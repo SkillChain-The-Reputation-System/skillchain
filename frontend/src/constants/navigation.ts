@@ -23,7 +23,6 @@ export const pageUrlMapping = {
     career_available_jobs: "/dashboard/career/available-jobs",
     career_my_applications: "/dashboard/career/my-applications",
     recruiter: "/recruiter",
-    recruiter_dashboard: "/recruiter/dashboard",
     recruiter_jobs: "/recruiter/jobs",
     recruiter_jobs_create: "/recruiter/jobs/create",
     recruiter_meetings: "/recruiter/meetings",

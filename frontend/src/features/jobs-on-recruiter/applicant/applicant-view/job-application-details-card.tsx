@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -14,28 +15,43 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   CalendarIcon,
   ClockIcon,
   MapPinIcon,
   BuildingIcon,
   MoreHorizontal,
+  ArrowLeftIcon,
 } from "lucide-react";
 import { format } from "date-fns";
-import { JobApplicationWithJobDataInterface } from "@/lib/interfaces";
+import { JobApplicationInterface } from "@/lib/interfaces";
 import { JobApplicationStatus } from "@/constants/system";
 import { ApplicationStatusLabels } from "@/constants/system";
 import {
   applicationStatusStyles,
   applicationStatusIconStyles,
+  applicationStatusHoverStyles,
 } from "@/constants/styles";
 import { Icons } from "@/components/icons";
 import { ApplicationStatusIconMap } from "@/constants/data";
+import { updateJobApplicationStatus } from "@/lib/write-onchain-utils";
+import { toast } from "react-toastify";
+import { cn } from "@/lib/utils";
 
 interface JobApplicationDetailsCardProps {
-  application: JobApplicationWithJobDataInterface;
+  application: JobApplicationInterface;
   possibleStatuses: JobApplicationStatus[];
   statusLoading: boolean;
-  onStatusChange: (status: string) => void;
+  onApplicationUpdate: () => Promise<void>;
   removePointerEventsFromBody: () => void;
 }
 
@@ -43,13 +59,79 @@ export default function JobApplicationDetailsCard({
   application,
   possibleStatuses,
   statusLoading,
-  onStatusChange,
+  onApplicationUpdate,
   removePointerEventsFromBody,
 }: JobApplicationDetailsCardProps) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedStatus, setSelectedStatus] =
+    useState<JobApplicationStatus | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+
   const formattedAppliedDate = format(
     new Date(application.applied_at),
     "EEE dd MMM, yyyy hh:mm a"
   );
+
+  // Get status change message based on the new status
+  const getStatusChangeMessage = (
+    currentStatus: JobApplicationStatus,
+    newStatus: JobApplicationStatus
+  ): string => {
+    switch (newStatus) {
+      case JobApplicationStatus.REVIEWING:
+        return "Moving this application to reviewing stage will indicate you're currently reviewing the candidate.";
+      case JobApplicationStatus.SHORTLISTED:
+        return "Shortlisting this candidate will move them to the next step in the hiring process.";
+      case JobApplicationStatus.INTERVIEWED:
+        return "Moving this application to interviewed stage means that you have completed the interview process with the candidate.";
+      case JobApplicationStatus.REJECTED:
+        return "Rejecting this application will notify the candidate that they are no longer being considered.";
+      case JobApplicationStatus.HIRED:
+        return "Accepting this candidate will notify them that they have been selected for the position.";
+      case JobApplicationStatus.WITHDRAWN:
+        return "Only candidates can withdraw their application. This status cannot be set by recruiters.";
+      default:
+        return "Are you sure you want to change the status of this application?";
+    }
+  };
+
+  // Get status button color for status in dialog
+  const getStatusButtonColor = (status: JobApplicationStatus) => {
+    return applicationStatusHoverStyles[
+      status as keyof typeof applicationStatusHoverStyles
+    ];
+  };
+
+  // Handle status change confirmation
+  const handleStatusChangeConfirm = async () => {
+    if (!selectedStatus) return;
+
+    try {
+      setIsUpdating(true);
+      await updateJobApplicationStatus(application.id, selectedStatus);
+
+      // Show success message
+      toast.success(
+        `Application status updated to ${
+          ApplicationStatusLabels[
+            selectedStatus as keyof typeof ApplicationStatusLabels
+          ]
+        }`
+      );
+
+      // Trigger parent component to reload fresh data
+      await onApplicationUpdate();
+    } catch (error) {
+      console.error("Error updating application status:", error);
+      toast.error(
+        "Failed to update application status. Please try again later."
+      );
+    } finally {
+      setIsUpdating(false);
+      setIsDialogOpen(false);
+      setSelectedStatus(null);
+    }
+  };
   const getStatusColor = (status: JobApplicationStatus) => {
     return applicationStatusStyles[
       status as keyof typeof applicationStatusStyles
@@ -82,6 +164,11 @@ export default function JobApplicationDetailsCard({
         }`}
       />
     ) : null;
+  };
+  const handleStatusChange = (status: JobApplicationStatus) => {
+    removePointerEventsFromBody();
+    setSelectedStatus(status);
+    setIsDialogOpen(true);
   };
 
   return (
@@ -125,10 +212,7 @@ export default function JobApplicationDetailsCard({
                   className={`flex items-center gap-2 cursor-pointer ${
                     status === application.status ? "font-bold" : ""
                   }`}
-                  onClick={() => {
-                    removePointerEventsFromBody();
-                    onStatusChange(status.toString());
-                  }}
+                  onClick={() => handleStatusChange(status)}
                 >
                   {getStatusIcon(status)}
                   <span
@@ -200,6 +284,74 @@ export default function JobApplicationDetailsCard({
           </div>
         </div>
       </CardContent>
+      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Status Change</AlertDialogTitle>
+            <AlertDialogDescription>
+              {selectedStatus &&
+                getStatusChangeMessage(application.status, selectedStatus)}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {selectedStatus && (
+            <div className="flex justify-center items-center gap-5 py-6">
+              <div className="flex flex-col items-center">
+                {getStatusIcon(application.status)}
+                <span className="mt-2 text-sm font-medium">
+                  {
+                    ApplicationStatusLabels[
+                      application.status as keyof typeof ApplicationStatusLabels
+                    ]
+                  }
+                </span>
+              </div>
+              <ArrowLeftIcon className="h-5 w-5 transform rotate-180" />
+              <div className="flex flex-col items-center">
+                {getStatusIcon(selectedStatus)}
+                <span className="mt-2 text-sm font-medium">
+                  {
+                    ApplicationStatusLabels[
+                      selectedStatus as keyof typeof ApplicationStatusLabels
+                    ]
+                  }
+                </span>
+              </div>
+            </div>
+          )}
+
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setIsDialogOpen(false);
+                setSelectedStatus(null);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleStatusChangeConfirm}
+              className={cn(
+                getStatusButtonColor(
+                  selectedStatus || JobApplicationStatus.PENDING
+                ),
+                isUpdating && "opacity-50 cursor-not-allowed"
+              )}
+              disabled={isUpdating}
+            >
+              {isUpdating
+                ? "Updating..."
+                : `Change to ${
+                    selectedStatus
+                      ? ApplicationStatusLabels[
+                          selectedStatus as keyof typeof ApplicationStatusLabels
+                        ]
+                      : ""
+                  }`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

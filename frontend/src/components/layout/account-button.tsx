@@ -131,7 +131,7 @@ export const AccountButton = () => {
 
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
-            <Link href={pageUrlMapping.recruiter_dashboard}>
+            <Link href={pageUrlMapping.recruiter_jobs}>
               <UserSearch />
               Switch to Recruiter
             </Link>

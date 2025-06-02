@@ -25,7 +25,7 @@ export const ApplicationStatusIconMap: Record<JobApplicationStatus, string> = {
   [JobApplicationStatus.PENDING]: "FileTextIcon",
   [JobApplicationStatus.REVIEWING]: "UserSearch",
   [JobApplicationStatus.SHORTLISTED]: "ListCheck",
-  [JobApplicationStatus.INTERVIEWING]: "Calendar",
+  [JobApplicationStatus.INTERVIEWED]: "Calendar",
   [JobApplicationStatus.HIRED]: "CheckCircle",
   [JobApplicationStatus.REJECTED]: "XCircle",
   [JobApplicationStatus.WITHDRAWN]: "ArrowRight",
@@ -251,11 +251,6 @@ export const account_button_items: AccountButtonItem[] = [
 // Menu items for the recruiter role in the account button dropdown
 export const recruiter_account_button_items: AccountButtonItem[] = [
   {
-    title: "Recruiter Dashboard",
-    href: pageUrlMapping.recruiter_dashboard,
-    icon: "dashboard",
-  },
-  {
     title: "Jobs",
     href: pageUrlMapping.recruiter_jobs,
     icon: "page",
@@ -279,14 +274,6 @@ export const recruiter_account_button_items: AccountButtonItem[] = [
 
 // Navigation items for the recruiter portal
 export const recruiterNavItems: NavItem[] = [
-  {
-    title: "Dashboard",
-    url: pageUrlMapping.recruiter_dashboard,
-    icon: "dashboard",
-    isActive: false,
-    shortcut: ["d", "d"],
-    items: [],
-  },
   {
     title: "Jobs",
     url: pageUrlMapping.recruiter_jobs,

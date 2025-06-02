@@ -12,13 +12,13 @@ import {
   Users
 } from "lucide-react";
 
-import { JobPreviewInterface, BriefMeetingInterface, JobApplicantionInterface } from "@/lib/interfaces";
+import { JobPreviewInterface, BriefMeetingInterface, BriefJobApplicationInterface } from "@/lib/interfaces";
 import { JobApplicationStatus, JobStatus, MeetingStatus } from "@/constants/system";
 
 interface GeneralStatisticsProps {
   jobs: JobPreviewInterface[],
   meetings: BriefMeetingInterface[],
-  jobsApplication: Record<string, JobApplicantionInterface[]>
+  jobsApplication: Record<string, BriefJobApplicationInterface[]>
 }
 
 export default function GeneralStatistics({ jobs, meetings, jobsApplication }: GeneralStatisticsProps) {

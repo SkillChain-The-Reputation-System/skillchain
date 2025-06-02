@@ -20,11 +20,11 @@ import {
 } from "@/constants/system";
 import { pageUrlMapping } from "@/constants/navigation";
 import { format } from "date-fns";
-import { JobApplicationWithJobDataInterface } from "@/lib/interfaces";
+import { JobApplicationInterface } from "@/lib/interfaces";
 import { Badge } from "@/components/ui/badge";
 import { applicationStatusStyles } from "@/constants/styles";
 
-export const ApplicationColumns: ColumnDef<JobApplicationWithJobDataInterface>[] = [
+export const ApplicationColumns: ColumnDef<JobApplicationInterface>[] = [
   {
     accessorKey: "job.title",
     header: ({ column }) => (

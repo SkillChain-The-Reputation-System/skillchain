@@ -4,48 +4,76 @@ pragma solidity ^0.8.17;
 library SystemEnums {
     // --- Domains Constants ---
     enum Domain {
-        COMPUTER_SCIENCE_FUNDAMENTALS, // 0
-        SOFTWARE_DEVELOPMENT, // 1
-        SYSTEMS_AND_NETWORKING, // 2
-        CYBERSECURITY, // 3
-        DATA_SCIENCE_AND_ANALYTICS, // 4
-        DATABASE_ADMINISTRATION, // 5
-        QUALITY_ASSURANCE_AND_TESTING, // 6
-        PROJECT_MANAGEMENT, // 7
-        USER_EXPERIENCE_AND_DESIGN, // 8
-        BUSINESS_ANALYSIS, // 9
-        ARTIFICIAL_INTELLIGENCE, // 10
-        BLOCKCHAIN_AND_CRYPTOCURRENCY, // 11
-        NETWORK_ADMINISTRATION, // 12
-        CLOUD_COMPUTING // 13
+        COMPUTER_SCIENCE_FUNDAMENTALS, // 0 - Core CS concepts: algorithms, data structures, complexity theory
+        SOFTWARE_DEVELOPMENT, // 1 - Programming languages, frameworks, development methodologies
+        SYSTEMS_AND_NETWORKING, // 2 - Operating systems, network protocols, system architecture
+        CYBERSECURITY, // 3 - Information security, ethical hacking, security protocols
+        DATA_SCIENCE_AND_ANALYTICS, // 4 - Data analysis, machine learning, statistical modeling
+        DATABASE_ADMINISTRATION, // 5 - Database design, SQL, data management systems
+        QUALITY_ASSURANCE_AND_TESTING, // 6 - Software testing, test automation, quality control
+        PROJECT_MANAGEMENT, // 7 - Agile methodologies, project planning, team coordination
+        USER_EXPERIENCE_AND_DESIGN, // 8 - UI/UX design, user research, design principles
+        BUSINESS_ANALYSIS, // 9 - Requirements analysis, business process modeling
+        ARTIFICIAL_INTELLIGENCE, // 10 - AI algorithms, neural networks, deep learning
+        BLOCKCHAIN_AND_CRYPTOCURRENCY, // 11 - Blockchain technology, smart contracts, DeFi
+        NETWORK_ADMINISTRATION, // 12 - Network configuration, infrastructure management
+        CLOUD_COMPUTING // 13 - Cloud platforms, distributed systems, containerization
     }
 
     // --- Challenge Status Constants ---
     enum ChallengeStatus {
-        PENDING, // 0
-        APPROVED, // 1
-        REJECTED // 2
+        PENDING, // 0 - Challenge submitted and awaiting reviews
+        APPROVED, // 1 - Challenge has been reviewed and approved
+        REJECTED // 2 - Challenge has been reviewed and rejected due to quality issues
     }
 
     // --- Challenge Difficulty Level Constants ---
     enum DifficultyLevel {
-        EASY, // 0
-        MEDIUM, // 1
-        HARD // 2
+        EASY, // 0 - Beginner level challenge, basic concepts and simple implementation
+        MEDIUM, // 1 - Intermediate level challenge, moderate complexity and problem-solving
+        HARD // 2 - Advanced level challenge, complex algorithms and deep understanding required
     }
 
     // --- Challenge Review Answer Constants ---
     enum QualityFactorAnswer {
-        NO, // 0
-        YES // 1
+        NO, // 0 - Quality factor criterion is not met
+        YES // 1 - Quality factor criterion is satisfied
     }
 
-    // --- Soliution Progress Constants ---
+    // --- Solution Progress Constants ---
     enum SolutionProgress {
-        IN_PROGRESS,
-        SUBMITTED,
-        UNDER_REVIEW,
-        REVIEWED
+        IN_PROGRESS, // 0 - Solution is being worked on by the participant
+        SUBMITTED, // 1 - Solution has been submitted and awaiting evaluation
+        UNDER_REVIEW, // 2 - Solution is currently being reviewed by evaluators
+        REVIEWED // 3 - Solution has been evaluated and feedback provided
+    }
+
+    // --- Job Status Constants ---
+    enum JobStatus {
+        DRAFT, // 0 - Job posting is being created but not yet published
+        OPEN, // 1 - Job is actively accepting applications
+        PAUSED, // 2 - Job applications are temporarily suspended
+        CLOSED, // 3 - Job is no longer accepting new applications
+        FILLED, // 4 - Position has been filled
+        ARCHIVED // 5 - Job posting has been archived for record keeping
+    }
+
+    // --- Job Application Status Constants ---
+    enum ApplicationStatus {
+        PENDING, // 0 - Initial state when application is submitted
+        REVIEWING, // 1 - Application is being reviewed
+        SHORTLISTED, // 2 - Candidate is shortlisted, they will join some interview sessions (if the recruiter wants)
+        INTERVIEWED, // 3 - Candidate is interviewed, waiting for final decision
+        REJECTED, // 4 - Application was rejected
+        WITHDRAWN, // 5 - Applicant withdrew their application
+        HIRED // 6 - Applicant was hired for the position
+    }
+
+    // --- Meeting Status Constants ---
+    enum MeetingStatus {
+        PENDING, // 0 - Meeting is scheduled but has not yet occurred
+        COMPLETED, // 1 - Meeting has been successfully conducted
+        CANCELLED // 2 - Meeting has been cancelled and will not take place
     }
 }
 

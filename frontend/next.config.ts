@@ -41,6 +41,10 @@ const nextConfig: NextConfig = {
 
     return config;
   },
+
+  env: {
+    JAAS_API_KEY: process.env.JAAS_API_KEY,
+  },
 };
 
 export default nextConfig;

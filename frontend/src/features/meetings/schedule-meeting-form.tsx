@@ -51,7 +51,7 @@ import { format } from "date-fns"
 import { cn } from "@/lib/utils";
 import { timeSlots, calculateMeetingDuration } from "./time-utils";
 import { JobApplicationStatus, JobStatus } from "@/constants/system";
-import { JobPreviewInterface, BriefJobApplicantionInterface } from "@/lib/interfaces";
+import { JobPreviewInterface, BriefJobApplicationInterface } from "@/lib/interfaces";
 import { fetchPreviewJobsByRecruiter, fetchBriefApplicationByJobID, fetchIsApplicationHasMeeting } from "@/lib/fetching-onchain-data-utils";
 import { scheduleMeeting } from "@/lib/write-onchain-utils";
 import * as z from "zod";
@@ -79,7 +79,7 @@ export default function ScheduleMeetingForm() {
   const [stateLoading, setStateLoading] = useState<boolean>(false);
   // Data state for fetching
   const [jobs, setJobs] = useState<JobPreviewInterface[]>([]);
-  const [applications, setApplications] = useState<BriefJobApplicantionInterface[]>([]);
+  const [applications, setApplications] = useState<BriefJobApplicationInterface[]>([]);
   const [isHasMeeting, setIsHasMeeting] = useState<boolean>(false);
   // Other
   const { address } = useAccount();

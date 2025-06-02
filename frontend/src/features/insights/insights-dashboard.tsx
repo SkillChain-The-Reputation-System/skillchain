@@ -9,7 +9,6 @@ import {
   TabsList,
   TabsTrigger
 } from "@/components/ui/tabs";
-import { Skeleton } from "@/components/ui/skeleton";
 import GeneralStatistics from "./general-statistics";
 import JobsPieChart from "./jobs-pie-chart";
 import JobApplicationFunnel from "./job-applications-funnel";
@@ -17,13 +16,15 @@ import TopJobs from "./top-jobs";
 import TopApplicants from "./top-applicants";
 import MeetingOverview from "./meetings-overview";
 
+import { Loader } from "lucide-react";
+
 import {
   BriefMeetingInterface,
   JobPreviewInterface,
-  JobApplicantionInterface
+  BriefJobApplicationInterface
 } from "@/lib/interfaces";
 import {
-  fetchApplicantsByJobID,
+  fetchBriefApplicationByJobID,
   fetchMeetingsByRecruiter,
   fetchPreviewJobsByRecruiter
 } from "@/lib/fetching-onchain-data-utils";
@@ -34,7 +35,7 @@ export default function InsightsDashboard() {
 
   const [jobs, setJobs] = useState<JobPreviewInterface[]>([]);
   const [meetings, setMeetings] = useState<BriefMeetingInterface[]>([]);
-  const [jobsApplication, setJobsApplication] = useState<Record<string, JobApplicantionInterface[]>>({});
+  const [jobsApplication, setJobsApplication] = useState<Record<string, BriefJobApplicationInterface[]>>({});
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -53,7 +54,7 @@ export default function InsightsDashboard() {
 
         const applicationPromises = fetchedJobs.map(async (job) => {
           try {
-            const applications = await fetchApplicantsByJobID(job.id);
+            const applications = await fetchBriefApplicationByJobID(job.id) as BriefJobApplicationInterface[];
             return { jobId: job.id, applications };
           } catch (error) {
             console.error(`Failed to fetch applications for job ${job.id}:`, error);
@@ -62,7 +63,7 @@ export default function InsightsDashboard() {
         });
 
         const applicationResults = await Promise.all(applicationPromises);
-        const applicationsMap: Record<string, JobApplicantionInterface[]> = {};
+        const applicationsMap: Record<string, BriefJobApplicationInterface[]> = {};
         applicationResults.forEach(({ jobId, applications }) => {
           applicationsMap[jobId] = applications;
         });
@@ -79,18 +80,9 @@ export default function InsightsDashboard() {
 
   return (
     isLoading ? (
-      <div className="flex flex-col gap-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Skeleton className="h-35 w-80" />
-          <Skeleton className="h-35 w-80" />
-          <Skeleton className="h-35 w-80" />
-          <Skeleton className="h-35 w-80" />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Skeleton className="h-90 w-175" />
-          <Skeleton className="h-90 w-175" />
-        </div>
+      <div className="grid grid-cols-1 mt-40 place-items-center gap-4">
+        <Loader className="h-15 w-15 animate-spin duration-3000" />
+        <div>Analyzing your recruitment process...</div>
       </div>
     ) : (
       <div className="flex flex-col gap-4">

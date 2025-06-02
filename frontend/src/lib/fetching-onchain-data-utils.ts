@@ -22,9 +22,7 @@ import {
   JobPreviewInterface,
   JobInterface,
   JobApplicationInterface,
-  BriefJobApplicantionInterface,
-  UserProfileInterface,
-  UserReputationScoreInterface,
+  BriefJobApplicationInterface,
   BriefMeetingInterface,
   MeetingRoomInterface,
   JobApplicationMetricsInterface,
@@ -1301,7 +1299,7 @@ export const fetchApplicationCountByJobID = async (
  */
 export const fetchBriefApplicationByJobID = async (
   job_id: string
-): Promise<BriefJobApplicantionInterface[]> => {
+): Promise<BriefJobApplicationInterface[]> => {
   try {
     // Step 1: Call the contract function to get applications for the job
     const applications = (await readContract(wagmiConfig, {
@@ -1316,7 +1314,7 @@ export const fetchBriefApplicationByJobID = async (
     );
 
     // Step 2: Transform contract data and fetch additional profile and reputation data
-    const applicants: BriefJobApplicantionInterface[] = await Promise.all(
+    const applicants: BriefJobApplicationInterface[] = await Promise.all(
       applications.map(async (application) => {
         const applicantAddress = application.applicant as `0x${string}`;
 
@@ -1399,7 +1397,7 @@ export const fetchAllApplicationCountsByJobID = async (
     })) as any[];
 
     // Initialize counters for each status
-    const counts:JobApplicationMetricsInterface = {
+    const counts: JobApplicationMetricsInterface = {
       total: 0,
       pending: 0,
       reviewing: 0,
@@ -1437,7 +1435,7 @@ export const fetchAllApplicationCountsByJobID = async (
       }
     });
 
-    counts.total = applications.length; 
+    counts.total = applications.length;
 
     return counts;
   } catch (error) {
@@ -1478,6 +1476,7 @@ export async function fetchMeetingsByRecruiter(
 
         return {
           id: fetchedMeeting.id,
+          roomId: meetingData.roomId,
           applicant: application.profile_data,
           job: {
             position: application.job.title,
@@ -1491,6 +1490,7 @@ export async function fetchMeetingsByRecruiter(
             toTime: meetingData.toTime,
           },
           status: fetchedMeeting.status,
+          note: meetingData.note,
         } as BriefMeetingInterface
       })
     ) as BriefMeetingInterface[];
@@ -1524,6 +1524,7 @@ export async function fetchBriefMeetingByApplicationId(
 
     return {
       id: fetchedMeeting.id,
+      roomId: meetingData.roomId,
       applicant: application.profile_data,
       job: {
         position: application.job.title,
@@ -1537,6 +1538,7 @@ export async function fetchBriefMeetingByApplicationId(
         toTime: meetingData.toTime,
       },
       status: fetchedMeeting.status,
+      note: meetingData.note,
     } as BriefMeetingInterface;
   }
   catch (error) {

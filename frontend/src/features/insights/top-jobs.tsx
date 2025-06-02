@@ -8,11 +8,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { JobApplicationStatus } from "@/constants/system";
 
-import { JobApplicantionInterface, JobPreviewInterface } from "@/lib/interfaces";
+import { BriefJobApplicationInterface, JobPreviewInterface } from "@/lib/interfaces";
 
 interface TopJobsProps {
   jobs: JobPreviewInterface[],
-  jobsApplication: Record<string, JobApplicantionInterface[]>
+  jobsApplication: Record<string, BriefJobApplicationInterface[]>
 }
 
 export default function TopJobs({ jobs, jobsApplication }: TopJobsProps) {
@@ -60,7 +60,7 @@ interface JobApplicationCount {
 
 function getTop5JobsWithBestPerformance(
   jobs: JobPreviewInterface[],
-  jobsApplication: Record<string, JobApplicantionInterface[]>
+  jobsApplication: Record<string, BriefJobApplicationInterface[]>
 ): JobApplicationCount[] {
   const jobCounts: JobApplicationCount[] = Object.entries(jobsApplication)
     .map(([jobId, applications]) => {

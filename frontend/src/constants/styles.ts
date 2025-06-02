@@ -36,7 +36,7 @@ export const applicationStatusStyles = {
   [JobApplicationStatus.PENDING]: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200",
   [JobApplicationStatus.REVIEWING]: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200",
   [JobApplicationStatus.SHORTLISTED]: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-200",
-  
+
   [JobApplicationStatus.INTERVIEWED]: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-200",
   [JobApplicationStatus.REJECTED]: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200",
   [JobApplicationStatus.WITHDRAWN]: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200",
@@ -118,7 +118,7 @@ export const applicationStatusChartColor = {
   [JobApplicationStatus.PENDING]: "var(--color-yellow-500)",
   [JobApplicationStatus.REVIEWING]: "var(--color-blue-600)",
   [JobApplicationStatus.SHORTLISTED]: "var(--color-violet-500)",
-  [JobApplicationStatus.INTERVIEWING]: "var(--color-purple-500)",
+  [JobApplicationStatus.INTERVIEWED]: "var(--color-purple-500)",
   [JobApplicationStatus.HIRED]: "var(--color-green-600)",
 }
 

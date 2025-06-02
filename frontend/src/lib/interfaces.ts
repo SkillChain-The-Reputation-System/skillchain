@@ -20,21 +20,21 @@ export interface UserProfileInterface {
 }
 
 export interface RecruiterProfileInterface {
-    // Recruiter info
-    recruiter_address: string;
-    recruiter_fullname: string;
-    recruiter_email: string;
-    recruiter_phone: string;
-    recruiter_position: string;
-    recruiter_bio: string;
-    recruiter_avatar_url: string;
-    // Company info
-    company_name: string;
-    company_website: string;
-    company_location: string;
-    company_industry: string;
-    company_size: string;
-    company_description: string;
+  // Recruiter info
+  recruiter_address: string;
+  recruiter_fullname: string;
+  recruiter_email: string;
+  recruiter_phone: string;
+  recruiter_position: string;
+  recruiter_bio: string;
+  recruiter_avatar_url: string;
+  // Company info
+  company_name: string;
+  company_website: string;
+  company_location: string;
+  company_industry: string;
+  company_size: string;
+  company_description: string;
 }
 
 export interface IrysUploadResponseInterface {
@@ -176,7 +176,7 @@ export interface EvaluationInterface {
   submittedAt: number | undefined;
 }
 
-export interface BriefJobApplicantionInterface {
+export interface BriefJobApplicationInterface {
   id: string;
   address: string;
   status: JobApplicationStatus;
@@ -214,6 +214,7 @@ export interface UserReputationScoreInterface {
 
 export interface BriefMeetingInterface {
   id: string;
+  roomId: string;
   applicant: UserProfileInterface;
   job: {
     position: string;
@@ -227,6 +228,7 @@ export interface BriefMeetingInterface {
     toTime: string;
   };
   status: MeetingStatus;
+  note: string | undefined;
 }
 
 export interface MeetingRoomInterface {

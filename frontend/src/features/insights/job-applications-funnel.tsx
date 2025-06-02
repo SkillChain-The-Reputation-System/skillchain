@@ -9,10 +9,10 @@ import ProgressBar from "./progress-bar";
 import { applicationStatusChartColor } from "@/constants/styles";
 import { ApplicationStatusLabels, JobApplicationStatus } from "@/constants/system";
 
-import { JobApplicantionInterface } from "@/lib/interfaces";
+import { BriefJobApplicationInterface } from "@/lib/interfaces";
 
 interface JobApplicationFunnelProps {
-  jobsApplication: Record<string, JobApplicantionInterface[]>
+  jobsApplication: Record<string, BriefJobApplicationInterface[]>
 }
 
 export default function JobApplicationFunnel({ jobsApplication }: JobApplicationFunnelProps) {
@@ -73,19 +73,19 @@ interface JobApplicationStatusStat {
   fill: string;
 }
 
-function generateApplicationStatusStatistics(jobsApplication: Record<string, JobApplicantionInterface[]>) {
+function generateApplicationStatusStatistics(jobsApplication: Record<string, BriefJobApplicationInterface[]>) {
   type ActiveJobApplicationStatus =
     | JobApplicationStatus.PENDING
     | JobApplicationStatus.REVIEWING
     | JobApplicationStatus.SHORTLISTED
-    | JobApplicationStatus.INTERVIEWING
+    | JobApplicationStatus.INTERVIEWED
     | JobApplicationStatus.HIRED;
 
   const statusCounts: Record<ActiveJobApplicationStatus, number> = {
     [JobApplicationStatus.PENDING]: 0,
     [JobApplicationStatus.REVIEWING]: 0,
     [JobApplicationStatus.SHORTLISTED]: 0,
-    [JobApplicationStatus.INTERVIEWING]: 0,
+    [JobApplicationStatus.INTERVIEWED]: 0,
     [JobApplicationStatus.HIRED]: 0,
   };
 

@@ -21,13 +21,13 @@ import {
 } from "@/constants/system";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { BriefJobApplicantionInterface } from "@/lib/interfaces";
+import { BriefJobApplicationInterface } from "@/lib/interfaces";
 import { pageUrlMapping } from "@/constants/navigation";
 import { applicationStatusStyles } from "@/constants/styles";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export const ApplicantColumns: ColumnDef<BriefJobApplicantionInterface>[] = [
+export const ApplicantColumns: ColumnDef<BriefJobApplicationInterface>[] = [
   {
     accessorKey: "profile_data.avatar_url",
     header: "Avatar",
@@ -61,18 +61,18 @@ export const ApplicantColumns: ColumnDef<BriefJobApplicantionInterface>[] = [
         Full Name
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
-        ),
-        cell: ({ row }) => (
+    ),
+    cell: ({ row }) => (
       <div className="font-medium">
         {row.original.profile_data.fullname || "Anonymous User"}
       </div>
-        ),
-        size: 160,
-      },
-      {
-        accessorKey: "address",
-        header: "Address",
-        cell: ({ row }) => (
+    ),
+    size: 160,
+  },
+  {
+    accessorKey: "address",
+    header: "Address",
+    cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <Tooltip>
           <TooltipTrigger asChild>

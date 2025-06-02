@@ -15,7 +15,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { ApplicantsTable } from "@/features/jobs-on-recruiter/applicant/applicants-table/data-table";
 import { ApplicantColumns } from "@/features/jobs-on-recruiter/applicant/applicants-table/column";
 
-import { BriefJobApplicantionInterface } from "@/lib/interfaces";
+import { BriefJobApplicationInterface } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
 import { pageUrlMapping } from "@/constants/navigation";
 
@@ -46,7 +46,7 @@ export default function JobApplicantsPage() {
   });
 
   // State to store real applicant data
-  const [applicants, setApplicants] = useState<BriefJobApplicantionInterface[]>([]);
+  const [applicants, setApplicants] = useState<BriefJobApplicationInterface[]>([]);
   // Fetch job data and application counts for each status
   useEffect(() => {
     const fetchJobData = async () => {

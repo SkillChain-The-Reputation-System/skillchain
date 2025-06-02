@@ -17,10 +17,10 @@ import {
 } from "@/components/ui/tooltip";
 
 import { JobApplicationStatus } from "@/constants/system";
-import { JobApplicantionInterface } from "@/lib/interfaces";
+import { BriefJobApplicationInterface } from "@/lib/interfaces";
 
 interface TopApplicantsProps {
-  jobsApplication: Record<string, JobApplicantionInterface[]>
+  jobsApplication: Record<string, BriefJobApplicationInterface[]>
 }
 
 export default function TopApplicants({ jobsApplication }: TopApplicantsProps) {
@@ -80,7 +80,7 @@ interface ApplicantJobCount {
   appliedCount: number;
 }
 
-function getTop5MostActiveApplicants(jobsApplication: Record<string, JobApplicantionInterface[]>): ApplicantJobCount[] {
+function getTop5MostActiveApplicants(jobsApplication: Record<string, BriefJobApplicationInterface[]>): ApplicantJobCount[] {
   const applicantMap = new Map<string, {
     address: string;
     name: string;

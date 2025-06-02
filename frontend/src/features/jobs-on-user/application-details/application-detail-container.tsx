@@ -44,6 +44,12 @@ const ApplicationStatusCard = dynamic(
     loading: () => <CardSkeleton />,
   }
 );
+const ApplicationInterviewCard = dynamic(
+  () => import("./application-interview-card"),
+  {
+    loading: () => <CardSkeleton />
+  }
+)
 
 // Loading fallback components for each card type
 function ApplicationStatusCardSkeleton() {
@@ -56,7 +62,7 @@ function ApplicationStatusCardSkeleton() {
           <div className="h-6 w-24 bg-slate-200 animate-pulse rounded-full"></div>
         </div>
       </div>
-      
+
       {/* Application Overview */}
       <div className="px-6 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -97,7 +103,7 @@ function ApplicationJobOverviewCardSkeleton() {
       <div className="p-6 pb-0">
         <div className="h-6 w-32 bg-slate-200 animate-pulse rounded"></div>
       </div>
-      
+
       {/* Content */}
       <div className="p-6 pt-4 space-y-4">
         {/* Job details list */}
@@ -112,7 +118,7 @@ function ApplicationJobOverviewCardSkeleton() {
             </div>
           </div>
         ))}
-        
+
         {/* Status section */}
         <div className="grid grid-cols-2 gap-4 items-center py-2 pt-4 border-t">
           <div className="h-4 w-16 bg-slate-200 animate-pulse rounded"></div>
@@ -132,7 +138,7 @@ function ApplicationJobDetailsCardSkeleton() {
       <div className="p-6 pb-0">
         <div className="h-6 w-28 bg-slate-200 animate-pulse rounded"></div>
       </div>
-      
+
       {/* Content */}
       <div className="p-6 pt-4 space-y-3">
         {/* Three dialog buttons */}
@@ -142,6 +148,28 @@ function ApplicationJobDetailsCardSkeleton() {
       </div>
     </div>
   );
+}
+
+function ApplicationInterviewCardSkeleton() {
+  return (
+    <div className="border rounded-xl shadow-sm">
+      {/* Header */}
+      <div className="p-6 pb-0 flex items-center justify-between">
+        <div className="h-8 w-28 bg-slate-200 animate-pulse rounded"></div>
+        <div className="h-5 w-20 bg-slate-200 animate-pulse rounded"></div>
+      </div>
+
+      {/* Content */}
+      <div className="p-6 space-y-6">
+        <div className="h-15 w-full bg-slate-200 animate-pulse rounded"></div>
+        <div className="h-15 w-full bg-slate-200 animate-pulse rounded"></div>
+        <div className="flex items-center justify-between">
+          <div className="h-8 w-60 bg-slate-200 animate-pulse rounded"></div>
+          <div className="h-8 w-30 bg-slate-200 animate-pulse rounded"></div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // Generic fallback for dynamic imports
@@ -198,13 +226,13 @@ export default function ApplicationDetailContainer() {
 
     try {
       toast.info("Withdrawing application...");
-      
+
       // Call the blockchain function to withdraw the application
       const txHash = await withdrawJobApplication(address, applicationId);
-      
+
       toast.success("Application withdrawn successfully!");
       console.log("Withdrawal transaction hash:", txHash);
-      
+
       // Update application status locally for immediate UI feedback
       if (application) {
         setApplication({
@@ -226,15 +254,16 @@ export default function ApplicationDetailContainer() {
             <div className="h-8 w-64 bg-slate-200 animate-pulse rounded-md" />
             <div className="h-4 w-48 bg-slate-200 animate-pulse rounded-md" />
           </div>
-          
+
           {/* Separator */}
           <div className="h-px bg-slate-200"></div>
-          
+
           {/* Main content layout matching the actual structure */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column (Application Status - Main Component) */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 space-y-6">
               <ApplicationStatusCardSkeleton />
+              <ApplicationInterviewCardSkeleton />
             </div>
 
             {/* Right Column (Overview & Job Details) */}
@@ -321,6 +350,7 @@ export default function ApplicationDetailContainer() {
           {/* Left Column (Application Status - Main Component) */}
           <div className="lg:col-span-2 space-y-6">
             {application && <ApplicationStatusCard application={application} />}
+            {application && <ApplicationInterviewCard application={application} />}
           </div>
 
           {/* Right Column (Overview & Job Details) */}

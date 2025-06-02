@@ -605,4 +605,30 @@ contract SolutionManager {
                 _evaluator_address
             ];
     }
+
+    function getEvaluationDeviation(
+        address _evaluator_address,
+        uint256 _solution_id
+    ) public view returns (uint256) {
+        require(
+            solutions[_solution_id].progress == SystemEnums.SolutionProgress.REVIEWED,
+            "Solution not yet evaluated"
+        );
+        
+        EvaluationPool storage pool = solution_to_evaluation_pool[_solution_id];
+        
+        require(
+            pool.evaluator_joined[_evaluator_address] &&
+                pool.evaluator_submitted[_evaluator_address],
+            "Evaluator not submitted score"
+        );
+        
+        uint256 evaluatorScore = pool.evaluator_to_evaluation[_evaluator_address].evaluation_score;
+        uint256 finalScore = solutions[_solution_id].score;
+        
+        // Return absolute difference
+        return evaluatorScore > finalScore ? 
+            evaluatorScore - finalScore : 
+            finalScore - evaluatorScore;
+    }
 }

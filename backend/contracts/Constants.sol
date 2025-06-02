@@ -103,13 +103,19 @@ library SystemConsts {
     uint256 public constant THRESHOLD_OF_MODERATION_DEVIATION = 60; // Threshold for moderation deviation (Final challenge quality - Score give by moderator)
 
 
-    // ================= REWARD AND PENALTY =================
-    uint256 public constant REWARD_DEVIATION_THRESHOLD = 70; 
-    uint256 public constant MAX_DEVIATION = 100; // The max score of a challenge can have
-    uint256 public constant STAKE_PENALTY_RATE = 0.3e18; // gamma - maximum of 30% the stake will be penalized 
-    uint256 public constant STAKE_INFLUENCE_COEFFICIENT = 0.4e18; // beta
-    uint256 public constant REWARD_DISTRIBUTION_SPREAD = 0.8e18; // alpha 
+    // ================= MODERATION REWARD AND PENALTY =================
+    uint256 public constant MODERATION_REWARD_DEVIATION_THRESHOLD = 70; 
+    uint256 public constant MODERATION_MAX_DEVIATION = 100; // The max score of a challenge can have
+    uint256 public constant MODERATION_STAKE_PENALTY_RATE = 0.3e18; // gamma - maximum of 30% the stake will be penalized 
+    uint256 public constant MODERATION_STAKE_INFLUENCE_COEFFICIENT = 0.4e18; // beta
+    uint256 public constant MODERATION_REWARD_DISTRIBUTION_SPREAD = 0.8e18; // alpha 
 
+    // ================= EVALUATION REWARD AND PENALTY =================
+    uint256 public constant EVALUATION_REWARD_DEVIATION_THRESHOLD = 60; 
+    uint256 public constant EVALUATION_MAX_DEVIATION = 100; // The max score of a challenge can have
+    uint256 public constant EVALUATION_STAKE_PENALTY_RATE = 0.2e18; // gamma - maximum of 30% the stake will be penalized 
+    uint256 public constant EVALUATION_STAKE_INFLUENCE_COEFFICIENT = 0.2e18; // beta
+    uint256 public constant EVALUATION_REWARD_DISTRIBUTION_SPREAD = 0.9e18; // alpha 
 }
 
 library MathUtils {

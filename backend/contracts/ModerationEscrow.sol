@@ -135,7 +135,9 @@ contract ModerationEscrow {
             pot.moderator_deviation[moderator] = deviation;
 
             // Filter moderators based on their deviation
-            if (deviation <= SystemConsts.REWARD_DEVIATION_THRESHOLD) {
+            if (
+                deviation <= SystemConsts.MODERATION_REWARD_DEVIATION_THRESHOLD
+            ) {
                 // If deviation is within the threshold, add to passed_moderators
                 pot.passed_moderators.push(moderator);
             } else {
@@ -155,10 +157,10 @@ contract ModerationEscrow {
             uint256 moderator_stake = pot.moderator_stake[moderator];
 
             // Calculate penalty using the formula from ModerationPenaltyTokenFormulas
-            uint256 penalty = ModerationPenaltyTokenFormulas.calculatePenalty(
-                deviation, // di_raw: moderator's deviation
-                moderator_stake // si_raw: moderator's stake
-            );
+            uint256 penalty = PenaltyTokenFormulas.calculatePenaltyForModerator(
+                    deviation, // di_raw: moderator's deviation
+                    moderator_stake // si_raw: moderator's stake
+                );
 
             // Guard the moderator stake in case the penalty exceeds the moderator's stake
             // Theotically, this should not happen, but we need to ensure it will never happen
@@ -191,7 +193,7 @@ contract ModerationEscrow {
             uint256 moderator_stake = pot.moderator_stake[moderator];
 
             // Calculate weight using the formula from ModerationRewardTokenFormulas
-            uint256 weight = ModerationRewardTokenFormulas.calculateWeight(
+            uint256 weight = RewardTokenFormulas.calculateWeightForModerator(
                 deviation, // di_raw: moderator's deviation
                 moderator_stake // si_raw: moderator's stake
             );
@@ -206,12 +208,11 @@ contract ModerationEscrow {
             uint256 weight = moderator_weights[i];
 
             // Calculate reward amount using the formula from ModerationRewardTokenFormulas
-            uint256 reward = ModerationRewardTokenFormulas
-                .calculateRewardForEachModerator(
-                    weight, // weight
-                    total_weight, // total_weight
-                    pot.total_reward // total_reward
-                );
+            uint256 reward = RewardTokenFormulas.calculateReward(
+                weight, // weight
+                total_weight, // total_weight
+                pot.total_reward // total_reward
+            );
 
             // Store the reward amount in the moderator_reward mapping
             pot.moderator_reward[moderator] = reward;

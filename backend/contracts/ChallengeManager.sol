@@ -153,15 +153,6 @@ contract ChallengeManager {
         _;
     }
 
-    // Modifier to check if caller has any role or allow all users
-    // This allows contributors, evaluators, moderators, or any user to participate
-    modifier onlyRegisteredUser() {
-        // If role manager is set, we could add additional checks here
-        // For now, allowing all users to join challenges
-        // In the future, this could be restricted to only role holders
-        _;
-    }
-
     // ================= CONTRIBUTION METHODS =================
     function contributeChallenge(
         string calldata _title_url,
@@ -434,7 +425,7 @@ contract ChallengeManager {
     function userJoinChallenge(
         uint256 _challenge_id,
         string calldata _solution_base_txid
-    ) external onlyRegisteredUser {
+    ) external {
         // Check if challenge id exists
         require(_challenge_id < total_challenges);
 

@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 import "./Constants.sol";
 import "./interfaces/IReputationManager.sol";
 import "./interfaces/IChallengeManager.sol";
+import "./interfaces/IRoleManager.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract SolutionManager {
@@ -68,6 +69,8 @@ contract SolutionManager {
     address private challenge_manager_address; // ChallengeManager address
     IReputationManager private reputation_manager; // ReputationManager instance
     address private reputation_manager_address; // ReputationManager address
+    IRoleManager private role_manager; // RoleManager instance
+    address private role_manager_address; // RoleManager address
 
     uint256 private total_solutions = 0;
 
@@ -122,6 +125,22 @@ contract SolutionManager {
             is_under_review_solution[_solution_id],
             "Solution not under review"
         );
+        _;
+    }
+
+    // ================= ROLE-BASED ACCESS CONTROL MODIFIERS =================
+    modifier onlyEvaluator() {
+        require(address(role_manager) != address(0), "Role manager not set");
+        require(
+            role_manager.isEvaluator(msg.sender),
+            "Only evaluators can perform this action"
+        );
+        _;
+    }
+
+    modifier onlyAdmin() {
+        require(address(role_manager) != address(0), "Role manager not set");
+        require(role_manager.isAdmin(msg.sender), "Not an admin");
         _;
     }
 
@@ -209,7 +228,7 @@ contract SolutionManager {
 
     function evaluatorJoinSolution(
         uint256 _solution_id
-    ) external onlySolutionUnderReview(_solution_id) {
+    ) external onlySolutionUnderReview(_solution_id) onlyEvaluator {
         //  Do not allow submitters to join the evaluation pool for their own solution
         require(
             solutions[_solution_id].user != msg.sender,
@@ -247,7 +266,7 @@ contract SolutionManager {
     function evaluatorSubmitScore(
         uint256 _solution_id,
         uint256 _score
-    ) external onlySolutionUnderReview(_solution_id) {
+    ) external onlySolutionUnderReview(_solution_id) onlyEvaluator {
         EvaluationPool storage pool = solution_to_evaluation_pool[_solution_id];
 
         // Check if evaluator joined this solution
@@ -375,18 +394,23 @@ contract SolutionManager {
         }
     }
 
-    
     // ================= SETTER METHODS =================
-    function setChallengeManagerAddress(address _address) external {
+    function setChallengeManagerAddress(address _address) external onlyAdmin {
         require(_address != address(0), "Invalid address");
         challenge_manager_address = _address;
         challenge_manager = IChallengeManager(_address);
     }
 
-    function setReputationManagerAddress(address _address) external {
+    function setReputationManagerAddress(address _address) external onlyAdmin {
         require(_address != address(0), "Invalid address");
         reputation_manager_address = _address;
         reputation_manager = IReputationManager(_address);
+    }
+
+    function setRoleManagerAddress(address _address) external onlyAdmin {
+        require(_address != address(0), "Invalid address");
+        role_manager_address = _address;
+        role_manager = IRoleManager(_address);
     }
 
     // ================= GETTER METHODS =================

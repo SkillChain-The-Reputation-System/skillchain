@@ -116,6 +116,7 @@ contract ChallengeManager {
         uint256 challengeId,
         uint256 joinedAt
     );
+
     // ================= MODIFIER =================
     // Modifier to check if the challenge is finalized
     modifier onlyBeforeFinalized(uint256 challenge_id) {
@@ -144,8 +145,8 @@ contract ChallengeManager {
         require(address(role_manager) != address(0), "Role manager not set");
         require(role_manager.isModerator(msg.sender), "Not a moderator");
         _;
-    } 
-    
+    }
+
     // Modifier to check if caller is an admin
     modifier onlyAdmin() {
         require(address(role_manager) != address(0), "Role manager not set");
@@ -463,13 +464,9 @@ contract ChallengeManager {
         require(_challenge_id < total_challenges);
 
         challenges[_challenge_id].completed++;
-    } 
-    
+    }
+
     // ================= SETTER METHODS =================
-    /**
-     * @dev Set the RoleManager contract address
-     * @param _address The address of the RoleManager contract
-     */
     function setRoleManagerAddress(address _address) external onlyAdmin {
         require(_address != address(0), "Invalid address");
         role_manager_address = _address;
@@ -482,9 +479,6 @@ contract ChallengeManager {
         reputation_manager = IReputationManager(_address);
     }
 
-    /**
-     * @dev Set the SolutionManager contract address
-     */
     function setSolutionManagerAddress(address _address) external onlyAdmin {
         require(_address != address(0), "Invalid address");
         solution_manager_address = _address;

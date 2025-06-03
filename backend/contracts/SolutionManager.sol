@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "./Constants.sol";
-import "./ReputationManager.sol";
-import "./ChallengeManager.sol";
+import "./interfaces/IReputationManager.sol";
+import "./interfaces/IChallengeManager.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract SolutionManager {
@@ -64,9 +64,9 @@ contract SolutionManager {
     // Array of under review solutions
     uint256[] private solutions_under_review;
 
-    ChallengeManager private challenge_manager; // ChallengeManager instance
+    IChallengeManager private challenge_manager; // ChallengeManager instance
     address private challenge_manager_address; // ChallengeManager address
-    ReputationManager private reputation_manager; // ReputationManager instance
+    IReputationManager private reputation_manager; // ReputationManager instance
     address private reputation_manager_address; // ReputationManager address
 
     uint256 private total_solutions = 0;
@@ -375,17 +375,18 @@ contract SolutionManager {
         }
     }
 
+    
     // ================= SETTER METHODS =================
     function setChallengeManagerAddress(address _address) external {
         require(_address != address(0), "Invalid address");
         challenge_manager_address = _address;
-        challenge_manager = ChallengeManager(_address);
+        challenge_manager = IChallengeManager(_address);
     }
 
     function setReputationManagerAddress(address _address) external {
         require(_address != address(0), "Invalid address");
         reputation_manager_address = _address;
-        reputation_manager = ReputationManager(_address);
+        reputation_manager = IReputationManager(_address);
     }
 
     // ================= GETTER METHODS =================

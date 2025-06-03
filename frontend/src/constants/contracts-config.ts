@@ -42,7 +42,12 @@ export const ContractConfig_RecruiterDataManager = {
     abi: RecruiterDataManagerArtifact.abi,
 };
 
-export const ContractConfig_UserDataManager = {
+export const ContractConfig_RoleManager = {
     address: '0x9A676e781A523b5d0C0e43731313A708CB607508', // Change this every time you deploy the contract
+    abi: UserDataManagerArtifact.abi,
+};
+
+export const ContractConfig_UserDataManager = {
+    address: '0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1', // Change this every time you deploy the contract
     abi: UserDataManagerArtifact.abi,
 };

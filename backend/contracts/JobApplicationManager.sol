@@ -2,7 +2,7 @@
 pragma solidity ^0.8.17;
 
 import "./Constants.sol";
-import "./JobManager.sol";
+import "./interfaces/IJobManager.sol";
 
 contract JobApplicationManager {
     // ========================= STRUCTS =========================
@@ -16,7 +16,7 @@ contract JobApplicationManager {
 
     // ========================= STATE VARIABLES =========================
     // Reference to JobManager contract
-    JobManager private job_manager;
+    IJobManager private job_manager;
 
     // Mapping to store applications: application ID => Application struct
     mapping(bytes32 => Application) private applications;
@@ -47,7 +47,7 @@ contract JobApplicationManager {
     // ========================= MODIFIERS =========================
 
     modifier onlyOpenJob(bytes32 job_id) {
-        JobManager.Job memory job = job_manager.getJob(job_id);
+        IJobManager.Job memory job = job_manager.getJob(job_id);
         require(
             job.status == SystemEnums.JobStatus.OPEN,
             "Job is not open for applications"
@@ -72,7 +72,7 @@ contract JobApplicationManager {
         bytes32 job_id
     ) external onlyOpenJob(job_id) returns (bytes32 application_id) {
         // Get the job to check if the sender is the recruiter
-        JobManager.Job memory job = job_manager.getJob(job_id);
+        IJobManager.Job memory job = job_manager.getJob(job_id);
         require(
             job.recruiter != msg.sender,
             "Recruiters cannot apply to their own jobs"
@@ -127,7 +127,7 @@ contract JobApplicationManager {
         require(application.id == application_id, "Application does not exist");
 
         // Get the job to verify the caller is the recruiter
-        JobManager.Job memory job = job_manager.getJob(application.job_id);
+        IJobManager.Job memory job = job_manager.getJob(application.job_id);
         require(
             job.recruiter == msg.sender,
             "Only recruiter can update application status"
@@ -322,7 +322,7 @@ contract JobApplicationManager {
             job_manager_address != address(0),
             "Invalid JobManager address"
         );
-        job_manager = JobManager(job_manager_address);
+        job_manager = IJobManager(job_manager_address);
     }
 
     // ========================= HELPER FUNCTIONS =========================

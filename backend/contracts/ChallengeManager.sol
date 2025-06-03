@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "hardhat/console.sol";
-import "./SolutionManager.sol";
+import "./interfaces/ISolutionManager.sol";
 import "./Constants.sol";
-import "./ReputationManager.sol";
+import "./interfaces/IReputationManager.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract ChallengeManager {
@@ -82,9 +82,9 @@ contract ChallengeManager {
     // Array of approved challenges
     uint256[] private approved_challenges;
 
-    ReputationManager private reputation_manager; // ReputationManager instance
+    IReputationManager private reputation_manager; // ReputationManager instance
     address private reputation_manager_address; // ReputationManager address
-    SolutionManager private solution_manager; // SolutionManager instance
+    ISolutionManager private solution_manager; // SolutionManager instance
     address private solution_manager_address; // SolutionManager address
 
     uint256 public total_challenges = 0;
@@ -443,7 +443,7 @@ contract ChallengeManager {
         // TODO: Add access control (e.g., only owner)
         require(_address != address(0), "Invalid address");
         reputation_manager_address = _address;
-        reputation_manager = ReputationManager(_address);
+        reputation_manager = IReputationManager(_address);
     }
 
     /**
@@ -453,7 +453,7 @@ contract ChallengeManager {
         // TODO: Add access control (e.g., only owner)
         require(_address != address(0), "Invalid address");
         solution_manager_address = _address;
-        solution_manager = SolutionManager(_address);
+        solution_manager = ISolutionManager(_address);
     }
 
     // ================= GETTER METHODS =================

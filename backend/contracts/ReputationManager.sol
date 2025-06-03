@@ -1,14 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "hardhat/console.sol";
 import "./Constants.sol";
 
-// TODO: add access control to the modules. Currently, anyone can call the update functions.
-contract ReputationManager {
+/**
+ *  The contract ReputationManager have a role REPUTATION_UPDATER_ROLE
+ */
+
+contract ReputationManager is AccessControl {
     // ============================== LOCAL CONSTANTS ==============================
     uint256 public constant N_DOMAIN = 14; // Maximum number of domains
 
+    // ============================== ROLE CONSTANTS ==============================
+    bytes32 public constant REPUTATION_UPDATER_ROLE =
+        keccak256("REPUTATION_UPDATER_ROLE");
 
     // ============================== STATE VARIABLES ==============================
     // domain-specific reputation: user => domain => score (can be negative)
@@ -38,8 +45,21 @@ contract ReputationManager {
         _;
     }
 
+    // ============================== CONSTRUCTOR ==============================
+    constructor() {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
+
     // ============================== ADMIN FUNCTIONS ==============================
-    // TODO: add admin functions to the modules for updating after deployment
+
+    /// @notice Grant REPUTATION_UPDATER_ROLE to a contract address
+    /// @param _contractAddress Address of the contract to grant the role to
+    function grantReputationUpdaterRole(
+        address _contractAddress
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_contractAddress != address(0), "Invalid contract address");
+        _grantRole(REPUTATION_UPDATER_ROLE, _contractAddress);
+    }
 
     // ============================== UPDATE FUNCTIONS ==============================
     /// @notice Called after a solution is finalized -> Update the user's reputation who submitted the solution
@@ -56,7 +76,7 @@ contract ReputationManager {
         uint256 _threshold,
         uint256 _scaling_constant,
         SystemEnums.DifficultyLevel _difficulty
-    ) external ensureValidValues(_threshold) {
+    ) external ensureValidValues(_threshold) onlyRole(REPUTATION_UPDATER_ROLE) {
         int256 delta;
         delta = _computeDeltaBasedOnScore(
             _final_score,
@@ -81,7 +101,7 @@ contract ReputationManager {
         uint256 _evaluate_score,
         uint256 _threshold,
         uint256 _scaling_constant
-    ) external ensureValidValues(_threshold) {
+    ) external ensureValidValues(_threshold) onlyRole(REPUTATION_UPDATER_ROLE) {
         int256 delta;
         uint256 deviation = _final_score > _evaluate_score
             ? (_final_score - _evaluate_score)
@@ -109,7 +129,7 @@ contract ReputationManager {
         uint256 _threshold,
         uint256 _scaling_constant,
         SystemEnums.DifficultyLevel _difficulty
-    ) external ensureValidValues(_threshold) {
+    ) external ensureValidValues(_threshold) onlyRole(REPUTATION_UPDATER_ROLE) {
         int256 delta;
 
         delta = _computeDeltaBasedOnScore(
@@ -135,7 +155,7 @@ contract ReputationManager {
         uint256 _review_score,
         uint256 _threshold,
         uint256 _scaling_constant
-    ) external ensureValidValues(_threshold) {
+    ) external ensureValidValues(_threshold) onlyRole(REPUTATION_UPDATER_ROLE) {
         int256 delta;
         uint256 deviation = _quality_score > _review_score
             ? (_quality_score - _review_score)
@@ -156,7 +176,10 @@ contract ReputationManager {
         int256 _delta
     ) internal {
         if (_delta == 0) {
-            console.log("No change in reputation (delta = 0) for user %s", _user);
+            console.log(
+                "No change in reputation (delta = 0) for user %s",
+                _user
+            );
             return;
         }
 
@@ -254,11 +277,9 @@ contract ReputationManager {
         return domain_reputation[_user][_domain];
     }
 
-    function getAllDomainReputation(address _user)
-        external
-        view
-        returns (int256[N_DOMAIN] memory)
-    {
+    function getAllDomainReputation(
+        address _user
+    ) external view returns (int256[N_DOMAIN] memory) {
         int256[N_DOMAIN] memory domain_reputation_array;
         for (uint256 i = 0; i < N_DOMAIN; i++) {
             domain_reputation_array[i] = domain_reputation[_user][

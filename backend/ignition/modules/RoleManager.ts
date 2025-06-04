@@ -9,6 +9,9 @@ const RoleManagerModule = buildModule("RoleManagerModule", (m) => {
   
   // Set the reputation manager address on the RoleManager
   m.call(roleManager, "setReputationManagerAddress", [reputationManager]);
+  
+  // Set the role manager address on the ReputationManager
+  m.call(reputationManager, "setRoleManagerAddress", [roleManager]);
 
   return { roleManager };
 });

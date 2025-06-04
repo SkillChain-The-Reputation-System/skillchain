@@ -105,6 +105,17 @@ interface IRoleManager {
     function checkAndRevokeRole(address account, bytes32 role) external;
 
     /**
+     * @dev Grant a role to an account if they meet reputation requirements and don't already have it
+     * @param account The account to potentially grant the role to
+     * @param role The role to potentially grant
+     * @return granted Whether the role was successfully granted
+     */
+    function checkAndGrantRole(
+        address account,
+        bytes32 role
+    ) external returns (bool granted);
+
+    /**
      * @dev Get the reputation requirement for a specific role
      * @param role The role to query
      * @return requirement The minimum reputation required
@@ -140,17 +151,6 @@ interface IRoleManager {
         );
 
     // ============================== ROLE CHECKING UTILITIES ==============================
-    /**
-     * @dev Check if an account has a specific role
-     * @param role The role to check
-     * @param account The account to check
-     * @return Whether the account has the role
-     */
-    function hasRole(
-        bytes32 role,
-        address account
-    ) external view returns (bool);
-
     /**
      * @dev Check if an account is a contributor
      * @param account The account to check

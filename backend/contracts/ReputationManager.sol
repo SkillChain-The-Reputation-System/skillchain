@@ -4,6 +4,7 @@ pragma solidity ^0.8.17;
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "hardhat/console.sol";
 import "./Constants.sol";
+import "./interfaces/IRoleManager.sol";
 
 /**
  *  The contract ReputationManager have a role REPUTATION_UPDATER_ROLE
@@ -25,6 +26,9 @@ contract ReputationManager is AccessControl {
     // global reputation = sum of all domainReputation
     mapping(address => int256) public global_reputation;
 
+    // Reference to RoleManager contract
+    IRoleManager private role_manager;
+
     // ============================== EVENTS ==============================
     event ReputationChanged(
         address indexed _user,
@@ -36,7 +40,6 @@ contract ReputationManager is AccessControl {
     event ModuleUpdated(string _module_type, address _module_address);
 
     // ============================== MODIFIERS ==============================
-    // TODO: add access control to the modules
     modifier ensureValidValues(uint256 _threshold) {
         require(
             _threshold > 0 && _threshold < Weights.BASE_WEIGHT,
@@ -59,6 +62,35 @@ contract ReputationManager is AccessControl {
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_contractAddress != address(0), "Invalid contract address");
         _grantRole(REPUTATION_UPDATER_ROLE, _contractAddress);
+    }
+
+    /// @notice Set the RoleManager contract address
+    /// @param _role_manager Address of the RoleManager contract
+    function setRoleManagerAddress(
+        address _role_manager
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_role_manager != address(0), "Invalid role manager address");
+        role_manager = IRoleManager(_role_manager);
+        emit ModuleUpdated("RoleManager", _role_manager);
+    }
+
+    /// @notice Emergency function to directly adjust user's reputation
+    /// @param _user User address whose reputation to adjust
+    /// @param _domain Domain to adjust reputation for
+    /// @param _delta Amount to add (positive) or subtract (negative) from reputation
+    /// @dev This function should only be used in emergency situations by admin
+    function emergencyAdjustReputation(
+        address _user,
+        SystemEnums.Domain _domain,
+        int256 _delta
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_user != address(0), "Invalid user address");
+        require(_delta != 0, "Delta cannot be zero");
+        
+        _applyReputationChange(_user, _domain, _delta);
+        
+        console.log("Emergency reputation adjustment for user %s", _user);
+        console.logInt(_delta);
     }
 
     // ============================== UPDATE FUNCTIONS ==============================
@@ -185,11 +217,19 @@ contract ReputationManager is AccessControl {
 
         int256 _old_domain = domain_reputation[_user][_domain];
         int256 _new_domain = _old_domain + _delta;
+        // Ensure domain reputation never goes below 0
+        if (_new_domain < 0) {
+            _new_domain = 0;
+        }
         domain_reputation[_user][_domain] = _new_domain;
 
         // update global
         int256 _old_global = global_reputation[_user];
         int256 _new_global = _old_global + _delta;
+        // Ensure global reputation never goes below 0
+        if (_new_global < 0) {
+            _new_global = 0;
+        }
         global_reputation[_user] = _new_global;
 
         emit ReputationChanged(
@@ -202,6 +242,24 @@ contract ReputationManager is AccessControl {
 
         console.log("Reputation changed for user %s", _user);
         console.logInt(_delta);
+
+        // Check and update roles based on new global reputation
+        if (address(role_manager) != address(0)) {
+            // Check all available roles for potential grant/revoke
+            bytes32[3] memory roles = [
+                role_manager.CONTRIBUTOR_ROLE(),
+                role_manager.EVALUATOR_ROLE(),
+                role_manager.MODERATOR_ROLE()
+            ];
+            
+            for (uint i = 0; i < roles.length; i++) {
+                // Check if user should be granted role
+                role_manager.checkAndGrantRole(_user, roles[i]);
+                
+                // Check if user should lose role due to reputation decline
+                role_manager.checkAndRevokeRole(_user, roles[i]);
+            }
+        }
     }
 
     function _computeDeltaBasedOnScore(

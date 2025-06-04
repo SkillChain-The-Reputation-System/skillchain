@@ -234,6 +234,43 @@ contract RoleManager is AccessControl {
     }
 
     /**
+     * @dev Grant a role to an account if they meet reputation requirements and don't already have it
+     * @param account The account to potentially grant the role to
+     * @param role The role to potentially grant
+     * @return granted Whether the role was successfully granted
+     */
+    function checkAndGrantRole(
+        address account,
+        bytes32 role
+    ) external onlyWithReputationManager returns (bool granted) {
+        // Check if account already has the role
+        if (hasRole(role, account)) {
+            return false;
+        }
+
+        // Validate role type
+        require(
+            role == CONTRIBUTOR_ROLE ||
+                role == EVALUATOR_ROLE ||
+                role == MODERATOR_ROLE,
+            "Invalid role"
+        );
+
+        int256 current_reputation = reputation_manager.getGlobalReputation(
+            account
+        );
+        int256 required_reputation = role_reputation_requirements[role];
+
+        if (current_reputation >= required_reputation) {
+            _grantRole(role, account);
+            emit RoleGrantedWithReputation(role, account, current_reputation);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @dev Get the reputation requirement for a specific role
      * @param role The role to query
      * @return requirement The minimum reputation required

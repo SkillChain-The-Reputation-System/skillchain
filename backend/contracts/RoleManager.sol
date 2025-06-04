@@ -43,24 +43,16 @@ contract RoleManager is AccessControl {
         int256 reputation
     );
 
-    // ============================== ERRORS ==============================
-    error InsufficientReputationScore(
-        address account,
-        int256 current_reputation,
-        int256 required_reputation
-    );
-    error InvalidReputationManager();
-    error InvalidRole();
-    error ReputationManagerNotSet();
-
     // ============================== MODIFIERS ==============================
     /**
      * @dev Modifier to check if reputation manager address is set
      */
+    
     modifier onlyWithReputationManager() {
-        if (address(reputation_manager) == address(0)) {
-            revert ReputationManagerNotSet();
-        }
+        require(
+            address(reputation_manager) != address(0),
+            "Reputation manager not set"
+        );
         _;
     }
 
@@ -82,12 +74,14 @@ contract RoleManager is AccessControl {
      * @param _reputation_manager Address of the ReputationManager contract
      * @dev Can only be called by admin
      */
+    
     function setReputationManagerAddress(
         address _reputation_manager
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        if (_reputation_manager == address(0)) {
-            revert InvalidReputationManager();
-        }
+        require(
+            _reputation_manager != address(0),
+            "Invalid reputation manager"
+        );
 
         address old_manager = address(reputation_manager);
         reputation_manager = IReputationManager(_reputation_manager);
@@ -105,13 +99,12 @@ contract RoleManager is AccessControl {
         bytes32 role,
         int256 _new_requirement
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        if (
-            role != CONTRIBUTOR_ROLE &&
-            role != EVALUATOR_ROLE &&
-            role != MODERATOR_ROLE
-        ) {
-            revert InvalidRole();
-        }
+        require(
+            role == CONTRIBUTOR_ROLE ||
+                role == EVALUATOR_ROLE ||
+                role == MODERATOR_ROLE,
+            "Invalid role"
+        );
 
         int256 old_requirement = role_reputation_requirements[role];
         role_reputation_requirements[role] = _new_requirement;
@@ -128,13 +121,12 @@ contract RoleManager is AccessControl {
         bytes32 role,
         address account
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        if (
-            role != CONTRIBUTOR_ROLE &&
-            role != EVALUATOR_ROLE &&
-            role != MODERATOR_ROLE
-        ) {
-            revert InvalidRole();
-        }
+        require(
+            role == CONTRIBUTOR_ROLE ||
+                role == EVALUATOR_ROLE ||
+                role == MODERATOR_ROLE,
+            "Invalid role"
+        );
 
         _grantRole(role, account);
     }
@@ -145,26 +137,23 @@ contract RoleManager is AccessControl {
      * @dev Request a role based on current reputation
      * @param role The role to request
      */
+    
     function requestRole(bytes32 role) external onlyWithReputationManager {
-        if (
-            role != CONTRIBUTOR_ROLE &&
-            role != EVALUATOR_ROLE &&
-            role != MODERATOR_ROLE
-        ) {
-            revert InvalidRole();
-        }
+        require(
+            role == CONTRIBUTOR_ROLE ||
+                role == EVALUATOR_ROLE ||
+                role == MODERATOR_ROLE,
+            "Invalid role"
+        );
         int256 current_reputation = reputation_manager.getGlobalReputation(
             msg.sender
         );
         int256 required_reputation = role_reputation_requirements[role];
 
-        if (current_reputation < required_reputation) {
-            revert InsufficientReputationScore(
-                msg.sender,
-                current_reputation,
-                required_reputation
-            );
-        }
+        require(
+            current_reputation >= required_reputation,
+            "Insufficient reputation score"
+        );
 
         _grantRole(role, msg.sender);
 

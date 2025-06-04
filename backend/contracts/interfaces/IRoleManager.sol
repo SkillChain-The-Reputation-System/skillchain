@@ -28,16 +28,6 @@ interface IRoleManager {
         int256 reputation
     );
 
-    // ============================== ERRORS ==============================
-    error InsufficientReputationScore(
-        address account,
-        int256 current_reputation,
-        int256 required_reputation
-    );
-    error InvalidReputationManager();
-    error InvalidRole();
-    error ReputationManagerNotSet();
-
     // ============================== ROLE CONSTANTS ==============================
     function CONTRIBUTOR_ROLE() external view returns (bytes32);
 

@@ -5,8 +5,9 @@ import "./interfaces/IReputationManager.sol";
 import "./interfaces/IChallengeManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract SolutionManager {
+contract SolutionManager is AccessControl {
     // ================= STRUCTS =================
     struct Solution {
         uint256 id;
@@ -108,6 +109,11 @@ contract SolutionManager {
         uint256 finalized_at
     );
 
+    // ================= CONSTRUCTOR =================
+    constructor() {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
+
     // ================= MODIFIER =================
     modifier onlyUserJoinedChallenge(
         address _user_address,
@@ -135,12 +141,6 @@ contract SolutionManager {
             role_manager.isEvaluator(msg.sender),
             "Only evaluators can perform this action"
         );
-        _;
-    }
-
-    modifier onlyAdmin() {
-        require(address(role_manager) != address(0), "Role manager not set");
-        require(role_manager.isAdmin(msg.sender), "Not an admin");
         _;
     }
 
@@ -395,19 +395,19 @@ contract SolutionManager {
     }
 
     // ================= SETTER METHODS =================
-    function setChallengeManagerAddress(address _address) external onlyAdmin {
+    function setChallengeManagerAddress(address _address) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_address != address(0), "Invalid address");
         challenge_manager_address = _address;
         challenge_manager = IChallengeManager(_address);
     }
 
-    function setReputationManagerAddress(address _address) external onlyAdmin {
+    function setReputationManagerAddress(address _address) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_address != address(0), "Invalid address");
         reputation_manager_address = _address;
         reputation_manager = IReputationManager(_address);
     }
 
-    function setRoleManagerAddress(address _address) external onlyAdmin {
+    function setRoleManagerAddress(address _address) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_address != address(0), "Invalid address");
         role_manager_address = _address;
         role_manager = IRoleManager(_address);

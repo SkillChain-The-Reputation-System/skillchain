@@ -37,6 +37,10 @@ const RegistrationNotificationBanner = dynamic(() => import("./registration-noti
   ssr: false,
 });
 
+const UserRoles = dynamic(() => import("./user-roles").then(mod => ({ default: mod.UserRoles })), {
+  ssr: false,
+});
+
 export default function ProfileViewPage() {
   const { address } = useAccount();
   const [profileData, setProfileData] = useState<UserProfileInterface | null>(
@@ -140,8 +144,11 @@ export default function ProfileViewPage() {
             profileData={profileData}
             isLoadingProfile={isLoadingProfile}
           />
+          
+          <UserRoles address={address} />
         </div>
 
+        
         {/* Reputation Scores */}
         <div className="space-y-6">
           <GlobalReputation

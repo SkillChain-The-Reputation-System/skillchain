@@ -282,6 +282,26 @@ contract RoleManager is AccessControl {
     }
 
     /**
+     * @dev Get all role requirements
+     * @return contributor_requirement Minimum reputation for contributor role
+     * @return evaluator_requirement Minimum reputation for evaluator role
+     * @return moderator_requirement Minimum reputation for moderator role
+     */
+    function getAllRoleRequirements()
+        external
+        view
+        returns (
+            int256 contributor_requirement,
+            int256 evaluator_requirement,
+            int256 moderator_requirement
+        )
+    {
+        contributor_requirement = role_reputation_requirements[CONTRIBUTOR_ROLE];
+        evaluator_requirement = role_reputation_requirements[EVALUATOR_ROLE];
+        moderator_requirement = role_reputation_requirements[MODERATOR_ROLE];
+    }
+
+    /**
      * @dev Get user's current reputation and role eligibility
      * @param account The account to query
      * @return reputation Current global reputation

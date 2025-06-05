@@ -36,11 +36,11 @@ export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
   return (
     <>
       <Card
-        className="w-full h-full group gap-2 overflow-hidden bg-blue-100 dark:bg-blue-950/60 transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-lg dark:hover:shadow-blue-900/20 border-transparent hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer select-none"
+        className="w-full h-full group gap-2 overflow-hidden bg-blue-100 dark:bg-blue-950/60 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-lg dark:hover:shadow-blue-900/20 border-transparent hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer select-none"
         onClick={() => onClick(challenge.id!)}>
         <CardHeader>
           <div className="space-y-1.5">
-            <CardTitle className="text-sm font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition line-clamp-2 wrap-anywhere">
+            <CardTitle className="text-sm font-bold line-clamp-2 wrap-anywhere">
               {challenge.title}
             </CardTitle>
           </div>
@@ -73,7 +73,6 @@ export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
             <div className="flex items-center">
               <CalendarArrowUp className="h-full max-h-3.5 w-full max-w-3.5 mr-1" />
               {formattedContributeDate}
-
             </div>
 
             <div className="flex items-center gap-2">

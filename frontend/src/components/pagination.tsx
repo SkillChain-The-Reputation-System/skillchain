@@ -65,7 +65,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, className }:
       <Button
         variant="outline"
         size="icon"
-        className="h-8 w-8"
+        className="h-8 w-8 cursor-pointer"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
         aria-label="Previous page"
@@ -76,7 +76,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, className }:
       {pageNumbers.map((page, index) => {
         if (page === "ellipsis-start" || page === "ellipsis-end") {
           return (
-            <Button key={`ellipsis-${index}`} variant="ghost" size="icon" className="h-8 w-8 cursor-default" disabled>
+            <Button key={`ellipsis-${index}`} variant="ghost" size="icon" className="h-8 w-8" disabled>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           )
@@ -87,7 +87,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, className }:
             key={page}
             variant={currentPage === page ? "default" : "outline"}
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 cursor-pointer"
             onClick={() => onPageChange(page as number)}
             aria-label={`Page ${page}`}
             aria-current={currentPage === page ? "page" : undefined}
@@ -100,7 +100,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, className }:
       <Button
         variant="outline"
         size="icon"
-        className="h-8 w-8"
+        className="h-8 w-8 cursor-pointer"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
         aria-label="Next page"

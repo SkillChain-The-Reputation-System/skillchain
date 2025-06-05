@@ -1,14 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "hardhat/console.sol";
 import "./Constants.sol";
+import "./interfaces/IRoleManager.sol";
 
-// TODO: add access control to the modules. Currently, anyone can call the update functions.
-contract ReputationManager {
-    // ================== LOCAL CONSTANTS ==================
+/**
+ *  The contract ReputationManager have a role REPUTATION_UPDATER_ROLE
+ */
+
+contract ReputationManager is AccessControl {
+    // ============================== LOCAL CONSTANTS ==============================
     uint256 public constant N_DOMAIN = 14; // Maximum number of domains
 
+    // ============================== ROLE CONSTANTS ==============================
+    bytes32 public constant REPUTATION_UPDATER_ROLE =
+        keccak256("REPUTATION_UPDATER_ROLE");
+
+    // ============================== STATE VARIABLES ==============================
     // domain-specific reputation: user => domain => score (can be negative)
     mapping(address => mapping(SystemEnums.Domain => int256))
         public domain_reputation;
@@ -16,7 +26,10 @@ contract ReputationManager {
     // global reputation = sum of all domainReputation
     mapping(address => int256) public global_reputation;
 
-    // --- EVENTS ---
+    // Reference to RoleManager contract
+    IRoleManager private role_manager;
+
+    // ============================== EVENTS ==============================
     event ReputationChanged(
         address indexed _user,
         SystemEnums.Domain indexed _domain,
@@ -26,9 +39,7 @@ contract ReputationManager {
     );
     event ModuleUpdated(string _module_type, address _module_address);
 
-    // --- MODIFIERS ---
-    // TODO: add access control to the modules
-
+    // ============================== MODIFIERS ==============================
     modifier ensureValidValues(uint256 _threshold) {
         require(
             _threshold > 0 && _threshold < Weights.BASE_WEIGHT,
@@ -37,10 +48,52 @@ contract ReputationManager {
         _;
     }
 
-    // --- ADMIN FUNCTIONS ---
-    // TODO: add admin functions to the modules for updating after deployment
+    // ============================== CONSTRUCTOR ==============================
+    constructor() {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
 
-    // --- UPDATE FUNCTIONS ---
+    // ============================== ADMIN FUNCTIONS ==============================
+
+    /// @notice Grant REPUTATION_UPDATER_ROLE to a contract address
+    /// @param _contractAddress Address of the contract to grant the role to
+    function grantReputationUpdaterRole(
+        address _contractAddress
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_contractAddress != address(0), "Invalid contract address");
+        _grantRole(REPUTATION_UPDATER_ROLE, _contractAddress);
+    }
+
+    /// @notice Set the RoleManager contract address
+    /// @param _role_manager Address of the RoleManager contract
+    function setRoleManagerAddress(
+        address _role_manager
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_role_manager != address(0), "Invalid role manager address");
+        role_manager = IRoleManager(_role_manager);
+        emit ModuleUpdated("RoleManager", _role_manager);
+    }
+
+    /// @notice Emergency function to directly adjust user's reputation
+    /// @param _user User address whose reputation to adjust
+    /// @param _domain Domain to adjust reputation for
+    /// @param _delta Amount to add (positive) or subtract (negative) from reputation
+    /// @dev This function should only be used in emergency situations by admin
+    function emergencyAdjustReputation(
+        address _user,
+        SystemEnums.Domain _domain,
+        int256 _delta
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_user != address(0), "Invalid user address");
+        require(_delta != 0, "Delta cannot be zero");
+        
+        _applyReputationChange(_user, _domain, _delta);
+        
+        console.log("Emergency reputation adjustment for user %s", _user);
+        console.logInt(_delta);
+    }
+
+    // ============================== UPDATE FUNCTIONS ==============================
     /// @notice Called after a solution is finalized -> Update the user's reputation who submitted the solution
     /// @param _user                address whose reputation to update
     /// @param _domain              the challenge domain
@@ -55,7 +108,7 @@ contract ReputationManager {
         uint256 _threshold,
         uint256 _scaling_constant,
         SystemEnums.DifficultyLevel _difficulty
-    ) external ensureValidValues(_threshold) {
+    ) external ensureValidValues(_threshold) onlyRole(REPUTATION_UPDATER_ROLE) {
         int256 delta;
         delta = _computeDeltaBasedOnScore(
             _final_score,
@@ -80,7 +133,7 @@ contract ReputationManager {
         uint256 _evaluate_score,
         uint256 _threshold,
         uint256 _scaling_constant
-    ) external ensureValidValues(_threshold) {
+    ) external ensureValidValues(_threshold) onlyRole(REPUTATION_UPDATER_ROLE) {
         int256 delta;
         uint256 deviation = _final_score > _evaluate_score
             ? (_final_score - _evaluate_score)
@@ -108,7 +161,7 @@ contract ReputationManager {
         uint256 _threshold,
         uint256 _scaling_constant,
         SystemEnums.DifficultyLevel _difficulty
-    ) external ensureValidValues(_threshold) {
+    ) external ensureValidValues(_threshold) onlyRole(REPUTATION_UPDATER_ROLE) {
         int256 delta;
 
         delta = _computeDeltaBasedOnScore(
@@ -134,7 +187,7 @@ contract ReputationManager {
         uint256 _review_score,
         uint256 _threshold,
         uint256 _scaling_constant
-    ) external ensureValidValues(_threshold) {
+    ) external ensureValidValues(_threshold) onlyRole(REPUTATION_UPDATER_ROLE) {
         int256 delta;
         uint256 deviation = _quality_score > _review_score
             ? (_quality_score - _review_score)
@@ -148,24 +201,35 @@ contract ReputationManager {
         _applyReputationChange(_moderator, _domain, delta);
     }
 
-    // --- INTERNAL FUNCTIONS ---
+    // ============================== INTERNAL FUNCTIONS ==============================
     function _applyReputationChange(
         address _user,
         SystemEnums.Domain _domain,
         int256 _delta
     ) internal {
         if (_delta == 0) {
-            console.log("No change in reputation (delta = 0) for user %s", _user);
+            console.log(
+                "No change in reputation (delta = 0) for user %s",
+                _user
+            );
             return;
         }
 
         int256 _old_domain = domain_reputation[_user][_domain];
         int256 _new_domain = _old_domain + _delta;
+        // Ensure domain reputation never goes below 0
+        if (_new_domain < 0) {
+            _new_domain = 0;
+        }
         domain_reputation[_user][_domain] = _new_domain;
 
         // update global
         int256 _old_global = global_reputation[_user];
         int256 _new_global = _old_global + _delta;
+        // Ensure global reputation never goes below 0
+        if (_new_global < 0) {
+            _new_global = 0;
+        }
         global_reputation[_user] = _new_global;
 
         emit ReputationChanged(
@@ -178,6 +242,24 @@ contract ReputationManager {
 
         console.log("Reputation changed for user %s", _user);
         console.logInt(_delta);
+
+        // Check and update roles based on new global reputation
+        if (address(role_manager) != address(0)) {
+            // Check all available roles for potential grant/revoke
+            bytes32[3] memory roles = [
+                role_manager.CONTRIBUTOR_ROLE(),
+                role_manager.EVALUATOR_ROLE(),
+                role_manager.MODERATOR_ROLE()
+            ];
+            
+            for (uint i = 0; i < roles.length; i++) {
+                // Check if user should be granted role
+                role_manager.checkAndGrantRole(_user, roles[i]);
+                
+                // Check if user should lose role due to reputation decline
+                role_manager.checkAndRevokeRole(_user, roles[i]);
+            }
+        }
     }
 
     function _computeDeltaBasedOnScore(
@@ -245,7 +327,7 @@ contract ReputationManager {
         return delta;
     }
 
-    // --- GETTER FUNCTIONS ---
+    // ============================== GETTER FUNCTIONS ==============================
     function getDomainReputation(
         address _user,
         SystemEnums.Domain _domain
@@ -253,11 +335,9 @@ contract ReputationManager {
         return domain_reputation[_user][_domain];
     }
 
-    function getAllDomainReputation(address _user)
-        external
-        view
-        returns (int256[N_DOMAIN] memory)
-    {
+    function getAllDomainReputation(
+        address _user
+    ) external view returns (int256[N_DOMAIN] memory) {
         int256[N_DOMAIN] memory domain_reputation_array;
         for (uint256 i = 0; i < N_DOMAIN; i++) {
             domain_reputation_array[i] = domain_reputation[_user][

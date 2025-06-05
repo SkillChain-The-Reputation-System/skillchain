@@ -43,13 +43,52 @@ export enum ChallengeSolutionProgress {
   IN_PROGRESS = 0,
   SUBMITTED = 1,
   UNDER_REVIEW = 2,
-  REVIEWED = 3
+  REVIEWED = 3,
 }
 
 export enum SolutionSortOption {
   NEWEST = 0,
   MOST_EVALUATORS = 1,
-  LEAST_EVALUATORS = 2
+  LEAST_EVALUATORS = 2,
+}
+
+export enum JobStatus {
+  DRAFT = 0,
+  OPEN = 1,
+  PAUSED = 2,
+  CLOSED = 3,
+  FILLED = 4,
+  ARCHIVED = 5,
+}
+
+export enum JobDuration {
+  FULL_TIME = 0,
+  PART_TIME = 1,
+  CONTRACT = 2,
+  FREELANCE = 3,
+}
+
+export enum JobApplicationStatus {
+  PENDING = 0,
+  REVIEWING = 1,
+  SHORTLISTED = 2,
+  INTERVIEWED = 3,
+  REJECTED = 4,
+  WITHDRAWN = 5,
+  HIRED = 6,
+}
+
+export enum MeetingStatus {
+  PENDING = 0,
+  COMPLETED = 1,
+  CANCELLED = 2
+}
+
+export enum UserRole {
+  NORMAL_USER = 0,
+  CONTRIBUTOR = 1,
+  EVALUATOR = 2,
+  MODERATOR = 3,
 }
 
 export const DomainLabels: Record<Domain, string> = {
@@ -75,13 +114,15 @@ export const ChallengeStatusLabels: Record<ChallengeStatus, string> = {
   [ChallengeStatus.REJECTED]: "Rejected",
 };
 
-
 export const QualityFactorAnswerLabels: Record<QualityFactorAnswer, string> = {
   [QualityFactorAnswer.YES]: "Yes",
   [QualityFactorAnswer.NO]: "No",
 };
 
-export const ChallengeDifficultyLevelLabels: Record<ChallengeDifficultyLevel, string> = {
+export const ChallengeDifficultyLevelLabels: Record<
+  ChallengeDifficultyLevel,
+  string
+> = {
   [ChallengeDifficultyLevel.EASY]: "Easy",
   [ChallengeDifficultyLevel.MEDIUM]: "Medium",
   [ChallengeDifficultyLevel.HARD]: "Hard",
@@ -94,15 +135,57 @@ export const ChallengeSortOptionLabels: Record<ChallengeSortOption, string> = {
   [ChallengeSortOption.PARTICIPANTS]: "Most Participants",
 };
 
-export const ChallengeSolutionProgressLabels: Record<ChallengeSolutionProgress, string> = {
+export const ChallengeSolutionProgressLabels: Record<
+  ChallengeSolutionProgress,
+  string
+> = {
   [ChallengeSolutionProgress.IN_PROGRESS]: "In Progress",
   [ChallengeSolutionProgress.SUBMITTED]: "Submitted",
   [ChallengeSolutionProgress.UNDER_REVIEW]: "Under Review",
   [ChallengeSolutionProgress.REVIEWED]: "Reviewed",
-}
+};
 
 export const SolutionSortOptionLabels: Record<SolutionSortOption, string> = {
   [SolutionSortOption.NEWEST]: "Newest First",
   [SolutionSortOption.MOST_EVALUATORS]: "Most Evaluators",
   [SolutionSortOption.LEAST_EVALUATORS]: "Least Evaluators",
 };
+
+export const JobDurationLabels: Record<JobDuration, string> = {
+  [JobDuration.FULL_TIME]: "Full Time",
+  [JobDuration.PART_TIME]: "Part Time",
+  [JobDuration.CONTRACT]: "Contract",
+  [JobDuration.FREELANCE]: "Freelance"
+};
+
+export const JobStatusLabels: Record<JobStatus, string> = {
+  [JobStatus.DRAFT]: "Draft",
+  [JobStatus.OPEN]: "Open",
+  [JobStatus.PAUSED]: "Paused",
+  [JobStatus.CLOSED]: "Closed",
+  [JobStatus.FILLED]: "Filled",
+  [JobStatus.ARCHIVED]: "Archived",
+};
+
+export const ApplicationStatusLabels: Record<JobApplicationStatus, string> = {
+  [JobApplicationStatus.PENDING]: "Pending",
+  [JobApplicationStatus.REVIEWING]: "Reviewing",
+  [JobApplicationStatus.SHORTLISTED]: "Shortlisted",
+  [JobApplicationStatus.INTERVIEWED]: "Interviewed",
+  [JobApplicationStatus.REJECTED]: "Rejected",
+  [JobApplicationStatus.WITHDRAWN]: "Withdrawn",
+  [JobApplicationStatus.HIRED]: "Hired",
+};
+
+export const MeetingStatusLabels: Record<MeetingStatus, string> = {
+  [MeetingStatus.PENDING]: "Pending",
+  [MeetingStatus.COMPLETED]: "Completed",
+  [MeetingStatus.CANCELLED]: "Cancelled",
+}
+
+export const UserRoleLabels: Record<UserRole, string> = {
+  [UserRole.NORMAL_USER]: "Normal User",
+  [UserRole.CONTRIBUTOR]: "Contributor",
+  [UserRole.EVALUATOR]: "Evaluator",
+  [UserRole.MODERATOR]: "Moderator",
+}

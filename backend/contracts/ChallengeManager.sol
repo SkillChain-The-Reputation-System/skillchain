@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 import "hardhat/console.sol";
 import "./interfaces/ISolutionManager.sol";
+import "./interfaces/IModerationEscrow.sol";
 import "./Constants.sol";
 import "./interfaces/IReputationManager.sol";
 import "./interfaces/IRoleManager.sol";
@@ -89,6 +90,8 @@ contract ChallengeManager is AccessControl {
     address private role_manager_address; // RoleManager address
     ISolutionManager private solution_manager; // SolutionManager instance
     address private solution_manager_address; // SolutionManager address
+    IModerationEscrow private moderation_escrow; // ModerationEscrow instance
+    address private moderation_escrow_address; // ModerationEscrow address
 
     uint256 public total_challenges = 0;
 
@@ -158,7 +161,17 @@ contract ChallengeManager is AccessControl {
         string calldata _title_url,
         string calldata _description_url,
         SystemEnums.Domain _category
-    ) external onlyContributor {
+    ) external payable onlyContributor {
+        // Validate bounty amount
+        if (msg.value == 0) {
+            revert("Zero value");
+        }
+
+        // Ensure moderation escrow is set
+        if (address(moderation_escrow) == address(0)) {
+            revert("Moderation escrow not set");
+        }
+
         uint256 challengeId = total_challenges++;
         uint256 contributeAt = block.timestamp * 1000;
 
@@ -184,6 +197,9 @@ contract ChallengeManager is AccessControl {
         is_pending_challenge[challengeId] = true;
         pending_challenges.push(challengeId);
 
+        // Deposit bounty to moderation escrow
+        moderation_escrow.depositBounty{value: msg.value}(challengeId);
+
         console.log(
             "Challenge #%s contributed by %s at %s with:",
             challengeId,
@@ -192,6 +208,7 @@ contract ChallengeManager is AccessControl {
         );
         console.log("- Title url        : %s", _title_url);
         console.log("- Description url  : %s", _description_url);
+        console.log("- Bounty amount    : %s", msg.value);
 
         emit ChallengeContributed(
             msg.sender,
@@ -200,7 +217,9 @@ contract ChallengeManager is AccessControl {
             _category,
             contributeAt
         );
-    } // ================= MODERATION METHODS=================
+    }
+
+    // ================= MODERATION METHODS=================
 
     function joinReviewPool(
         uint256 _challenge_id,
@@ -258,7 +277,17 @@ contract ChallengeManager is AccessControl {
         SystemEnums.DifficultyLevel _suggested_difficulty,
         SystemEnums.Domain _suggested_category,
         uint256 _suggested_solve_time
-    ) public onlyBeforeFinalized(_challenge_id) onlyModerator {
+    ) public payable onlyBeforeFinalized(_challenge_id) onlyModerator {
+        // Validate stake amount
+        if (msg.value == 0) {
+            revert("Zero stake amount");
+        }
+
+        // Ensure moderation escrow is set
+        if (address(moderation_escrow) == address(0)) {
+            revert("Moderation escrow not set");
+        }
+
         ReviewPool storage pool = review_pool[_challenge_id];
 
         // Check if the moderator has joined the review pool
@@ -274,6 +303,9 @@ contract ChallengeManager is AccessControl {
                 .is_submitted == false,
             "You have already submitted a review."
         );
+
+        // Call moderation escrow to stake the moderator's tokens
+        moderation_escrow.stake{value: msg.value}(_challenge_id);
 
         // Increment the review count
         pool.review_count++;
@@ -420,6 +452,15 @@ contract ChallengeManager is AccessControl {
                 );
             }
         }
+
+        // Finalize the challenge pot in the moderation escrow
+        if (moderation_escrow_address != address(0)) {
+            console.log(
+                "Finalizing challenge pot for challenge #%s",
+                _challenge_id
+            );
+            moderation_escrow.finalizeChallengePot(_challenge_id);
+        }
     }
 
     function userJoinChallenge(
@@ -466,22 +507,36 @@ contract ChallengeManager is AccessControl {
     }
 
     // ================= SETTER METHODS =================
-    function setRoleManagerAddress(address _address) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setRoleManagerAddress(
+        address _address
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_address != address(0), "Invalid address");
         role_manager_address = _address;
         role_manager = IRoleManager(_address);
     }
 
-    function setReputationManagerAddress(address _address) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setReputationManagerAddress(
+        address _address
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_address != address(0), "Invalid address");
         reputation_manager_address = _address;
         reputation_manager = IReputationManager(_address);
     }
 
-    function setSolutionManagerAddress(address _address) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setSolutionManagerAddress(
+        address _address
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_address != address(0), "Invalid address");
         solution_manager_address = _address;
         solution_manager = ISolutionManager(_address);
+    }
+
+    function setModerationEscrowAddress(
+        address _address
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_address != address(0), "Invalid address");
+        moderation_escrow_address = _address;
+        moderation_escrow = IModerationEscrow(_address);
     }
 
     // ================= GETTER METHODS =================
@@ -703,7 +758,7 @@ contract ChallengeManager is AccessControl {
     ) public view returns (uint256) {
         // Validate that the challenge exists
         require(_challenge_id < total_challenges, "Challenge does not exist");
-        
+
         // Moderator must have joined the review pool
         require(
             review_pool[_challenge_id].moderator_to_join_status[
@@ -711,15 +766,15 @@ contract ChallengeManager is AccessControl {
             ],
             "Moderator has not joined the review pool"
         );
-        
+
         // Get the moderator's review score
         uint256 moderator_score = review_pool[_challenge_id]
             .moderator_reviews[_moderator_address]
             .review_score;
-        
+
         // Get the challenge's final quality score
         uint256 final_quality_score = challenges[_challenge_id].quality_score;
-        
+
         // Calculate and return the absolute deviation
         if (moderator_score >= final_quality_score) {
             return moderator_score - final_quality_score;

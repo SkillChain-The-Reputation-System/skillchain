@@ -22,6 +22,9 @@ const EvaluationEscrowModule = buildModule("EvaluationEscrowModule", (m) => {
     id: "grantSolutionManagerRoleToManager",
   });
 
+  // Set the evaluation escrow address on the SolutionManager
+  m.call(solutionManager, "setEvaluationEscrowAddress", [evaluationEscrow]);
+
   return { evaluationEscrow };
 });
 

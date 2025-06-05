@@ -4,6 +4,7 @@ import "./Constants.sol";
 import "./interfaces/IReputationManager.sol";
 import "./interfaces/IChallengeManager.sol";
 import "./interfaces/IRoleManager.sol";
+import "./interfaces/IEvaluationEscrow.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
@@ -72,6 +73,8 @@ contract SolutionManager is AccessControl {
     address private reputation_manager_address; // ReputationManager address
     IRoleManager private role_manager; // RoleManager instance
     address private role_manager_address; // RoleManager address
+    IEvaluationEscrow private evaluation_escrow; // EvaluationEscrow instance
+    address private evaluation_escrow_address; // EvaluationEscrow address
 
     uint256 private total_solutions = 0;
 
@@ -179,7 +182,10 @@ contract SolutionManager is AccessControl {
 
     function submitSolution(
         uint256 _challenge_id
-    ) external onlyUserJoinedChallenge(msg.sender, _challenge_id) {
+    ) external payable onlyUserJoinedChallenge(msg.sender, _challenge_id) {
+        require(msg.value > 0, "Bounty amount must be greater than 0");
+        require(address(evaluation_escrow) != address(0), "Evaluation escrow not set");
+        
         uint256 solutionId = user_challenge_to_solution[_challenge_id][
             msg.sender
         ];
@@ -195,6 +201,9 @@ contract SolutionManager is AccessControl {
         // Update solution state
         sl.submitted_at = submittedAt;
         sl.progress = SystemEnums.SolutionProgress.SUBMITTED;
+
+        // Deposit bounty to evaluation escrow
+        evaluation_escrow.depositBounty{value: msg.value}(solutionId);
 
         emit SolutionSubmitted(solutionId, submittedAt);
     }
@@ -261,12 +270,14 @@ contract SolutionManager is AccessControl {
             _solution_id,
             block.timestamp * 1000
         );
-    }
-
+    }    
     function evaluatorSubmitScore(
         uint256 _solution_id,
         uint256 _score
-    ) external onlySolutionUnderReview(_solution_id) onlyEvaluator {
+    ) external payable onlySolutionUnderReview(_solution_id) onlyEvaluator {
+        require(msg.value > 0, "Stake amount must be greater than 0");
+        require(address(evaluation_escrow) != address(0), "Evaluation escrow not set");
+        
         EvaluationPool storage pool = solution_to_evaluation_pool[_solution_id];
 
         // Check if evaluator joined this solution
@@ -290,12 +301,18 @@ contract SolutionManager is AccessControl {
         pool.evaluator_submitted[msg.sender] = true;
         pool.evaluation_count++;
 
+        // Stake tokens in evaluation escrow
+        evaluation_escrow.stake{value: msg.value}(_solution_id);
+
         emit SolutionScoreSubmittedByEvaluator(
             msg.sender,
             _solution_id,
             _score,
             submittedAt
         );
+
+
+        
 
         // Check if all evaluators has submitted score
         if (pool.evaluation_count == pool.total_evaluators) {
@@ -392,6 +409,9 @@ contract SolutionManager is AccessControl {
                 SystemConsts.SCALING_CONSTANT_FOR_EVALUATION
             );
         }
+
+        // Finalize the solution pot to distribute rewards and penalties
+        evaluation_escrow.finalizeSolutionPot(_solution_id);
     }
 
     // ================= SETTER METHODS =================
@@ -411,6 +431,12 @@ contract SolutionManager is AccessControl {
         require(_address != address(0), "Invalid address");
         role_manager_address = _address;
         role_manager = IRoleManager(_address);
+    }
+
+    function setEvaluationEscrowAddress(address _address) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_address != address(0), "Invalid address");
+        evaluation_escrow_address = _address;
+        evaluation_escrow = IEvaluationEscrow(_address);
     }
 
     // ================= GETTER METHODS =================

@@ -22,10 +22,8 @@ const ModerationEscrowModule = buildModule("ModerationEscrowModule", (m) => {
   m.call(moderationEscrow, "grantChallengeManagerRole", [challengeManager], {
     id: "grantChallengeManagerRoleToManager",
   });
-
-  // Set the moderation escrow address on the ChallengeManager (if such function exists)
-  // Note: This might need to be added to ChallengeManager contract if it doesn't exist yet
-  // m.call(challengeManager, "setModerationEscrowAddress", [moderationEscrow]);
+  // Set the moderation escrow address on the ChallengeManager
+  m.call(challengeManager, "setModerationEscrowAddress", [moderationEscrow]);
 
   return { moderationEscrow, challengeManager };
 });

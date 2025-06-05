@@ -1,20 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "./ChallengeManager.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./interfaces/IChallengeManager.sol";
 import "./Formulas.sol";
 import "./Constants.sol";
 
-contract ModerationEscrow {
-    /* ============================= Errors ============================= */
-    error ZeroValue();
-    error AlreadyDistributed();
-    error NotEnoughModerators();
-    error TransferFailed();
-    error ChallengeManagerNotSet();
-    error InvalidChallengeManagerAddress();
-    error ContributorAlreadyFunded();
-    error ModeratorAlreadyFunded();
+contract ModerationEscrow is AccessControl {
+    /* ============================= ROLE CONSTANTS ============================= */
+    bytes32 public constant CHALLENGE_MANAGER_ROLE =
+        keccak256("CHALLENGE_MANAGER_ROLE");
+
+    /* ============================= CONSTRUCTOR ============================= */
+    constructor() {
+        // Grant the contract deployer the default admin role
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
 
     /* ============================= Events ============================= */
     event BountyDeposited(
@@ -49,21 +50,22 @@ contract ModerationEscrow {
     /* ============================= STATE VARIABLES ============================= */
     mapping(uint256 challenge_id => Pot) private pots;
 
-    ChallengeManager private challenge_manager; // ChallengeManager instance
+    IChallengeManager private challenge_manager; // IChallengeManager instance
     address private challenge_manager_address; // ChallengeManager address
 
-    /* ============================= CONTRIBUTOR FLOW ============================= */
-    /// @dev Contributor deposits bounty for a challenge (native token only).
+    /* ============================= CONTRIBUTOR FLOW ============================= */ /// @dev Contributor deposits bounty for a challenge (native token only).
     //TODO: This function must be called once the challenge is created (contributed), called by ChallengeManager
-    function depositBounty(uint256 _challenge_id) external payable {
+    function depositBounty(
+        uint256 _challenge_id
+    ) external payable onlyRole(CHALLENGE_MANAGER_ROLE) {
         if (msg.value == 0) {
-            revert ZeroValue();
+            revert("ZeroValue");
         }
 
         Pot storage pot = pots[_challenge_id];
 
         if (pot.bounty > 0) {
-            revert ContributorAlreadyFunded();
+            revert("ContributorAlreadyFunded");
         }
 
         pot.bounty = msg.value;
@@ -75,28 +77,31 @@ contract ModerationEscrow {
     /* ============================= MODERATOR FLOW ============================= */
     /// @dev Moderator stakes native token when opting in to review pool.
     // TODO: This function should be called when a moderator submit their review for a challenge, only be called by ChallengeManager
-    function stake(uint256 _challenge_id) external payable {
-        if (msg.value == 0) revert ZeroValue();
+    function stake(
+        uint256 _challenge_id
+    ) external payable onlyRole(CHALLENGE_MANAGER_ROLE) {
+        if (msg.value == 0) revert("ZeroValue");
 
         Pot storage pot = pots[_challenge_id];
 
         if (pot.moderator_stake[msg.sender] > 0) {
-            revert ModeratorAlreadyFunded();
+            revert("ModeratorAlreadyFunded");
         }
 
         pot.moderators.push(msg.sender);
         pot.moderator_stake[msg.sender] = msg.value;
 
         emit Staked(_challenge_id, msg.sender, msg.value);
-    }
+    } /* ============================= FINALIZATION & PAY-OUT ============================= */
 
-    /* ============================= FINALIZATION & PAY-OUT ============================= */
     // TODO: Add access control to this function, can only be called by ChallengeManager after the challenge is finalized
-    function finalizeChallengePot(uint256 _challenge_id) external {
+    function finalizeChallengePot(
+        uint256 _challenge_id
+    ) external onlyRole(CHALLENGE_MANAGER_ROLE) {
         Pot storage pot = pots[_challenge_id];
 
         if (pot.is_distributed == true) {
-            revert AlreadyDistributed();
+            revert("AlreadyDistributed");
         }
 
         _calculateDeviation(_challenge_id);
@@ -109,18 +114,143 @@ contract ModerationEscrow {
 
     // ================= SETTER METHODS =================
     // TODO: Add access control to this function, only admin can set the ChallengeManager address
-    function setChallengeManagerAddress(address _address) external {
+    function setChallengeManagerAddress(
+        address _address
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         if (_address == address(0)) {
-            revert InvalidChallengeManagerAddress();
+            revert("InvalidChallengeManagerAddress");
         }
         challenge_manager_address = _address;
-        challenge_manager = ChallengeManager(_address);
+        challenge_manager = IChallengeManager(_address);
+    }
+
+    /* ============================= ROLE MANAGEMENT ============================= */
+    /**
+     * @dev Grant CHALLENGE_MANAGER_ROLE to an address
+     * @param account The address to grant the role to
+     */
+    function grantChallengeManagerRole(
+        address account
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _grantRole(CHALLENGE_MANAGER_ROLE, account);
+    }
+
+    /**
+     * @dev Revoke CHALLENGE_MANAGER_ROLE from an address
+     * @param account The address to revoke the role from
+     */
+    function revokeChallengeManagerRole(
+        address account
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _revokeRole(CHALLENGE_MANAGER_ROLE, account);
+    }
+
+    /* ============================= VIEW FUNCTIONS ============================= */
+    /**
+     * @dev Get the bounty amount for a challenge
+     * @param _challenge_id The challenge ID
+     * @return The bounty amount
+     */
+    function getBounty(uint256 _challenge_id) external view returns (uint256) {
+        return pots[_challenge_id].bounty;
+    }
+
+    /**
+     * @dev Get the total reward for a challenge
+     * @param _challenge_id The challenge ID
+     * @return The total reward amount
+     */
+    function getTotalReward(
+        uint256 _challenge_id
+    ) external view returns (uint256) {
+        return pots[_challenge_id].total_reward;
+    }
+
+    /**
+     * @dev Get the stake amount for a moderator in a challenge
+     * @param _challenge_id The challenge ID
+     * @param moderator The moderator address
+     * @return The stake amount
+     */
+    function getModeratorStake(
+        uint256 _challenge_id,
+        address moderator
+    ) external view returns (uint256) {
+        return pots[_challenge_id].moderator_stake[moderator];
+    }
+
+    /**
+     * @dev Get the reward amount for a moderator in a challenge
+     * @param _challenge_id The challenge ID
+     * @param moderator The moderator address
+     * @return The reward amount
+     */
+    function getModeratorReward(
+        uint256 _challenge_id,
+        address moderator
+    ) external view returns (uint256) {
+        return pots[_challenge_id].moderator_reward[moderator];
+    }
+
+    /**
+     * @dev Get the penalty amount for a moderator in a challenge
+     * @param _challenge_id The challenge ID
+     * @param moderator The moderator address
+     * @return The penalty amount
+     */
+    function getModeratorPenalty(
+        uint256 _challenge_id,
+        address moderator
+    ) external view returns (uint256) {
+        return pots[_challenge_id].moderator_penalty[moderator];
+    }
+
+    /**
+     * @dev Check if rewards have been distributed for a challenge
+     * @param _challenge_id The challenge ID
+     * @return True if rewards have been distributed
+     */
+    function isDistributed(uint256 _challenge_id) external view returns (bool) {
+        return pots[_challenge_id].is_distributed;
+    }
+
+    /**
+     * @dev Get the list of moderators for a challenge
+     * @param _challenge_id The challenge ID
+     * @return Array of moderator addresses
+     */
+    function getModerators(
+        uint256 _challenge_id
+    ) external view returns (address[] memory) {
+        return pots[_challenge_id].moderators;
+    }
+
+    /**
+     * @dev Get the list of passed moderators for a challenge
+     * @param _challenge_id The challenge ID
+     * @return Array of passed moderator addresses
+     */
+    function getPassedModerators(
+        uint256 _challenge_id
+    ) external view returns (address[] memory) {
+        return pots[_challenge_id].passed_moderators;
+    }
+
+    /**
+     * @dev Get the list of failed moderators for a challenge
+     * @param _challenge_id The challenge ID
+     * @return Array of failed moderator addresses
+     */
+    function getFailedModerators(
+        uint256 _challenge_id
+    ) external view returns (address[] memory) {
+        return pots[_challenge_id].failed_moderators;
     }
 
     /* ============================= INTERNAL HOOK ============================= */
     function _calculateDeviation(uint256 _challenge_id) internal {
         if (challenge_manager_address == address(0)) {
-            revert ChallengeManagerNotSet();
+            revert("ChallengeManagerNotSet");
         }
 
         Pot storage pot = pots[_challenge_id];
@@ -180,7 +310,7 @@ contract ModerationEscrow {
         Pot storage pot = pots[_challenge_id];
 
         uint256 passed_count = pot.passed_moderators.length;
-        if (passed_count == 0) revert NotEnoughModerators();
+        if (passed_count == 0) revert("NotEnoughModerators");
 
         // Arrays to store moderator weights
         uint256[] memory moderator_weights = new uint256[](passed_count);
@@ -235,7 +365,7 @@ contract ModerationEscrow {
             // Transfer stake + reward to moderator
             (bool success, ) = moderator.call{value: total_payout}("");
             if (!success) {
-                revert TransferFailed();
+                revert("TransferFailed");
             }
         }
 
@@ -254,7 +384,7 @@ contract ModerationEscrow {
             if (remaining_stake > 0) {
                 (bool success, ) = moderator.call{value: remaining_stake}("");
                 if (!success) {
-                    revert TransferFailed();
+                    revert("TransferFailed");
                 }
             }
         }

@@ -70,10 +70,19 @@ contract ChallengeCostManager is AccessControl {
             participant_count
         );
         return cost;
-    }
-
-    function addTalentPayment(uint256 _challenge_id) external payable {
+    }    function addTalentPayment(uint256 _challenge_id) external payable {
         require(msg.value > 0, "Payment amount must be greater than 0");
+        require(
+            address(challenge_manager) != address(0),
+            "ChallengeManager not set"
+        );
+
+        // Get the contributor of the challenge
+        address contributor = challenge_manager.getChallengeContributorById(_challenge_id);
+
+        // Send the payment to the contributor (before state changes)
+        (bool success, ) = payable(contributor).call{value: msg.value}("");
+        require(success, "Transfer to contributor failed");
 
         // Update talent's payment for this challenge
         challenge_revenues[_challenge_id].talent_payments[msg.sender] += msg

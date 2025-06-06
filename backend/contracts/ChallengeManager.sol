@@ -670,6 +670,13 @@ contract ChallengeManager is AccessControl {
         return challenges[_challenge_id].quality_score;
     }
 
+    function getChallengeContributorById(
+        uint256 _challenge_id
+    ) public view returns (address) {
+        require(_challenge_id < total_challenges, "Challenge does not exist");
+        return challenges[_challenge_id].contributor;
+    }
+
     function getJoinReviewPoolStatus(
         uint256 _challenge_id,
         address _moderator_address

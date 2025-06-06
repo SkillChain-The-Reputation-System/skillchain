@@ -37,6 +37,7 @@ import { Input } from "@/components/ui/input";
 import { Toaster, toast } from "sonner"
 import SolutionDetailsSkeleton from "@/features/evaluation/solution-details-skeleton";
 import RichTextEditor from '@/components/rich-text-editor'
+import SolutionPotInfo from "@/components/solution-pot-info";
 
 // Import lucide-react icons
 import {
@@ -86,7 +87,10 @@ const evaluationSchema = z.object({
   score: z.coerce
     .number()
     .min(0, "Score must be in range 0 - 100")
-    .max(100, "Score must be in range 0 - 100")
+    .max(100, "Score must be in range 0 - 100"),
+  stake: z.coerce
+    .number({ invalid_type_error: "Stake is required" })
+    .gt(0, "Stake must be greater than 0"),
 });
 
 export type EvaluationFormValues = z.infer<typeof evaluationSchema>;
@@ -100,6 +104,7 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
     resolver: zodResolver(evaluationSchema),
     defaultValues: {
       score: 0,
+      stake: 0.1,
     },
     mode: "onChange"
   });
@@ -123,7 +128,12 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
 
       try {
         setSubmitting(true);
-        const txHash = await submitEvaluationScore(solutionId, address as `0x${string}`, data.score);
+        const txHash = await submitEvaluationScore(
+          solutionId,
+          address as `0x${string}`,
+          data.score,
+          data.stake
+        );
         await waitForTransaction(txHash);
         toast.success("Submitted score for this solution");
         setIsDialogOpen(false);
@@ -428,6 +438,11 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
                   />
 
                   <Separator className='bg-black' />
+                  
+                  {/* Solution Pot Information */}
+                  <SolutionPotInfo solutionId={solutionId} />
+
+                  <Separator className='bg-black' />
                   {
                     evaluation?.isSubmitted ? (
                       <div className="mt-10 flex flex-col sm:flex-row justify-between items-center bg-green-100 dark:bg-green-900/50 p-6 rounded-lg">
@@ -456,19 +471,35 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
 
                         <div className="flex gap-5">
                           <Form {...form}>
-                            <form
-                              className="w-full max-w-[200px]"
-                            >
+                            <form className="flex flex-col sm:flex-row gap-3 w-full max-w-[400px]">
                               <FormField
                                 control={form.control}
                                 name="score"
                                 render={({ field }) => (
-                                  <FormItem>
+                                  <FormItem className="flex-1">
                                     <FormControl>
                                       <Input
                                         {...field}
                                         type="number"
                                         placeholder="Enter score..."
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name="stake"
+                                render={({ field }) => (
+                                  <FormItem className="flex-1">
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        type="number"
+                                        step="any"
+                                        min={0}
+                                        placeholder="Stake (ETH)"
                                       />
                                     </FormControl>
                                     <FormMessage />

@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
 // Import hooks
 import { useForm } from "react-hook-form";
-import { useState, useEffect } from 'react'
-import { useAccount } from 'wagmi'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from "react";
+import { useAccount } from "wagmi";
+import { useRouter } from "next/navigation";
 
 // Import UI components
 import {
@@ -13,13 +13,9 @@ import {
   FormControl,
   FormMessage,
   FormItem,
+  FormLabel,
 } from "@/components/ui/form";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent
-} from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,13 +25,15 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Separator } from '@/components/ui/separator';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge'
-import { Toaster, toast } from "sonner"
-import ChallengeDetailsSkeleton from '@/features/participation/challenge-details-skeleton'
-import RichTextEditor from '@/components/rich-text-editor'
+} from "@/components/ui/alert-dialog";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Toaster, toast } from "sonner";
+import ChallengeDetailsSkeleton from "@/features/participation/challenge-details-skeleton";
+import RichTextEditor from "@/components/rich-text-editor";
+import SolutionPotInfo from "@/components/solution-pot-info";
 
 // Import lucide-react icons
 import {
@@ -54,13 +52,13 @@ import {
   Save,
   Send,
   CalendarDays,
-  LoaderCircle
+  LoaderCircle,
 } from "lucide-react";
 
 // Import utils
-import { ChallengeInterface, SolutionInterface } from '@/lib/interfaces';
-import { cn } from '@/lib/utils'
-import { solutionProgressStyles, difficultyStyles } from '@/constants/styles'
+import { ChallengeInterface, SolutionInterface } from "@/lib/interfaces";
+import { cn } from "@/lib/utils";
+import { solutionProgressStyles, difficultyStyles } from "@/constants/styles";
 import { epochToDateString, epochToDateTimeString } from "@/lib/time-utils";
 import {
   Domain,
@@ -68,29 +66,31 @@ import {
   ChallengeDifficultyLevel,
   ChallengeDifficultyLevelLabels,
   ChallengeSolutionProgress,
-  ChallengeSolutionProgressLabels
-} from '@/constants/system'
+  ChallengeSolutionProgressLabels,
+} from "@/constants/system";
 import {
   saveSolutionDraft,
   submitSolution,
   putSolutionUnderReview,
-  waitForTransaction
-} from '@/lib/write-onchain-utils'
+  waitForTransaction,
+} from "@/lib/write-onchain-utils";
 import {
   getChallengeById,
   fetchSolutionByUserAndChallengeId,
   fetchNumberOfJoinedEvaluatorsById,
   fetchMaxEvaluatorsForSolutionById,
-  fetchTimestampEvaluationCompleted
+  fetchTimestampEvaluationCompleted,
 } from "@/lib/fetching-onchain-data-utils";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { pageUrlMapping } from "@/constants/navigation"
+import { pageUrlMapping } from "@/constants/navigation";
+import { getErrorMessage } from "@/lib/error-utils";
 
 const solutionSchema = z.object({
   solution: z
     .string()
     .max(10000, "Solution must be less than 4000 characters"),
+  bounty: z.coerce.number().gt(0, "Bounty must be greater than 0"),
 });
 
 export type SolutionFormValues = z.infer<typeof solutionSchema>;
@@ -99,7 +99,9 @@ interface WorkspaceChallengeDetailsProps {
   challenge_id: number;
 }
 
-export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeDetailsProps) {
+export default function WorkspaceChallenge({
+  challenge_id,
+}: WorkspaceChallengeDetailsProps) {
   const { address } = useAccount();
   const router = useRouter();
 
@@ -120,6 +122,7 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
     resolver: zodResolver(solutionSchema),
     defaultValues: {
       solution: "",
+      bounty: 0.1,
     },
   });
 
@@ -132,12 +135,17 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
 
       try {
         setSubmitting(true);
-        const txHash = await submitSolution(Number(challenge_id), address, data.solution);
+        const txHash = await submitSolution(
+          Number(challenge_id),
+          address,
+          data.solution,
+          data.bounty
+        );
         await waitForTransaction(txHash);
         toast.success("You have submitted this solution");
         setIsDialogOpen(false);
       } catch (error: any) {
-        toast.error("Error occurs. Please try again!");
+        toast.error(getErrorMessage(error));
       } finally {
         setSubmitting(false);
       }
@@ -183,41 +191,48 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
   // fetch data once
   useEffect(() => {
     const fetchData = async () => {
-      if (!address)
-        return;
+      if (!address) return;
 
       try {
         setIsLoading(true);
-        const [
-          fetchedChallenge,
-          fetchedSolution
-        ] = await Promise.all([
+        const [fetchedChallenge, fetchedSolution] = await Promise.all([
           getChallengeById(challenge_id),
-          fetchSolutionByUserAndChallengeId(address, challenge_id)
+          fetchSolutionByUserAndChallengeId(address, challenge_id),
         ]);
 
         setChallenge(fetchedChallenge);
         setSolution(fetchedSolution);
 
         if (fetchedSolution && fetchedSolution.solution?.trim().length !== 0)
-          form.reset({ solution: fetchedSolution.solution })
+          form.reset({
+            solution: fetchedSolution.solution,
+            bounty: form.getValues("bounty"),
+          })
 
-        if ((fetchedSolution?.progress == ChallengeSolutionProgress.UNDER_REVIEW) || (fetchedSolution?.progress == ChallengeSolutionProgress.REVIEWED)) {
+        if (
+          fetchedSolution?.progress == ChallengeSolutionProgress.UNDER_REVIEW ||
+          fetchedSolution?.progress == ChallengeSolutionProgress.REVIEWED
+        ) {
           const [
             fetchedEvaluators,
             fetchedTotalEvaluators,
-            fetchedCompletedDate
+            fetchedCompletedDate,
           ] = await Promise.all([
-            fetchNumberOfJoinedEvaluatorsById(Number(fetchedSolution.solutionId)),
-            fetchMaxEvaluatorsForSolutionById(Number(fetchedSolution.solutionId)),
-            fetchTimestampEvaluationCompleted(Number(fetchedSolution.solutionId))
+            fetchNumberOfJoinedEvaluatorsById(
+              Number(fetchedSolution.solutionId)
+            ),
+            fetchMaxEvaluatorsForSolutionById(
+              Number(fetchedSolution.solutionId)
+            ),
+            fetchTimestampEvaluationCompleted(
+              Number(fetchedSolution.solutionId)
+            ),
           ]);
 
           setJoinedEvaluators(fetchedEvaluators);
           setTotalEvaluators(fetchedTotalEvaluators);
-          setCompletedDate(fetchedCompletedDate)
+          setCompletedDate(fetchedCompletedDate);
         }
-
       } catch (error) {
         toast.error("Error occurs. Please try again");
       } finally {
@@ -231,28 +246,30 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
   // fetch new solution data after submitting solution
   useEffect(() => {
     const fetchedData = async () => {
-      if (!address)
-        return;
+      if (!address) return;
 
       try {
-        const fetchedSolution = await fetchSolutionByUserAndChallengeId(address, challenge_id);
+        const fetchedSolution = await fetchSolutionByUserAndChallengeId(
+          address,
+          challenge_id
+        );
         setSolution(fetchedSolution);
       } catch (error) {
         toast.error("Error occurs. Please try again");
       }
-    }
+    };
 
     fetchedData();
-  }, [submitting, puttingUnderReview])
+  }, [submitting, puttingUnderReview]);
 
   return (
     <>
-      {address && (
-        isLoading ? (
+      {address &&
+        (isLoading ? (
           <div>
             <ChallengeDetailsSkeleton />
           </div>
-        ) : (challenge && solution) ? (
+        ) : challenge && solution ? (
           <div>
             <Toaster position="top-right" richColors />
 
@@ -260,18 +277,18 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle className="font-bold">
-                    {
-                      solution.progress == ChallengeSolutionProgress.IN_PROGRESS ? "Confirm submitting solution"
-                        :
-                        solution.progress == ChallengeSolutionProgress.SUBMITTED && "Confirm publishing for Evaluation"
-                    }
+                    {solution.progress == ChallengeSolutionProgress.IN_PROGRESS
+                      ? "Confirm submitting solution"
+                      : solution.progress ==
+                          ChallengeSolutionProgress.SUBMITTED &&
+                        "Confirm publishing for Evaluation"}
                   </AlertDialogTitle>
                   <AlertDialogDescription>
-                    {
-                      solution.progress == ChallengeSolutionProgress.IN_PROGRESS ? "This action cannot be undone, and you won't be able to edit this solution afterward."
-                        :
-                        solution.progress == ChallengeSolutionProgress.SUBMITTED && "Your solution will be published to your Evaluators. Are you ready to submit it for evaluation?"
-                    }
+                    {solution.progress == ChallengeSolutionProgress.IN_PROGRESS
+                      ? "This action cannot be undone, and you won't be able to edit this solution afterward."
+                      : solution.progress ==
+                          ChallengeSolutionProgress.SUBMITTED &&
+                        "Your solution will be published to your Evaluators. Are you ready to submit it for evaluation?"}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -285,24 +302,28 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
 
                   <AlertDialogAction
                     className="cursor-pointer bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80"
-                    onClick={
-                      () => {
-                        if (solution.progress == ChallengeSolutionProgress.IN_PROGRESS) {
-                          onSubmit()
-                        } else if (solution.progress == ChallengeSolutionProgress.SUBMITTED) {
-                          onPutUnderReview()
-                        }
-                      }}
+                    onClick={() => {
+                      if (
+                        solution.progress ==
+                        ChallengeSolutionProgress.IN_PROGRESS
+                      ) {
+                        onSubmit();
+                      } else if (
+                        solution.progress == ChallengeSolutionProgress.SUBMITTED
+                      ) {
+                        onPutUnderReview();
+                      }
+                    }}
                     disabled={submitting || puttingUnderReview}
                   >
-                    {
-                      (submitting || puttingUnderReview) ? (
-                        <div className="flex items-center gap-2">
-                          <LoaderCircle className="h-4 w-4 animate-spin" />
-                          <span>Processing...</span>
-                        </div>
-                      ) : ("Confirm")
-                    }
+                    {submitting || puttingUnderReview ? (
+                      <div className="flex items-center gap-2">
+                        <LoaderCircle className="h-4 w-4 animate-spin" />
+                        <span>Processing...</span>
+                      </div>
+                    ) : (
+                      "Confirm"
+                    )}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -321,31 +342,52 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
               {/* Header section */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="space-y-2">
-                  <h1 className="text-3xl font-bold break-all">{challenge.title}</h1>
+                  <h1 className="text-3xl font-bold break-all">
+                    {challenge.title}
+                  </h1>
                 </div>
 
-                <Badge className={cn("text-md font-bold", solutionProgressStyles[solution.progress as keyof typeof solutionProgressStyles])}>
-                  {ChallengeSolutionProgressLabels[solution.progress as ChallengeSolutionProgress]}
+                <Badge
+                  className={cn(
+                    "text-md font-bold",
+                    solutionProgressStyles[
+                      solution.progress as keyof typeof solutionProgressStyles
+                    ]
+                  )}
+                >
+                  {
+                    ChallengeSolutionProgressLabels[
+                      solution.progress as ChallengeSolutionProgress
+                    ]
+                  }
                 </Badge>
               </div>
 
               {/* Workspace section */}
               <Tabs defaultValue="information">
                 <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="information" className="cursor-pointer">Information</TabsTrigger>
-                  <TabsTrigger value="description" className="cursor-pointer">Description</TabsTrigger>
-                  <TabsTrigger value="solution" className="cursor-pointer">Solution</TabsTrigger>
+                  <TabsTrigger value="information" className="cursor-pointer">
+                    Information
+                  </TabsTrigger>
+                  <TabsTrigger value="description" className="cursor-pointer">
+                    Description
+                  </TabsTrigger>
+                  <TabsTrigger value="solution" className="cursor-pointer">
+                    Solution
+                  </TabsTrigger>
                 </TabsList>
                 {/* Information section */}
                 <TabsContent value="information" className="space-y-8">
-                  <Separator className='bg-black' />
+                  <Separator className="bg-black" />
 
                   {/* About challenge section */}
                   <h1 className="text-xl font-bold">About challenge</h1>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-7">
                     <div className="col-span-2 flex flex-col gap-1.5">
-                      <span className="text-sm font-medium text-muted-foreground">Contributor</span>
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Contributor
+                      </span>
                       <div className="flex items-center gap-1.5">
                         <UserRoundPen className="h-full max-h-4 w-full max-w-4" />
                         <span className="ml-1 text-indigo-800 dark:text-indigo-300 break-all">
@@ -355,15 +397,21 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-sm font-medium text-muted-foreground">Domain</span>
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Domain
+                      </span>
                       <div className="flex items-center gap-1.5">
                         <Tag className="h-full max-h-4 w-full max-w-4" />
-                        <span className="ml-1">{DomainLabels[challenge.category as Domain]}</span>
+                        <span className="ml-1">
+                          {DomainLabels[challenge.category as Domain]}
+                        </span>
                       </div>
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-sm font-medium text-muted-foreground">Quality Score</span>
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Quality Score
+                      </span>
                       <div className="flex items-center gap-1.5">
                         <Star className="h-full max-h-4 w-full max-w-4 text-amber-500 fill-current" />
                         <span>{challenge.qualityScore} / 100</span>
@@ -371,7 +419,9 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-sm font-medium text-muted-foreground">Participants</span>
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Participants
+                      </span>
                       <div className="flex items-center gap-1.5">
                         <Users className="h-full max-h-4 w-full max-w-4" />
                         <span>{challenge.completed} done</span>
@@ -379,7 +429,9 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-sm font-medium text-muted-foreground">Contributed date</span>
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Contributed date
+                      </span>
                       <div className="flex items-center gap-1.5">
                         <CalendarArrowUp className="h-full max-h-4 w-full max-w-4" />
                         <span>{epochToDateString(challenge.contributeAt)}</span>
@@ -387,18 +439,31 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-sm font-medium text-muted-foreground">Difficulty Level</span>
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Difficulty Level
+                      </span>
                       <div className="flex items-center gap-1.5">
                         <Badge
-                          className={cn("capitalize", difficultyStyles[challenge.difficultyLevel as keyof typeof difficultyStyles])}
+                          className={cn(
+                            "capitalize",
+                            difficultyStyles[
+                              challenge.difficultyLevel as keyof typeof difficultyStyles
+                            ]
+                          )}
                         >
-                          {ChallengeDifficultyLevelLabels[challenge.difficultyLevel as ChallengeDifficultyLevel]}
+                          {
+                            ChallengeDifficultyLevelLabels[
+                              challenge.difficultyLevel as ChallengeDifficultyLevel
+                            ]
+                          }
                         </Badge>
                       </div>
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-sm font-medium text-muted-foreground">Estimated solve time</span>
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Estimated solve time
+                      </span>
                       <div className="flex items-center gap-1.5">
                         <Clock className="h-full max-h-4 w-full max-w-4" />
                         <span>{challenge.solveTime} minutes</span>
@@ -406,14 +471,16 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                     </div>
                   </div>
 
-                  <Separator className='bg-black' />
+                  <Separator className="bg-black" />
 
                   {/* About your work section */}
                   <h1 className="text-xl font-bold">About your work</h1>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-7">
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-sm font-medium text-muted-foreground">Joined on</span>
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Joined on
+                      </span>
                       <div className="flex items-center gap-1.5">
                         <CalendarPlus2 className="h-full max-h-4 w-full max-w-4" />
                         <span>{epochToDateTimeString(solution.createdAt)}</span>
@@ -421,38 +488,58 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-sm font-medium text-muted-foreground">Score</span>
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Score
+                      </span>
                       <div className="flex items-center gap-1.5">
                         <Trophy className="h-full max-h-4 w-full max-w-4 text-amber-500 dark:text-amber-400 fill-current" />
-                        <span>{solution.progress != ChallengeSolutionProgress.REVIEWED ? "--" : solution.score}</span>
+                        <span>
+                          {solution.progress !=
+                          ChallengeSolutionProgress.REVIEWED
+                            ? "--"
+                            : solution.score}
+                        </span>
                       </div>
                     </div>
 
                     {/* Display submission date if solution is submitted */}
-                    {solution.progress != ChallengeSolutionProgress.IN_PROGRESS && (
+                    {solution.progress !=
+                      ChallengeSolutionProgress.IN_PROGRESS && (
                       <div className="flex flex-col gap-1.5">
-                        <span className="text-sm font-medium text-muted-foreground">Submission Date</span>
+                        <span className="text-sm font-medium text-muted-foreground">
+                          Submission Date
+                        </span>
                         <div className="flex items-center gap-1.5">
                           <CalendarDays className="h-full max-h-4 w-full max-w-4" />
-                          <span>{epochToDateTimeString(solution.submittedAt)}</span>
+                          <span>
+                            {epochToDateTimeString(solution.submittedAt)}
+                          </span>
                         </div>
                       </div>
                     )}
 
-                    {solution.progress == ChallengeSolutionProgress.UNDER_REVIEW && (
+                    {solution.progress ==
+                      ChallengeSolutionProgress.UNDER_REVIEW && (
                       <div className="flex flex-col gap-1.5">
-                        <span className="text-sm font-medium text-muted-foreground">Evaluators</span>
+                        <span className="text-sm font-medium text-muted-foreground">
+                          Evaluators
+                        </span>
                         <div className="flex items-center gap-1.5">
                           <Eye className="h-full max-h-4 w-full max-w-4" />
-                          <span>{joinedEvaluators} / {totalEvaluators} joined</span>
+                          <span>
+                            {joinedEvaluators} / {totalEvaluators} joined
+                          </span>
                         </div>
                       </div>
                     )}
 
-                    {solution.progress == ChallengeSolutionProgress.REVIEWED && (
+                    {solution.progress ==
+                      ChallengeSolutionProgress.REVIEWED && (
                       <>
                         <div className="flex flex-col gap-1.5">
-                          <span className="text-sm font-medium text-muted-foreground">Total Evaluators</span>
+                          <span className="text-sm font-medium text-muted-foreground">
+                            Total Evaluators
+                          </span>
                           <div className="flex items-center gap-1.5">
                             <Eye className="h-full max-h-4 w-full max-w-4" />
                             <span>{totalEvaluators} reviewed</span>
@@ -460,7 +547,9 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                         </div>
 
                         <div className="flex flex-col gap-1.5">
-                          <span className="text-sm font-medium text-muted-foreground">Evaluation Completed Date</span>
+                          <span className="text-sm font-medium text-muted-foreground">
+                            Evaluation Completed Date
+                          </span>
                           <div className="flex items-center gap-1.5">
                             <CalendarCheck className="h-full max-h-4 w-full max-w-4" />
                             <span>{epochToDateTimeString(completedDate!)}</span>
@@ -469,23 +558,27 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                       </>
                     )}
                   </div>
+
+                  <Separator className="bg-black" />
+                  <SolutionPotInfo solutionId={Number(solution.solutionId)} />
                 </TabsContent>
                 {/* Description of challenge section */}
                 <TabsContent value="description" className="space-y-8">
-                  <Separator className='bg-black' />
+                  <Separator className="bg-black" />
 
                   <div className="space-y-4">
-                    <RichTextEditor value={challenge.description!} editable={false} />
+                    <RichTextEditor
+                      value={challenge.description!}
+                      editable={false}
+                    />
                   </div>
                 </TabsContent>
                 {/* Solution section */}
                 <TabsContent value="solution">
-                  <Separator className='bg-black' />
+                  <Separator className="bg-black" />
                   {/* Rich Text Editor for user working on solution */}
                   <Form {...form}>
-                    <form
-                      className="w-full mt-8 space-y-8"
-                    >
+                    <form className="w-full mt-8 space-y-8">
                       <FormField
                         control={form.control}
                         name="solution"
@@ -503,48 +596,70 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
                           </FormItem>
                         )}
                       />
+
+                      <FormField
+                        control={form.control}
+                        name="bounty"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Bounty (ETH)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="any"
+                                min={0}
+                                disabled={solution.progress != ChallengeSolutionProgress.IN_PROGRESS}
+                                {...field}
+                                placeholder="Enter bounty for evaluators"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </form>
                   </Form>
 
                   {/* Display buttons according to status of solution */}
                   <div className="flex justify-end items-center gap-5 mt-5">
-                    {
-                      solution.progress == ChallengeSolutionProgress.IN_PROGRESS ?
-                        (
-                          <>
-                            <Button
-                              variant="outline"
-                              size="lg"
-                              className="flex items-center cursor-pointer gap-2 border-gray-300 hover:bg-accent"
-                              onClick={onSaveDraft}
-                              disabled={savingDraft || submitting}
-                            >
-                              <Save className="h-4 w-4" />
-                              Save draft
-                            </Button>
+                    {solution.progress ==
+                    ChallengeSolutionProgress.IN_PROGRESS ? (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="lg"
+                          className="flex items-center cursor-pointer gap-2 border-gray-300 hover:bg-accent"
+                          onClick={onSaveDraft}
+                          disabled={savingDraft || submitting}
+                        >
+                          <Save className="h-4 w-4" />
+                          Save draft
+                        </Button>
 
-                            <Button
-                              size="lg"
-                              className="flex items-center gap-2 cursor-pointer shrink-0 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80"
-                              onClick={() => setIsDialogOpen(true)}
-                            >
-                              <Send className="h-4 w-4" />
-                              Submit
-                            </Button>
-                          </>
-                        ) : solution.progress == ChallengeSolutionProgress.SUBMITTED && (
-                          <>
-                            <Button
-                              size="lg"
-                              className="flex items-center gap-2 cursor-pointer border bg-purple-800 hover:bg-purple-800/60 text-white dark:bg-purple-400 dark:hover:bg-purple-400/60 dark:text-black"
-                              onClick={() => setIsDialogOpen(true)}
-                            >
-                              <ArrowBigUpDash className="h-4 w-4" />
-                              Put Under Review
-                            </Button>
-                          </>
-                        )
-                    }
+                        <Button
+                          size="lg"
+                          className="flex items-center gap-2 cursor-pointer shrink-0 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80"
+                          onClick={() => setIsDialogOpen(true)}
+                        >
+                          <Send className="h-4 w-4" />
+                          Submit
+                        </Button>
+                      </>
+                    ) : (
+                      solution.progress ==
+                        ChallengeSolutionProgress.SUBMITTED && (
+                        <>
+                          <Button
+                            size="lg"
+                            className="flex items-center gap-2 cursor-pointer border bg-purple-800 hover:bg-purple-800/60 text-white dark:bg-purple-400 dark:hover:bg-purple-400/60 dark:text-black"
+                            onClick={() => setIsDialogOpen(true)}
+                          >
+                            <ArrowBigUpDash className="h-4 w-4" />
+                            Put Under Review
+                          </Button>
+                        </>
+                      )
+                    )}
                   </div>
                 </TabsContent>
               </Tabs>
@@ -554,12 +669,18 @@ export default function WorkspaceChallenge({ challenge_id }: WorkspaceChallengeD
           <div className="text-center object-center py-12">
             <h2 className="text-xl font-semibold mb-2">Work not found</h2>
             <p className="text-muted-foreground mb-6">
-              The work you're looking for doesn't exist or you haven't joined this challenge.
+              The work you're looking for doesn't exist or you haven't joined
+              this challenge.
             </p>
-            <Button onClick={() => router.push(pageUrlMapping.participation_workspace)}>Return to Workspace</Button>
+            <Button
+              onClick={() =>
+                router.push(pageUrlMapping.participation_workspace)
+              }
+            >
+              Return to Workspace
+            </Button>
           </div>
-        )
-      )}
+        ))}
     </>
-  )
+  );
 }

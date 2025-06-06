@@ -73,7 +73,7 @@ export default function SolutionPotInfo({ solutionId }: SolutionPotInfoProps) {
       <div className="text-sm flex flex-col gap-1 mb-2">
         <span>
           <span className="font-medium">Total Bounty:</span>{" "}
-          {potInfo ? formatTokenAmount(`${potInfo.bounty} ${NATIVE_TOKEN_SYMBOL}`) : "--"}
+          {potInfo ? formatTokenAmount(`${potInfo.totalReward} ${NATIVE_TOKEN_SYMBOL}`) : "--"}
         </span>
         <span>
           <span className="font-medium">Solver Deposit:</span>{" "}
@@ -130,22 +130,22 @@ export default function SolutionPotInfo({ solutionId }: SolutionPotInfoProps) {
                 </TooltipProvider>
               </TableCell>
               <TableCell className="text-right whitespace-nowrap overflow-hidden">
-                <span className="truncate block max-w-[100px]" title={`${eva.stake} ${NATIVE_TOKEN_SYMBOL}`}>
+                <span className="truncate block" title={`${eva.stake} ${NATIVE_TOKEN_SYMBOL}`}>
                   {formatTokenAmount(`${eva.stake} ${NATIVE_TOKEN_SYMBOL}`)}
                 </span>
               </TableCell>
               <TableCell className="text-right whitespace-nowrap overflow-hidden">
-                <span className="truncate block max-w-[100px]" title={`${eva.reward} ${NATIVE_TOKEN_SYMBOL}`}>
+                <span className="truncate block" title={`${eva.reward} ${NATIVE_TOKEN_SYMBOL}`}>
                   {formatTokenAmount(`${eva.reward} ${NATIVE_TOKEN_SYMBOL}`)}
                 </span>
               </TableCell>
               <TableCell className="text-right whitespace-nowrap overflow-hidden">
-                <span className="truncate block max-w-[100px]" title={`${eva.penalty} ${NATIVE_TOKEN_SYMBOL}`}>
+                <span className="truncate block" title={`${eva.penalty} ${NATIVE_TOKEN_SYMBOL}`}>
                   {formatTokenAmount(`${eva.penalty} ${NATIVE_TOKEN_SYMBOL}`)}
                 </span>
               </TableCell>
               <TableCell className="text-right whitespace-nowrap overflow-hidden">
-                <span className="truncate block max-w-[100px]" title={`${eva.remaining} ${NATIVE_TOKEN_SYMBOL}`}>
+                <span className="truncate block" title={`${eva.remaining} ${NATIVE_TOKEN_SYMBOL}`}>
                   {formatTokenAmount(`${eva.remaining} ${NATIVE_TOKEN_SYMBOL}`)}
                 </span>
               </TableCell>

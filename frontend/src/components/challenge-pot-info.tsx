@@ -77,6 +77,10 @@ export function ChallengePotInfo({ challengeId }: ChallengePotInfoProps) {
       <div className="text-sm flex flex-col gap-1 mb-2">
         <span>
           <span className="font-medium">Total Bounty:</span>{" "}
+          {potInfo ? formatTokenAmount(`${potInfo.totalReward} ${NATIVE_TOKEN_SYMBOL}`) : "--"}
+        </span>
+        <span>
+          <span className="font-medium">Contributor Deposit:</span>{" "}
           {potInfo ? formatTokenAmount(`${potInfo.bounty} ${NATIVE_TOKEN_SYMBOL}`) : "--"}
         </span>
         <span>

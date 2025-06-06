@@ -37,8 +37,6 @@
     "@radix-ui/react-tooltip": "^1.1.8",
     "@tanstack/react-query": "^5.69.0",
     "@tanstack/react-table": "^8.21.3",
-    "@tiptap-pro/extension-file-handler": "^2.18.0-beta.13",
-    "@tiptap-pro/extension-mathematics": "^2.18.0-beta.13",
     "@tiptap/extension-code-block-lowlight": "^2.12.0",
     "@tiptap/extension-highlight": "^2.11.7",
     "@tiptap/extension-image": "^2.11.9",

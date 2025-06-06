@@ -248,6 +248,33 @@ export function ReviewFormSection({
           </FormItem>
         )}
       />
+
+      <FormField
+        control={form.control}
+        name="stake_amount"
+        render={({ field }) => (
+          <FormItem>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+              <div>
+                <FormLabel>Stake Amount (ETH)</FormLabel>
+              </div>
+              <div>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="any"
+                    min={0}
+                    disabled={isSubmitted}
+                    {...field}
+                    className="border-2 hover:border-blue-500 border-gray-300 dark:border-gray-800 focus-visible:border-blue-500 focus:ring-0 shadow-lg"
+                  />
+                </FormControl>
+                <FormMessage />
+              </div>
+            </div>
+          </FormItem>
+        )}
+      />
     </div>
   ), [form.control, isSubmitted]);
 

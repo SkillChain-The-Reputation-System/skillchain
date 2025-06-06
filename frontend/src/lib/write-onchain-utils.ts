@@ -30,6 +30,7 @@ import {
   MeetingStatus,
 } from "@/constants/system";
 import { ScheduleMeetingFormData } from "@/features/meetings/schedule-meeting-form";
+import { parseEther } from "viem";
 
 export async function joinReviewPool(
   challengeId: number,
@@ -92,6 +93,7 @@ export async function submitModeratorReview(
       data.suggested_solve_time,
     ],
     account: address,
+    value: parseEther(data.stake_amount.toString()),
   });
 
   const txHash = await writeContract(wagmiConfig, {
@@ -112,6 +114,7 @@ export async function submitModeratorReview(
       data.suggested_solve_time,
     ],
     account: address,
+    value: parseEther(data.stake_amount.toString()),
   });
   return txHash;
 }
@@ -144,6 +147,7 @@ export async function contributeChallenge(
       data.category,
     ],
     account: address,
+    value: parseEther(data.bounty.toString()),
   });
 
   const txHash = await writeContract(wagmiConfig, {
@@ -156,6 +160,7 @@ export async function contributeChallenge(
       data.category,
     ],
     account: address,
+    value: parseEther(data.bounty.toString()),
   });
 
   return txHash;

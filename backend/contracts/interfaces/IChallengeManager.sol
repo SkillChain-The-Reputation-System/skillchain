@@ -297,6 +297,15 @@ interface IChallengeManager {
     ) external view returns (SystemEnums.DifficultyLevel);
 
     /**
+     * @dev Returns the quality score of a challenge by its ID
+     * @param _challenge_id The ID of the challenge
+     * @return The quality score of the challenge
+     */
+    function getChallengeQualityScoreById(
+        uint256 _challenge_id
+    ) external view returns (uint256);
+
+    /**
      * @dev Returns the score deviation of a moderator's review compared to the final challenge score
      * @param _challenge_id The ID of the challenge
      * @param _moderator_address The address of the moderator

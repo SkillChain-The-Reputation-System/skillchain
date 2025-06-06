@@ -76,6 +76,8 @@ contract ChallengeManager is AccessControl {
     mapping(address => uint256[]) private moderator_to_challenges;
     // Mapping: User address -> Joined challenge IDs
     mapping(address => uint256[]) private user_to_joined_challenges;
+    // Mapping: Challenge ID -> Participant addresses
+    mapping(uint256 => address[]) private challenge_to_participants;
     // Mapping: Challenge ID -> Is pending
     mapping(uint256 => bool) is_pending_challenge;
     // Array of pending challenges
@@ -488,6 +490,7 @@ contract ChallengeManager is AccessControl {
         );
 
         user_to_joined_challenges[msg.sender].push(_challenge_id);
+        challenge_to_participants[_challenge_id].push(msg.sender);
 
         console.log(
             "User %s joined challenge %s at %s",
@@ -661,6 +664,12 @@ contract ChallengeManager is AccessControl {
         return challenges[_challenge_id].difficulty_level;
     }
 
+    function getChallengeQualityScoreById(
+        uint256 _challenge_id
+    ) public view returns (uint256) {
+        return challenges[_challenge_id].quality_score;
+    }
+
     function getJoinReviewPoolStatus(
         uint256 _challenge_id,
         address _moderator_address
@@ -685,6 +694,12 @@ contract ChallengeManager is AccessControl {
         uint256 _challenge_id
     ) public view returns (bool) {
         return review_pool[_challenge_id].is_finalized;
+    }
+
+    function getChallengeParticipants(
+        uint256 challengeId
+    ) external view returns (address[] memory) {
+        return challenge_to_participants[challengeId];
     }
 
     function getJoinedChallengesByUserForPreview(

@@ -60,7 +60,6 @@ library RewardTokenFormulas {
         );
         return weight;
     }
- 
 
     function calculateReward(
         uint256 weight,
@@ -90,7 +89,6 @@ library PenaltyTokenFormulas {
         uint256 dt_raw,
         uint256 dmax_raw,
         uint256 gamma_raw
-
     ) internal pure returns (uint256 penalty) {
         // 1) Wrap each raw “integer” into a UD60x18, scale up to 1e18 if neccessary
         UD60x18 gamma = ud(gamma_raw);
@@ -118,25 +116,68 @@ library PenaltyTokenFormulas {
         uint256 di_raw,
         uint256 si_raw
     ) external pure returns (uint256) {
-        return calculatePenalty(
-            di_raw,
-            si_raw,
-            SystemConsts.MODERATION_REWARD_DEVIATION_THRESHOLD,
-            SystemConsts.MODERATION_MAX_DEVIATION,
-            SystemConsts.MODERATION_STAKE_PENALTY_RATE
-        );
+        return
+            calculatePenalty(
+                di_raw,
+                si_raw,
+                SystemConsts.MODERATION_REWARD_DEVIATION_THRESHOLD,
+                SystemConsts.MODERATION_MAX_DEVIATION,
+                SystemConsts.MODERATION_STAKE_PENALTY_RATE
+            );
     }
 
     function calculatePenaltyForEvaluator(
         uint256 di_raw,
         uint256 si_raw
     ) external pure returns (uint256) {
-        return calculatePenalty(
-            di_raw,
-            si_raw,
-            SystemConsts.EVALUATION_REWARD_DEVIATION_THRESHOLD,
-            SystemConsts.EVALUATION_MAX_DEVIATION,
-            SystemConsts.EVALUATION_STAKE_PENALTY_RATE
-        );
+        return
+            calculatePenalty(
+                di_raw,
+                si_raw,
+                SystemConsts.EVALUATION_REWARD_DEVIATION_THRESHOLD,
+                SystemConsts.EVALUATION_MAX_DEVIATION,
+                SystemConsts.EVALUATION_STAKE_PENALTY_RATE
+            );
+    }
+}
+
+library ChallengeCostFormulas {
+    function calculateCost(
+        uint256 _difficultyWeight,
+        uint256 _qualityScore,
+        uint256 _bounty,
+        uint256 _n_i
+    ) external pure returns (uint256) {
+        UD60x18 fMin = ud(SystemConsts.CHALLENGE_FEE_MIN); 
+        UD60x18 fMax = ud(SystemConsts.CHALLENGE_FEE_MAX); 
+        UD60x18 alpha = ud(SystemConsts.CHALLENGE_FEE_ALPHA);
+        UD60x18 beta = ud(SystemConsts.CHALLENGE_FEE_BETA);
+        UD60x18 gamma = ud(SystemConsts.CHALLENGE_FEE_GAMMA);
+        UD60x18 bounty = ud(_bounty * 1e18); // Scale up to 1e18
+        UD60x18 expectedParticipants = ud(SystemConsts.EXPECTED_PARTICIPANTS * 1e18); // Scale up to 1e18
+        UD60x18 n_i = ud(_n_i * 1e18); // Scale up to 1e18
+
+        UD60x18 Wd = ud(_difficultyWeight);
+        UD60x18 Q = ud(_qualityScore * 1e16); // convert to range [0,1]
+
+        UD60x18 fBase = fMin.add(alpha.mul(Wd)).add(beta.mul(Q));
+
+        UD60x18 fBonus;
+        if (expectedParticipants.gt(ud(0)) && bounty.gt(ud(0))) {
+            UD60x18 ratio = bounty.div(expectedParticipants);
+            UD60x18 decay = exp(beta.mul(n_i)); // decay factor based on beta and n_i
+            UD60x18 expPart = ud(1e18).div(decay);
+            fBonus = ratio.mul(expPart).mul(gamma);
+        }
+
+        UD60x18 total = fBase.add(fBonus);
+
+        if (total.lt(fMin)) {
+            return SystemConsts.CHALLENGE_FEE_MIN;
+        }
+        if (total.gt(fMax)) {
+            return SystemConsts.CHALLENGE_FEE_MAX;
+        }
+        return intoUint256(total);
     }
 }

@@ -50,7 +50,10 @@ interface IModerationEscrow {
      * @param _challenge_id The ID of the challenge
      * @notice This function must be called once the challenge is created (contributed), called by ChallengeManager
      */
-    function depositBounty(uint256 _challenge_id) external payable;
+    function depositBounty(
+        uint256 _challenge_id,
+        address _contributor
+    ) external payable;
 
     // ============================== MODERATOR FLOW ==============================
 
@@ -59,7 +62,10 @@ interface IModerationEscrow {
      * @param _challenge_id The ID of the challenge
      * @notice This function should be called when a moderator submits their review for a challenge
      */
-    function stake(uint256 _challenge_id) external payable;
+    function stake(
+        uint256 _challenge_id,
+        address _moderator
+    ) external payable;
 
     // ============================== FINALIZATION & PAY-OUT ==============================
 

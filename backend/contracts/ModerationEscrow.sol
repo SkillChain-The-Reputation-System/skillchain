@@ -36,6 +36,7 @@ contract ModerationEscrow is AccessControl {
     /* ============================= STRUCTS ============================= */
     struct Pot {
         uint256 bounty; // Total bounty put up by contributor(s)
+        address contributor; // Address of the contributor who funded the bounty
         uint256 total_reward; // Total reward = bounty + total penalty amount of each moderator who failed
         mapping(address => uint256) moderator_stake; // Mapping: moderator address => stake amount
         mapping(address => uint256) moderator_reward; // Mapping: moderator address => reward amount
@@ -56,7 +57,8 @@ contract ModerationEscrow is AccessControl {
     /* ============================= CONTRIBUTOR FLOW ============================= */ /// @dev Contributor deposits bounty for a challenge (native token only).
     //TODO: This function must be called once the challenge is created (contributed), called by ChallengeManager
     function depositBounty(
-        uint256 _challenge_id
+        uint256 _challenge_id,
+        address _contributor
     ) external payable onlyRole(CHALLENGE_MANAGER_ROLE) {
         if (msg.value == 0) {
             revert("ZeroValue");
@@ -70,28 +72,30 @@ contract ModerationEscrow is AccessControl {
 
         pot.bounty = msg.value;
         pot.total_reward = msg.value; // Initialize total reward with the bounty amount
+        pot.contributor = _contributor;
 
-        emit BountyDeposited(_challenge_id, msg.sender, msg.value);
+        emit BountyDeposited(_challenge_id, _contributor, msg.value);
     }
 
     /* ============================= MODERATOR FLOW ============================= */
     /// @dev Moderator stakes native token when opting in to review pool.
     // TODO: This function should be called when a moderator submit their review for a challenge, only be called by ChallengeManager
     function stake(
-        uint256 _challenge_id
+        uint256 _challenge_id,
+        address _moderator
     ) external payable onlyRole(CHALLENGE_MANAGER_ROLE) {
         if (msg.value == 0) revert("ZeroValue");
 
         Pot storage pot = pots[_challenge_id];
 
-        if (pot.moderator_stake[msg.sender] > 0) {
+        if (pot.moderator_stake[_moderator] > 0) {
             revert("ModeratorAlreadyFunded");
         }
 
-        pot.moderators.push(msg.sender);
-        pot.moderator_stake[msg.sender] = msg.value;
+        pot.moderators.push(_moderator);
+        pot.moderator_stake[_moderator] = msg.value;
 
-        emit Staked(_challenge_id, msg.sender, msg.value);
+        emit Staked(_challenge_id, _moderator, msg.value);
     } /* ============================= FINALIZATION & PAY-OUT ============================= */
 
     // TODO: Add access control to this function, can only be called by ChallengeManager after the challenge is finalized

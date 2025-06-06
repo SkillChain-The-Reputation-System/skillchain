@@ -198,7 +198,7 @@ contract ChallengeManager is AccessControl {
         pending_challenges.push(challengeId);
 
         // Deposit bounty to moderation escrow
-        moderation_escrow.depositBounty{value: msg.value}(challengeId);
+        moderation_escrow.depositBounty{value: msg.value}(challengeId, msg.sender);
 
         console.log(
             "Challenge #%s contributed by %s at %s with:",
@@ -305,7 +305,7 @@ contract ChallengeManager is AccessControl {
         );
 
         // Call moderation escrow to stake the moderator's tokens
-        moderation_escrow.stake{value: msg.value}(_challenge_id);
+        moderation_escrow.stake{value: msg.value}(_challenge_id, msg.sender);
 
         // Increment the review count
         pool.review_count++;

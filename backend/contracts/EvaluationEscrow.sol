@@ -32,6 +32,7 @@ contract EvaluationEscrow is AccessControl {
     /* ============================= STRUCTS ============================= */
     struct Pot {
         uint256 bounty; // Total bounty put up by solver(s)
+        address solver; // Address of the solver who funded the bounty
         uint256 total_reward; // Total reward = bounty + total penalty amount of each evaluator who failed
         mapping(address => uint256) evaluator_stake; // Mapping: evaluator address => stake amount
         mapping(address => uint256) evaluator_reward; // Mapping: evaluator address => reward amount
@@ -52,7 +53,10 @@ contract EvaluationEscrow is AccessControl {
     /* ============================= SOLVER FLOW ============================= */
     /// @dev Solver deposits bounty for a solution (native token only).
     //TODO: This function must be called once the solution is submitted, called by SolutionManager
-    function depositBounty(uint256 _solution_id) external payable onlyRole(SOLUTION_MANAGER_ROLE) {
+    function depositBounty(
+        uint256 _solution_id,
+        address _solver
+    ) external payable onlyRole(SOLUTION_MANAGER_ROLE) {
         if (msg.value == 0) {
             revert("Zero value");
         }
@@ -64,27 +68,31 @@ contract EvaluationEscrow is AccessControl {
 
         pots[_solution_id].bounty = msg.value;
         pots[_solution_id].total_reward = msg.value;
+        pots[_solution_id].solver = _solver;
 
-        emit BountyDeposited(_solution_id, msg.sender, msg.value);
+        emit BountyDeposited(_solution_id, _solver, msg.value);
     }
 
     /* ============================= EVALUATOR FLOW ============================= */
     /// @dev Evaluator stakes native token when opting in to evaluation pool.
     // TODO: This function should be called when an evaluator submits their evaluation for a solution, only be called by SolutionManager
-    function stake(uint256 _solution_id) external payable onlyRole(SOLUTION_MANAGER_ROLE) {
+    function stake(
+        uint256 _solution_id,
+        address _evaluator
+    ) external payable onlyRole(SOLUTION_MANAGER_ROLE) {
         if (msg.value == 0) {
             revert("Zero value");
         }
 
         // Check that this evaluator hasn't already staked for this solution
-        if (pots[_solution_id].evaluator_stake[msg.sender] > 0) {
+        if (pots[_solution_id].evaluator_stake[_evaluator] > 0) {
             revert("Evaluator already funded");
         }
 
-        pots[_solution_id].evaluator_stake[msg.sender] = msg.value;
-        pots[_solution_id].evaluators.push(msg.sender);
+        pots[_solution_id].evaluator_stake[_evaluator] = msg.value;
+        pots[_solution_id].evaluators.push(_evaluator);
 
-        emit Staked(_solution_id, msg.sender, msg.value);
+        emit Staked(_solution_id, _evaluator, msg.value);
     }
 
     /* ============================= FINALIZATION & PAY-OUT ============================= */

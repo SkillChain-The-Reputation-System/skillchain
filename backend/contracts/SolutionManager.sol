@@ -203,7 +203,7 @@ contract SolutionManager is AccessControl {
         sl.progress = SystemEnums.SolutionProgress.SUBMITTED;
 
         // Deposit bounty to evaluation escrow
-        evaluation_escrow.depositBounty{value: msg.value}(solutionId);
+        evaluation_escrow.depositBounty{value: msg.value}(solutionId, msg.sender);
 
         emit SolutionSubmitted(solutionId, submittedAt);
     }
@@ -302,7 +302,7 @@ contract SolutionManager is AccessControl {
         pool.evaluation_count++;
 
         // Stake tokens in evaluation escrow
-        evaluation_escrow.stake{value: msg.value}(_solution_id);
+        evaluation_escrow.stake{value: msg.value}(_solution_id, msg.sender);
 
         emit SolutionScoreSubmittedByEvaluator(
             msg.sender,

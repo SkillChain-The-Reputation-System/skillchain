@@ -47,7 +47,10 @@ interface IEvaluationEscrow {
      * @param _solution_id The ID of the solution
      * @notice This function must be called once the solution is submitted, called by SolutionManager
      */
-    function depositBounty(uint256 _solution_id) external payable;
+    function depositBounty(
+        uint256 _solution_id,
+        address _solver
+    ) external payable;
 
     // ============================== EVALUATOR FLOW ==============================
 
@@ -56,7 +59,10 @@ interface IEvaluationEscrow {
      * @param _solution_id The ID of the solution
      * @notice This function should be called when an evaluator submits their evaluation for a solution
      */
-    function stake(uint256 _solution_id) external payable;
+    function stake(
+        uint256 _solution_id,
+        address _evaluator
+    ) external payable;
 
     // ============================== FINALIZATION & PAY-OUT ==============================
 

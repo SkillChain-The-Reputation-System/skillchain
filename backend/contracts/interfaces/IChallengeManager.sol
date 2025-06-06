@@ -160,7 +160,7 @@ interface IChallengeManager {
     function userJoinChallenge(
         uint256 _challenge_id,
         string calldata _solution_base_txid
-    ) external;
+    ) external payable;
 
     /**
      * @dev Marks a challenge as completed by a user
@@ -193,6 +193,12 @@ interface IChallengeManager {
      * @param _address The address of the moderation escrow contract
      */
     function setModerationEscrowAddress(address _address) external;
+
+    /**
+     * @dev Sets the challenge cost manager address
+     * @param _address The address of the challenge cost manager contract
+     */
+    function setChallengeCostManagerAddress(address _address) external;
 
     // ============ View Functions ============
 

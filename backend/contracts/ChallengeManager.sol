@@ -3,6 +3,7 @@ pragma solidity ^0.8.19;
 import "hardhat/console.sol";
 import "./interfaces/ISolutionManager.sol";
 import "./interfaces/IModerationEscrow.sol";
+import "./interfaces/IChallengeCostManager.sol";
 import "./Constants.sol";
 import "./interfaces/IReputationManager.sol";
 import "./interfaces/IRoleManager.sol";
@@ -94,6 +95,8 @@ contract ChallengeManager is AccessControl {
     address private solution_manager_address; // SolutionManager address
     IModerationEscrow private moderation_escrow; // ModerationEscrow instance
     address private moderation_escrow_address; // ModerationEscrow address
+    IChallengeCostManager private challenge_cost_manager; // ChallengeCostManager instance
+    address private challenge_cost_manager_address; // ChallengeCostManager address
 
     uint256 public total_challenges = 0;
 
@@ -200,7 +203,10 @@ contract ChallengeManager is AccessControl {
         pending_challenges.push(challengeId);
 
         // Deposit bounty to moderation escrow
-        moderation_escrow.depositBounty{value: msg.value}(challengeId, msg.sender);
+        moderation_escrow.depositBounty{value: msg.value}(
+            challengeId,
+            msg.sender
+        );
 
         console.log(
             "Challenge #%s contributed by %s at %s with:",
@@ -468,7 +474,7 @@ contract ChallengeManager is AccessControl {
     function userJoinChallenge(
         uint256 _challenge_id,
         string calldata _solution_base_txid
-    ) external {
+    ) external payable {
         // Check if challenge id exists
         require(_challenge_id < total_challenges);
 
@@ -480,7 +486,22 @@ contract ChallengeManager is AccessControl {
             )
         );
 
+        // Validate payment amount
+        require(msg.value > 0, "Payment amount must be greater than 0");
+
+        // Ensure ChallengeCostManager is set
+        require(
+            address(challenge_cost_manager) != address(0),
+            "ChallengeCostManager not set"
+        );
+
         uint256 joinAt = block.timestamp * 1000;
+
+        // Process payment through ChallengeCostManager
+        challenge_cost_manager.addTalentPayment{value: msg.value}(
+            _challenge_id,
+            msg.sender
+        );
 
         solution_manager.createSolutionBase(
             msg.sender,
@@ -488,7 +509,6 @@ contract ChallengeManager is AccessControl {
             _solution_base_txid,
             joinAt
         );
-
         user_to_joined_challenges[msg.sender].push(_challenge_id);
         challenge_to_participants[_challenge_id].push(msg.sender);
 
@@ -540,6 +560,14 @@ contract ChallengeManager is AccessControl {
         require(_address != address(0), "Invalid address");
         moderation_escrow_address = _address;
         moderation_escrow = IModerationEscrow(_address);
+    }
+
+    function setChallengeCostManagerAddress(
+        address _address
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_address != address(0), "Invalid address");
+        challenge_cost_manager_address = _address;
+        challenge_cost_manager = IChallengeCostManager(_address);
     }
 
     // ================= GETTER METHODS =================

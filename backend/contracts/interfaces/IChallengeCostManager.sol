@@ -6,11 +6,11 @@ interface IChallengeCostManager {
         uint256 indexed challenge_id,
         address indexed talent,
         uint256 amount
-    );
-
+    );    
+    
     function getCost(uint256 challengeId) external view returns (uint256);
-
-    function addTalentPayment(uint256 challengeId) external payable;
+    
+    function addTalentPayment(uint256 challengeId, address talent) external payable;
 
     function setChallengeManagerAddress(address _address) external;
 

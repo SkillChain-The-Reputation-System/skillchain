@@ -28,6 +28,16 @@ const ChallengeCostManagerModule = buildModule(
       moderationEscrow,
     ]);
 
+    // Set the challenge cost manager address on the ChallengeManager
+    m.call(challengeManager, "setChallengeCostManagerAddress", [
+      challengeCostManager,
+    ]);
+
+    // Grant CHALLENGE_MANAGER_ROLE to the ChallengeManager contract
+    m.call(challengeCostManager, "grantChallengeManagerRole", [
+      challengeManager,
+    ]);
+
     return { challengeCostManager, challengeManager, moderationEscrow };
   }
 );

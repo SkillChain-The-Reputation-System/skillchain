@@ -8,6 +8,10 @@ import "./interfaces/IChallengeManager.sol";
 import "./interfaces/IModerationEscrow.sol";
 
 contract ChallengeCostManager is AccessControl {
+    // ========================== ROLE CONSTANTS ==========================
+    bytes32 public constant CHALLENGE_MANAGER_ROLE =
+        keccak256("CHALLENGE_MANAGER_ROLE");
+
     // ========================== STRUCTS ==========================
     struct ChallengeRevenue {
         uint256 total_revenue;
@@ -70,28 +74,35 @@ contract ChallengeCostManager is AccessControl {
             participant_count
         );
         return cost;
-    }    function addTalentPayment(uint256 _challenge_id) external payable {
+    }
+
+    function addTalentPayment(
+        uint256 _challenge_id,
+        address _talent
+    ) external payable onlyRole(CHALLENGE_MANAGER_ROLE) {
         require(msg.value > 0, "Payment amount must be greater than 0");
+        require(_talent != address(0), "Invalid talent address");
         require(
             address(challenge_manager) != address(0),
             "ChallengeManager not set"
         );
 
         // Get the contributor of the challenge
-        address contributor = challenge_manager.getChallengeContributorById(_challenge_id);
+        address contributor = challenge_manager.getChallengeContributorById(
+            _challenge_id
+        );
 
         // Send the payment to the contributor (before state changes)
         (bool success, ) = payable(contributor).call{value: msg.value}("");
         require(success, "Transfer to contributor failed");
 
         // Update talent's payment for this challenge
-        challenge_revenues[_challenge_id].talent_payments[msg.sender] += msg
-            .value;
+        challenge_revenues[_challenge_id].talent_payments[_talent] += msg.value;
 
         // Update total revenue for this challenge
         challenge_revenues[_challenge_id].total_revenue += msg.value;
 
-        emit TalentPaymentAdded(_challenge_id, msg.sender, msg.value);
+        emit TalentPaymentAdded(_challenge_id, _talent, msg.value);
     }
 
     // ========================== ADMIN METHODS ==========================
@@ -109,6 +120,27 @@ contract ChallengeCostManager is AccessControl {
         require(_address != address(0), "Invalid ModerationEscrow address");
         moderation_escrow_address = _address;
         moderation_escrow = IModerationEscrow(_address);
+    }
+
+    // ========================== ROLE MANAGEMENT ==========================
+    /**
+     * @notice Grant the CHALLENGE_MANAGER_ROLE to an account
+     * @param account The account to grant the role to
+     */
+    function grantChallengeManagerRole(
+        address account
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _grantRole(CHALLENGE_MANAGER_ROLE, account);
+    }
+
+    /**
+     * @notice Revoke the CHALLENGE_MANAGER_ROLE from an account
+     * @param account The account to revoke the role from
+     */
+    function revokeChallengeManagerRole(
+        address account
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _revokeRole(CHALLENGE_MANAGER_ROLE, account);
     }
 
     // ========================== VIEW METHODS ==========================

@@ -260,3 +260,18 @@ export interface MeetingRoomInterface {
   note: string | undefined;
 }
 
+
+export interface ModeratorPotInfo {
+  moderator: string;
+  stake: number;
+  reward: number;
+  penalty: number;
+  remaining: number;
+}
+
+export interface ChallengePotInfoInterface {
+  bounty: number;
+  totalReward: number;
+  isFinalized: boolean;
+  moderators: ModeratorPotInfo[];
+}

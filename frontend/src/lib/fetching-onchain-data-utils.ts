@@ -1,5 +1,6 @@
 // filepath: d:\Hai_Tuyen\thesis\skillchain\frontend\src\lib\fetching-onchain-data-utils.ts
 import { readContract } from "@wagmi/core";
+import { formatEther } from "viem";
 import {
   ContractConfig_ChallengeManager,
   ContractConfig_UserDataManager,
@@ -7,6 +8,7 @@ import {
   ContractConfig_JobManager,
   ContractConfig_JobApplicationManager,
   ContractConfig_MeetingManager,
+  ContractConfig_ModerationEscrow,
 } from "@/constants/contracts-config";
 import { wagmiConfig } from "@/features/wallet/Web3Provider";
 import {
@@ -26,6 +28,8 @@ import {
   BriefMeetingInterface,
   MeetingRoomInterface,
   JobApplicationMetricsInterface,
+  ChallengePotInfoInterface,
+  ModeratorPotInfo,
 } from "./interfaces";
 import {
   fetchJsonDataOffChain,
@@ -293,6 +297,81 @@ export const getChallengeFinalizedStatus = async (
     args: [challenge_id],
   })) as boolean;
   return is_finalized;
+};
+
+export const getChallengePotInfo = async (
+  challenge_id: number
+): Promise<ChallengePotInfoInterface> => {
+  const [bountyRaw, totalRewardRaw, moderators, isDistributed] = await Promise.all([
+    readContract(wagmiConfig, {
+      address: ContractConfig_ModerationEscrow.address as `0x${string}`,
+      abi: ContractConfig_ModerationEscrow.abi,
+      functionName: "getBounty",
+      args: [challenge_id],
+    }),
+    readContract(wagmiConfig, {
+      address: ContractConfig_ModerationEscrow.address as `0x${string}`,
+      abi: ContractConfig_ModerationEscrow.abi,
+      functionName: "getTotalReward",
+      args: [challenge_id],
+    }),
+    readContract(wagmiConfig, {
+      address: ContractConfig_ModerationEscrow.address as `0x${string}`,
+      abi: ContractConfig_ModerationEscrow.abi,
+      functionName: "getModerators",
+      args: [challenge_id],
+    }),
+    readContract(wagmiConfig, {
+      address: ContractConfig_ModerationEscrow.address as `0x${string}`,
+      abi: ContractConfig_ModerationEscrow.abi,
+      functionName: "isDistributed",
+      args: [challenge_id],
+    }),
+  ]);
+
+  const moderatorsInfo: ModeratorPotInfo[] = await Promise.all(
+    (moderators as string[]).map(async (moderator) => {
+      const [stakeRaw, rewardRaw, penaltyRaw] = await Promise.all([
+        readContract(wagmiConfig, {
+          address: ContractConfig_ModerationEscrow.address as `0x${string}`,
+          abi: ContractConfig_ModerationEscrow.abi,
+          functionName: "getModeratorStake",
+          args: [challenge_id, moderator],
+        }),
+        readContract(wagmiConfig, {
+          address: ContractConfig_ModerationEscrow.address as `0x${string}`,
+          abi: ContractConfig_ModerationEscrow.abi,
+          functionName: "getModeratorReward",
+          args: [challenge_id, moderator],
+        }),
+        readContract(wagmiConfig, {
+          address: ContractConfig_ModerationEscrow.address as `0x${string}`,
+          abi: ContractConfig_ModerationEscrow.abi,
+          functionName: "getModeratorPenalty",
+          args: [challenge_id, moderator],
+        }),
+      ]);
+
+      const stake = parseFloat(formatEther(BigInt(stakeRaw as number)));
+      const reward = parseFloat(formatEther(BigInt(rewardRaw as number )));
+      const penalty = parseFloat(formatEther(BigInt(penaltyRaw as number)));
+
+      return {
+        moderator: moderator as string,
+        stake,
+        reward,
+        penalty,
+        remaining: stake + reward - penalty,
+      } as ModeratorPotInfo;
+    })
+  );
+
+  return {
+    bounty: parseFloat(formatEther(BigInt(bountyRaw as number))),
+    totalReward: parseFloat(formatEther(BigInt(totalRewardRaw as number))),
+    isFinalized: isDistributed as boolean,
+    moderators: moderatorsInfo,
+  };
 };
 
 export const fetchContributedChallenges = async (

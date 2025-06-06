@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import RichTextEditor from "@/components/rich-text-editor";
+import { ChallengePotInfo } from "@/components/challenge-pot-info";
 
 import {
   Calendar,
@@ -303,6 +304,9 @@ export function GenericChallengeCard({
               </div>
             </>
           )}
+
+          <Separator />
+          <ChallengePotInfo challengeId={Number(challenge.id)} />
 
           <div className="flex justify-end gap-2 mt-4">
             <Button variant="outline" onClick={() => setShowDetails(false)} className="bg-gray-300">

@@ -16,6 +16,7 @@ contract ChallengeCostManager is AccessControl {
     struct ChallengeRevenue {
         uint256 total_revenue;
         mapping(address => uint256) talent_payments;
+        address[] talents; // To keep track of unique talents
     }
 
     // ========================== EVENTS ==========================
@@ -86,6 +87,10 @@ contract ChallengeCostManager is AccessControl {
             address(challenge_manager) != address(0),
             "ChallengeManager not set"
         );
+        require(
+            challenge_revenues[_challenge_id].talent_payments[_talent] == 0,
+            "Talent has already been paid for this challenge"
+        );
 
         // Get the contributor of the challenge
         address contributor = challenge_manager.getChallengeContributorById(
@@ -97,10 +102,13 @@ contract ChallengeCostManager is AccessControl {
         require(success, "Transfer to contributor failed");
 
         // Update talent's payment for this challenge
-        challenge_revenues[_challenge_id].talent_payments[_talent] += msg.value;
+        challenge_revenues[_challenge_id].talent_payments[_talent] = msg.value;
 
         // Update total revenue for this challenge
         challenge_revenues[_challenge_id].total_revenue += msg.value;
+
+        // Add talent to the list
+        challenge_revenues[_challenge_id].talents.push(_talent);
 
         emit TalentPaymentAdded(_challenge_id, _talent, msg.value);
     }
@@ -159,5 +167,11 @@ contract ChallengeCostManager is AccessControl {
         uint256 _challenge_id
     ) external view returns (uint256) {
         return challenge_revenues[_challenge_id].total_revenue;
+    }
+
+    function getTalents(
+        uint256 _challenge_id
+    ) external view returns (address[] memory) {
+        return challenge_revenues[_challenge_id].talents;
     }
 }

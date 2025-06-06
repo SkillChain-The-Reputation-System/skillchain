@@ -275,3 +275,19 @@ export interface ChallengePotInfoInterface {
   isFinalized: boolean;
   moderators: ModeratorPotInfo[];
 }
+
+export interface EvaluatorPotInfo {
+  evaluator: string;
+  stake: number;
+  reward: number;
+  penalty: number;
+  remaining: number;
+}
+
+export interface SolutionPotInfoInterface {
+  bounty: number;
+  totalReward?: number;
+  solver: string;
+  isFinalized: boolean;
+  evaluators: EvaluatorPotInfo[];
+}

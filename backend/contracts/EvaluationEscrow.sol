@@ -184,6 +184,15 @@ contract EvaluationEscrow is AccessControl {
     }
 
     /**
+     * @notice Get the solver address for a solution
+     * @param _solution_id The solution ID
+     * @return The solver address
+     */
+    function getSolver(uint256 _solution_id) external view returns (address) {
+        return pots[_solution_id].solver;
+    }
+
+    /**
      * @notice Get the total reward for a solution
      * @param _solution_id The solution ID
      * @return The total reward amount

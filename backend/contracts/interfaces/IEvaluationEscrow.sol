@@ -163,6 +163,13 @@ interface IEvaluationEscrow {
     function getBounty(uint256 _solution_id) external view returns (uint256);
 
     /**
+     * @dev Get the solver address for a solution
+     * @param _solution_id The solution ID
+     * @return The solver address
+     */
+    function getSolver(uint256 _solution_id) external view returns (address);
+
+    /**
      * @dev Get the total reward for a solution
      * @param _solution_id The solution ID
      * @return The total reward amount

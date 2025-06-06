@@ -9,6 +9,7 @@ import {
   ContractConfig_JobApplicationManager,
   ContractConfig_MeetingManager,
   ContractConfig_ModerationEscrow,
+  ContractConfig_EvaluationEscrow,
 } from "@/constants/contracts-config";
 import { wagmiConfig } from "@/features/wallet/Web3Provider";
 import {
@@ -30,6 +31,8 @@ import {
   JobApplicationMetricsInterface,
   ChallengePotInfoInterface,
   ModeratorPotInfo,
+  SolutionPotInfoInterface,
+  EvaluatorPotInfo,
 } from "./interfaces";
 import {
   fetchJsonDataOffChain,
@@ -371,6 +374,88 @@ export const getChallengePotInfo = async (
     totalReward: parseFloat(formatEther(BigInt(totalRewardRaw as number))),
     isFinalized: isDistributed as boolean,
     moderators: moderatorsInfo,
+  };
+};
+
+export const getSolutionPotInfo = async (
+  solution_id: number
+): Promise<SolutionPotInfoInterface> => {
+  const [bountyRaw, totalRewardRaw, evaluators, isDistributed, solver] = await Promise.all([
+    readContract(wagmiConfig, {
+      address: ContractConfig_EvaluationEscrow.address as `0x${string}`,
+      abi: ContractConfig_EvaluationEscrow.abi,
+      functionName: "getBounty",
+      args: [solution_id],
+    }),
+    readContract(wagmiConfig, {
+      address: ContractConfig_EvaluationEscrow.address as `0x${string}`,
+      abi: ContractConfig_EvaluationEscrow.abi,
+      functionName: "getTotalReward",
+      args: [solution_id],
+    }),
+    readContract(wagmiConfig, {
+      address: ContractConfig_EvaluationEscrow.address as `0x${string}`,
+      abi: ContractConfig_EvaluationEscrow.abi,
+      functionName: "getEvaluators",
+      args: [solution_id],
+    }),
+    readContract(wagmiConfig, {
+      address: ContractConfig_EvaluationEscrow.address as `0x${string}`,
+      abi: ContractConfig_EvaluationEscrow.abi,
+      functionName: "isDistributed",
+      args: [solution_id],
+    }),
+    readContract(wagmiConfig, {
+      address: ContractConfig_EvaluationEscrow.address as `0x${string}`,
+      abi: ContractConfig_EvaluationEscrow.abi,
+      functionName: "getSolver",
+      args: [solution_id],
+    }),
+  ]);
+
+  const evaluatorInfo: EvaluatorPotInfo[] = await Promise.all(
+    (evaluators as string[]).map(async (evaluator) => {
+      const [stakeRaw, rewardRaw, penaltyRaw] = await Promise.all([
+        readContract(wagmiConfig, {
+          address: ContractConfig_EvaluationEscrow.address as `0x${string}`,
+          abi: ContractConfig_EvaluationEscrow.abi,
+          functionName: "getEvaluatorStake",
+          args: [solution_id, evaluator],
+        }),
+        readContract(wagmiConfig, {
+          address: ContractConfig_EvaluationEscrow.address as `0x${string}`,
+          abi: ContractConfig_EvaluationEscrow.abi,
+          functionName: "getEvaluatorReward",
+          args: [solution_id, evaluator],
+        }),
+        readContract(wagmiConfig, {
+          address: ContractConfig_EvaluationEscrow.address as `0x${string}`,
+          abi: ContractConfig_EvaluationEscrow.abi,
+          functionName: "getEvaluatorPenalty",
+          args: [solution_id, evaluator],
+        }),
+      ]);
+
+      const stake = parseFloat(formatEther(BigInt(stakeRaw as number)));
+      const reward = parseFloat(formatEther(BigInt(rewardRaw as number)));
+      const penalty = parseFloat(formatEther(BigInt(penaltyRaw as number)));
+
+      return {
+        evaluator: evaluator as string,
+        stake,
+        reward,
+        penalty,
+        remaining: stake + reward - penalty,
+      } as EvaluatorPotInfo;
+    })
+  );
+
+  return {
+    bounty: parseFloat(formatEther(BigInt(bountyRaw as number))),
+    totalReward: parseFloat(formatEther(BigInt(totalRewardRaw as number))),
+    solver: solver as string,
+    isFinalized: isDistributed as boolean,
+    evaluators: evaluatorInfo,
   };
 };
 

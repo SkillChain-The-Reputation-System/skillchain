@@ -170,7 +170,16 @@ library SystemConsts {
     uint256 public constant EVALUATION_MAX_DEVIATION = 100; // The max score of a challenge can have
     uint256 public constant EVALUATION_STAKE_PENALTY_RATE = 0.2e18; // gamma - maximum of 30% the stake will be penalized 
     uint256 public constant EVALUATION_STAKE_INFLUENCE_COEFFICIENT = 0.2e18; // beta
-    uint256 public constant EVALUATION_REWARD_DISTRIBUTION_SPREAD = 0.9e18; // alpha 
+    uint256 public constant EVALUATION_REWARD_DISTRIBUTION_SPREAD = 0.9e18; // alpha
+
+    // ================= RECRUITMENT FEE =================
+    // Base platform fee for each hiring action (12 POL scaled to 1e18)
+    uint256 public constant RECRUITMENT_BASE_FEE = 12e18;
+    // Coefficient controlling the impact of candidate reputation
+    uint256 public constant RECRUITMENT_REPUTATION_COEFFICIENT = 0.6e18;
+
+    // ================= RECRUITMENT BUDGET =================
+    uint256 public constant RECRUITMENT_BUDGET_MIN = 10e18; // Minimum budget to be considered a recruiter
 }
 
 library MathUtils {

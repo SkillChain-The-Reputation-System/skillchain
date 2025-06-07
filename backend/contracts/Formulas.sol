@@ -2,7 +2,15 @@
 pragma solidity ^0.8.19;
 
 import "./Constants.sol";
-import {UD60x18, ud, convert, pow, exp, intoUint256} from "@prb/math/src/UD60x18.sol";
+import {
+    UD60x18,
+    ud,
+    convert,
+    pow,
+    exp,
+    ln,
+    intoUint256
+} from "@prb/math/src/UD60x18.sol";
 
 library RewardTokenFormulas {
     function calculateWeight(
@@ -179,5 +187,19 @@ library ChallengeCostFormulas {
             return SystemConsts.CHALLENGE_FEE_MAX;
         }
         return intoUint256(total);
+    }
+}
+
+library RecruitmentFeeFormulas {
+    function calculateRecruitmentFee(uint256 reputation) external pure returns (uint256) {
+        UD60x18 baseFee = ud(SystemConsts.RECRUITMENT_BASE_FEE);
+        UD60x18 k = ud(SystemConsts.RECRUITMENT_REPUTATION_COEFFICIENT);
+        UD60x18 R = ud(reputation * 1e18);
+
+        UD60x18 lnTerm = ln(ud(1e18).add(R));
+        UD60x18 factor = ud(1e18).add(k.mul(lnTerm));
+        UD60x18 fee = baseFee.mul(factor);
+
+        return intoUint256(fee);
     }
 }

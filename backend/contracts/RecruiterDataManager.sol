@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract RecruiterDataManager {    
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./interfaces/IRecruiterSubscription.sol";
+
+contract RecruiterDataManager is AccessControl {
     // ================= STRUCTS =================
     // Struct to hold recruiter data
     struct RecruiterProfile {
@@ -16,6 +19,8 @@ contract RecruiterDataManager {
     
     // Mapping to check if an address has created a recruiter profile: address => bool
     mapping(address => bool) private recruiter_profile_created;
+
+    IRecruiterSubscription private recruiter_subscription;
 
     
     // ================= MODIFIERS =================
@@ -35,12 +40,25 @@ contract RecruiterDataManager {
     modifier onlyRecruiterWithoutProfile(address _recruiter_address) {
         require(!recruiter_profile_created[_recruiter_address], "Recruiter profile already created");
         _;
-    }    
+    }
+
+    modifier onlySubscribedRecruiter() {
+        require(
+            address(recruiter_subscription) != address(0) &&
+                recruiter_subscription.isRecruiter(msg.sender),
+            "Recruiter has insufficient budget"
+        );
+        _;
+    }
     
 
     // ================= EVENTS =================
     // Events for recruiter profile management activities
     event RecruiterProfileCreated(address indexed recruiter_address, string data_id);
+
+    constructor() {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
 
     
     // ================= METHODS =================
@@ -53,7 +71,7 @@ contract RecruiterDataManager {
      */
     function createRecruiterProfile(
         string calldata _data_id
-    ) external onlyRecruiterWithoutProfile(msg.sender) {
+    ) external onlySubscribedRecruiter onlyRecruiterWithoutProfile(msg.sender) {
         // Ensure the data ID is not empty
         require(bytes(_data_id).length > 0, "Data ID cannot be empty");
         
@@ -99,5 +117,11 @@ contract RecruiterDataManager {
         address _recruiter_address
     ) external view onlyRecruiterWithProfile(_recruiter_address) returns (RecruiterProfile memory) {
         return recruiters[_recruiter_address];
+    }
+
+    // ================= SETTER =================
+    function setRecruiterSubscriptionAddress(address addr) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(addr != address(0), "Invalid address");
+        recruiter_subscription = IRecruiterSubscription(addr);
     }
 }

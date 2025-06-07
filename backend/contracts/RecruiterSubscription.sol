@@ -86,4 +86,8 @@ contract RecruiterSubscription is AccessControl, IRecruiterSubscription {
     function getBudget(address recruiter) external view returns (uint256) {
         return budgets[recruiter];
     }
+
+    function getMinimumBudget() external pure returns (uint256) {
+        return SystemConsts.RECRUITMENT_BUDGET_MIN;
+    }
 }

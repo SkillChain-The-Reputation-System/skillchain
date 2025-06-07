@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { formatEther } from "viem";
-import { Copy, Check, Wallet } from "lucide-react";
+import { Copy, Check, Wallet, Loader2 } from "lucide-react";
+import { toast } from "react-toastify";
 import {
   Card,
   CardContent,
@@ -14,6 +15,8 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   Table,
@@ -28,18 +31,25 @@ import {
   type RecruiterData,
   type PaymentRecord,
 } from "@/lib/get/get-recruiter-subscription-data-utils";
+import { depositToRecruiterBudget } from "@/lib/set/set-recruiter-subscription-data-utils";
 import { NATIVE_TOKEN_SYMBOL } from "@/constants/system";
+import { getErrorMessage } from "@/lib/error-utils";
+import { useRouter } from "next/navigation";
 
 export function AccountSettings() {
   // Get wallet address from useAccount hook
   const { address } = useAccount();
-
   // State for recruiter data
   const [recruiterData, setRecruiterData] = useState<RecruiterData | null>(
     null
   );
   const [loading, setLoading] = useState(true);
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
+  // State for deposit functionality
+  const [isDepositing, setIsDepositing] = useState(false);
+  const [depositAmount, setDepositAmount] = useState("0.1"); // Default deposit amount
+
+  const router = useRouter();
 
   // Function to copy address to clipboard with visual feedback
   const handleCopyAddress = async (addressToCopy: string) => {
@@ -57,11 +67,31 @@ export function AccountSettings() {
     if (!addr) return "";
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
-
   // Function to format timestamp to readable date
   const formatTimestamp = (timestamp: bigint) => {
     const date = new Date(Number(timestamp) * 1000);
     return date.toLocaleDateString() + " " + date.toLocaleTimeString();
+  };
+  // Function to handle deposit
+  const handleDeposit = async () => {
+    if (!address || isDepositing) return;
+
+    setIsDepositing(true);
+
+    try {
+      await depositToRecruiterBudget(depositAmount);
+
+      toast.success(
+        `Successfully deposited ${depositAmount} ${NATIVE_TOKEN_SYMBOL}!`
+      );
+
+      router.refresh();
+
+    } catch (error: any) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setIsDepositing(false);
+    }
   };
 
   // Fetch recruiter data when address changes
@@ -168,15 +198,51 @@ export function AccountSettings() {
                   </AlertDescription>
                 </Alert>
               )}
-            <div className="mt-2 flex justify-end">
-              <Button
-                variant="default"
-                size="sm"
-                className="shrink-0 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80 cursor-pointer"
-              >
-                <Wallet className="h-4 w-4" />
-                Deposit More {NATIVE_TOKEN_SYMBOL}
-              </Button>
+            <div className="mt-2 space-y-2">
+              <div className="flex items-center space-x-2">
+                <div className="flex-1">
+                  <Label
+                    htmlFor="deposit-amount"
+                    className="text-sm font-medium text-muted-foreground"
+                  >
+                    Deposit Amount ({NATIVE_TOKEN_SYMBOL})
+                  </Label>
+                  <Input
+                    id="deposit-amount"
+                    type="number"
+                    min="0"
+                    step="0.001"
+                    value={depositAmount}
+                    onChange={(e) => setDepositAmount(e.target.value)}
+                    placeholder="0.1"
+                    disabled={isDepositing}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="shrink-0 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80 cursor-pointer"
+                  onClick={handleDeposit}
+                  disabled={
+                    isDepositing ||
+                    !address ||
+                    !depositAmount ||
+                    parseFloat(depositAmount) <= 0
+                  }
+                >
+                  {isDepositing ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Wallet className="h-4 w-4" />
+                  )}
+                  {isDepositing
+                    ? "Depositing..."
+                    : `Deposit ${depositAmount} ${NATIVE_TOKEN_SYMBOL}`}
+                </Button>
+              </div>
             </div>
           </div>
 

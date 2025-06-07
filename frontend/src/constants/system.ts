@@ -1,3 +1,5 @@
+export const NATIVE_TOKEN_SYMBOL = "ETH";
+
 export enum Domain {
   COMPUTER_SCIENCE_FUNDAMENTALS = 0,
   SOFTWARE_DEVELOPMENT = 1,

@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.19;
 import "hardhat/console.sol";
 import "./interfaces/ISolutionManager.sol";
+import "./interfaces/IModerationEscrow.sol";
+import "./interfaces/IChallengeCostManager.sol";
 import "./Constants.sol";
 import "./interfaces/IReputationManager.sol";
 import "./interfaces/IRoleManager.sol";
@@ -75,6 +77,8 @@ contract ChallengeManager is AccessControl {
     mapping(address => uint256[]) private moderator_to_challenges;
     // Mapping: User address -> Joined challenge IDs
     mapping(address => uint256[]) private user_to_joined_challenges;
+    // Mapping: Challenge ID -> Participant addresses
+    mapping(uint256 => address[]) private challenge_to_participants;
     // Mapping: Challenge ID -> Is pending
     mapping(uint256 => bool) is_pending_challenge;
     // Array of pending challenges
@@ -89,6 +93,10 @@ contract ChallengeManager is AccessControl {
     address private role_manager_address; // RoleManager address
     ISolutionManager private solution_manager; // SolutionManager instance
     address private solution_manager_address; // SolutionManager address
+    IModerationEscrow private moderation_escrow; // ModerationEscrow instance
+    address private moderation_escrow_address; // ModerationEscrow address
+    IChallengeCostManager private challenge_cost_manager; // ChallengeCostManager instance
+    address private challenge_cost_manager_address; // ChallengeCostManager address
 
     uint256 public total_challenges = 0;
 
@@ -158,7 +166,17 @@ contract ChallengeManager is AccessControl {
         string calldata _title_url,
         string calldata _description_url,
         SystemEnums.Domain _category
-    ) external onlyContributor {
+    ) external payable onlyContributor {
+        // Validate bounty amount
+        if (msg.value == 0) {
+            revert("Zero value");
+        }
+
+        // Ensure moderation escrow is set
+        if (address(moderation_escrow) == address(0)) {
+            revert("Moderation escrow not set");
+        }
+
         uint256 challengeId = total_challenges++;
         uint256 contributeAt = block.timestamp * 1000;
 
@@ -184,6 +202,12 @@ contract ChallengeManager is AccessControl {
         is_pending_challenge[challengeId] = true;
         pending_challenges.push(challengeId);
 
+        // Deposit bounty to moderation escrow
+        moderation_escrow.depositBounty{value: msg.value}(
+            challengeId,
+            msg.sender
+        );
+
         console.log(
             "Challenge #%s contributed by %s at %s with:",
             challengeId,
@@ -192,6 +216,7 @@ contract ChallengeManager is AccessControl {
         );
         console.log("- Title url        : %s", _title_url);
         console.log("- Description url  : %s", _description_url);
+        console.log("- Bounty amount    : %s", msg.value);
 
         emit ChallengeContributed(
             msg.sender,
@@ -200,7 +225,9 @@ contract ChallengeManager is AccessControl {
             _category,
             contributeAt
         );
-    } // ================= MODERATION METHODS=================
+    }
+
+    // ================= MODERATION METHODS=================
 
     function joinReviewPool(
         uint256 _challenge_id,
@@ -258,7 +285,17 @@ contract ChallengeManager is AccessControl {
         SystemEnums.DifficultyLevel _suggested_difficulty,
         SystemEnums.Domain _suggested_category,
         uint256 _suggested_solve_time
-    ) public onlyBeforeFinalized(_challenge_id) onlyModerator {
+    ) public payable onlyBeforeFinalized(_challenge_id) onlyModerator {
+        // Validate stake amount
+        if (msg.value == 0) {
+            revert("Zero stake amount");
+        }
+
+        // Ensure moderation escrow is set
+        if (address(moderation_escrow) == address(0)) {
+            revert("Moderation escrow not set");
+        }
+
         ReviewPool storage pool = review_pool[_challenge_id];
 
         // Check if the moderator has joined the review pool
@@ -274,6 +311,9 @@ contract ChallengeManager is AccessControl {
                 .is_submitted == false,
             "You have already submitted a review."
         );
+
+        // Call moderation escrow to stake the moderator's tokens
+        moderation_escrow.stake{value: msg.value}(_challenge_id, msg.sender);
 
         // Increment the review count
         pool.review_count++;
@@ -420,12 +460,21 @@ contract ChallengeManager is AccessControl {
                 );
             }
         }
+
+        // Finalize the challenge pot in the moderation escrow
+        if (moderation_escrow_address != address(0)) {
+            console.log(
+                "Finalizing challenge pot for challenge #%s",
+                _challenge_id
+            );
+            moderation_escrow.finalizeChallengePot(_challenge_id);
+        }
     }
 
     function userJoinChallenge(
         uint256 _challenge_id,
         string calldata _solution_base_txid
-    ) external {
+    ) external payable {
         // Check if challenge id exists
         require(_challenge_id < total_challenges);
 
@@ -437,7 +486,22 @@ contract ChallengeManager is AccessControl {
             )
         );
 
+        // Validate payment amount
+        require(msg.value > 0, "Payment amount must be greater than 0");
+
+        // Ensure ChallengeCostManager is set
+        require(
+            address(challenge_cost_manager) != address(0),
+            "ChallengeCostManager not set"
+        );
+
         uint256 joinAt = block.timestamp * 1000;
+
+        // Process payment through ChallengeCostManager
+        challenge_cost_manager.addTalentPayment{value: msg.value}(
+            _challenge_id,
+            msg.sender
+        );
 
         solution_manager.createSolutionBase(
             msg.sender,
@@ -445,8 +509,8 @@ contract ChallengeManager is AccessControl {
             _solution_base_txid,
             joinAt
         );
-
         user_to_joined_challenges[msg.sender].push(_challenge_id);
+        challenge_to_participants[_challenge_id].push(msg.sender);
 
         console.log(
             "User %s joined challenge %s at %s",
@@ -466,22 +530,44 @@ contract ChallengeManager is AccessControl {
     }
 
     // ================= SETTER METHODS =================
-    function setRoleManagerAddress(address _address) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setRoleManagerAddress(
+        address _address
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_address != address(0), "Invalid address");
         role_manager_address = _address;
         role_manager = IRoleManager(_address);
     }
 
-    function setReputationManagerAddress(address _address) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setReputationManagerAddress(
+        address _address
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_address != address(0), "Invalid address");
         reputation_manager_address = _address;
         reputation_manager = IReputationManager(_address);
     }
 
-    function setSolutionManagerAddress(address _address) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setSolutionManagerAddress(
+        address _address
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_address != address(0), "Invalid address");
         solution_manager_address = _address;
         solution_manager = ISolutionManager(_address);
+    }
+
+    function setModerationEscrowAddress(
+        address _address
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_address != address(0), "Invalid address");
+        moderation_escrow_address = _address;
+        moderation_escrow = IModerationEscrow(_address);
+    }
+
+    function setChallengeCostManagerAddress(
+        address _address
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_address != address(0), "Invalid address");
+        challenge_cost_manager_address = _address;
+        challenge_cost_manager = IChallengeCostManager(_address);
     }
 
     // ================= GETTER METHODS =================
@@ -606,6 +692,19 @@ contract ChallengeManager is AccessControl {
         return challenges[_challenge_id].difficulty_level;
     }
 
+    function getChallengeQualityScoreById(
+        uint256 _challenge_id
+    ) public view returns (uint256) {
+        return challenges[_challenge_id].quality_score;
+    }
+
+    function getChallengeContributorById(
+        uint256 _challenge_id
+    ) public view returns (address) {
+        require(_challenge_id < total_challenges, "Challenge does not exist");
+        return challenges[_challenge_id].contributor;
+    }
+
     function getJoinReviewPoolStatus(
         uint256 _challenge_id,
         address _moderator_address
@@ -630,6 +729,12 @@ contract ChallengeManager is AccessControl {
         uint256 _challenge_id
     ) public view returns (bool) {
         return review_pool[_challenge_id].is_finalized;
+    }
+
+    function getChallengeParticipants(
+        uint256 challengeId
+    ) external view returns (address[] memory) {
+        return challenge_to_participants[challengeId];
     }
 
     function getJoinedChallengesByUserForPreview(
@@ -695,6 +800,37 @@ contract ChallengeManager is AccessControl {
             review_pool[_challenge_id]
                 .moderator_reviews[_moderator_address]
                 .review_txid;
+    }
+
+    function getScoreDeviationOfModeratorReview(
+        uint256 _challenge_id,
+        address _moderator_address
+    ) public view returns (uint256) {
+        // Validate that the challenge exists
+        require(_challenge_id < total_challenges, "Challenge does not exist");
+
+        // Moderator must have joined the review pool
+        require(
+            review_pool[_challenge_id].moderator_to_join_status[
+                _moderator_address
+            ],
+            "Moderator has not joined the review pool"
+        );
+
+        // Get the moderator's review score
+        uint256 moderator_score = review_pool[_challenge_id]
+            .moderator_reviews[_moderator_address]
+            .review_score;
+
+        // Get the challenge's final quality score
+        uint256 final_quality_score = challenges[_challenge_id].quality_score;
+
+        // Calculate and return the absolute deviation
+        if (moderator_score >= final_quality_score) {
+            return moderator_score - final_quality_score;
+        } else {
+            return final_quality_score - moderator_score;
+        }
     }
 
     // ================= SEEDING METHODS =================

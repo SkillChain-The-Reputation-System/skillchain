@@ -289,4 +289,15 @@ interface ISolutionManager {
         address _evaluator_address,
         uint256 _solution_id
     ) external view returns (bool);
+
+    /**
+     * @dev Get the deviation between evaluator's score and final solution score
+     * @param _evaluator_address Address of the evaluator
+     * @param _solution_id ID of the solution
+     * @return The absolute deviation between evaluator's score and final score
+     */
+    function getEvaluationDeviation(
+        address _evaluator_address,
+        uint256 _solution_id
+    ) external view returns (uint256);
 }

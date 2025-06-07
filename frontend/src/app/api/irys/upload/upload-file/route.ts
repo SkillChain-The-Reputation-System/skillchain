@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { uploadData } from "@/lib/irys-utils";
 import { IrysUploadResponseInterface } from "@/lib/interfaces";
 
+export const runtime = "nodejs";
+
 export async function POST(request: Request) {
   try {
     // Get data from the request body

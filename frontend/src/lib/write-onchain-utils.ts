@@ -30,6 +30,7 @@ import {
   MeetingStatus,
 } from "@/constants/system";
 import { ScheduleMeetingFormData } from "@/features/meetings/schedule-meeting-form";
+import { parseEther } from "viem";
 
 export async function joinReviewPool(
   challengeId: number,
@@ -92,6 +93,7 @@ export async function submitModeratorReview(
       data.suggested_solve_time,
     ],
     account: address,
+    value: parseEther(data.stake_amount.toString()),
   });
 
   const txHash = await writeContract(wagmiConfig, {
@@ -112,6 +114,7 @@ export async function submitModeratorReview(
       data.suggested_solve_time,
     ],
     account: address,
+    value: parseEther(data.stake_amount.toString()),
   });
   return txHash;
 }
@@ -144,6 +147,7 @@ export async function contributeChallenge(
       data.category,
     ],
     account: address,
+    value: parseEther(data.bounty.toString()),
   });
 
   const txHash = await writeContract(wagmiConfig, {
@@ -156,6 +160,7 @@ export async function contributeChallenge(
       data.category,
     ],
     account: address,
+    value: parseEther(data.bounty.toString()),
   });
 
   return txHash;
@@ -163,7 +168,8 @@ export async function contributeChallenge(
 
 export async function userJoinChallenge(
   challengeId: number,
-  address: `0x${string}`
+  address: `0x${string}`,
+  paymentAmount: number
 ) {
   const { data: solution_upload_res } =
     await axios.post<IrysUploadResponseInterface>(
@@ -177,6 +183,7 @@ export async function userJoinChallenge(
     functionName: "userJoinChallenge",
     args: [challengeId, solution_upload_res.id],
     account: address,
+    value: parseEther(paymentAmount.toString()),
   });
 
   const txHash = await writeContract(wagmiConfig, {
@@ -185,6 +192,7 @@ export async function userJoinChallenge(
     functionName: "userJoinChallenge",
     args: [challengeId, solution_upload_res.id],
     account: address,
+    value: parseEther(paymentAmount.toString()),
   });
 
   return txHash;
@@ -236,7 +244,8 @@ export async function saveModeratorReviewDraft(
 export async function submitSolution(
   challengeId: number,
   address: `0x${string}`,
-  solution: string
+  solution: string,
+  bounty: number
 ) {
   const solutionTxId = await fetchSolutionTxIdByUserAndChallengeId(
     address,
@@ -260,6 +269,7 @@ export async function submitSolution(
     functionName: "submitSolution",
     args: [challengeId],
     account: address,
+    value: parseEther(bounty.toString()),
   });
 
   const txHash = await writeContract(wagmiConfig, {
@@ -268,6 +278,7 @@ export async function submitSolution(
     functionName: "submitSolution",
     args: [challengeId],
     account: address,
+    value: parseEther(bounty.toString()),
   });
 
   return txHash;
@@ -322,7 +333,8 @@ export async function joinEvaluationPool(
 export async function submitEvaluationScore(
   solutionId: number,
   address: `0x${string}`,
-  score: number
+  score: number,
+  stake: number
 ) {
   await simulateContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
@@ -330,6 +342,7 @@ export async function submitEvaluationScore(
     functionName: "evaluatorSubmitScore",
     args: [solutionId, score],
     account: address,
+    value: parseEther(stake.toString()),
   });
 
   const txHash = await writeContract(wagmiConfig, {
@@ -338,6 +351,7 @@ export async function submitEvaluationScore(
     functionName: "evaluatorSubmitScore",
     args: [solutionId, score],
     account: address,
+    value: parseEther(stake.toString()),
   });
 
   return txHash;

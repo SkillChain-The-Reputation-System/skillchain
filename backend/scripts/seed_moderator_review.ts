@@ -4,10 +4,13 @@ import ChallengeManagerArtifact from "../artifacts/contracts/ChallengeManager.so
 import fs from "fs";
 import path from "path";
 import Papa from "papaparse";
+import { parseEther } from "viem";
 
 interface ModeratorReviewData {
   moderator_address: string;
   challenge_id: number;
+  review_txid: string;
+  stake_amount: number;
   relevance: number;
   technical_correctness: number;
   completeness: number;
@@ -79,7 +82,7 @@ async function seedModeratorReview(challengeIdToSeed: number) {
           address: contractAddress,
           abi: abi,
           functionName: "joinReviewPool",
-          args: [review.challenge_id],
+          args: [review.challenge_id, review.review_txid],
           account: moderatorWalletClient.account,
         });
         const joinTxHash = await moderatorWalletClient.writeContract(
@@ -130,6 +133,7 @@ async function seedModeratorReview(challengeIdToSeed: number) {
           review.suggested_solve_time,
         ],
         account: moderatorWalletClient.account,
+        value: parseEther(review.stake_amount.toString()),
       });
 
       const reviewTxHash = await moderatorWalletClient.writeContract(

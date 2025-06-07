@@ -1,32 +1,68 @@
 "use client";
 
-import { useState, useEffect, Suspense, lazy } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+import * as React from "react";
+import { ColumnDef } from "@tanstack/react-table";
 import {
   fetchAllApplicationCountsByJobID,
   fetchJobById,
   fetchBriefApplicationByJobID,
 } from "@/lib/fetching-onchain-data-utils";
-import { JobDurationLabels, JobApplicationStatus } from "@/constants/system";
+import { JobApplicationStatus } from "@/constants/system";
 import { JobApplicationMetricsInterface, JobInterface } from "@/lib/interfaces";
-import { ArrowLeft, FileEdit, Eye } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { ApplicantsTable } from "@/features/jobs-on-recruiter/applicant/applicants-table/data-table";
-import { ApplicantColumns } from "@/features/jobs-on-recruiter/applicant/applicants-table/column";
+import { ArrowLeft, FileEdit } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
 
 import { BriefJobApplicationInterface } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
 import { pageUrlMapping } from "@/constants/navigation";
 
-// Lazy load the metrics component for better performance
-const JobApplicantsMetrics = lazy(() =>
-  import("@/features/jobs-on-recruiter/applicant/applicants-metrics").then(
-    (mod) => ({
-      default: mod.JobApplicantsMetrics,
-    })
-  )
+// Dynamic imports for better code splitting and performance
+const JobApplicantsMetrics = dynamic(
+  () =>
+    import("@/features/jobs-on-recruiter/applicant/applicants-metrics").then(
+      (mod) => ({
+        default: mod.JobApplicantsMetrics,
+      })
+    ),
+  {
+    loading: () => (
+      <div className="h-40 animate-pulse bg-slate-100 rounded-md mb-6"></div>
+    ),
+  }
 );
+
+const JobInfo = dynamic(
+  () => import("@/features/jobs-on-recruiter/applicant/job-info"),
+  {
+    loading: () => (
+      <div className="h-24 animate-pulse bg-slate-100 rounded-md"></div>
+    ),
+  }
+);
+
+const ApplicantsTable = dynamic(
+  () =>
+    import(
+      "@/features/jobs-on-recruiter/applicant/applicants-table/data-table"
+    ).then((mod) => ({ default: mod.ApplicantsTable })),
+  {
+    loading: () => (
+      <div className="h-96 animate-pulse bg-slate-100 rounded-md"></div>
+    ),
+  }
+) as React.ComponentType<{
+  columns: ColumnDef<BriefJobApplicationInterface, unknown>[];
+  data: BriefJobApplicationInterface[];
+  searchPlaceholder?: string;
+  isLoading?: boolean;
+}>;
+
+// Import ApplicantColumns statically as it's needed for the table structure
+import { ApplicantColumns } from "@/features/jobs-on-recruiter/applicant/applicants-table/column";
 
 export default function JobApplicantsPage() {
   const params = useParams();
@@ -46,7 +82,9 @@ export default function JobApplicantsPage() {
   });
 
   // State to store real applicant data
-  const [applicants, setApplicants] = useState<BriefJobApplicationInterface[]>([]);
+  const [applicants, setApplicants] = useState<BriefJobApplicationInterface[]>(
+    []
+  );
   // Fetch job data and application counts for each status
   useEffect(() => {
     const fetchJobData = async () => {
@@ -95,41 +133,15 @@ export default function JobApplicantsPage() {
         <ArrowLeft size={16} />
         <span>Back to Job Post</span>
       </Link>
-
       {/* Job Header Section */}
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">
+      <div className="mb-8">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <h1 className="text-3xl font-bold">
             {loading ? "Loading..." : job?.title || "Job Details"}
           </h1>
-          {job && (
-            <div className="flex flex-wrap items-center gap-2 text-slate-600 max-w-full">
-              <span
-                className="truncate max-w-[200px]"
-                title={job.location || "Remote"}
-              >
-                {job.location || "Remote"}
-              </span>
-              <span>•</span>
-              <span
-                className="truncate max-w-[200px]"
-                title={
-                  job.duration !== undefined
-                    ? JobDurationLabels[job.duration]
-                    : "Unspecified"
-                }
-              >
-                {job.duration !== undefined
-                  ? JobDurationLabels[job.duration]
-                  : "Unspecified"}
-              </span>
-            </div>
-          )}
-        </div>
-        <div className="flex gap-2">
           <Link
             className={cn(
-              buttonVariants({ variant: "outline" }),
+              buttonVariants({ variant: "default" }),
               "flex items-center gap-2"
             )}
             href={`${pageUrlMapping.recruiter_jobs}/${jobId}/edit`}
@@ -138,8 +150,17 @@ export default function JobApplicantsPage() {
             Edit Job
           </Link>
         </div>
+        {job && (
+          <Suspense
+            fallback={
+              <div className="h-24 animate-pulse bg-slate-100 rounded-md"></div>
+            }
+          >
+            <JobInfo job={job} />
+          </Suspense>
+        )}
       </div>
-      {/* Key Metrics Cards - Lazy loaded component */}
+      {/* Key Metrics Cards - Dynamic loaded component */}
       <Suspense
         fallback={
           <div className="h-40 animate-pulse bg-slate-100 rounded-md mb-6"></div>
@@ -147,14 +168,19 @@ export default function JobApplicantsPage() {
       >
         <JobApplicantsMetrics counts={counts} />
       </Suspense>
-
-      {/* Applicants Table */}
-      <ApplicantsTable
-        columns={ApplicantColumns}
-        data={applicants}
-        searchPlaceholder="Search applicants by address or ID..."
-        isLoading={loading}
-      />
+      {/* Applicants Table - Dynamic loaded component */}
+      <Suspense
+        fallback={
+          <div className="h-96 animate-pulse bg-slate-100 rounded-md"></div>
+        }
+      >
+        <ApplicantsTable
+          columns={ApplicantColumns}
+          data={applicants}
+          searchPlaceholder="Search applicants by address or ID..."
+          isLoading={loading}
+        />
+      </Suspense>
     </div>
   );
 }

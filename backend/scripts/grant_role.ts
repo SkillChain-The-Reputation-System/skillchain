@@ -6,7 +6,7 @@ import path from 'path';
 import Papa from 'papaparse';
 
 const abi = RoleManagerArtifact.abi;
-const contractAddress = '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9'; // RoleManager address from deployed_addresses.json
+const contractAddress = '0xa513E6E4b8f2a923D98304ec87F64353C4D5C853'; // RoleManager address from deployed_addresses.json
 
 const csvPath = path.resolve(__dirname, 'grant_roles.csv');
 

@@ -7,7 +7,7 @@ const ChallengeManagerModule = buildModule("ChallengeManagerModule", (m) => {
   const { reputationManager } = m.useModule(ReputationManagerModule);
   const { solutionManager } = m.useModule(SolutionManagerModule);
   const { roleManager } = m.useModule(RoleManagerModule);
-
+  
   const challengeManager = m.contract("ChallengeManager");
 
   // Set the reputation manager address on the ChallengeManager

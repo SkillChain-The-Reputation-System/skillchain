@@ -66,6 +66,9 @@ const contributeChallengeSchema = z.object({
     .coerce
     .number({ invalid_type_error: "Domain is required" })
     .pipe(z.nativeEnum(Domain)),
+  bounty: z.coerce
+    .number({ invalid_type_error: "Bounty is required" })
+    .gt(0, "Bounty must be greater than 0"),
 });
 
 export type ChallengeFormValues = z.infer<typeof contributeChallengeSchema>;
@@ -76,7 +79,8 @@ export function ContributeChallengeForm() {
     defaultValues: {
       title: "",
       description: "",
-      category: undefined
+      category: undefined,
+      bounty: 0.1,
     },
     mode: "onChange",
   });
@@ -184,6 +188,26 @@ export function ContributeChallengeForm() {
                         placeholder="Challenge is about what and its goal"
                         className="max-w-5xl min-h-[250px]"
                         key={resetKey}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="bounty"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base">Bounty Amount (ETH)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="any"
+                        min={0}
+                        {...field}
+                        placeholder="Enter bounty for moderators"
                       />
                     </FormControl>
                     <FormMessage />

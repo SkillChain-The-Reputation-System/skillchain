@@ -3,8 +3,10 @@ pragma solidity ^0.8.17;
 
 import "./Constants.sol";
 import "./interfaces/IJobManager.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./interfaces/IRecruiterSubscription.sol";
 
-contract JobApplicationManager {
+contract JobApplicationManager is AccessControl {
     // ========================= STRUCTS =========================
     struct Application {
         bytes32 id; // Unique application ID
@@ -17,6 +19,9 @@ contract JobApplicationManager {
     // ========================= STATE VARIABLES =========================
     // Reference to JobManager contract
     IJobManager private job_manager;
+
+    // Reference to RecruiterSubscription contract
+    IRecruiterSubscription private recruiter_subscription;
 
     // Mapping to store applications: application ID => Application struct
     mapping(bytes32 => Application) private applications;
@@ -44,6 +49,10 @@ contract JobApplicationManager {
         SystemEnums.ApplicationStatus newStatus
     );
 
+    constructor() {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
+
     // ========================= MODIFIERS =========================
 
     modifier onlyOpenJob(bytes32 job_id) {
@@ -59,6 +68,15 @@ contract JobApplicationManager {
         require(
             applications[application_id].applicant == msg.sender,
             "Not the application owner"
+        );
+        _;
+    }
+
+    modifier onlySubscribedRecruiter() {
+        require(
+            address(recruiter_subscription) != address(0) &&
+                recruiter_subscription.isRecruiter(msg.sender),
+            "Recruiter has insufficient budget"
         );
         _;
     }
@@ -122,7 +140,7 @@ contract JobApplicationManager {
     function updateApplicationStatus(
         bytes32 application_id,
         SystemEnums.ApplicationStatus new_status
-    ) external {
+    ) external onlySubscribedRecruiter {
         Application storage application = applications[application_id];
         require(application.id == application_id, "Application does not exist");
 
@@ -141,6 +159,13 @@ contract JobApplicationManager {
 
         // Store old status for event and to remove from mapping
         SystemEnums.ApplicationStatus old_status = application.status;
+
+        if (new_status == SystemEnums.ApplicationStatus.HIRED) {
+            recruiter_subscription.payHiringFee(
+                job.recruiter,
+                application.applicant
+            );
+        }
 
         // Update status
         application.status = new_status;
@@ -317,12 +342,23 @@ contract JobApplicationManager {
     // ========================= SETTER FUNCTIONS =========================
     /// @notice Set the JobManager contract address
     /// @param job_manager_address Address of the JobManager contract
-    function setJobManagerAddress(address job_manager_address) external {
+    function setJobManagerAddress(address job_manager_address)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
         require(
             job_manager_address != address(0),
             "Invalid JobManager address"
         );
         job_manager = IJobManager(job_manager_address);
+    }
+
+    function setRecruiterSubscriptionAddress(address addr)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        require(addr != address(0), "Invalid address");
+        recruiter_subscription = IRecruiterSubscription(addr);
     }
 
     // ========================= HELPER FUNCTIONS =========================

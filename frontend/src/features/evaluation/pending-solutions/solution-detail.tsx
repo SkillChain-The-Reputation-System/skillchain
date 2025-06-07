@@ -63,6 +63,7 @@ import { epochToDateString, epochToDateTimeString } from "@/lib/time-utils";
 import { difficultyStyles } from "@/constants/styles";
 import { pageUrlMapping } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
+import { getErrorMessage } from "@/lib/error-utils";
 
 interface SolutionDetailProps {
   solutionId: number;
@@ -97,7 +98,7 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
       toast.success("You have joined the evaluation pool");
       setIsDialogOpen(false);
     } catch (error) {
-      toast.error("Failed to join the evaluation pool");
+      toast.error(getErrorMessage(error));
     } finally {
       setJoining(false);
     }

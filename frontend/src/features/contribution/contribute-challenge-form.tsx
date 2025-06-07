@@ -50,6 +50,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DomainLabels, Domain } from "@/constants/system";
 import { contributeChallenge, waitForTransaction } from "@/lib/write-onchain-utils"
+import { getErrorMessage } from "@/lib/error-utils";
 
 // Set up challenge schema input
 const contributeChallengeSchema = z.object({
@@ -102,7 +103,7 @@ export function ContributeChallengeForm() {
         form.reset()
         setResetKey(prev => prev + 1);
       } catch (error: any) {
-        toast.error("Error occurs. Please try again!");
+        toast.error(getErrorMessage(error));
       } finally {
         setSubmitting(false);
       }

@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "hardhat/console.sol";
-import "./SolutionManager.sol";
+import "./interfaces/ISolutionManager.sol";
 import "./Constants.sol";
-import "./ReputationManager.sol";
+import "./interfaces/IReputationManager.sol";
+import "./interfaces/IRoleManager.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract ChallengeManager {
+contract ChallengeManager is AccessControl {
     // ================= STRUCTS =================
     struct Challenge {
         uint256 id;
@@ -81,10 +83,11 @@ contract ChallengeManager {
     mapping(uint256 => bool) is_approved_challenge;
     // Array of approved challenges
     uint256[] private approved_challenges;
-
-    ReputationManager private reputation_manager; // ReputationManager instance
+    IReputationManager private reputation_manager; // ReputationManager instance
     address private reputation_manager_address; // ReputationManager address
-    SolutionManager private solution_manager; // SolutionManager instance
+    IRoleManager private role_manager; // RoleManager instance
+    address private role_manager_address; // RoleManager address
+    ISolutionManager private solution_manager; // SolutionManager instance
     address private solution_manager_address; // SolutionManager address
 
     uint256 public total_challenges = 0;
@@ -115,6 +118,11 @@ contract ChallengeManager {
         uint256 joinedAt
     );
 
+    // ================= CONSTRUCTOR =================
+    constructor() {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender); // Grant the deployer the default admin role
+    }
+
     // ================= MODIFIER =================
     // Modifier to check if the challenge is finalized
     modifier onlyBeforeFinalized(uint256 challenge_id) {
@@ -125,12 +133,32 @@ contract ChallengeManager {
         _;
     }
 
+    // Modifier to check if role manager is set
+    modifier onlyWithRoleManager() {
+        require(address(role_manager) != address(0), "Role manager not set");
+        _;
+    }
+
+    // Modifier to check if caller is a contributor
+    modifier onlyContributor() {
+        require(address(role_manager) != address(0), "Role manager not set");
+        require(role_manager.isContributor(msg.sender), "Not a contributor");
+        _;
+    }
+
+    // Modifier to check if caller is a moderator
+    modifier onlyModerator() {
+        require(address(role_manager) != address(0), "Role manager not set");
+        require(role_manager.isModerator(msg.sender), "Not a moderator");
+        _;
+    }
+
     // ================= CONTRIBUTION METHODS =================
     function contributeChallenge(
         string calldata _title_url,
         string calldata _description_url,
         SystemEnums.Domain _category
-    ) external {
+    ) external onlyContributor {
         uint256 challengeId = total_challenges++;
         uint256 contributeAt = block.timestamp * 1000;
 
@@ -172,13 +200,12 @@ contract ChallengeManager {
             _category,
             contributeAt
         );
-    }
+    } // ================= MODERATION METHODS=================
 
-    // ================= MODERATION METHODS=================
     function joinReviewPool(
         uint256 _challenge_id,
         string calldata _review_txid
-    ) public onlyBeforeFinalized(_challenge_id) {
+    ) public onlyBeforeFinalized(_challenge_id) onlyModerator {
         ReviewPool storage pool = review_pool[_challenge_id];
 
         // Prevent joining the review pool if maximum number of moderators is reached
@@ -231,7 +258,7 @@ contract ChallengeManager {
         SystemEnums.DifficultyLevel _suggested_difficulty,
         SystemEnums.Domain _suggested_category,
         uint256 _suggested_solve_time
-    ) public onlyBeforeFinalized(_challenge_id) {
+    ) public onlyBeforeFinalized(_challenge_id) onlyModerator {
         ReviewPool storage pool = review_pool[_challenge_id];
 
         // Check if the moderator has joined the review pool
@@ -439,21 +466,22 @@ contract ChallengeManager {
     }
 
     // ================= SETTER METHODS =================
-    function setReputationManagerAddress(address _address) external {
-        // TODO: Add access control (e.g., only owner)
+    function setRoleManagerAddress(address _address) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_address != address(0), "Invalid address");
-        reputation_manager_address = _address;
-        reputation_manager = ReputationManager(_address);
+        role_manager_address = _address;
+        role_manager = IRoleManager(_address);
     }
 
-    /**
-     * @dev Set the SolutionManager contract address
-     */
-    function setSolutionManagerAddress(address _address) external {
-        // TODO: Add access control (e.g., only owner)
+    function setReputationManagerAddress(address _address) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_address != address(0), "Invalid address");
+        reputation_manager_address = _address;
+        reputation_manager = IReputationManager(_address);
+    }
+
+    function setSolutionManagerAddress(address _address) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_address != address(0), "Invalid address");
         solution_manager_address = _address;
-        solution_manager = SolutionManager(_address);
+        solution_manager = ISolutionManager(_address);
     }
 
     // ================= GETTER METHODS =================

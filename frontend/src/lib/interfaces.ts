@@ -212,6 +212,22 @@ export interface UserReputationScoreInterface {
   domain_reputation: Record<Domain, number>;
 }
 
+export interface UserRoleStatusInterface {
+  reputation: number;
+  can_be_contributor: boolean;
+  can_be_evaluator: boolean;
+  can_be_moderator: boolean;
+  is_contributor: boolean;
+  is_evaluator: boolean;
+  is_moderator: boolean;
+}
+
+export interface RoleRequirementsInterface {
+  contributor_requirement: number;
+  evaluator_requirement: number;
+  moderator_requirement: number;
+}
+
 export interface BriefMeetingInterface {
   id: string;
   roomId: string;

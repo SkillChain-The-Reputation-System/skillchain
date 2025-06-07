@@ -84,6 +84,13 @@ export enum MeetingStatus {
   CANCELLED = 2
 }
 
+export enum UserRole {
+  NORMAL_USER = 0,
+  CONTRIBUTOR = 1,
+  EVALUATOR = 2,
+  MODERATOR = 3,
+}
+
 export const DomainLabels: Record<Domain, string> = {
   [Domain.COMPUTER_SCIENCE_FUNDAMENTALS]: "Computer Science Fundamentals",
   [Domain.SOFTWARE_DEVELOPMENT]: "Software Development",
@@ -174,4 +181,11 @@ export const MeetingStatusLabels: Record<MeetingStatus, string> = {
   [MeetingStatus.PENDING]: "Pending",
   [MeetingStatus.COMPLETED]: "Completed",
   [MeetingStatus.CANCELLED]: "Cancelled",
+}
+
+export const UserRoleLabels: Record<UserRole, string> = {
+  [UserRole.NORMAL_USER]: "Normal User",
+  [UserRole.CONTRIBUTOR]: "Contributor",
+  [UserRole.EVALUATOR]: "Evaluator",
+  [UserRole.MODERATOR]: "Moderator",
 }

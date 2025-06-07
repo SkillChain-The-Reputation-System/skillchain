@@ -9,7 +9,9 @@
     "seed:challenge:local": "hardhat run scripts/seed_challenge.ts --network localhost",
     "seed:pending:challenge:local": "hardhat run scripts/seed_pending_challenges.ts --network localhost",
     "seed:moderator:review:local": "hardhat run scripts/seed_moderator_review.ts --network localhost",
-    "seed:jobs": "hardhat run scripts/seed_job.ts --network localhost"
+    "seed:jobs": "hardhat run scripts/seed_job.ts --network localhost",
+    "grant:role": "hardhat run scripts/grant_role.ts --network localhost",
+    "adjust:reputation": "hardhat run scripts/adjust_reputation.ts --network localhost"
   },
   "repository": {
     "type": "git",
@@ -28,7 +30,7 @@
     "mocha": "^11.1.0"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.2.0",
+    "@openzeppelin/contracts": "^5.3.0",
     "@types/papaparse": "^5.3.15",
     "papaparse": "^5.5.2"
   }

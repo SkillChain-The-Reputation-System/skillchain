@@ -134,6 +134,18 @@ export async function contributeChallenge(
     }),
   ]);
 
+  await simulateContract(wagmiConfig, {
+    address: ContractConfig_ChallengeManager.address as `0x${string}`,
+    abi: ContractConfig_ChallengeManager.abi,
+    functionName: "contributeChallenge",
+    args: [
+      title_upload_res_data.url,
+      description_upload_res_data.url,
+      data.category,
+    ],
+    account: address,
+  });
+
   const txHash = await writeContract(wagmiConfig, {
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
     abi: ContractConfig_ChallengeManager.abi,
@@ -158,6 +170,14 @@ export async function userJoinChallenge(
       "/api/irys/upload/upload-string",
       { data: " " }
     );
+
+  await simulateContract(wagmiConfig, {
+    address: ContractConfig_ChallengeManager.address as `0x${string}`,
+    abi: ContractConfig_ChallengeManager.abi,
+    functionName: "userJoinChallenge",
+    args: [challengeId, solution_upload_res.id],
+    account: address,
+  });
 
   const txHash = await writeContract(wagmiConfig, {
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
@@ -234,6 +254,14 @@ export async function submitSolution(
     }
   );
 
+  await simulateContract(wagmiConfig, {
+    address: ContractConfig_SolutionManager.address as `0x${string}`,
+    abi: ContractConfig_SolutionManager.abi,
+    functionName: "submitSolution",
+    args: [challengeId],
+    account: address,
+  });
+
   const txHash = await writeContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
     abi: ContractConfig_SolutionManager.abi,
@@ -249,6 +277,14 @@ export async function putSolutionUnderReview(
   challengeId: number,
   address: `0x${string}`
 ) {
+  await simulateContract(wagmiConfig, {
+    address: ContractConfig_SolutionManager.address as `0x${string}`,
+    abi: ContractConfig_SolutionManager.abi,
+    functionName: "putSolutionUnderReview",
+    args: [challengeId],
+    account: address,
+  });
+
   const txHash = await writeContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
     abi: ContractConfig_SolutionManager.abi,
@@ -264,6 +300,14 @@ export async function joinEvaluationPool(
   solutionId: number,
   address: `0x${string}`
 ) {
+  await simulateContract(wagmiConfig, {
+    address: ContractConfig_SolutionManager.address as `0x${string}`,
+    abi: ContractConfig_SolutionManager.abi,
+    functionName: "evaluatorJoinSolution",
+    args: [solutionId],
+    account: address,
+  });
+
   const txHash = await writeContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
     abi: ContractConfig_SolutionManager.abi,
@@ -280,6 +324,14 @@ export async function submitEvaluationScore(
   address: `0x${string}`,
   score: number
 ) {
+  await simulateContract(wagmiConfig, {
+    address: ContractConfig_SolutionManager.address as `0x${string}`,
+    abi: ContractConfig_SolutionManager.abi,
+    functionName: "evaluatorSubmitScore",
+    args: [solutionId, score],
+    account: address,
+  });
+
   const txHash = await writeContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
     abi: ContractConfig_SolutionManager.abi,
@@ -536,6 +588,14 @@ export async function scheduleMeeting(
       }
     );
 
+  await simulateContract(wagmiConfig, {
+    address: ContractConfig_MeetingManager.address as `0x${string}`,
+    abi: ContractConfig_MeetingManager.abi,
+    functionName: "scheduleMeeting",
+    args: [data.application, job_content_upload_res.id],
+    account: address,
+  });
+
   // Send the transaction
   const txHash = await writeContract(wagmiConfig, {
     address: ContractConfig_MeetingManager.address as `0x${string}`,
@@ -591,6 +651,14 @@ export async function completeMeeting(
   address: `0x${string}`,
   meeting_id: string
 ): Promise<`0x${string}`> {
+  await simulateContract(wagmiConfig, {
+    address: ContractConfig_MeetingManager.address as `0x${string}`,
+    abi: ContractConfig_MeetingManager.abi,
+    functionName: "completeMeeting",
+    args: [meeting_id],
+    account: address,
+  });
+
   const txHash = await writeContract(wagmiConfig, {
     address: ContractConfig_MeetingManager.address as `0x${string}`,
     abi: ContractConfig_MeetingManager.abi,
@@ -608,6 +676,14 @@ export async function cancelMeeting(
   address: `0x${string}`,
   meeting_id: string
 ): Promise<`0x${string}`> {
+  await simulateContract(wagmiConfig, {
+    address: ContractConfig_MeetingManager.address as `0x${string}`,
+    abi: ContractConfig_MeetingManager.abi,
+    functionName: "cancelMeeting",
+    args: [meeting_id],
+    account: address,
+  });
+
   const txHash = await writeContract(wagmiConfig, {
     address: ContractConfig_MeetingManager.address as `0x${string}`,
     abi: ContractConfig_MeetingManager.abi,

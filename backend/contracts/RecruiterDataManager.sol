@@ -104,7 +104,7 @@ contract RecruiterDataManager is AccessControl {
      */
     function getRecruiterDataId(
         address _recruiter_address
-    ) external view onlyRecruiterWithProfile(_recruiter_address) returns (string memory) {
+    ) external view returns (string memory) {
         return recruiters[_recruiter_address].data_id;
     }    
     
@@ -115,7 +115,7 @@ contract RecruiterDataManager is AccessControl {
      */
     function getRecruiter(
         address _recruiter_address
-    ) external view onlyRecruiterWithProfile(_recruiter_address) returns (RecruiterProfile memory) {
+    ) external view returns (RecruiterProfile memory) {
         return recruiters[_recruiter_address];
     }
 

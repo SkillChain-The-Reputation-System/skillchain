@@ -6,7 +6,7 @@ import path from 'path';
 import Papa from 'papaparse';
 
 const abi = ReputationManagerArtifact.abi;
-const contractAddress = '0xa513E6E4b8f2a923D98304ec87F64353C4D5C853'; // ReputationManager address from deployed_addresses.json
+const contractAddress = '0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e'; // ReputationManager address from deployed_addresses.json
 
 const csvPath = path.resolve(__dirname, 'reputation_adjustments.csv');
 

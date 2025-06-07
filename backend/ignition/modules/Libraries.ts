@@ -6,8 +6,10 @@ const LibrariesModule = buildModule("LibrariesModule", (m) => {
   const rewardTokenFormulas = m.library("RewardTokenFormulas");
   const penaltyTokenFormulas = m.library("PenaltyTokenFormulas");
   const challengeCostFormulas = m.library("ChallengeCostFormulas");
+  const recruitmentFeeFormulas = m.library("RecruitmentFeeFormulas");
+
   
-  return { mathUtils, weights, rewardTokenFormulas, penaltyTokenFormulas, challengeCostFormulas };
+  return { mathUtils, weights, rewardTokenFormulas, penaltyTokenFormulas, challengeCostFormulas, recruitmentFeeFormulas };
 });
 
 export default LibrariesModule;

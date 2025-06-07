@@ -2,6 +2,14 @@
 pragma solidity ^0.8.19;
 
 interface IRecruiterSubscription {
+    struct PaymentRecord {
+        uint256 timestamp;
+        address recruiter;
+        address applicant;
+        uint256 amount;
+        bytes32 recordId;
+    }
+
     function RECRUITER_ROLE() external view returns (bytes32);
 
     function deposit() external payable;
@@ -11,4 +19,12 @@ interface IRecruiterSubscription {
     function isRecruiter(address account) external view returns (bool);
 
     function payHiringFee(address applicant) external returns (uint256);
+
+    function getPaymentHistory(address recruiter) external view returns (PaymentRecord[] memory);
+
+    function getPaymentRecord(bytes32 recordId) external view returns (PaymentRecord memory);
+
+    function getPaymentCount(address recruiter) external view returns (uint256);
+
+    function getTotalPaymentsByRecruiter(address recruiter) external view returns (uint256);
 }

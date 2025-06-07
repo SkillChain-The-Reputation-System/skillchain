@@ -14,7 +14,18 @@ contract RecruiterSubscription is AccessControl, IRecruiterSubscription {
     // ========================== STATE VARIABLES ==========================
     mapping(address => uint256) private budgets;
     address payable public adminWallet;
-    IReputationManager private reputationManager;
+    IReputationManager private reputationManager; // Payment history tracking
+    mapping(address => bytes32[]) private recruiterPaymentHistory; // Store only record IDs
+    mapping(bytes32 => PaymentRecord) private paymentRecords;
+
+    // ========================== EVENTS ==========================
+    event PaymentMade(
+        bytes32 indexed recordId,
+        address indexed recruiter,
+        address indexed applicant,
+        uint256 amount,
+        uint256 timestamp
+    );
 
     // ========================== CONSTRUCTOR ==========================
     constructor() {
@@ -48,9 +59,12 @@ contract RecruiterSubscription is AccessControl, IRecruiterSubscription {
         require(budgets[msg.sender] >= fee, "Insufficient budget");
         uint256 newBudget = budgets[msg.sender] - fee;
         _updateBudget(msg.sender, newBudget);
+
+        // Record the payment in history
+        _recordPayment(msg.sender, applicant, fee);
+
         adminWallet.transfer(fee);
     }
-
 
     // ========================== INTERNAL METHODS ==========================
     function _updateBudget(address recruiter, uint256 newBudget) internal {
@@ -66,6 +80,45 @@ contract RecruiterSubscription is AccessControl, IRecruiterSubscription {
         }
     }
 
+    function _recordPayment(
+        address recruiter,
+        address applicant,
+        uint256 amount
+    ) internal {
+        uint256 currentTimestamp = block.timestamp;
+        bytes32 recordId = keccak256(
+            abi.encodePacked(
+                recruiter,
+                applicant,
+                amount,
+                currentTimestamp,
+                block.number
+            )
+        );
+
+        PaymentRecord memory newRecord = PaymentRecord({
+            timestamp: currentTimestamp,
+            recruiter: recruiter,
+            applicant: applicant,
+            amount: amount,
+            recordId: recordId
+        });
+
+        // Store only the record ID in recruiter's payment history
+        recruiterPaymentHistory[recruiter].push(recordId);
+
+        // Store the full record in global payment records mapping
+        paymentRecords[recordId] = newRecord;
+
+        emit PaymentMade(
+            recordId,
+            recruiter,
+            applicant,
+            amount,
+            currentTimestamp
+        );
+    }
+
     // ========================== ADMIN METHODS ==========================
     function setReputationManagerAddress(
         address _reputationManager
@@ -76,7 +129,6 @@ contract RecruiterSubscription is AccessControl, IRecruiterSubscription {
         );
         reputationManager = IReputationManager(_reputationManager);
     }
-
 
     // ========================== VIEW METHODS ==========================
     function isRecruiter(address account) public view returns (bool) {
@@ -89,5 +141,41 @@ contract RecruiterSubscription is AccessControl, IRecruiterSubscription {
 
     function getMinimumBudget() external pure returns (uint256) {
         return SystemConsts.RECRUITMENT_BUDGET_MIN;
+    }
+
+    function getPaymentHistory(
+        address recruiter
+    ) external view returns (PaymentRecord[] memory) {
+        bytes32[] memory recordIds = recruiterPaymentHistory[recruiter];
+        PaymentRecord[] memory payments = new PaymentRecord[](recordIds.length);
+
+        for (uint256 i = 0; i < recordIds.length; i++) {
+            payments[i] = paymentRecords[recordIds[i]];
+        }
+
+        return payments;
+    }
+
+    function getPaymentRecord(
+        bytes32 recordId
+    ) external view returns (PaymentRecord memory) {
+        return paymentRecords[recordId];
+    }
+
+    function getPaymentCount(
+        address recruiter
+    ) external view returns (uint256) {
+        return recruiterPaymentHistory[recruiter].length;
+    }
+
+    function getTotalPaymentsByRecruiter(
+        address recruiter
+    ) external view returns (uint256) {
+        bytes32[] memory recordIds = recruiterPaymentHistory[recruiter];
+        uint256 total = 0;
+        for (uint256 i = 0; i < recordIds.length; i++) {
+            total += paymentRecords[recordIds[i]].amount;
+        }
+        return total;
     }
 }

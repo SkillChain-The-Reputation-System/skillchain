@@ -97,3 +97,138 @@ export const getRecruiterSubscriptionStatus = async (
     };
   }
 };
+
+/**
+ * PaymentRecord interface matching the smart contract struct
+ */
+export interface PaymentRecord {
+  timestamp: bigint;
+  recruiter: string;
+  applicant: string;
+  amount: bigint;
+  recordId: string;
+}
+
+/**
+ * Get payment history for a recruiter
+ * @param address - The recruiter's wallet address
+ * @returns Promise<PaymentRecord[] | null> - Array of payment records or null if error
+ */
+export const getRecruiterPaymentHistory = async (
+  address: `0x${string}`
+): Promise<PaymentRecord[] | null> => {
+  try {
+    const paymentHistory = await readContract(wagmiConfig, {
+      address: ContractConfig_RecruiterSubscription.address as `0x${string}`,
+      abi: ContractConfig_RecruiterSubscription.abi,
+      functionName: "getPaymentHistory",
+      args: [address],
+    }) as PaymentRecord[];
+
+    return paymentHistory;
+  } catch (error) {
+    console.error("Error fetching payment history:", error);
+    return null;
+  }
+};
+
+/**
+ * Get the total number of payments made by a recruiter
+ * @param address - The recruiter's wallet address
+ * @returns Promise<bigint | null> - Total payment count or null if error
+ */
+export const getRecruiterPaymentCount = async (
+  address: `0x${string}`
+): Promise<bigint | null> => {
+  try {
+    const paymentCount = await readContract(wagmiConfig, {
+      address: ContractConfig_RecruiterSubscription.address as `0x${string}`,
+      abi: ContractConfig_RecruiterSubscription.abi,
+      functionName: "getPaymentCount",
+      args: [address],
+    }) as bigint;
+
+    return paymentCount;
+  } catch (error) {
+    console.error("Error fetching payment count:", error);
+    return null;
+  }
+};
+
+/**
+ * Get the total amount spent by a recruiter
+ * @param address - The recruiter's wallet address
+ * @returns Promise<bigint | null> - Total amount spent or null if error
+ */
+export const getTotalPaymentsByRecruiter = async (
+  address: `0x${string}`
+): Promise<bigint | null> => {
+  try {
+    const totalPayments = await readContract(wagmiConfig, {
+      address: ContractConfig_RecruiterSubscription.address as `0x${string}`,
+      abi: ContractConfig_RecruiterSubscription.abi,
+      functionName: "getTotalPaymentsByRecruiter",
+      args: [address],
+    }) as bigint;
+
+    return totalPayments;
+  } catch (error) {
+    console.error("Error fetching total payments:", error);
+    return null;
+  }
+};
+
+/**
+ * Get comprehensive recruiter data including budget, status, and payment history
+ * @param address - The recruiter's wallet address
+ * @returns Promise<RecruiterData> - Complete recruiter information
+ */
+export interface RecruiterData {
+  isRecruiter: boolean;
+  budget: bigint | null;
+  minimumBudget: bigint | null;
+  paymentHistory: PaymentRecord[] | null;
+  paymentCount: bigint | null;
+  totalPayments: bigint | null;
+}
+
+export const getComprehensiveRecruiterData = async (
+  address: `0x${string}`
+): Promise<RecruiterData> => {
+  try {
+    const [
+      isRecruiter,
+      budget,
+      minimumBudget,
+      paymentHistory,
+      paymentCount,
+      totalPayments,
+    ] = await Promise.all([
+      isUserRecruiter(address),
+      getRecruiterBudget(address),
+      getMinimumRecruiterBudget(),
+      getRecruiterPaymentHistory(address),
+      getRecruiterPaymentCount(address),
+      getTotalPaymentsByRecruiter(address),
+    ]);
+
+    return {
+      isRecruiter,
+      budget,
+      minimumBudget,
+      paymentHistory,
+      paymentCount,
+      totalPayments,
+    };
+  } catch (error) {
+    console.error("Error fetching comprehensive recruiter data:", error);
+    return {
+      isRecruiter: false,
+      budget: null,
+      minimumBudget: null,
+      paymentHistory: null,
+      paymentCount: null,
+      totalPayments: null,
+    };
+  }
+};

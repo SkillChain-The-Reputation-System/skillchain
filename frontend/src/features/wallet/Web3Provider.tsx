@@ -1,5 +1,14 @@
 "use client";
 
+// WalletConnect's provider relies on the IndexedDB API which doesn't exist in a
+// Node.js environment. When this file is imported during server-side rendering,
+// we polyfill IndexedDB using `fake-indexeddb` so that the provider can
+// initialize without throwing `indexedDB is not defined` errors.
+if (typeof indexedDB === "undefined") {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require("fake-indexeddb/auto");
+}
+
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { polygon, hardhat } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

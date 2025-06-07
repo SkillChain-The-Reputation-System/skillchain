@@ -173,10 +173,10 @@ library SystemConsts {
     uint256 public constant EVALUATION_REWARD_DISTRIBUTION_SPREAD = 0.9e18; // alpha
 
     // ================= RECRUITMENT FEE =================
-    // Base platform fee for each hiring action (12 POL scaled to 1e18)
-    uint256 public constant RECRUITMENT_BASE_FEE = 12e18;
+    // Base platform fee for each hiring action (4 POL scaled to 1e18)
+    uint256 public constant RECRUITMENT_BASE_FEE = 4e18;
     // Coefficient controlling the impact of candidate reputation
-    uint256 public constant RECRUITMENT_REPUTATION_COEFFICIENT = 0.6e18;
+    uint256 public constant RECRUITMENT_REPUTATION_COEFFICIENT = 0.2e18;
 
     // ================= RECRUITMENT BUDGET =================
     uint256 public constant RECRUITMENT_BUDGET_MIN = 10e18; // Minimum budget to be considered a recruiter

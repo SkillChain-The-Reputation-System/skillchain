@@ -34,8 +34,9 @@ declare module 'wagmi' {
   }
 }
 
-const config = createConfig(
-  getDefaultConfig({
+const getConfig = () =>
+  createConfig(
+    getDefaultConfig({
     // Your dApps chains
     chains: [hardhat],
     transports: {
@@ -58,10 +59,16 @@ const config = createConfig(
     appDescription: "A Reputation System For Skill Assessment",
     appUrl: "https://family.co", // app's url
     appIcon: "https://family.co/logo.png", // app's icon, no bigger than 1024x1024px (max. 1MB)
-  })
-);
+    })
+  );
 
-const queryClient = new QueryClient();
+// Avoid recreating config and queryClient on every hot reload
+const config: ReturnType<typeof getConfig> =
+  (globalThis as any).wagmiConfig || ((globalThis as any).wagmiConfig = getConfig());
+
+const queryClient: QueryClient =
+  (globalThis as any).wagmiQueryClient ||
+  ((globalThis as any).wagmiQueryClient = new QueryClient());
 
 export const Web3Provider = ({
   children,

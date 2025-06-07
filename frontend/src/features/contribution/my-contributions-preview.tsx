@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 // Import UI components
 import { ChallengeSkeleton } from './my-contributions-skeleton'
 import { ChallengeCard } from "./challenge-card";
+import { ChallengeRevenueInfo } from "@/components/challenge-revenue-info";
 import { EmptyChallenge } from "./empty-challenge";
 
 // Import utils
@@ -53,12 +54,19 @@ export function MyContributionsPreview() {
       </div>
     ) : challenges.length === 1 ? (
       <div className="w-full max-w-md mx-auto">
-        <ChallengeCard challenge={challenges[0]} />
+        <ChallengeCard
+          challenge={challenges[0]}
+          extraContent={<ChallengeRevenueInfo challengeId={Number(challenges[0].id)} />}
+        />
       </div>
     ) : challenges.length > 1 ? (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl mx-auto">
         {challenges.map((challenge, index) => (
-          <ChallengeCard key={index} challenge={challenge} />
+          <ChallengeCard
+            key={index}
+            challenge={challenge}
+            extraContent={<ChallengeRevenueInfo challengeId={Number(challenge.id)} />}
+          />
         ))}
       </div>
     ) : (

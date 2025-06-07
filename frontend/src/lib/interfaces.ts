@@ -291,3 +291,13 @@ export interface SolutionPotInfoInterface {
   isFinalized: boolean;
   evaluators: EvaluatorPotInfo[];
 }
+
+export interface TalentPaymentInfo {
+  talent: string;
+  amount: number;
+}
+
+export interface ChallengeRevenueInfoInterface {
+  totalRevenue: number;
+  payments: TalentPaymentInfo[];
+}

@@ -10,6 +10,8 @@ import "./Constants.sol";
 contract RecruiterSubscription is AccessControl, IRecruiterSubscription {
     // ========================== ROLES ==========================
     bytes32 public constant RECRUITER_ROLE = keccak256("RECRUITER_ROLE");
+    bytes32 public constant JOB_APPLICATION_MANAGER_ROLE =
+        keccak256("JOB_APPLICATION_MANAGER_ROLE");
 
     // ========================== STATE VARIABLES ==========================
     mapping(address => uint256) private budgets;
@@ -41,8 +43,10 @@ contract RecruiterSubscription is AccessControl, IRecruiterSubscription {
     }
 
     function payHiringFee(
+        address recruiter,
         address applicant
-    ) external onlyRole(RECRUITER_ROLE) returns (uint256 fee) {
+    ) external onlyRole(JOB_APPLICATION_MANAGER_ROLE) returns (uint256 fee) {
+        require(recruiter != address(0), "Invalid recruiter address");
         require(applicant != address(0), "Invalid applicant address");
         require(
             address(reputationManager) != address(0),
@@ -56,12 +60,12 @@ contract RecruiterSubscription is AccessControl, IRecruiterSubscription {
         fee = RecruitmentFeeFormulas.calculateRecruitmentFee(
             positiveReputation
         );
-        require(budgets[msg.sender] >= fee, "Insufficient budget");
-        uint256 newBudget = budgets[msg.sender] - fee;
-        _updateBudget(msg.sender, newBudget);
+        require(budgets[recruiter] >= fee, "Insufficient budget");
+        uint256 newBudget = budgets[recruiter] - fee;
+        _updateBudget(recruiter, newBudget);
 
         // Record the payment in history
-        _recordPayment(msg.sender, applicant, fee);
+        _recordPayment(recruiter, applicant, fee);
 
         adminWallet.transfer(fee);
     }
@@ -128,6 +132,12 @@ contract RecruiterSubscription is AccessControl, IRecruiterSubscription {
             "Invalid reputation manager address"
         );
         reputationManager = IReputationManager(_reputationManager);
+    }
+
+    function grantJobApplicationManagerRole(
+        address account
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _grantRole(JOB_APPLICATION_MANAGER_ROLE, account);
     }
 
     // ========================== VIEW METHODS ==========================

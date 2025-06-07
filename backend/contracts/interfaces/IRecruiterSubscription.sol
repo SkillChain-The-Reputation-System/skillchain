@@ -12,13 +12,20 @@ interface IRecruiterSubscription {
 
     function RECRUITER_ROLE() external view returns (bytes32);
 
+    function JOB_APPLICATION_MANAGER_ROLE() external view returns (bytes32);
+
     function deposit() external payable;
 
     function getBudget(address recruiter) external view returns (uint256);
 
     function isRecruiter(address account) external view returns (bool);
 
-    function payHiringFee(address applicant) external returns (uint256);
+    function payHiringFee(
+        address recruiter,
+        address applicant
+    ) external returns (uint256);
+
+    function grantJobApplicationManagerRole(address account) external;
 
     function getPaymentHistory(address recruiter) external view returns (PaymentRecord[] memory);
 

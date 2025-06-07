@@ -64,16 +64,16 @@ export const ContractConfig_RecruiterSubscription = {
 };
 
 export const ContractConfig_MeetingManager = {
-    address: '0x70e0bA845a1A0F2DA3359C97E0285013525FFC49', // Change this every time you deploy the contract
+    address: '0x4826533B4897376654Bb4d4AD88B7faFD0C98528', // Change this every time you deploy the contract
     abi: MeetingManagerArtifact.abi,
 };
 
 export const ContractConfig_RecruiterDataManager = {
-    address: '0x99bbA657f2BbC93c02D617f8bA121cB8Fc104Acf', // Change this every time you deploy the contract
+    address: '0x0E801D84Fa97b50751Dbf25036d067dCf18858bF', // Change this every time you deploy the contract
     abi: RecruiterDataManagerArtifact.abi,
 };
 
 export const ContractConfig_UserDataManager = {
-    address: '0x8f86403A4DE0BB5791fa46B8e795C547942fE4Cf', // Change this every time you deploy the contract
+    address: '0x9d4454B023096f34B160D6B654540c56A1F81688', // Change this every time you deploy the contract
     abi: UserDataManagerArtifact.abi,
 };

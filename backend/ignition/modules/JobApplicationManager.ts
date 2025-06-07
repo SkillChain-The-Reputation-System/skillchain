@@ -13,6 +13,7 @@ const JobApplicationManagerModule = buildModule("JobApplicationManagerModule", (
   // Set the JobManager address on the JobApplicationManager
   m.call(jobApplicationManager, "setJobManagerAddress", [jobManager]);
   m.call(jobApplicationManager, "setRecruiterSubscriptionAddress", [recruiterSubscription]);
+  m.call(recruiterSubscription, "grantJobApplicationManagerRole", [jobApplicationManager]);
   
   // Return both contracts
   return { jobApplicationManager, jobManager, recruiterSubscription };

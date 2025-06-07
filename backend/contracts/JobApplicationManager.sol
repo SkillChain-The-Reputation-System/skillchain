@@ -160,6 +160,13 @@ contract JobApplicationManager is AccessControl {
         // Store old status for event and to remove from mapping
         SystemEnums.ApplicationStatus old_status = application.status;
 
+        if (new_status == SystemEnums.ApplicationStatus.HIRED) {
+            recruiter_subscription.payHiringFee(
+                job.recruiter,
+                application.applicant
+            );
+        }
+
         // Update status
         application.status = new_status;
 

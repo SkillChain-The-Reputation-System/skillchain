@@ -2,40 +2,32 @@
 pragma solidity ^0.8.19;
 
 import "./Constants.sol";
-import {
-    UD60x18,
-    ud,
-    convert,
-    pow,
-    exp,
-    ln,
-    intoUint256
-} from "@prb/math/src/UD60x18.sol";
+import {UD60x18, ud, convert, pow, exp, ln, intoUint256} from "@prb/math/src/UD60x18.sol";
 
 library RewardTokenFormulas {
     function calculateWeight(
         uint256 di_raw,
-        uint256 si_raw,
+        uint256 si_raw, // Stake token amount, already scaled to 1e18 (in wei)
         uint256 alpha_raw,
         uint256 beta_raw
     ) internal pure returns (uint256) {
-        // 1) Convert the constants to UD60x18 format
+        // 1) Convert the constants and stake amount to UD60x18 format
         UD60x18 alpha = ud(alpha_raw);
         UD60x18 beta = ud(beta_raw);
+        UD60x18 si = ud(si_raw);
 
         // 2) Scale the inputs to 1e18 and wrap them into UD60x18
         UD60x18 di = ud(di_raw * 1e18);
-        UD60x18 si = ud(si_raw * 1e18);
 
         // 3) Calculate S_i^β using the pow function
         UD60x18 si_power_beta = pow(si, beta);
 
-        // 4) Calculate -α * d_i
-        UD60x18 negative_alpha_di = alpha.mul(di);
+        // 4) Calculate α * d_i
+        UD60x18 alpha_di = alpha.mul(di);
 
         // 5) Calculate e^(-α * d_i)
         // Since exp function expects positive values, we need to calculate exp(-x) = 1/exp(x)
-        UD60x18 exp_negative_alpha_di = ud(1e18).div(exp(negative_alpha_di));
+        UD60x18 exp_negative_alpha_di = ud(1e18).div(exp(alpha_di));
 
         // 6) Calculate final weight: w_i = S_i^β * e^(-α * d_i)
         UD60x18 weight = si_power_beta.mul(exp_negative_alpha_di);
@@ -77,7 +69,7 @@ library RewardTokenFormulas {
         // 1) Convert inputs to UD60x18 format
         UD60x18 wi = ud(weight);
         UD60x18 total_w = ud(total_weight);
-        UD60x18 reward_pool = ud(total_reward * 1e18); // Scale up total_reward to 1e18
+        UD60x18 reward_pool = ud(total_reward);
 
         // 2) Calculate the proportion: w_i / sum(w_i)
         UD60x18 proportion = wi.div(total_w);
@@ -86,7 +78,7 @@ library RewardTokenFormulas {
         UD60x18 reward = proportion.mul(reward_pool);
 
         // 4) Return the result divided by 1e18 using convert()
-        return convert(reward);
+        return intoUint256(reward);
     }
 }
 
@@ -103,7 +95,7 @@ library PenaltyTokenFormulas {
         UD60x18 di = ud(di_raw * 1e18);
         UD60x18 dt = ud(dt_raw * 1e18);
         UD60x18 dmax = ud(dmax_raw * 1e18);
-        UD60x18 si = ud(si_raw * 1e18);
+        UD60x18 si = ud(si_raw); // Stake token amount, already scaled to 1e18 (in wei)
 
         // 2) Compute (d_i - D_T) and (D_max - D_T) as fixed-point numbers.
         UD60x18 numerator = di.sub(dt);
@@ -116,8 +108,8 @@ library PenaltyTokenFormulas {
         UD60x18 intermediate = gamma.mul(ratio); // γ × ((d_i - D_T)/(D_max - D_T)) as UD60x18
         UD60x18 result = intermediate.mul(si);
 
-        // 5) Return the result by dividing it by 1e18.
-        penalty = convert(result);
+        // 5) Return the result in wei.
+        penalty = intoUint256(result);
     }
 
     function calculatePenaltyForModerator(
@@ -156,13 +148,15 @@ library ChallengeCostFormulas {
         uint256 _bounty,
         uint256 _n_i
     ) external pure returns (uint256) {
-        UD60x18 fMin = ud(SystemConsts.CHALLENGE_FEE_MIN); 
-        UD60x18 fMax = ud(SystemConsts.CHALLENGE_FEE_MAX); 
+        UD60x18 fMin = ud(SystemConsts.CHALLENGE_FEE_MIN);
+        UD60x18 fMax = ud(SystemConsts.CHALLENGE_FEE_MAX);
         UD60x18 alpha = ud(SystemConsts.CHALLENGE_FEE_ALPHA);
         UD60x18 beta = ud(SystemConsts.CHALLENGE_FEE_BETA);
         UD60x18 gamma = ud(SystemConsts.CHALLENGE_FEE_GAMMA);
-        UD60x18 bounty = ud(_bounty * 1e18); // Scale up to 1e18
-        UD60x18 expectedParticipants = ud(SystemConsts.EXPECTED_PARTICIPANTS * 1e18); // Scale up to 1e18
+        UD60x18 bounty = ud(_bounty);
+        UD60x18 expectedParticipants = ud(
+            SystemConsts.EXPECTED_PARTICIPANTS * 1e18
+        ); // Scale up to 1e18
         UD60x18 n_i = ud(_n_i * 1e18); // Scale up to 1e18
 
         UD60x18 Wd = ud(_difficultyWeight);
@@ -191,7 +185,9 @@ library ChallengeCostFormulas {
 }
 
 library RecruitmentFeeFormulas {
-    function calculateRecruitmentFee(uint256 reputation) external pure returns (uint256) {
+    function calculateRecruitmentFee(
+        uint256 reputation
+    ) external pure returns (uint256) {
         UD60x18 baseFee = ud(SystemConsts.RECRUITMENT_BASE_FEE);
         UD60x18 k = ud(SystemConsts.RECRUITMENT_REPUTATION_COEFFICIENT);
         UD60x18 R = ud(reputation * 1e18);

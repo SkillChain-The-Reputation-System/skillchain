@@ -164,7 +164,7 @@ library ChallengeCostFormulas {
 
         UD60x18 fBase = fMin.add(alpha.mul(Wd)).add(beta.mul(Q));
 
-        UD60x18 fBonus;
+        UD60x18 fBonus = ud(0);
         if (expectedParticipants.gt(ud(0)) && bounty.gt(ud(0))) {
             UD60x18 ratio = bounty.div(expectedParticipants);
             UD60x18 decay = exp(beta.mul(n_i)); // decay factor based on beta and n_i

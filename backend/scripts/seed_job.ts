@@ -31,12 +31,12 @@ type JobInfo = {
 
 const jobManagerContract = {
   abi: JobManagerArtifact.abi,
-  address: '0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9'
+  address: '0xE6E340D132b5f46d1e472DebcD681B2aBc16e57E'
 } as const
 
 const jobApplicationManagerContract = {
   abi: JobApplicationManagerArtifact.abi,
-  address: '0x9E545E3C0baAB3E08CdfD552C960A1050f373042'
+  address: '0x67d269191c92Caf3cD7723F116c85e6E9bf55933'
 } as const
 
 const jobDataFile = fs.readFileSync(csvPath, 'utf8');

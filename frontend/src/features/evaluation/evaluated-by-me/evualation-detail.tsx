@@ -37,7 +37,6 @@ import { Input } from "@/components/ui/input";
 import { Toaster, toast } from "sonner"
 import SolutionDetailsSkeleton from "@/features/evaluation/solution-details-skeleton";
 import RichTextEditor from '@/components/rich-text-editor'
-import SolutionPotInfo from "@/components/solution-pot-info";
 
 // Import lucide-react icons
 import {
@@ -88,9 +87,6 @@ const evaluationSchema = z.object({
     .number()
     .min(0, "Score must be in range 0 - 100")
     .max(100, "Score must be in range 0 - 100"),
-  stake: z.coerce
-    .number({ invalid_type_error: "Stake is required" })
-    .gt(0, "Stake must be greater than 0"),
 });
 
 export type EvaluationFormValues = z.infer<typeof evaluationSchema>;
@@ -104,7 +100,6 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
     resolver: zodResolver(evaluationSchema),
     defaultValues: {
       score: 0,
-      stake: 0.1,
     },
     mode: "onChange"
   });
@@ -131,8 +126,7 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
         const txHash = await submitEvaluationScore(
           solutionId,
           address as `0x${string}`,
-          data.score,
-          data.stake
+          data.score
         );
         await waitForTransaction(txHash);
         toast.success("Submitted score for this solution");
@@ -436,12 +430,7 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
                     className="min-h-80"
                     editable={false}
                   />
-
-                  <Separator className='bg-black' />
-                  
-                  {/* Solution Pot Information */}
-                  <SolutionPotInfo solutionId={solutionId} />
-
+      
                   <Separator className='bg-black' />
                   {
                     evaluation?.isSubmitted ? (
@@ -482,24 +471,6 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
                                         {...field}
                                         type="number"
                                         placeholder="Enter score..."
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={form.control}
-                                name="stake"
-                                render={({ field }) => (
-                                  <FormItem className="flex-1">
-                                    <FormControl>
-                                      <Input
-                                        {...field}
-                                        type="number"
-                                        step="any"
-                                        min={0}
-                                        placeholder="Stake (ETH)"
                                       />
                                     </FormControl>
                                     <FormMessage />

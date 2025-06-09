@@ -9,7 +9,6 @@ import {
   ContractConfig_JobApplicationManager,
   ContractConfig_MeetingManager,
   ContractConfig_ModerationEscrow,
-  ContractConfig_EvaluationEscrow,
 } from "@/constants/contracts-config";
 import { wagmiConfig } from "@/features/wallet/Web3Provider";
 import {
@@ -305,32 +304,33 @@ export const getChallengeFinalizedStatus = async (
 export const getChallengePotInfo = async (
   challenge_id: number
 ): Promise<ChallengePotInfoInterface> => {
-  const [bountyRaw, totalRewardRaw, moderators, isDistributed] = await Promise.all([
-    readContract(wagmiConfig, {
-      address: ContractConfig_ModerationEscrow.address as `0x${string}`,
-      abi: ContractConfig_ModerationEscrow.abi,
-      functionName: "getBounty",
-      args: [challenge_id],
-    }),
-    readContract(wagmiConfig, {
-      address: ContractConfig_ModerationEscrow.address as `0x${string}`,
-      abi: ContractConfig_ModerationEscrow.abi,
-      functionName: "getTotalReward",
-      args: [challenge_id],
-    }),
-    readContract(wagmiConfig, {
-      address: ContractConfig_ModerationEscrow.address as `0x${string}`,
-      abi: ContractConfig_ModerationEscrow.abi,
-      functionName: "getModerators",
-      args: [challenge_id],
-    }),
-    readContract(wagmiConfig, {
-      address: ContractConfig_ModerationEscrow.address as `0x${string}`,
-      abi: ContractConfig_ModerationEscrow.abi,
-      functionName: "isDistributed",
-      args: [challenge_id],
-    }),
-  ]);
+  const [bountyRaw, totalRewardRaw, moderators, isDistributed] =
+    await Promise.all([
+      readContract(wagmiConfig, {
+        address: ContractConfig_ModerationEscrow.address as `0x${string}`,
+        abi: ContractConfig_ModerationEscrow.abi,
+        functionName: "getBounty",
+        args: [challenge_id],
+      }),
+      readContract(wagmiConfig, {
+        address: ContractConfig_ModerationEscrow.address as `0x${string}`,
+        abi: ContractConfig_ModerationEscrow.abi,
+        functionName: "getTotalReward",
+        args: [challenge_id],
+      }),
+      readContract(wagmiConfig, {
+        address: ContractConfig_ModerationEscrow.address as `0x${string}`,
+        abi: ContractConfig_ModerationEscrow.abi,
+        functionName: "getModerators",
+        args: [challenge_id],
+      }),
+      readContract(wagmiConfig, {
+        address: ContractConfig_ModerationEscrow.address as `0x${string}`,
+        abi: ContractConfig_ModerationEscrow.abi,
+        functionName: "isDistributed",
+        args: [challenge_id],
+      }),
+    ]);
 
   const moderatorsInfo: ModeratorPotInfo[] = await Promise.all(
     (moderators as string[]).map(async (moderator) => {
@@ -355,88 +355,6 @@ export const getChallengePotInfo = async (
     totalReward: parseFloat(formatEther(BigInt(totalRewardRaw as number))),
     isFinalized: isDistributed as boolean,
     moderators: moderatorsInfo,
-  };
-};
-
-export const getSolutionPotInfo = async (
-  solution_id: number
-): Promise<SolutionPotInfoInterface> => {
-  const [bountyRaw, totalRewardRaw, evaluators, isDistributed, solver] = await Promise.all([
-    readContract(wagmiConfig, {
-      address: ContractConfig_EvaluationEscrow.address as `0x${string}`,
-      abi: ContractConfig_EvaluationEscrow.abi,
-      functionName: "getBounty",
-      args: [solution_id],
-    }),
-    readContract(wagmiConfig, {
-      address: ContractConfig_EvaluationEscrow.address as `0x${string}`,
-      abi: ContractConfig_EvaluationEscrow.abi,
-      functionName: "getTotalReward",
-      args: [solution_id],
-    }),
-    readContract(wagmiConfig, {
-      address: ContractConfig_EvaluationEscrow.address as `0x${string}`,
-      abi: ContractConfig_EvaluationEscrow.abi,
-      functionName: "getEvaluators",
-      args: [solution_id],
-    }),
-    readContract(wagmiConfig, {
-      address: ContractConfig_EvaluationEscrow.address as `0x${string}`,
-      abi: ContractConfig_EvaluationEscrow.abi,
-      functionName: "isDistributed",
-      args: [solution_id],
-    }),
-    readContract(wagmiConfig, {
-      address: ContractConfig_EvaluationEscrow.address as `0x${string}`,
-      abi: ContractConfig_EvaluationEscrow.abi,
-      functionName: "getSolver",
-      args: [solution_id],
-    }),
-  ]);
-
-  const evaluatorInfo: EvaluatorPotInfo[] = await Promise.all(
-    (evaluators as string[]).map(async (evaluator) => {
-      const [stakeRaw, rewardRaw, penaltyRaw] = await Promise.all([
-        readContract(wagmiConfig, {
-          address: ContractConfig_EvaluationEscrow.address as `0x${string}`,
-          abi: ContractConfig_EvaluationEscrow.abi,
-          functionName: "getEvaluatorStake",
-          args: [solution_id, evaluator],
-        }),
-        readContract(wagmiConfig, {
-          address: ContractConfig_EvaluationEscrow.address as `0x${string}`,
-          abi: ContractConfig_EvaluationEscrow.abi,
-          functionName: "getEvaluatorReward",
-          args: [solution_id, evaluator],
-        }),
-        readContract(wagmiConfig, {
-          address: ContractConfig_EvaluationEscrow.address as `0x${string}`,
-          abi: ContractConfig_EvaluationEscrow.abi,
-          functionName: "getEvaluatorPenalty",
-          args: [solution_id, evaluator],
-        }),
-      ]);
-
-      const stake = parseFloat(formatEther(BigInt(stakeRaw as number)));
-      const reward = parseFloat(formatEther(BigInt(rewardRaw as number)));
-      const penalty = parseFloat(formatEther(BigInt(penaltyRaw as number)));
-
-      return {
-        evaluator: evaluator as string,
-        stake,
-        reward,
-        penalty,
-        remaining: stake + reward - penalty,
-      } as EvaluatorPotInfo;
-    })
-  );
-
-  return {
-    bounty: parseFloat(formatEther(BigInt(bountyRaw as number))),
-    totalReward: parseFloat(formatEther(BigInt(totalRewardRaw as number))),
-    solver: solver as string,
-    isFinalized: isDistributed as boolean,
-    evaluators: evaluatorInfo,
   };
 };
 
@@ -1297,7 +1215,7 @@ export const fetchJobApplicationsByUser = async (
       const [jobDetails, profileData, reputationData] = await Promise.all([
         fetchJobById(application.job_id),
         getUserProfileData(applicantAddress),
-        getUserReputationScore(applicantAddress)
+        getUserReputationScore(applicantAddress),
       ]);
 
       if (!jobDetails) {
@@ -1315,15 +1233,15 @@ export const fetchJobApplicationsByUser = async (
         status: application.status,
         profile_data: profileData || {
           address: applicantAddress,
-          fullname: '',
-          location: '',
-          email: '',
-          avatar_url: '',
-          bio: ''
+          fullname: "",
+          location: "",
+          email: "",
+          avatar_url: "",
+          bio: "",
         },
         reputation_data: reputationData || {
           global_reputation: 0,
-          domain_reputation: {} as Record<Domain, number>
+          domain_reputation: {} as Record<Domain, number>,
         },
         job: jobDetails,
       };
@@ -1374,7 +1292,7 @@ export const fetchJobApplicationByID = async (
     const [jobDetails, profileData, reputationData] = await Promise.all([
       fetchJobById(application.job_id),
       getUserProfileData(applicantAddress),
-      getUserReputationScore(applicantAddress)
+      getUserReputationScore(applicantAddress),
     ]);
 
     if (!jobDetails) {
@@ -1392,15 +1310,15 @@ export const fetchJobApplicationByID = async (
       status: application.status,
       profile_data: profileData || {
         address: applicantAddress,
-        fullname: '',
-        location: '',
-        email: '',
-        avatar_url: '',
-        bio: ''
+        fullname: "",
+        location: "",
+        email: "",
+        avatar_url: "",
+        bio: "",
       },
       reputation_data: reputationData || {
         global_reputation: 0,
-        domain_reputation: {} as Record<Domain, number>
+        domain_reputation: {} as Record<Domain, number>,
       },
       job: jobDetails,
     };
@@ -1466,7 +1384,7 @@ export const fetchBriefApplicationByJobID = async (
         // Fetch profile data and reputation data concurrently
         const [profileData, reputationData] = await Promise.all([
           getUserProfileData(applicantAddress),
-          getUserReputationScore(applicantAddress)
+          getUserReputationScore(applicantAddress),
         ]);
 
         return {
@@ -1477,16 +1395,16 @@ export const fetchBriefApplicationByJobID = async (
           job_id: application.job_id, // Job ID
           profile_data: profileData || {
             address: applicantAddress,
-            fullname: '',
-            location: '',
-            email: '',
-            avatar_url: '',
-            bio: ''
+            fullname: "",
+            location: "",
+            email: "",
+            avatar_url: "",
+            bio: "",
           }, // Use empty profile if not found
           reputation_data: reputationData || {
             global_reputation: 0,
-            domain_reputation: {} as Record<Domain, number>
-          } // Use empty reputation if not found
+            domain_reputation: {} as Record<Domain, number>,
+          }, // Use empty reputation if not found
         };
       })
     );
@@ -1612,12 +1530,16 @@ export async function fetchMeetingsByRecruiter(
       args: [address],
     })) as any[];
 
-    const briefMeetingLists = await Promise.all(
+    const briefMeetingLists = (await Promise.all(
       fetchedMeetings.map(async (fetchedMeeting) => {
         const [meetingData, application] = await Promise.all([
-          await fetchStringDataOffChain(`https://gateway.irys.xyz/mutable/${fetchedMeeting.txid}`) as any,
-          await fetchJobApplicationByID(fetchedMeeting.application_id) as JobApplicationInterface
-        ])
+          (await fetchStringDataOffChain(
+            `https://gateway.irys.xyz/mutable/${fetchedMeeting.txid}`
+          )) as any,
+          (await fetchJobApplicationByID(
+            fetchedMeeting.application_id
+          )) as JobApplicationInterface,
+        ]);
 
         return {
           id: fetchedMeeting.id,
@@ -1636,13 +1558,12 @@ export async function fetchMeetingsByRecruiter(
           },
           status: fetchedMeeting.status,
           note: meetingData.note,
-        } as BriefMeetingInterface
+        } as BriefMeetingInterface;
       })
-    ) as BriefMeetingInterface[];
+    )) as BriefMeetingInterface[];
 
     return briefMeetingLists;
-  }
-  catch (error) {
+  } catch (error) {
     console.error(
       "Error fetching possible application status transitions:",
       error
@@ -1663,9 +1584,13 @@ export async function fetchBriefMeetingByApplicationId(
     })) as any;
 
     const [meetingData, application] = await Promise.all([
-      await fetchStringDataOffChain(`https://gateway.irys.xyz/mutable/${fetchedMeeting.txid}`) as any,
-      await fetchJobApplicationByID(fetchedMeeting.application_id) as JobApplicationInterface
-    ])
+      (await fetchStringDataOffChain(
+        `https://gateway.irys.xyz/mutable/${fetchedMeeting.txid}`
+      )) as any,
+      (await fetchJobApplicationByID(
+        fetchedMeeting.application_id
+      )) as JobApplicationInterface,
+    ]);
 
     return {
       id: fetchedMeeting.id,
@@ -1685,12 +1610,8 @@ export async function fetchBriefMeetingByApplicationId(
       status: fetchedMeeting.status,
       note: meetingData.note,
     } as BriefMeetingInterface;
-  }
-  catch (error) {
-    console.error(
-      "Error fetching brief meeting by Application ID:",
-      error
-    );
+  } catch (error) {
+    console.error("Error fetching brief meeting by Application ID:", error);
     return null;
   }
 }
@@ -1707,9 +1628,13 @@ export async function fetchMeetingRoomById(
     })) as any;
 
     const [meetingData, application] = await Promise.all([
-      await fetchStringDataOffChain(`https://gateway.irys.xyz/mutable/${fetchedMeeting.txid}`) as any,
-      await fetchJobApplicationByID(fetchedMeeting.application_id) as JobApplicationInterface
-    ])
+      (await fetchStringDataOffChain(
+        `https://gateway.irys.xyz/mutable/${fetchedMeeting.txid}`
+      )) as any,
+      (await fetchJobApplicationByID(
+        fetchedMeeting.application_id
+      )) as JobApplicationInterface,
+    ]);
 
     return {
       id: fetchedMeeting.id,
@@ -1723,8 +1648,7 @@ export async function fetchMeetingRoomById(
       note: meetingData.note,
       status: fetchedMeeting.status,
     };
-  }
-  catch (error) {
+  } catch (error) {
     console.error(
       "Error fetching possible application status transitions:",
       error
@@ -1732,7 +1656,6 @@ export async function fetchMeetingRoomById(
     return null;
   }
 }
-
 
 export async function fetchMeetingTxIdById(
   meeting_id: string
@@ -1746,8 +1669,7 @@ export async function fetchMeetingTxIdById(
     })) as string;
 
     return fetchedTxId;
-  }
-  catch (error) {
+  } catch (error) {
     console.error(
       "Error fetching possible application status transitions:",
       error

@@ -73,66 +73,6 @@ library RewardTokenFormulas {
         return intoUint256(reward);
     }
 }
-
-library PenaltyTokenFormulas {
-    function calculatePenalty(
-        uint256 di_raw,
-        uint256 si_raw,
-        uint256 dt_raw,
-        uint256 dmax_raw,
-        uint256 gamma_raw
-    ) internal pure returns (uint256 penalty) {
-        // 1) Wrap each raw “integer” into a UD60x18, scale up to 1e18 if neccessary
-        UD60x18 gamma = ud(gamma_raw);
-        UD60x18 di = ud(di_raw * 1e18);
-        UD60x18 dt = ud(dt_raw * 1e18);
-        UD60x18 dmax = ud(dmax_raw * 1e18);
-        UD60x18 si = ud(si_raw); // Stake token amount, already scaled to 1e18 (in wei)
-
-        // 2) Compute (d_i - D_T) and (D_max - D_T) as fixed-point numbers.
-        UD60x18 numerator = di.sub(dt);
-        UD60x18 denominator = dmax.sub(dt);
-
-        // 3) Form the ratio = (d_i - D_T) / (D_max - D_T).
-        UD60x18 ratio = numerator.div(denominator);
-
-        // 4) Multiply γ * ratio * S_i in fixed point.
-        UD60x18 intermediate = gamma.mul(ratio); // γ × ((d_i - D_T)/(D_max - D_T)) as UD60x18
-        UD60x18 result = intermediate.mul(si);
-
-        // 5) Return the result in wei.
-        penalty = intoUint256(result);
-    }
-
-    function calculatePenaltyForModerator(
-        uint256 di_raw,
-        uint256 si_raw
-    ) external pure returns (uint256) {
-        return
-            calculatePenalty(
-                di_raw,
-                si_raw,
-                SystemConsts.MODERATION_REWARD_DEVIATION_THRESHOLD,
-                SystemConsts.MODERATION_MAX_DEVIATION,
-                SystemConsts.MODERATION_STAKE_PENALTY_RATE
-            );
-    }
-
-    function calculatePenaltyForEvaluator(
-        uint256 di_raw,
-        uint256 si_raw
-    ) external pure returns (uint256) {
-        return
-            calculatePenalty(
-                di_raw,
-                si_raw,
-                SystemConsts.EVALUATION_REWARD_DEVIATION_THRESHOLD,
-                SystemConsts.EVALUATION_MAX_DEVIATION,
-                SystemConsts.EVALUATION_STAKE_PENALTY_RATE
-            );
-    }
-}
-
 library ChallengeCostFormulas {
     function calculateCost(
         uint256 _difficultyWeight,

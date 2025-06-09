@@ -33,7 +33,6 @@ import { Badge } from "@/components/ui/badge";
 import { Toaster, toast } from "sonner";
 import ChallengeDetailsSkeleton from "@/features/participation/challenge-details-skeleton";
 import RichTextEditor from "@/components/rich-text-editor";
-import SolutionPotInfo from "@/components/solution-pot-info";
 
 // Import lucide-react icons
 import {
@@ -90,7 +89,6 @@ const solutionSchema = z.object({
   solution: z
     .string()
     .max(10000, "Solution must be less than 4000 characters"),
-  bounty: z.coerce.number().gt(0, "Bounty must be greater than 0"),
 });
 
 export type SolutionFormValues = z.infer<typeof solutionSchema>;
@@ -122,7 +120,6 @@ export default function WorkspaceChallenge({
     resolver: zodResolver(solutionSchema),
     defaultValues: {
       solution: "",
-      bounty: 0.1,
     },
   });
 
@@ -138,8 +135,7 @@ export default function WorkspaceChallenge({
         const txHash = await submitSolution(
           Number(challenge_id),
           address,
-          data.solution,
-          data.bounty
+          data.solution
         );
         await waitForTransaction(txHash);
         toast.success("You have submitted this solution");
@@ -206,7 +202,6 @@ export default function WorkspaceChallenge({
         if (fetchedSolution && fetchedSolution.solution?.trim().length !== 0)
           form.reset({
             solution: fetchedSolution.solution,
-            bounty: form.getValues("bounty"),
           })
 
         if (
@@ -558,9 +553,6 @@ export default function WorkspaceChallenge({
                       </>
                     )}
                   </div>
-
-                  <Separator className="bg-black" />
-                  <SolutionPotInfo solutionId={Number(solution.solutionId)} />
                 </TabsContent>
                 {/* Description of challenge section */}
                 <TabsContent value="description" className="space-y-8">
@@ -597,26 +589,6 @@ export default function WorkspaceChallenge({
                         )}
                       />
 
-                      <FormField
-                        control={form.control}
-                        name="bounty"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Bounty (ETH)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="any"
-                                min={0}
-                                disabled={solution.progress != ChallengeSolutionProgress.IN_PROGRESS}
-                                {...field}
-                                placeholder="Enter bounty for evaluators"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
                     </form>
                   </Form>
 

@@ -242,8 +242,7 @@ export async function saveModeratorReviewDraft(
 export async function submitSolution(
   challengeId: number,
   address: `0x${string}`,
-  solution: string,
-  bounty: number
+  solution: string
 ) {
   const solutionTxId = await fetchSolutionTxIdByUserAndChallengeId(
     address,
@@ -267,7 +266,6 @@ export async function submitSolution(
     functionName: "submitSolution",
     args: [challengeId],
     account: address,
-    value: parseEther(bounty.toString()),
   });
 
   const txHash = await writeContract(wagmiConfig, {
@@ -276,7 +274,6 @@ export async function submitSolution(
     functionName: "submitSolution",
     args: [challengeId],
     account: address,
-    value: parseEther(bounty.toString()),
   });
 
   return txHash;
@@ -331,8 +328,7 @@ export async function joinEvaluationPool(
 export async function submitEvaluationScore(
   solutionId: number,
   address: `0x${string}`,
-  score: number,
-  stake: number
+  score: number
 ) {
   await simulateContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
@@ -340,7 +336,6 @@ export async function submitEvaluationScore(
     functionName: "evaluatorSubmitScore",
     args: [solutionId, score],
     account: address,
-    value: parseEther(stake.toString()),
   });
 
   const txHash = await writeContract(wagmiConfig, {
@@ -349,7 +344,6 @@ export async function submitEvaluationScore(
     functionName: "evaluatorSubmitScore",
     args: [solutionId, score],
     account: address,
-    value: parseEther(stake.toString()),
   });
 
   return txHash;

@@ -275,10 +275,7 @@ export interface ChallengePotInfoInterface {
 
 export interface EvaluatorPotInfo {
   evaluator: string;
-  stake: number;
   reward: number;
-  penalty: number;
-  remaining: number;
 }
 
 export interface SolutionPotInfoInterface {

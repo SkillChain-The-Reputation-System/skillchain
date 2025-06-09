@@ -263,10 +263,7 @@ export interface MeetingRoomInterface {
 
 export interface ModeratorPotInfo {
   moderator: string;
-  stake: number;
   reward: number;
-  penalty: number;
-  remaining: number;
 }
 
 export interface ChallengePotInfoInterface {

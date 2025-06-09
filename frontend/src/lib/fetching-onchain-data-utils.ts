@@ -334,37 +334,18 @@ export const getChallengePotInfo = async (
 
   const moderatorsInfo: ModeratorPotInfo[] = await Promise.all(
     (moderators as string[]).map(async (moderator) => {
-      const [stakeRaw, rewardRaw, penaltyRaw] = await Promise.all([
-        readContract(wagmiConfig, {
-          address: ContractConfig_ModerationEscrow.address as `0x${string}`,
-          abi: ContractConfig_ModerationEscrow.abi,
-          functionName: "getModeratorStake",
-          args: [challenge_id, moderator],
-        }),
-        readContract(wagmiConfig, {
-          address: ContractConfig_ModerationEscrow.address as `0x${string}`,
-          abi: ContractConfig_ModerationEscrow.abi,
-          functionName: "getModeratorReward",
-          args: [challenge_id, moderator],
-        }),
-        readContract(wagmiConfig, {
-          address: ContractConfig_ModerationEscrow.address as `0x${string}`,
-          abi: ContractConfig_ModerationEscrow.abi,
-          functionName: "getModeratorPenalty",
-          args: [challenge_id, moderator],
-        }),
-      ]);
+      const rewardRaw = await readContract(wagmiConfig, {
+        address: ContractConfig_ModerationEscrow.address as `0x${string}`,
+        abi: ContractConfig_ModerationEscrow.abi,
+        functionName: "getModeratorReward",
+        args: [challenge_id, moderator],
+      });
 
-      const stake = parseFloat(formatEther(BigInt(stakeRaw as number)));
-      const reward = parseFloat(formatEther(BigInt(rewardRaw as number )));
-      const penalty = parseFloat(formatEther(BigInt(penaltyRaw as number)));
+      const reward = parseFloat(formatEther(BigInt(rewardRaw as number)));
 
       return {
         moderator: moderator as string,
-        stake,
         reward,
-        penalty,
-        remaining: stake + reward - penalty,
       } as ModeratorPotInfo;
     })
   );

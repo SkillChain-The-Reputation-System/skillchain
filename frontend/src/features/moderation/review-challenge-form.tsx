@@ -115,9 +115,7 @@ const reviewChallengeSchema = z.object({
       invalid_type_error: "Answer is required",
     })
     .min(1, "Must be at least 1 minute"),
-  stake_amount: z.coerce
-    .number({ invalid_type_error: "Stake amount is required" })
-    .gt(0, "Stake must be greater than 0"),
+  stake_amount: z.never(),
 });
 
 export type ModeratorReviewValues = z.infer<typeof reviewChallengeSchema>;
@@ -155,7 +153,6 @@ export function ReviewChallengeForm({
       suggested_difficulty: undefined,
       suggested_category: undefined,
       suggested_solve_time: 1,
-      stake_amount: 0.1,
     },
   });
   

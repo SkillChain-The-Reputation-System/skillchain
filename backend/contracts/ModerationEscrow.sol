@@ -37,10 +37,8 @@ contract ModerationEscrow is AccessControl {
     struct Pot {
         uint256 bounty; // Total bounty put up by contributor(s)
         address contributor; // Address of the contributor who funded the bounty
-        uint256 total_reward; // Total reward = bounty + total penalty amount of each moderator who failed
-        mapping(address => uint256) moderator_stake; // Mapping: moderator address => stake amount
+        uint256 total_reward; // Total reward = bounty amount
         mapping(address => uint256) moderator_reward; // Mapping: moderator address => reward amount
-        mapping(address => uint256) moderator_penalty; // Mapping: moderator address => penalty amount
         mapping(address => uint256) moderator_deviation; // Mapping: moderator address => deviation between their quality score the gave and the finalized score of challenge.
         address[] moderators; // List of moderators who join review pool of this this challenge
         address[] passed_moderators; // List of moderators who passed the challenge (deviation <= DEVIATION_THRESHOLD)
@@ -78,25 +76,19 @@ contract ModerationEscrow is AccessControl {
     }
 
     /* ============================= MODERATOR FLOW ============================= */
-    /// @dev Moderator stakes native token when opting in to review pool.
-    // TODO: This function should be called when a moderator submit their review for a challenge, only be called by ChallengeManager
-    function stake(
+    /// @dev Register a moderator when they submit a review
+    function registerModerator(
         uint256 _challenge_id,
         address _moderator
-    ) external payable onlyRole(CHALLENGE_MANAGER_ROLE) {
-        if (msg.value == 0) revert("ZeroValue");
-
+    ) external onlyRole(CHALLENGE_MANAGER_ROLE) {
         Pot storage pot = pots[_challenge_id];
-
-        if (pot.moderator_stake[_moderator] > 0) {
-            revert("ModeratorAlreadyFunded");
+        for (uint256 i = 0; i < pot.moderators.length; i++) {
+            if (pot.moderators[i] == _moderator) {
+                return;
+            }
         }
-
         pot.moderators.push(_moderator);
-        pot.moderator_stake[_moderator] = msg.value;
-
-        emit Staked(_challenge_id, _moderator, msg.value);
-    } /* ============================= FINALIZATION & PAY-OUT ============================= */
+    }
 
     // TODO: Add access control to this function, can only be called by ChallengeManager after the challenge is finalized
     function finalizeChallengePot(
@@ -109,7 +101,6 @@ contract ModerationEscrow is AccessControl {
         }
 
         _calculateDeviation(_challenge_id);
-        _calculatePenalty(_challenge_id);
         _calculateReward(_challenge_id);
         _distributeRewards(_challenge_id);
     }
@@ -126,6 +117,16 @@ contract ModerationEscrow is AccessControl {
         }
         challenge_manager_address = _address;
         challenge_manager = IChallengeManager(_address);
+    }
+
+    function setReputationManagerAddress(
+        address _address
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (_address == address(0)) {
+            revert("InvalidChallengeManagerAddress");
+        }
+        reputation_manager_address = _address;
+        reputation_manager = IReputationManager(_address);
     }
 
     /* ============================= ROLE MANAGEMENT ============================= */
@@ -172,16 +173,6 @@ contract ModerationEscrow is AccessControl {
 
     /**
      * @dev Get the stake amount for a moderator in a challenge
-     * @param _challenge_id The challenge ID
-     * @param moderator The moderator address
-     * @return The stake amount
-     */
-    function getModeratorStake(
-        uint256 _challenge_id,
-        address moderator
-    ) external view returns (uint256) {
-        return pots[_challenge_id].moderator_stake[moderator];
-    }
 
     /**
      * @dev Get the reward amount for a moderator in a challenge
@@ -200,15 +191,6 @@ contract ModerationEscrow is AccessControl {
      * @dev Get the penalty amount for a moderator in a challenge
      * @param _challenge_id The challenge ID
      * @param moderator The moderator address
-     * @return The penalty amount
-     */
-    function getModeratorPenalty(
-        uint256 _challenge_id,
-        address moderator
-    ) external view returns (uint256) {
-        return pots[_challenge_id].moderator_penalty[moderator];
-    }
-
     /**
      * @dev Check if rewards have been distributed for a challenge
      * @param _challenge_id The challenge ID
@@ -281,34 +263,9 @@ contract ModerationEscrow is AccessControl {
         }
     }
 
-    function _calculatePenalty(uint256 _challenge_id) internal {
         Pot storage pot = pots[_challenge_id];
 
         // Calculate penalties for moderators who failed (already filtered in _calculateDeviation)
-        for (uint256 i = 0; i < pot.failed_moderators.length; i++) {
-            address moderator = pot.failed_moderators[i];
-            uint256 deviation = pot.moderator_deviation[moderator];
-            uint256 moderator_stake = pot.moderator_stake[moderator];
-
-            // Calculate penalty using the formula from ModerationPenaltyTokenFormulas
-            uint256 penalty = PenaltyTokenFormulas.calculatePenaltyForModerator(
-                    deviation, // di_raw: moderator's deviation
-                    moderator_stake // si_raw: moderator's stake
-                );
-
-            // Guard the moderator stake in case the penalty exceeds the moderator's stake
-            // Theotically, this should not happen, but we need to ensure it will never happen
-            if (penalty > moderator_stake) {
-                penalty = 0;
-            }
-
-            // Store the penalty in the mapping
-            pot.moderator_penalty[moderator] = penalty;
-
-            // Add penalty amount into the total_reward
-            pot.total_reward += penalty;
-        }
-    }
 
     function _calculateReward(uint256 _challenge_id) internal {
         Pot storage pot = pots[_challenge_id];
@@ -324,14 +281,15 @@ contract ModerationEscrow is AccessControl {
         for (uint256 i = 0; i < passed_count; i++) {
             address moderator = pot.passed_moderators[i];
             uint256 deviation = pot.moderator_deviation[moderator];
-            uint256 moderator_stake = pot.moderator_stake[moderator];
+            SystemEnums.Domain domain = challenge_manager.getChallengeDomainById(_challenge_id);
+            int256 rep = reputation_manager.getDomainReputation(moderator, domain);
+            require(rep >= 0, "Negative reputation");
 
-            // Calculate weight using the formula from ModerationRewardTokenFormulas
             uint256 weight = RewardTokenFormulas.calculateWeightForModerator(
-                deviation, // di_raw: moderator's deviation
-                moderator_stake // si_raw: moderator's stake
+                deviation,
+                uint256(rep)
             );
-
+            
             moderator_weights[i] = weight;
             total_weight += weight;
         }
@@ -362,34 +320,11 @@ contract ModerationEscrow is AccessControl {
         // Distribute rewards to moderators who passed
         for (uint256 i = 0; i < pot.passed_moderators.length; i++) {
             address moderator = pot.passed_moderators[i];
-            uint256 moderator_stake = pot.moderator_stake[moderator];
             uint256 reward = pot.moderator_reward[moderator];
-            uint256 total_payout = moderator_stake + reward;
 
-            // Transfer stake + reward to moderator
-            (bool success, ) = moderator.call{value: total_payout}("");
+            (bool success, ) = moderator.call{value: reward}("");
             if (!success) {
                 revert("TransferFailed");
-            }
-        }
-
-        // Distribute remaining stake (after penalty) to moderators who failed
-        for (uint256 i = 0; i < pot.failed_moderators.length; i++) {
-            address moderator = pot.failed_moderators[i];
-            uint256 moderator_stake = pot.moderator_stake[moderator];
-            uint256 penalty = pot.moderator_penalty[moderator];
-
-            // Calculate remaining amount after penalty (penalty cannot exceed stake)
-            uint256 remaining_stake = moderator_stake > penalty
-                ? moderator_stake - penalty
-                : 0;
-
-            // Transfer remaining stake to moderator (if any)
-            if (remaining_stake > 0) {
-                (bool success, ) = moderator.call{value: remaining_stake}("");
-                if (!success) {
-                    revert("TransferFailed");
-                }
             }
         }
 

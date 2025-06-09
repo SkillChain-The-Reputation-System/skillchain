@@ -285,11 +285,7 @@ contract ChallengeManager is AccessControl {
         SystemEnums.DifficultyLevel _suggested_difficulty,
         SystemEnums.Domain _suggested_category,
         uint256 _suggested_solve_time
-    ) public payable onlyBeforeFinalized(_challenge_id) onlyModerator {
-        // Validate stake amount
-        if (msg.value == 0) {
-            revert("Zero stake amount");
-        }
+    ) public onlyBeforeFinalized(_challenge_id) onlyModerator {
 
         // Ensure moderation escrow is set
         if (address(moderation_escrow) == address(0)) {
@@ -312,8 +308,8 @@ contract ChallengeManager is AccessControl {
             "You have already submitted a review."
         );
 
-        // Call moderation escrow to stake the moderator's tokens
-        moderation_escrow.stake{value: msg.value}(_challenge_id, msg.sender);
+        // Register moderator in escrow
+        moderation_escrow.registerModerator(_challenge_id, msg.sender);
 
         // Increment the review count
         pool.review_count++;

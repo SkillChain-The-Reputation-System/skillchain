@@ -7,43 +7,35 @@ import {UD60x18, ud, convert, pow, exp, ln, intoUint256} from "@prb/math/src/UD6
 library RewardTokenFormulas {
     function calculateWeight(
         uint256 di_raw,
-        uint256 si_raw, // Stake token amount, already scaled to 1e18 (in wei)
+        uint256 ri_raw,
         uint256 alpha_raw,
         uint256 beta_raw
     ) internal pure returns (uint256) {
-        // 1) Convert the constants and stake amount to UD60x18 format
         UD60x18 alpha = ud(alpha_raw);
         UD60x18 beta = ud(beta_raw);
-        UD60x18 si = ud(si_raw);
+        UD60x18 ri = ud(ri_raw * 1e18);
 
-        // 2) Scale the inputs to 1e18 and wrap them into UD60x18
         UD60x18 di = ud(di_raw * 1e18);
 
-        // 3) Calculate S_i^β using the pow function
-        UD60x18 si_power_beta = pow(si, beta);
+        UD60x18 ri_power_beta = pow(ri, beta);
 
-        // 4) Calculate α * d_i
         UD60x18 alpha_di = alpha.mul(di);
-
-        // 5) Calculate e^(-α * d_i)
-        // Since exp function expects positive values, we need to calculate exp(-x) = 1/exp(x)
         UD60x18 exp_negative_alpha_di = ud(1e18).div(exp(alpha_di));
 
-        // 6) Calculate final weight: w_i = S_i^β * e^(-α * d_i)
-        UD60x18 weight = si_power_beta.mul(exp_negative_alpha_di);
+        UD60x18 weight = ri_power_beta.mul(exp_negative_alpha_di);
 
         return intoUint256(weight);
     }
 
     function calculateWeightForModerator(
         uint256 di_raw,
-        uint256 si_raw
+        uint256 ri_raw
     ) external pure returns (uint256) {
         uint256 weight = calculateWeight(
             di_raw,
-            si_raw,
+            ri_raw,
             SystemConsts.MODERATION_REWARD_DISTRIBUTION_SPREAD,
-            SystemConsts.MODERATION_STAKE_INFLUENCE_COEFFICIENT
+            SystemConsts.MODERATION_REPUTATION_INFLUENCE_COEFFICIENT
         );
         return weight;
     }

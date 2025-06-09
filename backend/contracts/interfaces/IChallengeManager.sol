@@ -150,7 +150,7 @@ interface IChallengeManager {
         SystemEnums.DifficultyLevel _suggested_difficulty,
         SystemEnums.Domain _suggested_category,
         uint256 _suggested_solve_time
-    ) external payable;
+    ) external;
 
     /**
      * @dev Allows a user to join a challenge
@@ -339,6 +339,15 @@ interface IChallengeManager {
      */
     function getChallengeParticipants(
         uint256 challengeId
+    ) external view returns (address[] memory);
+
+    /**
+     * @dev Returns the moderator list from ReviewPool for a challenge
+     * @param _challenge_id The ID of the challenge
+     * @return Array of moderator addresses in the review pool
+     */
+    function getReviewPoolModerators(
+        uint256 _challenge_id
     ) external view returns (address[] memory);
 
     /**

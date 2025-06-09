@@ -161,8 +161,9 @@ library SystemConsts {
     // ================= MODERATION REWARD AND PENALTY =================
     uint256 public constant MODERATION_REWARD_DEVIATION_THRESHOLD = 70; 
     uint256 public constant MODERATION_MAX_DEVIATION = 100; // The max score of a challenge can have
-    uint256 public constant MODERATION_STAKE_PENALTY_RATE = 0.3e18; // gamma - maximum of 30% the stake will be penalized 
-    uint256 public constant MODERATION_STAKE_INFLUENCE_COEFFICIENT = 0.4e18; // beta
+    uint256 public constant MODERATION_STAKE_PENALTY_RATE = 0.3e18; // gamma - maximum of 30% the stake will be penalized
+    // beta - influence of moderator reputation when distributing reward
+    uint256 public constant MODERATION_REPUTATION_INFLUENCE_COEFFICIENT = 0.4e18;
     uint256 public constant MODERATION_REWARD_DISTRIBUTION_SPREAD = 0.8e18; // alpha 
 
     // ================= EVALUATION REWARD AND PENALTY =================

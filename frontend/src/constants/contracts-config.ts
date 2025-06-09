@@ -44,36 +44,36 @@ export const ContractConfig_ReputationManager = {
 };
 
 export const ContractConfig_EvaluationEscrow = {
-    address: '0x67d269191c92Caf3cD7723F116c85e6E9bf55933', // Change this every time you deploy the contract
+    address: '0xE6E340D132b5f46d1e472DebcD681B2aBc16e57E', // Change this every time you deploy the contract
     abi: EvaluationEscrowArtifact.abi,
 };
 
 export const ContractConfig_JobApplicationManager = {
-    address: '0x9E545E3C0baAB3E08CdfD552C960A1050f373042', // Change this every time you deploy the contract
+    address: '0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9', // Change this every time you deploy the contract
     abi: JobApplicationManagerArtifact.abi,
 };
 
 export const ContractConfig_JobManager = {
-    address: '0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9', // Change this every time you deploy the contract
+    address: '0x1613beB3B2C4f22Ee086B2b38C1476A3cE7f78E8', // Change this every time you deploy the contract
     abi: JobManagerArtifact.abi,
 };
 
 export const ContractConfig_RecruiterSubscription = {
-    address: '0x1613beB3B2C4f22Ee086B2b38C1476A3cE7f78E8', // Change this every time you deploy the contract
+    address: '0x851356ae760d987E095750cCeb3bC6014560891C', // Change this every time you deploy the contract
     abi: RecruiterSubscriptionArtifact.abi,
 };
 
 export const ContractConfig_MeetingManager = {
-    address: '0x4826533B4897376654Bb4d4AD88B7faFD0C98528', // Change this every time you deploy the contract
+    address: '0x99bbA657f2BbC93c02D617f8bA121cB8Fc104Acf', // Change this every time you deploy the contract
     abi: MeetingManagerArtifact.abi,
 };
 
 export const ContractConfig_RecruiterDataManager = {
-    address: '0x0E801D84Fa97b50751Dbf25036d067dCf18858bF', // Change this every time you deploy the contract
+    address: '0x8f86403A4DE0BB5791fa46B8e795C547942fE4Cf', // Change this every time you deploy the contract
     abi: RecruiterDataManagerArtifact.abi,
 };
 
 export const ContractConfig_UserDataManager = {
-    address: '0x9d4454B023096f34B160D6B654540c56A1F81688', // Change this every time you deploy the contract
+    address: '0x5eb3Bc0a489C5A8288765d2336659EbCA68FCd00', // Change this every time you deploy the contract
     abi: UserDataManagerArtifact.abi,
 };

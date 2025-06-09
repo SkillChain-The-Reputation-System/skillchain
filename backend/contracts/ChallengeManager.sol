@@ -228,11 +228,15 @@ contract ChallengeManager is AccessControl {
     }
 
     // ================= MODERATION METHODS=================
-
     function joinReviewPool(
         uint256 _challenge_id,
         string calldata _review_txid
     ) public onlyBeforeFinalized(_challenge_id) onlyModerator {
+        // Ensure moderation escrow is set
+        if (address(moderation_escrow) == address(0)) {
+            revert("Moderation escrow not set");
+        }
+        
         ReviewPool storage pool = review_pool[_challenge_id];
 
         // Prevent joining the review pool if maximum number of moderators is reached
@@ -255,7 +259,6 @@ contract ChallengeManager is AccessControl {
 
         // Add new challenge to the moderator's list of challenges
         moderator_to_challenges[msg.sender].push(_challenge_id);
-
         // Use a storage reference for cleaner access
         pool.moderator_list.push(msg.sender);
         pool.moderator_to_join_status[msg.sender] = true;
@@ -264,6 +267,8 @@ contract ChallengeManager is AccessControl {
         review.moderator = msg.sender;
         review.challenge_id = _challenge_id;
         review.review_txid = _review_txid;
+
+       moderation_escrow.syncModeratorsFromReviewPool(_challenge_id);
 
         emit ReviewPoolJoined(_challenge_id, msg.sender);
         console.log(
@@ -285,12 +290,7 @@ contract ChallengeManager is AccessControl {
         SystemEnums.DifficultyLevel _suggested_difficulty,
         SystemEnums.Domain _suggested_category,
         uint256 _suggested_solve_time
-    ) public payable onlyBeforeFinalized(_challenge_id) onlyModerator {
-        // Validate stake amount
-        if (msg.value == 0) {
-            revert("Zero stake amount");
-        }
-
+    ) public onlyBeforeFinalized(_challenge_id) onlyModerator {
         // Ensure moderation escrow is set
         if (address(moderation_escrow) == address(0)) {
             revert("Moderation escrow not set");
@@ -311,9 +311,6 @@ contract ChallengeManager is AccessControl {
                 .is_submitted == false,
             "You have already submitted a review."
         );
-
-        // Call moderation escrow to stake the moderator's tokens
-        moderation_escrow.stake{value: msg.value}(_challenge_id, msg.sender);
 
         // Increment the review count
         pool.review_count++;
@@ -723,6 +720,12 @@ contract ChallengeManager is AccessControl {
         uint256 _challenge_id
     ) public view returns (uint256) {
         return review_pool[_challenge_id].moderator_list.length;
+    }
+
+    function getReviewPoolModerators(
+        uint256 _challenge_id
+    ) public view returns (address[] memory) {
+        return review_pool[_challenge_id].moderator_list;
     }
 
     function getChallengeFinalizedStatus(

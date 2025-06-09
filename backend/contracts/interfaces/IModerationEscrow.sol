@@ -8,7 +8,7 @@ pragma solidity ^0.8.19;
  */
 interface IModerationEscrow {
     // ============================== EVENTS ==============================
-    
+
     /**
      * @dev Emitted when a bounty is deposited for a challenge
      * @param challenge_id The ID of the challenge
@@ -22,16 +22,11 @@ interface IModerationEscrow {
     );
 
     /**
-     * @dev Emitted when a moderator stakes tokens for a challenge
-     * @param challenge_id The ID of the challenge
-     * @param moderator The address of the moderator who staked
-     * @param amount The amount staked
+     * @dev Sync moderators by copying the entire moderator list from ChallengeManager's ReviewPool
+     * @param _challenge_id The ID of the challenge
      */
-    event Staked(
-        uint256 indexed challenge_id,
-        address moderator,
-        uint256 amount
-    );
+
+    function syncModeratorsFromReviewPool(uint256 _challenge_id) external;
 
     /**
      * @dev Emitted when rewards are distributed for a challenge
@@ -56,16 +51,6 @@ interface IModerationEscrow {
     ) external payable;
 
     // ============================== MODERATOR FLOW ==============================
-
-    /**
-     * @dev Moderator stakes native token when opting in to review pool
-     * @param _challenge_id The ID of the challenge
-     * @notice This function should be called when a moderator submits their review for a challenge
-     */
-    function stake(
-        uint256 _challenge_id,
-        address _moderator
-    ) external payable;
 
     // ============================== FINALIZATION & PAY-OUT ==============================
 
@@ -95,34 +80,12 @@ interface IModerationEscrow {
     ) external view returns (uint256);
 
     /**
-     * @dev Get the stake amount for a moderator in a challenge
-     * @param _challenge_id The challenge ID
-     * @param moderator The moderator address
-     * @return The stake amount
-     */
-    function getModeratorStake(
-        uint256 _challenge_id,
-        address moderator
-    ) external view returns (uint256);
-
-    /**
      * @dev Get the reward amount for a moderator in a challenge
      * @param _challenge_id The challenge ID
      * @param moderator The moderator address
      * @return The reward amount
      */
     function getModeratorReward(
-        uint256 _challenge_id,
-        address moderator
-    ) external view returns (uint256);
-
-    /**
-     * @dev Get the penalty amount for a moderator in a challenge
-     * @param _challenge_id The challenge ID
-     * @param moderator The moderator address
-     * @return The penalty amount
-     */
-    function getModeratorPenalty(
         uint256 _challenge_id,
         address moderator
     ) external view returns (uint256);
@@ -169,6 +132,12 @@ interface IModerationEscrow {
      * @notice Only admin can set the ChallengeManager address
      */
     function setChallengeManagerAddress(address _address) external;
+
+    /**
+     * @dev Set the ReputationManager contract address
+     * @param _address The address of the ReputationManager contract
+     */
+    function setReputationManagerAddress(address _address) external;
 
     // ============================== ROLE MANAGEMENT ==============================
 

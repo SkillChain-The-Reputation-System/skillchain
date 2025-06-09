@@ -92,11 +92,8 @@ export function ChallengePotInfo({ challengeId }: ChallengePotInfoProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[180px]">Moderator</TableHead>
-            <TableHead className="text-right w-[120px]">Stake</TableHead>
-            <TableHead className="text-right w-[120px]">Reward</TableHead>
-            <TableHead className="text-right w-[120px]">Penalty</TableHead>
-            <TableHead className="text-right w-[120px]">Remaining</TableHead>
+            <TableHead className="w-auto">Moderator</TableHead>
+            <TableHead className="text-right w-auto">Reward</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -107,7 +104,7 @@ export function ChallengePotInfo({ challengeId }: ChallengePotInfoProps) {
                   <div className="flex items-center gap-2">
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span className="truncate max-w-[120px] cursor-pointer">
+                        <span className="truncate w-auto cursor-pointer">
                           {truncateAddress(mod.moderator)}
                         </span>
                       </TooltipTrigger>
@@ -134,23 +131,8 @@ export function ChallengePotInfo({ challengeId }: ChallengePotInfoProps) {
                 </TooltipProvider>
               </TableCell>
               <TableCell className="text-right whitespace-nowrap overflow-hidden">
-                <span className="truncate block max-w-[100px]" title={`${mod.stake} ${NATIVE_TOKEN_SYMBOL}`}>
-                  {formatTokenAmount(`${mod.stake} ${NATIVE_TOKEN_SYMBOL}`)}
-                </span>
-              </TableCell>
-              <TableCell className="text-right whitespace-nowrap overflow-hidden">
-                <span className="truncate block max-w-[100px]" title={`${mod.reward} ${NATIVE_TOKEN_SYMBOL}`}>
+                <span className="truncate block w-auto" title={`${mod.reward} ${NATIVE_TOKEN_SYMBOL}`}>
                   {formatTokenAmount(`${mod.reward} ${NATIVE_TOKEN_SYMBOL}`)}
-                </span>
-              </TableCell>
-              <TableCell className="text-right whitespace-nowrap overflow-hidden">
-                <span className="truncate block max-w-[100px]" title={`${mod.penalty} ${NATIVE_TOKEN_SYMBOL}`}>
-                  {formatTokenAmount(`${mod.penalty} ${NATIVE_TOKEN_SYMBOL}`)}
-                </span>
-              </TableCell>
-              <TableCell className="text-right whitespace-nowrap overflow-hidden">
-                <span className="truncate block max-w-[100px]" title={`${mod.remaining} ${NATIVE_TOKEN_SYMBOL}`}>
-                  {formatTokenAmount(`${mod.remaining} ${NATIVE_TOKEN_SYMBOL}`)}
                 </span>
               </TableCell>
             </TableRow>

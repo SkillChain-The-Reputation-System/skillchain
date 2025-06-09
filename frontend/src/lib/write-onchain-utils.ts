@@ -93,7 +93,6 @@ export async function submitModeratorReview(
       data.suggested_solve_time,
     ],
     account: address,
-    value: parseEther(data.stake_amount.toString()),
   });
 
   const txHash = await writeContract(wagmiConfig, {
@@ -114,7 +113,6 @@ export async function submitModeratorReview(
       data.suggested_solve_time,
     ],
     account: address,
-    value: parseEther(data.stake_amount.toString()),
   });
   return txHash;
 }

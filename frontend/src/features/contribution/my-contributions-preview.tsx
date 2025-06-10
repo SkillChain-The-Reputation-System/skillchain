@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { ChallengeSkeleton } from './my-contributions-skeleton'
 import { ChallengeCard } from "./challenge-card";
 import { ChallengeRevenueInfo } from "@/components/challenge-revenue-info";
+import ModerationDetails from "@/components/moderation-details";
 import { EmptyChallenge } from "./empty-challenge";
 
 // Import utils
@@ -56,7 +57,12 @@ export function MyContributionsPreview() {
       <div className="w-full max-w-md mx-auto">
         <ChallengeCard
           challenge={challenges[0]}
-          extraContent={<ChallengeRevenueInfo challengeId={Number(challenges[0].id)} />}
+          extraContent={
+            <>
+              <ChallengeRevenueInfo challengeId={Number(challenges[0].id)} />
+              <ModerationDetails challenge={challenges[0]} />
+            </>
+          }
         />
       </div>
     ) : challenges.length > 1 ? (
@@ -65,7 +71,12 @@ export function MyContributionsPreview() {
           <ChallengeCard
             key={index}
             challenge={challenge}
-            extraContent={<ChallengeRevenueInfo challengeId={Number(challenge.id)} />}
+            extraContent={
+              <>
+                <ChallengeRevenueInfo challengeId={Number(challenge.id)} />
+                <ModerationDetails challenge={challenge} />
+              </>
+            }
           />
         ))}
       </div>

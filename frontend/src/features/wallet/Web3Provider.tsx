@@ -1,5 +1,14 @@
 "use client";
 
+// WalletConnect's provider relies on the IndexedDB API which doesn't exist in a
+// Node.js environment. When this file is imported during server-side rendering,
+// we polyfill IndexedDB using `fake-indexeddb` so that the provider can
+// initialize without throwing `indexedDB is not defined` errors.
+if (typeof indexedDB === "undefined") {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require("fake-indexeddb/auto");
+}
+
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { polygon, hardhat } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -25,8 +34,9 @@ declare module 'wagmi' {
   }
 }
 
-const config = createConfig(
-  getDefaultConfig({
+const getConfig = () =>
+  createConfig(
+    getDefaultConfig({
     // Your dApps chains
     chains: [hardhat],
     transports: {
@@ -49,10 +59,16 @@ const config = createConfig(
     appDescription: "A Reputation System For Skill Assessment",
     appUrl: "https://family.co", // app's url
     appIcon: "https://family.co/logo.png", // app's icon, no bigger than 1024x1024px (max. 1MB)
-  })
-);
+    })
+  );
 
-const queryClient = new QueryClient();
+// Avoid recreating config and queryClient on every hot reload
+const config: ReturnType<typeof getConfig> =
+  (globalThis as any).wagmiConfig || ((globalThis as any).wagmiConfig = getConfig());
+
+const queryClient: QueryClient =
+  (globalThis as any).wagmiQueryClient ||
+  ((globalThis as any).wagmiQueryClient = new QueryClient());
 
 export const Web3Provider = ({
   children,

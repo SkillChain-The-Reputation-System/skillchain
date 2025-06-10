@@ -30,6 +30,7 @@ import {
   MeetingStatus,
 } from "@/constants/system";
 import { ScheduleMeetingFormData } from "@/features/meetings/schedule-meeting-form";
+import { parseEther } from "viem";
 
 export async function joinReviewPool(
   challengeId: number,
@@ -144,6 +145,7 @@ export async function contributeChallenge(
       data.category,
     ],
     account: address,
+    value: parseEther(data.bounty.toString()),
   });
 
   const txHash = await writeContract(wagmiConfig, {
@@ -156,6 +158,7 @@ export async function contributeChallenge(
       data.category,
     ],
     account: address,
+    value: parseEther(data.bounty.toString()),
   });
 
   return txHash;
@@ -163,7 +166,8 @@ export async function contributeChallenge(
 
 export async function userJoinChallenge(
   challengeId: number,
-  address: `0x${string}`
+  address: `0x${string}`,
+  paymentAmount: number
 ) {
   const { data: solution_upload_res } =
     await axios.post<IrysUploadResponseInterface>(
@@ -177,6 +181,7 @@ export async function userJoinChallenge(
     functionName: "userJoinChallenge",
     args: [challengeId, solution_upload_res.id],
     account: address,
+    value: parseEther(paymentAmount.toString()),
   });
 
   const txHash = await writeContract(wagmiConfig, {
@@ -185,6 +190,7 @@ export async function userJoinChallenge(
     functionName: "userJoinChallenge",
     args: [challengeId, solution_upload_res.id],
     account: address,
+    value: parseEther(paymentAmount.toString()),
   });
 
   return txHash;

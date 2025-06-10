@@ -3,8 +3,10 @@ pragma solidity ^0.8.17;
 
 import "hardhat/console.sol";
 import "./Constants.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./interfaces/IRecruiterSubscription.sol";
 
-contract MeetingManager {
+contract MeetingManager is AccessControl {
     // ========================= STRUCTS =========================
     struct Meeting {
         bytes32 id;
@@ -27,6 +29,8 @@ contract MeetingManager {
     // Mapping: Recruiter Address + Meeting ID => Is recruiter own this meeting
     mapping(address => mapping(bytes32 => bool)) is_recruiter_own_meeting;
 
+    IRecruiterSubscription private recruiter_subscription;
+
     // ========================= EVENTS =========================
     event MeetingScheduled(
         bytes32 indexed id,
@@ -39,6 +43,10 @@ contract MeetingManager {
     event MeetingCompleted(bytes32 indexed id, uint256 ended_at);
 
     event MeetingCancelled(bytes32 indexed id, uint256 ended_at);
+
+    constructor() {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
 
     // ========================= MODIFIERS =========================
     modifier onlyMeetingIsPending(bytes32 id) {
@@ -57,6 +65,15 @@ contract MeetingManager {
         _;
     }
 
+    modifier onlySubscribedRecruiter() {
+        require(
+            address(recruiter_subscription) != address(0) &&
+                recruiter_subscription.isRecruiter(msg.sender),
+            "Recruiter has insufficient budget"
+        );
+        _;
+    }
+
     // ========================= MEETING MANAGEMENT =========================
     /// @notice Create a meeting
     /// @param _application_id room ID that generated at front-end
@@ -64,7 +81,7 @@ contract MeetingManager {
     function scheduleMeeting(
         bytes32 _application_id,
         string calldata _txid
-    ) external {
+    ) external onlySubscribedRecruiter {
         require(
             !is_application_has_meeting[_application_id],
             "This application already has a meeting"
@@ -105,6 +122,7 @@ contract MeetingManager {
         bytes32 id
     )
         external
+        onlySubscribedRecruiter
         onlyRecruiterOwnMeeting(msg.sender, id)
         onlyMeetingIsPending(id)
     {
@@ -125,6 +143,7 @@ contract MeetingManager {
         bytes32 id
     )
         external
+        onlySubscribedRecruiter
         onlyRecruiterOwnMeeting(msg.sender, id)
         onlyMeetingIsPending(id)
     {
@@ -137,6 +156,12 @@ contract MeetingManager {
         is_application_has_meeting[meeting.application_id] = false;
 
         emit MeetingCancelled(id, endedAt);
+    }
+
+    // ========================= SETTER FUNCTIONS =========================
+    function setRecruiterSubscriptionAddress(address addr) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(addr != address(0), "Invalid address");
+        recruiter_subscription = IRecruiterSubscription(addr);
     }
 
     // ========================= VIEW FUNCTIONS =========================

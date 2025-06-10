@@ -2,6 +2,7 @@ import RecruiterSidebar from "@/components/layout/recruiter-sidebar";
 import Header from "@/components/layout/header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { RecruiterProvider } from "@/contexts/recruiter-context";
+import RecruiterRequirementBanner from "@/components/recruiter-requirement-banner";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 
@@ -23,6 +24,7 @@ export default async function RecruiterLayout({
         <RecruiterSidebar />
         <SidebarInset>
           <Header />
+          <RecruiterRequirementBanner />
           {/* page main content */}
           <div className="py-4">{children}</div>
 

@@ -86,7 +86,7 @@ const evaluationSchema = z.object({
   score: z.coerce
     .number()
     .min(0, "Score must be in range 0 - 100")
-    .max(100, "Score must be in range 0 - 100")
+    .max(100, "Score must be in range 0 - 100"),
 });
 
 export type EvaluationFormValues = z.infer<typeof evaluationSchema>;
@@ -123,7 +123,11 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
 
       try {
         setSubmitting(true);
-        const txHash = await submitEvaluationScore(solutionId, address as `0x${string}`, data.score);
+        const txHash = await submitEvaluationScore(
+          solutionId,
+          address as `0x${string}`,
+          data.score
+        );
         await waitForTransaction(txHash);
         toast.success("Submitted score for this solution");
         setIsDialogOpen(false);
@@ -426,7 +430,7 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
                     className="min-h-80"
                     editable={false}
                   />
-
+      
                   <Separator className='bg-black' />
                   {
                     evaluation?.isSubmitted ? (
@@ -456,14 +460,12 @@ export default function EvaluationDetail({ solutionId }: EvaluationDetailProps) 
 
                         <div className="flex gap-5">
                           <Form {...form}>
-                            <form
-                              className="w-full max-w-[200px]"
-                            >
+                            <form className="flex flex-col sm:flex-row gap-3 w-full max-w-[400px]">
                               <FormField
                                 control={form.control}
                                 name="score"
                                 render={({ field }) => (
-                                  <FormItem>
+                                  <FormItem className="flex-1">
                                     <FormControl>
                                       <Input
                                         {...field}

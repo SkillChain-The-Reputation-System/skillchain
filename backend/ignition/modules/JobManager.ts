@@ -1,11 +1,14 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+import RecruiterSubscriptionModule from "./RecruiterSubscription";
 
 const JobManagerModule = buildModule("JobManagerModule", (m) => {
-  // Deploy JobManager contract
-  // JobManager only imports Constants.sol which contains enums and doesn't need linking
+  const { recruiterSubscription } = m.useModule(RecruiterSubscriptionModule);
+
   const jobManager = m.contract("JobManager");
-  
-  return { jobManager };
+
+  m.call(jobManager, "setRecruiterSubscriptionAddress", [recruiterSubscription]);
+
+  return { jobManager, recruiterSubscription };
 });
 
 export default JobManagerModule;

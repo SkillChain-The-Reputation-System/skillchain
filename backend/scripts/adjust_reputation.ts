@@ -6,7 +6,7 @@ import path from 'path';
 import Papa from 'papaparse';
 
 const abi = ReputationManagerArtifact.abi;
-const contractAddress = '0xa513E6E4b8f2a923D98304ec87F64353C4D5C853'; // ReputationManager address from deployed_addresses.json
+const contractAddress = '0x610178dA211FEF7D417bC0e6FeD39F05609AD788'; // ReputationManager address from deployed_addresses.json
 
 const csvPath = path.resolve(__dirname, 'reputation_adjustments.csv');
 
@@ -112,12 +112,12 @@ async function adjustReputations() {
         try {
           console.log(`  🔄 Adjusting ${domainName} by ${deltaValue > 0 ? '+' : ''}${deltaValue}...`);
 
-          // Check current reputation before adjustment (optional, for logging)
+            // Check current reputation before adjustment (optional, for logging)
           try {
             const currentReputation = await publicClient.readContract({
               address: contractAddress as `0x${string}`,
               abi: abi,
-              functionName: 'domain_reputation',
+              functionName: 'getDomainReputation',
               args: [row.address, domainValue],
             });
             console.log(`    Current reputation: ${currentReputation}`);
@@ -151,7 +151,7 @@ async function adjustReputations() {
               const newReputation = await publicClient.readContract({
                 address: contractAddress as `0x${string}`,
                 abi: abi,
-                functionName: 'domain_reputation',
+                functionName: 'getDomainReputation',
                 args: [row.address, domainValue],
               });
               console.log(`    New reputation: ${newReputation}`);
@@ -196,13 +196,12 @@ async function checkUserReputation(userAddress: string) {
 
     console.log(`\n📊 Reputation Report for ${userAddress}:`);
     console.log("===============================================");
-    
-    // Check global reputation
+      // Check global reputation
     try {
       const globalReputation = await publicClient.readContract({
         address: contractAddress as `0x${string}`,
         abi: abi,
-        functionName: 'global_reputation',
+        functionName: 'getGlobalReputation',
         args: [userAddress],
       });
       console.log(`Global Reputation: ${globalReputation}`);
@@ -211,15 +210,14 @@ async function checkUserReputation(userAddress: string) {
     }
 
     console.log("\nDomain-specific Reputation:");
-    console.log("---------------------------");
-
+    console.log("---------------------------");    
     // Check domain-specific reputation
     for (const [domainName, domainValue] of Object.entries(DOMAINS)) {
       try {
         const domainReputation = await publicClient.readContract({
           address: contractAddress as `0x${string}`,
           abi: abi,
-          functionName: 'domain_reputation',
+          functionName: 'getDomainReputation',
           args: [userAddress, domainValue],
         });
         console.log(`${domainName.padEnd(35)}: ${domainReputation}`);

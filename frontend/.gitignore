@@ -42,6 +42,3 @@ next-env.d.ts
 
 # npmrc
 .npmrc
-
-# contract artifacts
-/src/constants/contract-artifacts

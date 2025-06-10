@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.19;
 
 library SystemEnums {
     // --- Domains Constants ---
@@ -85,6 +85,11 @@ library Weights {
     uint256 constant MEDIUM_CHALLENGE_WEIGHT = 120; // 120% of base weight
     uint256 constant HARD_CHALLENGE_WEIGHT = 140; // 140% of base weight
 
+    // --- Challenge Difficulty Level Weights for Cost Calculation ---
+    uint256 constant EASY_COST_WEIGHT = 1e18;
+    uint256 constant MEDIUM_COST_WEIGHT = 1.5e18;
+    uint256 constant HARD_COST_WEIGHT = 2e18;
+
     function getDifficultyWeight(
         SystemEnums.DifficultyLevel level
     ) external pure returns (uint256) {
@@ -94,6 +99,20 @@ library Weights {
             return MEDIUM_CHALLENGE_WEIGHT;
         } else if (level == SystemEnums.DifficultyLevel.HARD) {
             return HARD_CHALLENGE_WEIGHT;
+        } else {
+            revert("Invalid difficulty level");
+        }
+    }
+
+    function getDifficultyCostWeight(
+        SystemEnums.DifficultyLevel level
+    ) external pure returns (uint256) {
+        if (level == SystemEnums.DifficultyLevel.EASY) {
+            return EASY_COST_WEIGHT;
+        } else if (level == SystemEnums.DifficultyLevel.MEDIUM) {
+            return MEDIUM_COST_WEIGHT;
+        } else if (level == SystemEnums.DifficultyLevel.HARD) {
+            return HARD_COST_WEIGHT;
         } else {
             revert("Invalid difficulty level");
         }
@@ -115,6 +134,14 @@ library SystemConsts {
     // ================= EVALUATION =================
     uint256 public constant EVALUATION_QUORUM = 3;
 
+    // ================= CHALLENGE FEE =================
+    uint256 public constant CHALLENGE_FEE_MIN = 1e18; // Minimum challenge fee in native token
+    uint256 public constant CHALLENGE_FEE_MAX = 5e18; // Maximum challenge fee in native token
+    uint256 public constant CHALLENGE_FEE_ALPHA = 0.6e18; // influence of difficulty
+    uint256 public constant CHALLENGE_FEE_BETA = 0.8e18; // influence of quality
+    uint256 public constant CHALLENGE_FEE_GAMMA = 0.3e18; // percentage of bounty
+    uint256 public constant EXPECTED_PARTICIPANTS = 30; // Expected number of participants in a challenge
+
     // ================= THRESHOLD =================
     uint256 public constant REVIEW_THRESHOLD = 80; // The threshold of quality score for a challenge to be approved
 
@@ -129,6 +156,31 @@ library SystemConsts {
     uint256 public constant THRESHOLD_OF_EVALUATION_DEVIATION = 60; // Threshold for evaluation deviation (= Final solution score - Score give by reviewer)
     uint256 public constant THRESHOLD_OF_CHALLENGE_QUALITY_SCORE = 80; // Threshold for challenge quality score
     uint256 public constant THRESHOLD_OF_MODERATION_DEVIATION = 60; // Threshold for moderation deviation (Final challenge quality - Score give by moderator)
+
+
+    // ================= MODERATION REWARD AND PENALTY =================
+    uint256 public constant MODERATION_REWARD_DEVIATION_THRESHOLD = 70; 
+    uint256 public constant MODERATION_MAX_DEVIATION = 100; // The max score of a challenge can have
+    uint256 public constant MODERATION_STAKE_PENALTY_RATE = 0.3e18; // gamma - maximum of 30% the stake will be penalized
+    // beta - influence of moderator reputation when distributing reward
+    uint256 public constant MODERATION_REPUTATION_INFLUENCE_COEFFICIENT = 0.4e18;
+    uint256 public constant MODERATION_REWARD_DISTRIBUTION_SPREAD = 0.8e18; // alpha 
+
+    // ================= EVALUATION REWARD AND PENALTY =================
+    uint256 public constant EVALUATION_REWARD_DEVIATION_THRESHOLD = 60; 
+    uint256 public constant EVALUATION_MAX_DEVIATION = 100; // The max score of a challenge can have
+    uint256 public constant EVALUATION_STAKE_PENALTY_RATE = 0.2e18; // gamma - maximum of 30% the stake will be penalized 
+    uint256 public constant EVALUATION_STAKE_INFLUENCE_COEFFICIENT = 0.2e18; // beta
+    uint256 public constant EVALUATION_REWARD_DISTRIBUTION_SPREAD = 0.9e18; // alpha
+
+    // ================= RECRUITMENT FEE =================
+    // Base platform fee for each hiring action (4 POL scaled to 1e18)
+    uint256 public constant RECRUITMENT_BASE_FEE = 4e18;
+    // Coefficient controlling the impact of candidate reputation
+    uint256 public constant RECRUITMENT_REPUTATION_COEFFICIENT = 0.2e18;
+
+    // ================= RECRUITMENT BUDGET =================
+    uint256 public constant RECRUITMENT_BUDGET_MIN = 10e18; // Minimum budget to be considered a recruiter
 }
 
 library MathUtils {

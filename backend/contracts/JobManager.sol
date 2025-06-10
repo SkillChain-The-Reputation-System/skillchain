@@ -3,8 +3,10 @@ pragma solidity ^0.8.17;
 
 import "hardhat/console.sol";
 import "./Constants.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./interfaces/IRecruiterSubscription.sol";
 
-contract JobManager {
+contract JobManager is AccessControl {
     // ========================= STRUCTS =========================
     struct Job {
         bytes32 id; // ID of the job: = keccak256(abi.encodePacked(msg.sender, block.timestamp))
@@ -26,6 +28,9 @@ contract JobManager {
 
     // Array to track all job IDs for enumeration
     bytes32[] private all_job_ids;
+
+    // Address of RecruiterSubscription contract
+    IRecruiterSubscription private recruiter_subscription;
 
     // ========================= EVENTS =========================
     event JobCreated(
@@ -70,11 +75,24 @@ contract JobManager {
         string content_id
     );
 
+    constructor() {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
+
     // ========================= MODIFIERS =========================
     modifier onlyRecruiter(bytes32 id) {
         require(
             jobs[id].recruiter == msg.sender,
             "You are not the owner of this job posting"
+        );
+        _;
+    }
+
+    modifier onlySubscribedRecruiter() {
+        require(
+            address(recruiter_subscription) != address(0) &&
+                recruiter_subscription.isRecruiter(msg.sender),
+            "Recruiter has insufficient budget"
         );
         _;
     }
@@ -152,7 +170,7 @@ contract JobManager {
     /// @return id The new job's unique ID
     function createJob(
         string calldata content_id
-    ) external returns (bytes32 id) {
+    ) external onlySubscribedRecruiter returns (bytes32 id) {
         console.log("Creating job with content URL:", content_id);
         // Validate input
         require(bytes(content_id).length > 0, "Content ID cannot be empty");
@@ -179,7 +197,12 @@ contract JobManager {
 
     /// @notice Publish a job posting
     /// @param id The job ID to publish
-    function publishJob(bytes32 id) external onlyRecruiter(id) onlyInDraft(id) {
+    function publishJob(bytes32 id)
+        external
+        onlySubscribedRecruiter
+        onlyRecruiter(id)
+        onlyInDraft(id)
+    {
         Job storage job = jobs[id];
 
         // Remove job from DRAFT status array
@@ -196,7 +219,12 @@ contract JobManager {
 
     /// @notice Pause a job posting
     /// @param id The job ID to pause
-    function pauseJob(bytes32 id) external onlyRecruiter(id) onlyInOpen(id) {
+    function pauseJob(bytes32 id)
+        external
+        onlySubscribedRecruiter
+        onlyRecruiter(id)
+        onlyInOpen(id)
+    {
         Job storage job = jobs[id];
 
         // Remove job from OPEN status array
@@ -213,7 +241,12 @@ contract JobManager {
 
     /// @notice Resume a paused job posting
     /// @param id The job ID to resume
-    function resumeJob(bytes32 id) external onlyRecruiter(id) onlyInPaused(id) {
+    function resumeJob(bytes32 id)
+        external
+        onlySubscribedRecruiter
+        onlyRecruiter(id)
+        onlyInPaused(id)
+    {
         Job storage job = jobs[id];
 
         // Remove job from PAUSED status array
@@ -232,7 +265,7 @@ contract JobManager {
     /// @param id The job ID to close
     function closeJob(
         bytes32 id
-    ) external onlyRecruiter(id) onlyInOpenOrPausedOrFilled(id) {
+    ) external onlySubscribedRecruiter onlyRecruiter(id) onlyInOpenOrPausedOrFilled(id) {
         Job storage job = jobs[id];
 
         // Remove job from its current status array
@@ -251,7 +284,7 @@ contract JobManager {
     /// @param id The job ID to archive
     function archiveJob(
         bytes32 id
-    ) external onlyRecruiter(id) onlyInClosedOrDraft(id) {
+    ) external onlySubscribedRecruiter onlyRecruiter(id) onlyInClosedOrDraft(id) {
         Job storage job = jobs[id];
 
         // Remove job from its current status array
@@ -268,7 +301,12 @@ contract JobManager {
 
     /// @notice Mark a job as filled
     /// @param id The job ID to mark as filled
-    function fillJob(bytes32 id) external onlyRecruiter(id) onlyInOpen(id) {
+    function fillJob(bytes32 id)
+        external
+        onlySubscribedRecruiter
+        onlyRecruiter(id)
+        onlyInOpen(id)
+    {
         Job storage job = jobs[id];
 
         // Remove job from OPEN status array
@@ -385,6 +423,12 @@ contract JobManager {
 
         // Unreachable but compiler might warn without it
         return new SystemEnums.JobStatus[](0);
+    }
+
+    // ========================= SETTER FUNCTIONS =========================
+    function setRecruiterSubscriptionAddress(address addr) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(addr != address(0), "Invalid address");
+        recruiter_subscription = IRecruiterSubscription(addr);
     }
 
     // ========================= HELPER FUNCTIONS =========================

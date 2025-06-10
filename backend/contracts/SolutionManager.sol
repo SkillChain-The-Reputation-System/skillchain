@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.19;
 import "./Constants.sol";
 import "./interfaces/IReputationManager.sol";
 import "./interfaces/IChallengeManager.sol";
 import "./interfaces/IRoleManager.sol";
+import "./interfaces/IEvaluationEscrow.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
@@ -179,7 +180,7 @@ contract SolutionManager is AccessControl {
 
     function submitSolution(
         uint256 _challenge_id
-    ) external onlyUserJoinedChallenge(msg.sender, _challenge_id) {
+    ) external onlyUserJoinedChallenge(msg.sender, _challenge_id) {        
         uint256 solutionId = user_challenge_to_solution[_challenge_id][
             msg.sender
         ];
@@ -261,12 +262,12 @@ contract SolutionManager is AccessControl {
             _solution_id,
             block.timestamp * 1000
         );
-    }
-
+    }    
     function evaluatorSubmitScore(
         uint256 _solution_id,
         uint256 _score
     ) external onlySolutionUnderReview(_solution_id) onlyEvaluator {
+        
         EvaluationPool storage pool = solution_to_evaluation_pool[_solution_id];
 
         // Check if evaluator joined this solution
@@ -392,6 +393,8 @@ contract SolutionManager is AccessControl {
                 SystemConsts.SCALING_CONSTANT_FOR_EVALUATION
             );
         }
+
+        // Finalize the solution evaluation without token distribution
     }
 
     // ================= SETTER METHODS =================
@@ -629,5 +632,31 @@ contract SolutionManager is AccessControl {
             solution_to_evaluation_pool[_solution_id].evaluator_submitted[
                 _evaluator_address
             ];
+    }
+
+    function getEvaluationDeviation(
+        address _evaluator_address,
+        uint256 _solution_id
+    ) public view returns (uint256) {
+        require(
+            solutions[_solution_id].progress == SystemEnums.SolutionProgress.REVIEWED,
+            "Solution not yet evaluated"
+        );
+        
+        EvaluationPool storage pool = solution_to_evaluation_pool[_solution_id];
+        
+        require(
+            pool.evaluator_joined[_evaluator_address] &&
+                pool.evaluator_submitted[_evaluator_address],
+            "Evaluator not submitted score"
+        );
+        
+        uint256 evaluatorScore = pool.evaluator_to_evaluation[_evaluator_address].evaluation_score;
+        uint256 finalScore = solutions[_solution_id].score;
+        
+        // Return absolute difference
+        return evaluatorScore > finalScore ? 
+            evaluatorScore - finalScore : 
+            finalScore - evaluatorScore;
     }
 }

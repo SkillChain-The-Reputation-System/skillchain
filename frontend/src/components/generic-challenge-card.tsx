@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import RichTextEditor from "@/components/rich-text-editor";
+import { ChallengePotInfo } from "@/components/challenge-pot-info";
 
 import {
   Calendar,
@@ -61,6 +62,7 @@ export interface ChallengeCardProps {
   showQualityScore?: boolean;
   showParticipants?: boolean;
   allowShowDetailDialog?: boolean;
+  extraContent?: ReactNode;
 }
 
 export function GenericChallengeCard({
@@ -75,6 +77,7 @@ export function GenericChallengeCard({
   showQualityScore = true,
   showParticipants = true,
   allowShowDetailDialog = true,
+  extraContent,
 }: ChallengeCardProps) {
   const [showDetails, setShowDetails] = useState(false);
   const formattedContributeDate = epochToDateString(challenge.contributeAt);
@@ -304,6 +307,9 @@ export function GenericChallengeCard({
             </>
           )}
 
+          <Separator />
+          <ChallengePotInfo challengeId={Number(challenge.id)} />
+          {extraContent}
           <div className="flex justify-end gap-2 mt-4">
             <Button variant="outline" onClick={() => setShowDetails(false)} className="bg-gray-300">
               Close

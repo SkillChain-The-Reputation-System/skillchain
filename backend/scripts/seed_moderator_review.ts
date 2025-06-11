@@ -4,13 +4,11 @@ import ChallengeManagerArtifact from "../artifacts/contracts/ChallengeManager.so
 import fs from "fs";
 import path from "path";
 import Papa from "papaparse";
-import { parseEther } from "viem";
 
 interface ModeratorReviewData {
   moderator_address: string;
   challenge_id: number;
   review_txid: string;
-  stake_amount: number;
   relevance: number;
   technical_correctness: number;
   completeness: number;
@@ -133,7 +131,7 @@ async function seedModeratorReview(challengeIdToSeed: number) {
           review.suggested_solve_time,
         ],
         account: moderatorWalletClient.account,
-        value: parseEther(review.stake_amount.toString()),
+        // Removed value parameter since submitModeratorReview is nonpayable
       });
 
       const reviewTxHash = await moderatorWalletClient.writeContract(
@@ -160,7 +158,7 @@ async function seedModeratorReview(challengeIdToSeed: number) {
 }
 
 async function main() {
-  const challengeIdToSeed = 7; // Choose a challenge ID to seed 3 moderaror reviews
+  const challengeIdToSeed = 6; // Choose a challenge ID to seed 3 moderaror reviews
   if (isNaN(challengeIdToSeed)) {
     console.error("Invalid challenge ID provided.");
     process.exit(1);

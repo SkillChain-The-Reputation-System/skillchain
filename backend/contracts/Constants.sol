@@ -183,9 +183,3 @@ library SystemConsts {
     // ================= RECRUITMENT BUDGET =================
     uint256 public constant RECRUITMENT_BUDGET_MIN = 10e18; // Minimum budget to be considered a recruiter
 }
-
-library MathUtils {
-    function mulConst(uint256 a, uint256 b) external pure returns (uint256) {
-        return (a * b) / Weights.BASE_WEIGHT;
-    }
-}

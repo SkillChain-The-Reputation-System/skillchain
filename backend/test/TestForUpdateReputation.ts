@@ -2,7 +2,6 @@ import hre from "hardhat";
 import path from "path";
 import Papa from "papaparse";
 import fs from "fs";
-import ChallengeManagerModule from "../ignition/modules/ChallengeManager";
 import ModerationEscrowModule from "../ignition/modules/ModerationEscrow";
 
 interface PendingChallengeData {
@@ -366,13 +365,9 @@ describe("Challenge Finalized -> Update Reputation", () => {
       ModerationEscrowModule
     );
     ChallengeManager_contract = moderationDeployment.challengeManager;
-
-    // Get the base deployment to access other contracts
-    const baseDeployment = await hre.ignition.deploy(ChallengeManagerModule);
-    // Get ReputationManager from the module dependency
-    ReputationManager_contract = baseDeployment.reputationManager;
-    // Get RoleManager from the module dependency
-    RoleManager_contract = baseDeployment.roleManager;
+    // Use the RoleManager and ReputationManager from the same deployment
+    ReputationManager_contract = moderationDeployment.reputationManager;
+    RoleManager_contract = moderationDeployment.roleManager;
 
     // Seed reputation scores and grant moderator roles
     await seedReputationScores(

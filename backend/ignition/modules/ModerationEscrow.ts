@@ -1,12 +1,10 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import ChallengeManagerModule from "./ChallengeManager";
 import LibrariesModule from "./Libraries";
-import ReputationManagerModule from "./ReputationManager";
 
 const ModerationEscrowModule = buildModule("ModerationEscrowModule", (m) => {
-  const { challengeManager } = m.useModule(ChallengeManagerModule);
+  const { challengeManager, reputationManager, roleManager } = m.useModule(ChallengeManagerModule);
   const { rewardTokenFormulas } = m.useModule(LibrariesModule);
-  const { reputationManager } = m.useModule(ReputationManagerModule);
 
   // Deploy ModerationEscrow contract (constructor grants DEFAULT_ADMIN_ROLE to deployer)
   const moderationEscrow = m.contract("ModerationEscrow", [], {
@@ -29,7 +27,7 @@ const ModerationEscrowModule = buildModule("ModerationEscrowModule", (m) => {
   // Set the moderation escrow address on the ChallengeManager
   m.call(challengeManager, "setModerationEscrowAddress", [moderationEscrow]);
 
-  return { moderationEscrow, challengeManager };
+  return { moderationEscrow, challengeManager, reputationManager, roleManager };
 });
 
 export default ModerationEscrowModule;

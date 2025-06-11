@@ -1024,10 +1024,16 @@ contract ChallengeManager is AccessControl {
             uint256 reputation_weight = _computeReputationWeight(
                 moderator_domain_reputation
             );
+
+            console.log("[ChallengeManager]: moderator %s has reputation %s",
+                review.moderator,
+                reputation_weight
+            );
             total_weighted_score += review.review_score * reputation_weight;
             total_weight += reputation_weight;
         }
         if (total_weight == 0) {
+            console.log("[ChallengeManager]: return avarage score 0 because total_weight == 0");
             return 0;
         }
         return total_weighted_score / total_weight;

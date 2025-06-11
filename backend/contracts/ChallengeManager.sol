@@ -152,7 +152,7 @@ contract ChallengeManager is AccessControl {
         require(address(role_manager) != address(0), "Role manager not set");
         require(
             role_manager.isContributor(msg.sender, domain),
-            "You are not contributor for this domain"
+            "You are not a contributor for this domain"
         );
         _;
     }

@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "hardhat/console.sol";
 import "./Constants.sol";
+import "./Formulas.sol";
 import "./interfaces/IRoleManager.sol";
 
 /**
@@ -110,11 +111,13 @@ contract ReputationManager is AccessControl {
         SystemEnums.DifficultyLevel _difficulty
     ) external ensureValidValues(_threshold) onlyRole(REPUTATION_UPDATER_ROLE) {
         int256 delta;
-        delta = _computeDeltaBasedOnScore(
+        delta = ReputationFormulas.computeDeltaBasedOnScore(
             _final_score,
             _threshold,
             _scaling_constant,
-            _difficulty
+            _difficulty,
+            SystemConsts.MAX_REWARD_REPUTATION_SCORE_FOR_SOLVING_PROBLEM,
+            SystemConsts.MAX_PENALTY_REPUTATION_SCORE_FOR_SOLVING_PROBLEM
         );
         _applyReputationChange(_user, _domain, delta);
     }
@@ -139,10 +142,12 @@ contract ReputationManager is AccessControl {
             ? (_final_score - _evaluate_score)
             : (_evaluate_score - _final_score);
 
-        delta = _computeDeltaScoreBasedOnDeviation(
+        delta = ReputationFormulas.computeDeltaScoreBasedOnDeviation(
             deviation,
             _threshold,
-            _scaling_constant
+            _scaling_constant,
+            SystemConsts.MAX_REWARD_REPUTATION_SCORE_FOR_EVALUATION,
+            SystemConsts.MAX_PENALTY_REPUTATION_SCORE_FOR_EVALUATION
         );
         _applyReputationChange(_reviewer, _domain, delta);
     }
@@ -164,11 +169,13 @@ contract ReputationManager is AccessControl {
     ) external ensureValidValues(_threshold) onlyRole(REPUTATION_UPDATER_ROLE) {
         int256 delta;
 
-        delta = _computeDeltaBasedOnScore(
+        delta = ReputationFormulas.computeDeltaBasedOnScore(
             _quality_score,
             _threshold,
             _scaling_constant,
-            _difficulty
+            _difficulty,
+            SystemConsts.MAX_REWARD_REPUTATION_SCORE_FOR_CONTRIBUTION,
+            SystemConsts.MAX_PENALTY_REPUTATION_SCORE_FOR_CONTRIBUTION
         );
         _applyReputationChange(_contributor, _domain, delta);
     }
@@ -193,10 +200,12 @@ contract ReputationManager is AccessControl {
             ? (_quality_score - _review_score)
             : (_review_score - _quality_score);
 
-        delta = _computeDeltaScoreBasedOnDeviation(
+        delta = ReputationFormulas.computeDeltaScoreBasedOnDeviation(
             deviation,
             _threshold,
-            _scaling_constant
+            _scaling_constant,
+            SystemConsts.MAX_REWARD_REPUTATION_SCORE_FOR_MODERATION,
+            SystemConsts.MAX_PENALTY_REPUTATION_SCORE_FOR_MODERATION
         );
         _applyReputationChange(_moderator, _domain, delta);
     }
@@ -262,70 +271,6 @@ contract ReputationManager is AccessControl {
         }
     }
 
-    function _computeDeltaBasedOnScore(
-        uint256 _final_score,
-        uint256 _threshold,
-        uint256 _scaling_constant,
-        SystemEnums.DifficultyLevel _difficulty
-    ) internal pure returns (int256) {
-        uint256 difficulty_weight = Weights.getDifficultyWeight(_difficulty);
-        int256 delta;
-        if (_final_score < _threshold) {
-            delta = -int256(
-                MathUtils.mulConst(
-                    _scaling_constant,
-                    MathUtils.mulConst(
-                        difficulty_weight,
-                        Weights.BASE_WEIGHT -
-                            ((Weights.BASE_WEIGHT * _final_score) / _threshold)
-                    )
-                )
-            );
-        } else if (_final_score > _threshold) {
-            delta = int256(
-                MathUtils.mulConst(
-                    _scaling_constant,
-                    MathUtils.mulConst(
-                        difficulty_weight,
-                        (Weights.BASE_WEIGHT * (_final_score - _threshold)) /
-                            (Weights.BASE_WEIGHT - _threshold)
-                    )
-                )
-            );
-        } else {
-            delta = 0;
-        }
-        return delta;
-    }
-
-    function _computeDeltaScoreBasedOnDeviation(
-        uint256 deviation,
-        uint256 _threshold,
-        uint256 _scaling_constant
-    ) internal pure returns (int256) {
-        int256 delta;
-
-        if (deviation < _threshold) {
-            delta = int256(
-                MathUtils.mulConst(
-                    _scaling_constant,
-                    Weights.BASE_WEIGHT -
-                        ((Weights.BASE_WEIGHT * deviation) / _threshold)
-                )
-            );
-        } else if (deviation > _threshold) {
-            delta = -int256(
-                MathUtils.mulConst(
-                    _scaling_constant,
-                    (Weights.BASE_WEIGHT * (deviation - _threshold)) /
-                        (Weights.BASE_WEIGHT - _threshold)
-                )
-            );
-        } else {
-            delta = 0;
-        }
-        return delta;
-    }
 
     // ============================== GETTER FUNCTIONS ==============================
     function getDomainReputation(

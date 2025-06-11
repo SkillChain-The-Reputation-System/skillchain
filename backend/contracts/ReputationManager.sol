@@ -262,11 +262,11 @@ contract ReputationManager is AccessControl {
             ];
             
             for (uint i = 0; i < roles.length; i++) {
-                // Check if user should be granted role
-                role_manager.checkAndGrantRole(_user, roles[i]);
-                
+                // Check if user should be granted role for this domain
+                role_manager.checkAndGrantRole(_user, roles[i], _domain);
+
                 // Check if user should lose role due to reputation decline
-                role_manager.checkAndRevokeRole(_user, roles[i]);
+                role_manager.checkAndRevokeRole(_user, roles[i], _domain);
             }
         }
     }

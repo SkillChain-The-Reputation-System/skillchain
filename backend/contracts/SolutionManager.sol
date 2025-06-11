@@ -136,11 +136,14 @@ contract SolutionManager is AccessControl {
     }
 
     // ================= ROLE-BASED ACCESS CONTROL MODIFIERS =================
-    modifier onlyEvaluator() {
+    modifier onlyEvaluator(uint256 solutionId) {
         require(address(role_manager) != address(0), "Role manager not set");
+        SystemEnums.Domain domain = challenge_manager.getChallengeDomainById(
+            solutions[solutionId].challenge_id
+        );
         require(
-            role_manager.isEvaluator(msg.sender),
-            "Only evaluators can perform this action"
+            role_manager.isEvaluator(msg.sender, domain),
+            "You are not an evaluator for this domain"
         );
         _;
     }
@@ -229,7 +232,7 @@ contract SolutionManager is AccessControl {
 
     function evaluatorJoinSolution(
         uint256 _solution_id
-    ) external onlySolutionUnderReview(_solution_id) onlyEvaluator {
+    ) external onlySolutionUnderReview(_solution_id) onlyEvaluator(_solution_id) {
         //  Do not allow submitters to join the evaluation pool for their own solution
         require(
             solutions[_solution_id].user != msg.sender,
@@ -266,7 +269,7 @@ contract SolutionManager is AccessControl {
     function evaluatorSubmitScore(
         uint256 _solution_id,
         uint256 _score
-    ) external onlySolutionUnderReview(_solution_id) onlyEvaluator {
+    ) external onlySolutionUnderReview(_solution_id) onlyEvaluator(_solution_id) {
         
         EvaluationPool storage pool = solution_to_evaluation_pool[_solution_id];
 

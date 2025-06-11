@@ -148,16 +148,23 @@ contract ChallengeManager is AccessControl {
     }
 
     // Modifier to check if caller is a contributor
-    modifier onlyContributor() {
+    modifier onlyContributor(SystemEnums.Domain domain) {
         require(address(role_manager) != address(0), "Role manager not set");
-        require(role_manager.isContributor(msg.sender), "Not a contributor");
+        require(
+            role_manager.isContributor(msg.sender, domain),
+            "You are not contributor for this domain"
+        );
         _;
     }
 
-    // Modifier to check if caller is a moderator
-    modifier onlyModerator() {
+    // Modifier to check if caller is a moderator for a challenge
+    modifier onlyModerator(uint256 challengeId) {
         require(address(role_manager) != address(0), "Role manager not set");
-        require(role_manager.isModerator(msg.sender), "Not a moderator");
+        SystemEnums.Domain domain = challenges[challengeId].category;
+        require(
+            role_manager.isModerator(msg.sender, domain),
+            "You are not a moderator for this domain"
+        );
         _;
     }
 
@@ -166,7 +173,7 @@ contract ChallengeManager is AccessControl {
         string calldata _title_url,
         string calldata _description_url,
         SystemEnums.Domain _category
-    ) external payable onlyContributor {
+    ) external payable onlyContributor(_category) {
         // Validate bounty amount
         if (msg.value == 0) {
             revert("Zero value");
@@ -231,7 +238,7 @@ contract ChallengeManager is AccessControl {
     function joinReviewPool(
         uint256 _challenge_id,
         string calldata _review_txid
-    ) public onlyBeforeFinalized(_challenge_id) onlyModerator {
+    ) public onlyBeforeFinalized(_challenge_id) onlyModerator(_challenge_id) {
         // Ensure moderation escrow is set
         if (address(moderation_escrow) == address(0)) {
             revert("Moderation escrow not set");
@@ -290,7 +297,7 @@ contract ChallengeManager is AccessControl {
         SystemEnums.DifficultyLevel _suggested_difficulty,
         SystemEnums.Domain _suggested_category,
         uint256 _suggested_solve_time
-    ) public onlyBeforeFinalized(_challenge_id) onlyModerator {
+    ) public onlyBeforeFinalized(_challenge_id) onlyModerator(_challenge_id) {
         // Ensure moderation escrow is set
         if (address(moderation_escrow) == address(0)) {
             revert("Moderation escrow not set");

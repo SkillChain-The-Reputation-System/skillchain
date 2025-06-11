@@ -78,7 +78,7 @@ export function DomainExpertise({
                         {domainLabel}
                       </span>
                     </div>
-                    <div className="relative">
+                    <div className="flex items-center gap-2">
                       <Badge
                         variant={getReputationBadgeVariant(score)}
                         className={cn(

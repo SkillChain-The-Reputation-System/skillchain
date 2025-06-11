@@ -328,12 +328,9 @@ contract SolutionManager is AccessControl {
             int256 evaluator_domain_reputation = reputation_manager
                 .getDomainReputation(evaluator, domain);
 
-            uint256 reputation_weight = SystemConsts
-                .REPUTATION_WEIGHT_FOR_SCORING +
-                Math.log2(
-                    SystemConsts.REPUTATION_WEIGHT_FOR_SCORING +
-                        uint256(evaluator_domain_reputation)
-                );
+            uint256 reputation_weight = evaluator_domain_reputation < 0
+                ? 0
+                : uint256(evaluator_domain_reputation);
 
             total_score += evaluation.evaluation_score * reputation_weight;
             total_reputation_weight += reputation_weight;

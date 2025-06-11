@@ -356,14 +356,7 @@ contract ChallengeManager is AccessControl {
 
         Challenge storage cl = challenges[_challenge_id];
 
-        // Consolidate the challenge category, difficulty level and estimated solve time
-        cl.category = _consolidateChallengeCategory(_challenge_id, _pool);
-        console.log(
-            "Final category for challenge #%s: %s",
-            _challenge_id,
-            uint256(challenges[_challenge_id].category)
-        );
-
+        // Consolidate the challenge difficulty level and estimated solve time
         cl.difficulty_level = _consolidateChallengeDifficulty(
             _challenge_id,
             _pool
@@ -891,27 +884,16 @@ contract ChallengeManager is AccessControl {
      * @param domain_reputation The domain-specific reputation score of a moderator
      * @return The calculated reputation weight used for weighted average scoring
      *
-     * The weight is calculated using a logarithmic scale to prevent
-     * participants with very high reputation from dominating the scoring.
-     * Base weight constant is added to ensure minimum influence.
-     *
-     * The mathematical formula used:
-     * $W = W_{base} + \log_2(W_{base} + R_{domain})$
-     *
-     * Where:
-     * - $W$ is the final reputation weight
-     * - $W_{base}$ is the base reputation weight constant (bootstrap weight)
-     * - $R_{domain}$ is the domain-specific reputation score
+     * The weight is simply the domain reputation score itself. Any
+     * negative reputation results in a weight of zero.
      */
     function _computeReputationWeight(
         int256 domain_reputation
     ) internal pure returns (uint256) {
-        uint256 reputation_weight = SystemConsts.REPUTATION_WEIGHT_FOR_SCORING +
-            Math.log2(
-                SystemConsts.REPUTATION_WEIGHT_FOR_SCORING +
-                    uint256(domain_reputation)
-            );
-        return reputation_weight;
+        if (domain_reputation < 0) {
+            return 0;
+        }
+        return uint256(domain_reputation);
     }
 
     /**

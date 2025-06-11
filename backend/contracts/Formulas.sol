@@ -40,19 +40,6 @@ library RewardTokenFormulas {
         return weight;
     }
 
-    function calculateWeightForEvaluator(
-        uint256 di_raw,
-        uint256 si_raw
-    ) external pure returns (uint256) {
-        uint256 weight = calculateWeight(
-            di_raw,
-            si_raw,
-            SystemConsts.EVALUATION_REWARD_DISTRIBUTION_SPREAD,
-            SystemConsts.EVALUATION_STAKE_INFLUENCE_COEFFICIENT
-        );
-        return weight;
-    }
-
     function calculateReward(
         uint256 weight,
         uint256 total_weight,

@@ -7,7 +7,7 @@ export default function ContributionLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col">
+    <div>
       <RoleRequirementBanner requiredRole={UserRole.CONTRIBUTOR} />
       {children}
     </div>

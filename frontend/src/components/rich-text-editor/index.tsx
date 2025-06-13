@@ -148,9 +148,9 @@ export default function RichTextEditor({
         attributes: {
           // This is general style for Text Area
           class: cn(
-            "w-full dark:bg-input/30 border-input min-w-0 bg-transparent transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
+            "w-full border-input min-w-0 bg-transparent transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
             "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-            editable && "px-3 py-2 rounded-md border border-gray-300 dark:border-input",
+            editable && "px-3 py-2 dark:bg-input/30 rounded-md border border-gray-300 dark:border-input",
             error && "focus-visible:border-destructive focus-visible:ring-destructive/20 border-destructive ring-destructive/20 dark:ring-destructive/40",
             className
           )

@@ -11,9 +11,9 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 contract SolutionManager is AccessControl {
     // ================= STRUCTS =================
     struct Solution {
-        uint256 id;
+        bytes32 id;
         address user;
-        uint256 challenge_id;
+        bytes32 challenge_id;
         string solution_txid;
         uint256 created_at;
         uint256 submitted_at;
@@ -37,35 +37,23 @@ contract SolutionManager is AccessControl {
         uint256 completed_at;
     }
 
-    struct UnderReviewSolutionPreview {
-        uint256 id;
-        address submitter;
-        string challenge_title_url;
-        SystemEnums.Domain domain;
-        string solution_txid;
-        uint256 submitted_at;
-        SystemEnums.SolutionProgress progress;
-        uint256 number_of_joined_evaluators;
-        uint256 total_evaluators;
-    }
-
     // ================= STATE VARIABLES =================
     // Mapping: Solution ID -> Solution
-    mapping(uint256 => Solution) private solutions;
-    // Mapping: Challenge ID + User address -> Solution ID)
-    mapping(uint256 => mapping(address => uint256))
-        private user_challenge_to_solution;
+    mapping(bytes32 => Solution) private solutions;
+    // Mapping: User address + Challenge ID -> Solution ID)
+    mapping(address => mapping(bytes32 => bytes32))
+        public user_challenge_to_solution;
     // Mapping: Challenge ID + User address -> Is user joined challenge
-    mapping(uint256 => mapping(address => bool))
+    mapping(address => mapping(bytes32 => bool))
         private is_user_joined_challenge;
     // Mapping: Evaluator address -> Solution IDs for evaluation pool
-    mapping(address => uint256[]) private evaluator_to_solution;
+    mapping(address => bytes32[]) private evaluator_to_solution;
     // Mapping: Solution ID -> Evaluation Pool
-    mapping(uint256 => EvaluationPool) private solution_to_evaluation_pool;
+    mapping(bytes32 => EvaluationPool) private solution_to_evaluation_pool;
     // Mapping: Solution ID -> Is under review
-    mapping(uint256 => bool) private is_under_review_solution;
+    mapping(bytes32 => bool) private is_under_review_solution;
     // Array of under review solutions
-    uint256[] private solutions_under_review;
+    bytes32[] private solutions_under_review;
 
     IChallengeManager private challenge_manager; // ChallengeManager instance
     address private challenge_manager_address; // ChallengeManager address
@@ -79,33 +67,33 @@ contract SolutionManager is AccessControl {
     // ================= EVENTS =================
     event SolutionBaseCreated(
         address indexed user_address,
-        uint256 indexed challenge_id,
+        bytes32 indexed challenge_id,
         string solution_base_txid,
         uint256 created_at
     );
 
-    event SolutionSubmitted(uint256 indexed solution_id, uint256 submitted_at);
+    event SolutionSubmitted(bytes32 indexed solution_id, uint256 submitted_at);
 
     event SolutionPoolInitialized(
-        uint256 indexed solution_id,
+        bytes32 indexed solution_id,
         uint256 initialized_at
     );
 
     event SolutionJoinedByEvaluator(
         address indexed evaluator,
-        uint256 indexed solution_id,
+        bytes32 indexed solution_id,
         uint256 joined_at
     );
 
     event SolutionScoreSubmittedByEvaluator(
         address indexed evaluator,
-        uint256 indexed solution_id,
+        bytes32 indexed solution_id,
         uint256 score,
         uint256 submitted_at
     );
 
     event SolutionEvaluationFinalized(
-        uint256 indexed solution_id,
+        bytes32 indexed solution_id,
         uint256 score,
         uint256 finalized_at
     );
@@ -118,16 +106,16 @@ contract SolutionManager is AccessControl {
     // ================= MODIFIER =================
     modifier onlyUserJoinedChallenge(
         address _user_address,
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) {
         require(
-            is_user_joined_challenge[_challenge_id][_user_address],
+            is_user_joined_challenge[_user_address][_challenge_id],
             "User not joined challenge"
         );
         _;
     }
 
-    modifier onlySolutionUnderReview(uint256 _solution_id) {
+    modifier onlySolutionUnderReview(bytes32 _solution_id) {
         require(
             is_under_review_solution[_solution_id],
             "Solution not under review"
@@ -136,7 +124,7 @@ contract SolutionManager is AccessControl {
     }
 
     // ================= ROLE-BASED ACCESS CONTROL MODIFIERS =================
-    modifier onlyEvaluator(uint256 solutionId) {
+    modifier onlyEvaluator(bytes32 solutionId) {
         require(address(role_manager) != address(0), "Role manager not set");
         SystemEnums.Domain domain = challenge_manager.getChallengeDomainById(
             solutions[solutionId].challenge_id
@@ -151,27 +139,28 @@ contract SolutionManager is AccessControl {
     // ================= SOLUTION INTERFACTION METHODS =================
     function createSolutionBase(
         address _user_address,
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         string calldata _solution_base_txid,
         uint256 _created_at
-    ) external {
-        uint256 solutionId = total_solutions++;
+    ) external returns (bytes32 id) {
+        id = keccak256(
+            abi.encodePacked(_user_address, _challenge_id, _created_at)
+        );
 
-        // Create base for this solution
-        solutions[solutionId] = Solution({
-            id: solutionId,
-            user: _user_address,
-            challenge_id: _challenge_id,
-            solution_txid: _solution_base_txid,
-            created_at: _created_at,
-            submitted_at: 0,
-            progress: SystemEnums.SolutionProgress.IN_PROGRESS,
-            score: 0
-        });
+        Solution storage sl = solutions[id];
 
-        // Mark solution ID and join state
-        user_challenge_to_solution[_challenge_id][_user_address] = solutionId;
-        is_user_joined_challenge[_challenge_id][_user_address] = true;
+        sl.id = id;
+        sl.user = _user_address;
+        sl.challenge_id = _challenge_id;
+        sl.solution_txid = _solution_base_txid;
+        sl.created_at = _created_at;
+        sl.progress = SystemEnums.SolutionProgress.IN_PROGRESS;
+
+        // Mark solution ID and joined challenge
+        user_challenge_to_solution[_user_address][_challenge_id] = id;
+
+        // Mark joining state
+        is_user_joined_challenge[_user_address][_challenge_id] = true;
 
         emit SolutionBaseCreated(
             _user_address,
@@ -182,34 +171,30 @@ contract SolutionManager is AccessControl {
     }
 
     function submitSolution(
-        uint256 _challenge_id
-    ) external onlyUserJoinedChallenge(msg.sender, _challenge_id) {        
-        uint256 solutionId = user_challenge_to_solution[_challenge_id][
-            msg.sender
-        ];
-        Solution storage sl = solutions[solutionId];
+        bytes32 _challenge_id
+    ) external onlyUserJoinedChallenge(msg.sender, _challenge_id) {
+        bytes32 id = user_challenge_to_solution[msg.sender][_challenge_id];
+        Solution storage sl = solutions[id];
 
         require(
             sl.progress == SystemEnums.SolutionProgress.IN_PROGRESS,
             "Solution not in progress"
         );
 
-        uint256 submittedAt = block.timestamp * 1000;
+        uint256 submittedAt = block.timestamp;
 
         // Update solution state
         sl.submitted_at = submittedAt;
         sl.progress = SystemEnums.SolutionProgress.SUBMITTED;
 
-        emit SolutionSubmitted(solutionId, submittedAt);
+        emit SolutionSubmitted(id, submittedAt);
     }
 
     function putSolutionUnderReview(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) external onlyUserJoinedChallenge(msg.sender, _challenge_id) {
-        uint256 solutionId = user_challenge_to_solution[_challenge_id][
-            msg.sender
-        ];
-        Solution storage sl = solutions[solutionId];
+        bytes32 id = user_challenge_to_solution[msg.sender][_challenge_id];
+        Solution storage sl = solutions[id];
 
         require(
             sl.progress == SystemEnums.SolutionProgress.SUBMITTED,
@@ -219,19 +204,19 @@ contract SolutionManager is AccessControl {
         sl.progress = SystemEnums.SolutionProgress.UNDER_REVIEW;
 
         // Initialize Evaluation Pool for this solution
-        EvaluationPool storage pool = solution_to_evaluation_pool[solutionId];
+        EvaluationPool storage pool = solution_to_evaluation_pool[id];
         pool.total_evaluators = SystemConsts.EVALUATION_QUORUM;
         pool.evaluation_count = 0;
 
         // Mark solution as under review
-        is_under_review_solution[solutionId] = true;
-        solutions_under_review.push(solutionId);
+        is_under_review_solution[id] = true;
+        solutions_under_review.push(id);
 
-        emit SolutionPoolInitialized(solutionId, block.timestamp * 1000);
+        emit SolutionPoolInitialized(id, block.timestamp * 1000);
     }
 
     function evaluatorJoinSolution(
-        uint256 _solution_id
+        bytes32 _solution_id
     ) external onlySolutionUnderReview(_solution_id) onlyEvaluator(_solution_id) {
         //  Do not allow submitters to join the evaluation pool for their own solution
         require(
@@ -263,11 +248,12 @@ contract SolutionManager is AccessControl {
         emit SolutionJoinedByEvaluator(
             msg.sender,
             _solution_id,
-            block.timestamp * 1000
+            block.timestamp
         );
-    }    
+    }
+
     function evaluatorSubmitScore(
-        uint256 _solution_id,
+        bytes32 _solution_id,
         uint256 _score
     ) external onlySolutionUnderReview(_solution_id) onlyEvaluator(_solution_id) {
         
@@ -308,7 +294,7 @@ contract SolutionManager is AccessControl {
     }
 
     function finalizeEvaluation(
-        uint256 _solution_id
+        bytes32 _solution_id
     ) internal onlySolutionUnderReview(_solution_id) {
         Solution storage sl = solutions[_solution_id];
         EvaluationPool storage pool = solution_to_evaluation_pool[_solution_id];
@@ -398,28 +384,40 @@ contract SolutionManager is AccessControl {
     }
 
     // ================= SETTER METHODS =================
-    function setChallengeManagerAddress(address _address) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setChallengeManagerAddress(
+        address _address
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_address != address(0), "Invalid address");
         challenge_manager_address = _address;
         challenge_manager = IChallengeManager(_address);
     }
 
-    function setReputationManagerAddress(address _address) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setReputationManagerAddress(
+        address _address
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_address != address(0), "Invalid address");
         reputation_manager_address = _address;
         reputation_manager = IReputationManager(_address);
     }
 
-    function setRoleManagerAddress(address _address) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setRoleManagerAddress(
+        address _address
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_address != address(0), "Invalid address");
         role_manager_address = _address;
         role_manager = IRoleManager(_address);
     }
 
     // ================= GETTER METHODS =================
-    function getSolutionTxId(
+    function getSolutionTxIdById(
+        bytes32 _solution_id
+    ) public view returns (string memory) {
+        return solutions[_solution_id].solution_txid;
+    }
+
+    function getSolutionTxIdByUserAndChallengeId(
         address _user_address,
-        uint256 _challenge_id
+        bytes32 _challenge_id
     )
         public
         view
@@ -427,32 +425,19 @@ contract SolutionManager is AccessControl {
         returns (string memory)
     {
         return
-            solutions[user_challenge_to_solution[_challenge_id][_user_address]]
+            solutions[user_challenge_to_solution[_user_address][_challenge_id]]
                 .solution_txid;
     }
 
-    function getSolutionPreviewByUserAndChallengeId(
-        address _user_address,
-        uint256 _challenge_id
-    )
-        public
-        view
-        returns (
-            uint256 created_at,
-            SystemEnums.SolutionProgress progress,
-            uint256 score
-        )
-    {
-        Solution storage sl = solutions[
-            user_challenge_to_solution[_challenge_id][_user_address]
-        ];
-
-        return (sl.created_at, sl.progress, sl.score);
+    function getSolutionById(
+        bytes32 _solution_id
+    ) public view returns (Solution memory) {
+        return solutions[_solution_id];
     }
 
     function getSolutionByUserAndChallengeId(
         address _user_address,
-        uint256 _challenge_id
+        bytes32 _challenge_id
     )
         public
         view
@@ -460,112 +445,67 @@ contract SolutionManager is AccessControl {
         returns (Solution memory)
     {
         return
-            solutions[user_challenge_to_solution[_challenge_id][_user_address]];
+            solutions[user_challenge_to_solution[_user_address][_challenge_id]];
     }
 
-    function getSolutionById(
-        uint256 _solution_id
-    ) public view returns (Solution memory) {
-        require(_solution_id < total_solutions, "Solution doesn't exist");
+    function getBriefSolutionInfo(
+        address _user_address,
+        bytes32 _challenge_id
+    ) public view returns (SystemEnums.SolutionProgress, uint256, uint256) {
+        Solution memory sl = solutions[
+            user_challenge_to_solution[_user_address][_challenge_id]
+        ];
 
-        return solutions[_solution_id];
+        return (sl.progress, sl.created_at, sl.score);
     }
 
     function getSolutionByEvaluator(
         address _evaluator_address
-    ) public view returns (UnderReviewSolutionPreview[] memory) {
-        uint256[] memory solutionIds = evaluator_to_solution[
+    ) public view returns (Solution[] memory) {
+        bytes32[] memory solutionIds = evaluator_to_solution[
             _evaluator_address
         ];
 
-        UnderReviewSolutionPreview[]
-            memory solutionList = new UnderReviewSolutionPreview[](
-                solutionIds.length
-            );
+        Solution[] memory solutionList = new Solution[](solutionIds.length);
 
         for (uint256 i = 0; i < solutionIds.length; i++) {
-            uint256 solutionId = solutionIds[i];
-            Solution storage sl = solutions[solutionId];
-            EvaluationPool storage pool = solution_to_evaluation_pool[
-                solutionId
-            ];
-
-            solutionList[i] = UnderReviewSolutionPreview({
-                id: solutionId,
-                submitter: sl.user,
-                challenge_title_url: challenge_manager.getChallengeTitleById(
-                    sl.challenge_id
-                ),
-                domain: challenge_manager.getChallengeDomainById(
-                    sl.challenge_id
-                ),
-                solution_txid: sl.solution_txid,
-                submitted_at: sl.submitted_at,
-                progress: sl.progress,
-                number_of_joined_evaluators: pool.evaluator_list.length,
-                total_evaluators: pool.total_evaluators
-            });
+            solutionList[i] = solutions[solutionIds[i]];
         }
 
         return solutionList;
     }
 
-    function getUnderReviewSolutionPreview()
-        public
-        view
-        returns (UnderReviewSolutionPreview[] memory)
-    {
+    function getUnderReviewSolution() public view returns (Solution[] memory) {
         uint256 count = solutions_under_review.length;
-        UnderReviewSolutionPreview[]
-            memory solutionList = new UnderReviewSolutionPreview[](count);
+        Solution[] memory solutionList = new Solution[](count);
 
         for (uint256 i = 0; i < count; i++) {
-            uint256 solutionId = solutions_under_review[i];
-            Solution storage sl = solutions[solutionId];
-            EvaluationPool storage pool = solution_to_evaluation_pool[
-                solutionId
-            ];
-
-            solutionList[i] = UnderReviewSolutionPreview({
-                id: solutionId,
-                submitter: sl.user,
-                challenge_title_url: challenge_manager.getChallengeTitleById(
-                    sl.challenge_id
-                ),
-                domain: challenge_manager.getChallengeDomainById(
-                    sl.challenge_id
-                ),
-                solution_txid: sl.solution_txid,
-                submitted_at: sl.submitted_at,
-                progress: sl.progress,
-                number_of_joined_evaluators: pool.evaluator_list.length,
-                total_evaluators: pool.total_evaluators
-            });
+            solutionList[i] = solutions[solutions_under_review[i]];
         }
 
         return solutionList;
     }
 
     function getMaxEvaluatorsForSolution(
-        uint256 _solution_id
+        bytes32 _solution_id
     ) public view returns (uint256) {
         return solution_to_evaluation_pool[_solution_id].total_evaluators;
     }
 
     function getNumberOfJoinedEvaluators(
-        uint256 _solution_id
+        bytes32 _solution_id
     ) public view returns (uint256) {
         return solution_to_evaluation_pool[_solution_id].evaluator_list.length;
     }
 
     function getNumberOfSubmittedEvaluations(
-        uint256 _solution_id
+        bytes32 _solution_id
     ) public view returns (uint256) {
         return solution_to_evaluation_pool[_solution_id].evaluation_count;
     }
 
     function getTimestampEvaluationCompleted(
-        uint256 _solution_id
+        bytes32 _solution_id
     ) public view returns (uint256) {
         require(
             solutions[_solution_id].progress ==
@@ -578,7 +518,7 @@ contract SolutionManager is AccessControl {
 
     function getScoreSubmittedByEvaluator(
         address _evaluator_address,
-        uint256 _solution_id
+        bytes32 _solution_id
     ) public view returns (uint256) {
         EvaluationPool storage pool = solution_to_evaluation_pool[_solution_id];
 
@@ -594,7 +534,7 @@ contract SolutionManager is AccessControl {
 
     function getTimestampScoreSubmittedByEvaluator(
         address _evaluator_address,
-        uint256 _solution_id
+        bytes32 _solution_id
     ) public view returns (uint256) {
         EvaluationPool storage pool = solution_to_evaluation_pool[_solution_id];
 
@@ -609,14 +549,14 @@ contract SolutionManager is AccessControl {
 
     function checkUserJoinedChallenge(
         address _user_address,
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) public view returns (bool) {
-        return is_user_joined_challenge[_challenge_id][_user_address];
+        return is_user_joined_challenge[_user_address][_challenge_id];
     }
 
     function checkEvaluatorJoinedSolution(
         address _evaluator_address,
-        uint256 _solution_id
+        bytes32 _solution_id
     ) public view returns (bool) {
         return
             solution_to_evaluation_pool[_solution_id].evaluator_joined[
@@ -626,7 +566,7 @@ contract SolutionManager is AccessControl {
 
     function checkEvalutorSubmittedScore(
         address _evaluator_address,
-        uint256 _solution_id
+        bytes32 _solution_id
     ) public view returns (bool) {
         return
             solution_to_evaluation_pool[_solution_id].evaluator_submitted[
@@ -636,27 +576,31 @@ contract SolutionManager is AccessControl {
 
     function getEvaluationDeviation(
         address _evaluator_address,
-        uint256 _solution_id
+        bytes32 _solution_id
     ) public view returns (uint256) {
         require(
-            solutions[_solution_id].progress == SystemEnums.SolutionProgress.REVIEWED,
+            solutions[_solution_id].progress ==
+                SystemEnums.SolutionProgress.REVIEWED,
             "Solution not yet evaluated"
         );
-        
+
         EvaluationPool storage pool = solution_to_evaluation_pool[_solution_id];
-        
+
         require(
             pool.evaluator_joined[_evaluator_address] &&
                 pool.evaluator_submitted[_evaluator_address],
             "Evaluator not submitted score"
         );
-        
-        uint256 evaluatorScore = pool.evaluator_to_evaluation[_evaluator_address].evaluation_score;
+
+        uint256 evaluatorScore = pool
+            .evaluator_to_evaluation[_evaluator_address]
+            .evaluation_score;
         uint256 finalScore = solutions[_solution_id].score;
-        
+
         // Return absolute difference
-        return evaluatorScore > finalScore ? 
-            evaluatorScore - finalScore : 
-            finalScore - evaluatorScore;
+        return
+            evaluatorScore > finalScore
+                ? evaluatorScore - finalScore
+                : finalScore - evaluatorScore;
     }
 }

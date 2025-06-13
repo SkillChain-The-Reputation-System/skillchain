@@ -468,7 +468,7 @@ contract ChallengeManager is AccessControl {
         );
 
         // Validate payment amount
-        require(msg.value >= 0, "Payment amount must be greater than 0");
+        require(msg.value > 0, "Payment amount must be greater than 0");
 
         // Ensure ChallengeCostManager is set
         require(

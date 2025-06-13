@@ -6,8 +6,7 @@ import Papa from 'papaparse';
 
 interface ChallengeData {
   contributor: string;
-  title_url: string;
-  description_url: string;
+  challenge_txid: string;
   category: number;
   timestamp: number;
   status: number;
@@ -53,8 +52,7 @@ async function seedChallenge() {
         functionName: 'seedChallenge',
         args: [
           challenge.contributor,
-          challenge.title_url,
-          challenge.description_url,
+          challenge.challenge_txid,
           challenge.category,
           challenge.timestamp,
           challenge.status,

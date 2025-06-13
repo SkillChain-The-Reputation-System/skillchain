@@ -3,6 +3,7 @@ pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./interfaces/IReputationManager.sol";
+import "./Constants.sol";
 
 /**
  * @title RoleManager
@@ -19,12 +20,19 @@ contract RoleManager is AccessControl {
     // ============================== STATE VARIABLES ==============================
     IReputationManager public reputation_manager;
 
-    // Minimum reputation requirements for each role
-    mapping(bytes32 => int256) public role_reputation_requirements;
+    // Minimum domain reputation requirements for each role
+    mapping(bytes32 => mapping(SystemEnums.Domain => int256))
+        public role_domain_reputation_requirements;
 
     // ============================== EVENTS ==============================
     event RoleRequirementUpdated(
         bytes32 indexed role,
+        int256 oldRequirement,
+        int256 newRequirement
+    );
+    event DomainRoleRequirementUpdated(
+        bytes32 indexed role,
+        SystemEnums.Domain indexed domain,
         int256 oldRequirement,
         int256 newRequirement
     );
@@ -37,11 +45,25 @@ contract RoleManager is AccessControl {
         address indexed account,
         int256 reputation
     );
+    event DomainRoleGranted(
+        bytes32 indexed role,
+        SystemEnums.Domain indexed domain,
+        address indexed account,
+        int256 reputation
+    );
     event RoleRevokedDueToReputation(
         bytes32 indexed role,
         address indexed account,
         int256 reputation
     );
+
+    // ============================== INTERNAL UTILITIES ======================
+    function getDomainRole(
+        bytes32 role,
+        SystemEnums.Domain domain
+    ) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(role, domain));
+    }
 
     // ============================== MODIFIERS ==============================
     /**
@@ -58,10 +80,13 @@ contract RoleManager is AccessControl {
 
     // ============================== CONSTRUCTOR ==============================
     constructor() {
-        // Set initial reputation requirements
-        role_reputation_requirements[CONTRIBUTOR_ROLE] = 50;
-        role_reputation_requirements[EVALUATOR_ROLE] = 100;
-        role_reputation_requirements[MODERATOR_ROLE] = 200;
+        // Set initial domain reputation requirements for all domains
+        for (uint256 i = 0; i < SystemConsts.N_DOMAIN; i++) {
+            SystemEnums.Domain domain = SystemEnums.Domain(i);
+            role_domain_reputation_requirements[CONTRIBUTOR_ROLE][domain] = 50;
+            role_domain_reputation_requirements[EVALUATOR_ROLE][domain] = 100;
+            role_domain_reputation_requirements[MODERATOR_ROLE][domain] = 200;
+        }
 
         // Grant admin role to deployer
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -97,6 +122,7 @@ contract RoleManager is AccessControl {
      */
     function updateRoleRequirement(
         bytes32 role,
+        SystemEnums.Domain domain,
         int256 _new_requirement
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(
@@ -106,10 +132,17 @@ contract RoleManager is AccessControl {
             "Invalid role"
         );
 
-        int256 old_requirement = role_reputation_requirements[role];
-        role_reputation_requirements[role] = _new_requirement;
+        int256 old_requirement = role_domain_reputation_requirements[role][
+            domain
+        ];
+        role_domain_reputation_requirements[role][domain] = _new_requirement;
 
-        emit RoleRequirementUpdated(role, old_requirement, _new_requirement);
+        emit DomainRoleRequirementUpdated(
+            role,
+            domain,
+            old_requirement,
+            _new_requirement
+        );
     }
 
     /**
@@ -119,6 +152,7 @@ contract RoleManager is AccessControl {
      */
     function emergencyGrantRole(
         bytes32 role,
+        SystemEnums.Domain domain,
         address account
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(
@@ -128,7 +162,8 @@ contract RoleManager is AccessControl {
             "Invalid role"
         );
 
-        _grantRole(role, account);
+        bytes32 domainRole = getDomainRole(role, domain);
+        _grantRole(domainRole, account);
     }
 
     // ============================== PUBLIC FUNCTIONS ==============================
@@ -138,26 +173,33 @@ contract RoleManager is AccessControl {
      * @param role The role to request
      */
     
-    function requestRole(bytes32 role) external onlyWithReputationManager {
+    function requestRole(
+        bytes32 role,
+        SystemEnums.Domain domain
+    ) external onlyWithReputationManager {
         require(
             role == CONTRIBUTOR_ROLE ||
                 role == EVALUATOR_ROLE ||
                 role == MODERATOR_ROLE,
             "Invalid role"
         );
-        int256 current_reputation = reputation_manager.getGlobalReputation(
-            msg.sender
+        int256 current_reputation = reputation_manager.getDomainReputation(
+            msg.sender,
+            domain
         );
-        int256 required_reputation = role_reputation_requirements[role];
+        int256 required_reputation = role_domain_reputation_requirements[role][
+            domain
+        ];
 
         require(
             current_reputation >= required_reputation,
             "Insufficient reputation score"
         );
 
-        _grantRole(role, msg.sender);
+        bytes32 domainRole = getDomainRole(role, domain);
+        _grantRole(domainRole, msg.sender);
 
-        emit RoleGrantedWithReputation(role, msg.sender, current_reputation);
+        emit DomainRoleGranted(role, domain, msg.sender, current_reputation);
     }
 
     /**
@@ -170,6 +212,7 @@ contract RoleManager is AccessControl {
      */ 
     function canGrantRole(
         bytes32 role,
+        SystemEnums.Domain domain,
         address account
     )
         external
@@ -181,8 +224,11 @@ contract RoleManager is AccessControl {
             int256 required_reputation
         )
     {
-        current_reputation = reputation_manager.getGlobalReputation(account);
-        required_reputation = role_reputation_requirements[role];
+        current_reputation = reputation_manager.getDomainReputation(
+            account,
+            domain
+        );
+        required_reputation = role_domain_reputation_requirements[role][domain];
         can_grant = current_reputation >= required_reputation;
     }
 
@@ -194,16 +240,21 @@ contract RoleManager is AccessControl {
      */ 
     function shouldRevokeRole(
         address account,
-        bytes32 role
+        bytes32 role,
+        SystemEnums.Domain domain
     ) external view onlyWithReputationManager returns (bool should_revoke) {
-        if (!hasRole(role, account)) {
+        bytes32 domainRole = getDomainRole(role, domain);
+        if (!hasRole(domainRole, account)) {
             return false;
         }
 
-        int256 current_reputation = reputation_manager.getGlobalReputation(
-            account
+        int256 current_reputation = reputation_manager.getDomainReputation(
+            account,
+            domain
         );
-        int256 required_reputation = role_reputation_requirements[role];
+        int256 required_reputation = role_domain_reputation_requirements[role][
+            domain
+        ];
 
         // Revoke if reputation falls below requirement
         should_revoke = current_reputation < required_reputation;
@@ -217,18 +268,23 @@ contract RoleManager is AccessControl {
 
     function checkAndRevokeRole(
         address account,
-        bytes32 role
+        bytes32 role,
+        SystemEnums.Domain domain
     ) external onlyWithReputationManager {
-        if (!hasRole(role, account)) {
+        bytes32 domainRole = getDomainRole(role, domain);
+        if (!hasRole(domainRole, account)) {
             return;
         }
-        int256 current_reputation = reputation_manager.getGlobalReputation(
-            account
+        int256 current_reputation = reputation_manager.getDomainReputation(
+            account,
+            domain
         );
-        int256 required_reputation = role_reputation_requirements[role];
+        int256 required_reputation = role_domain_reputation_requirements[role][
+            domain
+        ];
 
         if (current_reputation < required_reputation) {
-            _revokeRole(role, account);
+            _revokeRole(domainRole, account);
             emit RoleRevokedDueToReputation(role, account, current_reputation);
         }
     }
@@ -241,10 +297,12 @@ contract RoleManager is AccessControl {
      */
     function checkAndGrantRole(
         address account,
-        bytes32 role
+        bytes32 role,
+        SystemEnums.Domain domain
     ) external onlyWithReputationManager returns (bool granted) {
-        // Check if account already has the role
-        if (hasRole(role, account)) {
+        bytes32 domainRole = getDomainRole(role, domain);
+        // Check if account already has the role for domain
+        if (hasRole(domainRole, account)) {
             return false;
         }
 
@@ -256,14 +314,17 @@ contract RoleManager is AccessControl {
             "Invalid role"
         );
 
-        int256 current_reputation = reputation_manager.getGlobalReputation(
-            account
+        int256 current_reputation = reputation_manager.getDomainReputation(
+            account,
+            domain
         );
-        int256 required_reputation = role_reputation_requirements[role];
+        int256 required_reputation = role_domain_reputation_requirements[role][
+            domain
+        ];
 
         if (current_reputation >= required_reputation) {
-            _grantRole(role, account);
-            emit RoleGrantedWithReputation(role, account, current_reputation);
+            _grantRole(domainRole, account);
+            emit DomainRoleGranted(role, domain, account, current_reputation);
             return true;
         }
 
@@ -276,9 +337,10 @@ contract RoleManager is AccessControl {
      * @return requirement The minimum reputation required
      */
     function getRoleRequirement(
-        bytes32 role
+        bytes32 role,
+        SystemEnums.Domain domain
     ) external view returns (int256 requirement) {
-        return role_reputation_requirements[role];
+        return role_domain_reputation_requirements[role][domain];
     }
 
     /**
@@ -287,7 +349,7 @@ contract RoleManager is AccessControl {
      * @return evaluator_requirement Minimum reputation for evaluator role
      * @return moderator_requirement Minimum reputation for moderator role
      */
-    function getAllRoleRequirements()
+    function getAllRoleRequirements(SystemEnums.Domain domain)
         external
         view
         returns (
@@ -296,9 +358,12 @@ contract RoleManager is AccessControl {
             int256 moderator_requirement
         )
     {
-        contributor_requirement = role_reputation_requirements[CONTRIBUTOR_ROLE];
-        evaluator_requirement = role_reputation_requirements[EVALUATOR_ROLE];
-        moderator_requirement = role_reputation_requirements[MODERATOR_ROLE];
+        contributor_requirement =
+            role_domain_reputation_requirements[CONTRIBUTOR_ROLE][domain];
+        evaluator_requirement =
+            role_domain_reputation_requirements[EVALUATOR_ROLE][domain];
+        moderator_requirement =
+            role_domain_reputation_requirements[MODERATOR_ROLE][domain];
     }
 
     /**
@@ -312,8 +377,9 @@ contract RoleManager is AccessControl {
      * @return is_evaluator Whether currently has evaluator role
      * @return is_moderator Whether currently has moderator role
      */ 
-    function getUserStatus(
-        address account
+    function getUserDomainStatus(
+        address account,
+        SystemEnums.Domain domain
     )
         external
         view
@@ -328,18 +394,25 @@ contract RoleManager is AccessControl {
             bool is_moderator
         )
     {
-        reputation = reputation_manager.getGlobalReputation(account);
+        reputation = reputation_manager.getDomainReputation(account, domain);
 
         can_be_contributor =
-            reputation >= role_reputation_requirements[CONTRIBUTOR_ROLE];
+            reputation >=
+            role_domain_reputation_requirements[CONTRIBUTOR_ROLE][domain];
         can_be_evaluator =
-            reputation >= role_reputation_requirements[EVALUATOR_ROLE];
+            reputation >=
+            role_domain_reputation_requirements[EVALUATOR_ROLE][domain];
         can_be_moderator =
-            reputation >= role_reputation_requirements[MODERATOR_ROLE];
+            reputation >=
+            role_domain_reputation_requirements[MODERATOR_ROLE][domain];
 
-        is_contributor = hasRole(CONTRIBUTOR_ROLE, account);
-        is_evaluator = hasRole(EVALUATOR_ROLE, account);
-        is_moderator = hasRole(MODERATOR_ROLE, account);
+        bytes32 cRole = getDomainRole(CONTRIBUTOR_ROLE, domain);
+        bytes32 eRole = getDomainRole(EVALUATOR_ROLE, domain);
+        bytes32 mRole = getDomainRole(MODERATOR_ROLE, domain);
+
+        is_contributor = hasRole(cRole, account);
+        is_evaluator = hasRole(eRole, account);
+        is_moderator = hasRole(mRole, account);
     }
 
     // ============================== ROLE CHECKING UTILITIES ==============================
@@ -347,22 +420,31 @@ contract RoleManager is AccessControl {
     /**
      * @dev Check if an account is a contributor
      */
-    function isContributor(address account) external view returns (bool) {
-        return hasRole(CONTRIBUTOR_ROLE, account);
+    function isContributor(
+        address account,
+        SystemEnums.Domain domain
+    ) external view returns (bool) {
+        return hasRole(getDomainRole(CONTRIBUTOR_ROLE, domain), account);
     }
 
     /**
      * @dev Check if an account is an evaluator
      */
-    function isEvaluator(address account) external view returns (bool) {
-        return hasRole(EVALUATOR_ROLE, account);
+    function isEvaluator(
+        address account,
+        SystemEnums.Domain domain
+    ) external view returns (bool) {
+        return hasRole(getDomainRole(EVALUATOR_ROLE, domain), account);
     }
 
     /**
      * @dev Check if an account is a moderator
      */
-    function isModerator(address account) external view returns (bool) {
-        return hasRole(MODERATOR_ROLE, account);
+    function isModerator(
+        address account,
+        SystemEnums.Domain domain
+    ) external view returns (bool) {
+        return hasRole(getDomainRole(MODERATOR_ROLE, domain), account);
     }
 
     /**

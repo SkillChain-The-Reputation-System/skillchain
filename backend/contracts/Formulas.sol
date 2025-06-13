@@ -40,19 +40,6 @@ library RewardTokenFormulas {
         return weight;
     }
 
-    function calculateWeightForEvaluator(
-        uint256 di_raw,
-        uint256 si_raw
-    ) external pure returns (uint256) {
-        uint256 weight = calculateWeight(
-            di_raw,
-            si_raw,
-            SystemConsts.EVALUATION_REWARD_DISTRIBUTION_SPREAD,
-            SystemConsts.EVALUATION_STAKE_INFLUENCE_COEFFICIENT
-        );
-        return weight;
-    }
-
     function calculateReward(
         uint256 weight,
         uint256 total_weight,
@@ -129,5 +116,60 @@ library RecruitmentFeeFormulas {
         UD60x18 fee = baseFee.mul(factor);
 
         return intoUint256(fee);
+    }
+}
+library ReputationFormulas {
+    function computeDeltaBasedOnScore(
+        uint256 finalScore,
+        uint256 threshold,
+        uint256 scalingConstant,
+        SystemEnums.DifficultyLevel difficulty,
+        uint256 rewardConstant,
+        uint256 penaltyConstant
+    ) external pure returns (int256) {
+        UD60x18 fs = ud(finalScore * 1e18);
+        UD60x18 thr = ud(threshold * 1e18);
+        UD60x18 scaling = ud(scalingConstant);
+        UD60x18 diffWeight = ud(Weights.getDifficultyWeight(difficulty));
+        UD60x18 reward = ud(rewardConstant * 1e18);
+        UD60x18 penalty = ud(penaltyConstant * 1e18);
+        UD60x18 base = ud(Weights.BASE_WEIGHT * 1e18);
+        if (fs.lte(thr)) {
+            UD60x18 frac = ud(1e18).sub(fs.div(thr));
+            UD60x18 result = scaling.mul(penalty).mul(frac);
+            return -int256(convert(result));
+        } else if (fs.gt(thr)) {
+            UD60x18 frac = fs.sub(thr).div(base.sub(thr));
+            UD60x18 result = scaling.mul(reward).mul(diffWeight).mul(frac);
+            return int256(convert(result));
+        } else {
+            return 0;
+        }
+    }
+
+    function computeDeltaScoreBasedOnDeviation(
+        uint256 deviation,
+        uint256 threshold,
+        uint256 scalingConstant,
+        uint256 rewardConstant,
+        uint256 penaltyConstant
+    ) external pure returns (int256) {
+        UD60x18 dev = ud(deviation * 1e18);
+        UD60x18 thr = ud(threshold * 1e18);
+        UD60x18 scaling = ud(scalingConstant);
+        UD60x18 reward = ud(rewardConstant * 1e18);
+        UD60x18 penalty = ud(penaltyConstant * 1e18);
+        UD60x18 base = ud(Weights.BASE_WEIGHT * 1e18);
+        if (dev.lte(thr)) {
+            UD60x18 frac = ud(1e18).sub(dev.div(thr));
+            UD60x18 result = scaling.mul(reward).mul(frac);
+            return int256(convert(result));
+        } else if (dev.gt(thr)) {
+            UD60x18 frac = dev.sub(thr).div(base.sub(thr));
+            UD60x18 result = scaling.mul(penalty).mul(frac);
+            return -int256(convert(result));
+        } else {
+            return 0;
+        }
     }
 }

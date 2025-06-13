@@ -6,7 +6,6 @@ import { toast } from "react-toastify";
 import dynamic from "next/dynamic";
 import { getUserProfileData } from "@/lib/get/get-user-data-utils";
 import { getUserReputationScore } from "@/lib/get/get-reputation-score-utils";
-import { isUserRegistered } from "@/lib/get/get-user-data-utils";
 import {
   UserProfileInterface,
   UserReputationScoreInterface,
@@ -33,13 +32,11 @@ const NoWalletConnected = dynamic(() => import("./no-wallet-connected").then(mod
   ssr: false,
 });
 
-const RegistrationNotificationBanner = dynamic(() => import("./registration-notification-banner").then(mod => ({ default: mod.RegistrationNotificationBanner })), {
-  ssr: false,
-});
-
 const UserRoles = dynamic(() => import("./user-roles").then(mod => ({ default: mod.UserRoles })), {
   ssr: false,
 });
+
+
 
 export default function ProfileViewPage() {
   const { address } = useAccount();
@@ -50,8 +47,6 @@ export default function ProfileViewPage() {
     useState<UserReputationScoreInterface | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isLoadingReputation, setIsLoadingReputation] = useState(true);
-  const [isRegistered, setIsRegistered] = useState<boolean>(false);
-  const [isLoadingRegistration, setIsLoadingRegistration] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchUserProfile = async () => {
@@ -85,25 +80,11 @@ export default function ProfileViewPage() {
     }
   };
 
-  const checkUserRegistration = async () => {
-    if (!address) return;
 
-    try {
-      setIsLoadingRegistration(true);
-      const userRegistered = await isUserRegistered(address as `0x${string}`);
-      setIsRegistered(userRegistered);
-    } catch (error) {
-      console.error("Error checking user registration:", error);
-      setError("Failed to check registration status");
-    } finally {
-      setIsLoadingRegistration(false);
-    }
-  };
   useEffect(() => {
     if (address) {
       fetchUserProfile();
       fetchReputationScores();
-      checkUserRegistration();
     }
   }, [address]);
 
@@ -121,11 +102,6 @@ export default function ProfileViewPage() {
   }
   return (
     <div className="space-y-6">
-      {/* Registration Notification Banner */}
-      <RegistrationNotificationBanner
-        isRegistered={isRegistered}
-        isLoading={isLoadingRegistration}
-      />
 
       {/* Profile Header */}
       <ProfileHeader
@@ -144,7 +120,7 @@ export default function ProfileViewPage() {
             profileData={profileData}
             isLoadingProfile={isLoadingProfile}
           />
-          
+
           <UserRoles address={address} />
         </div>
 

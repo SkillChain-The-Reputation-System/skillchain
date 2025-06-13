@@ -82,9 +82,9 @@ library Weights {
     uint256 constant BASE_WEIGHT = 100; // Base weight for all values
 
     // --- Challenge Difficulty Level Weights ---
-    uint256 constant EASY_CHALLENGE_WEIGHT = 100; // 100% of base weight
-    uint256 constant MEDIUM_CHALLENGE_WEIGHT = 120; // 120% of base weight
-    uint256 constant HARD_CHALLENGE_WEIGHT = 140; // 140% of base weight
+    uint256 constant EASY_CHALLENGE_WEIGHT = 1e18; // 100% of base weight
+    uint256 constant MEDIUM_CHALLENGE_WEIGHT = 1.2e18; // 120% of base weight
+    uint256 constant HARD_CHALLENGE_WEIGHT = 1.4e18; // 140% of base weight
 
     // --- Challenge Difficulty Level Weights for Cost Calculation ---
     uint256 constant EASY_COST_WEIGHT = 1e18;
@@ -147,10 +147,20 @@ library SystemConsts {
     uint256 public constant REVIEW_THRESHOLD = 80; // The threshold of quality score for a challenge to be approved
 
     // ================= SCALING CONSTANT =================
-    uint256 public constant SCALING_CONSTANT_FOR_SOLVING_PROBLEM = 10; // Scaling constant for solving problem
-    uint256 public constant SCALING_CONSTANT_FOR_EVALUATION = 10; // Scaling constant for evaluation
-    uint256 public constant SCALING_CONSTANT_FOR_MODERATION = 10; // Scaling constant for moderation
-    uint256 public constant SCALING_CONSTANT_FOR_CONTRIBUTION = 10; // Scaling constant for contribution
+    uint256 public constant SCALING_CONSTANT_FOR_SOLVING_PROBLEM = 1e18; // Scaling constant for solving problem
+    uint256 public constant SCALING_CONSTANT_FOR_EVALUATION = 1e18; // Scaling constant for evaluation
+    uint256 public constant SCALING_CONSTANT_FOR_MODERATION = 1e18; // Scaling constant for moderation
+    uint256 public constant SCALING_CONSTANT_FOR_CONTRIBUTION = 1e18; // Scaling constant for contribution
+
+    // ================= MAX REPUTATION REWARD & PENALTY =================
+    uint256 public constant MAX_REWARD_REPUTATION_SCORE_FOR_SOLVING_PROBLEM = 10; // Maximum reward of reputation score for solving a problem
+    uint256 public constant MAX_PENALTY_REPUTATION_SCORE_FOR_SOLVING_PROBLEM = 10; // Maximum penalty of reputation score for solving a problem
+    uint256 public constant MAX_REWARD_REPUTATION_SCORE_FOR_EVALUATION = 10; // Maximum reward of reputation score for evaluating a solution
+    uint256 public constant MAX_PENALTY_REPUTATION_SCORE_FOR_EVALUATION = 10; // Maximum penalty of reputation score for evaluating a solution
+    uint256 public constant MAX_REWARD_REPUTATION_SCORE_FOR_MODERATION = 10; // Maximum reward of reputation score for assessing a challenge
+    uint256 public constant MAX_PENALTY_REPUTATION_SCORE_FOR_MODERATION = 10; // Maximum penalty of reputation score for assessing a challenge
+    uint256 public constant MAX_REWARD_REPUTATION_SCORE_FOR_CONTRIBUTION = 10; // Maximum reward of reputation score for contributing a challenge
+    uint256 public constant MAX_PENALTY_REPUTATION_SCORE_FOR_CONTRIBUTION = 10; // Maximum penalty of reputation score for contributing a challenge
 
     // ================= UPDATE REPUTATION THRESHOLD =================
     uint256 public constant THRESHOLD_OF_SOLVING_PROBLEM_SCORE = 30; // Threshold for final solution score
@@ -158,21 +168,12 @@ library SystemConsts {
     uint256 public constant THRESHOLD_OF_CHALLENGE_QUALITY_SCORE = 80; // Threshold for challenge quality score
     uint256 public constant THRESHOLD_OF_MODERATION_DEVIATION = 60; // Threshold for moderation deviation (Final challenge quality - Score give by moderator)
 
-
     // ================= MODERATION REWARD AND PENALTY =================
-    uint256 public constant MODERATION_REWARD_DEVIATION_THRESHOLD = 70; 
+    uint256 public constant MODERATION_REWARD_DEVIATION_THRESHOLD = 70;
     uint256 public constant MODERATION_MAX_DEVIATION = 100; // The max score of a challenge can have
     uint256 public constant MODERATION_STAKE_PENALTY_RATE = 0.3e18; // gamma - maximum of 30% the stake will be penalized
-    // beta - influence of moderator reputation when distributing reward
-    uint256 public constant MODERATION_REPUTATION_INFLUENCE_COEFFICIENT = 0.4e18;
-    uint256 public constant MODERATION_REWARD_DISTRIBUTION_SPREAD = 0.8e18; // alpha 
-
-    // ================= EVALUATION REWARD AND PENALTY =================
-    uint256 public constant EVALUATION_REWARD_DEVIATION_THRESHOLD = 60; 
-    uint256 public constant EVALUATION_MAX_DEVIATION = 100; // The max score of a challenge can have
-    uint256 public constant EVALUATION_STAKE_PENALTY_RATE = 0.2e18; // gamma - maximum of 30% the stake will be penalized 
-    uint256 public constant EVALUATION_STAKE_INFLUENCE_COEFFICIENT = 0.2e18; // beta
-    uint256 public constant EVALUATION_REWARD_DISTRIBUTION_SPREAD = 0.9e18; // alpha
+    uint256 public constant MODERATION_REPUTATION_INFLUENCE_COEFFICIENT = 0.4e18; // beta - influence of moderator reputation when distributing reward
+    uint256 public constant MODERATION_REWARD_DISTRIBUTION_SPREAD = 0.8e18; // alpha
 
     // ================= RECRUITMENT FEE =================
     // Base platform fee for each hiring action (4 POL scaled to 1e18)
@@ -182,10 +183,4 @@ library SystemConsts {
 
     // ================= RECRUITMENT BUDGET =================
     uint256 public constant RECRUITMENT_BUDGET_MIN = 10e18; // Minimum budget to be considered a recruiter
-}
-
-library MathUtils {
-    function mulConst(uint256 a, uint256 b) external pure returns (uint256) {
-        return (a * b) / Weights.BASE_WEIGHT;
-    }
 }

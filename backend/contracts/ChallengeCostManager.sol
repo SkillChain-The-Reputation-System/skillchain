@@ -21,13 +21,13 @@ contract ChallengeCostManager is AccessControl {
 
     // ========================== EVENTS ==========================
     event TalentPaymentAdded(
-        uint256 indexed challenge_id,
+        bytes32 indexed challenge_id,
         address indexed talent,
         uint256 amount
     );
 
     // ========================== STATE VARIABLES ==========================
-    mapping(uint256 => ChallengeRevenue) private challenge_revenues;
+    mapping(bytes32 => ChallengeRevenue) private challenge_revenues;
 
     IChallengeManager private challenge_manager;
     IModerationEscrow private moderation_escrow;
@@ -42,7 +42,7 @@ contract ChallengeCostManager is AccessControl {
 
     // ========================== MAIN METHODS ==========================
     function _computeCost(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) internal view returns (uint256) {
         require(
             address(challenge_manager) != address(0),
@@ -78,7 +78,7 @@ contract ChallengeCostManager is AccessControl {
     }
 
     function addTalentPayment(
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         address _talent
     ) external payable onlyRole(CHALLENGE_MANAGER_ROLE) {
         require(msg.value > 0, "Payment amount must be greater than 0");
@@ -152,25 +152,25 @@ contract ChallengeCostManager is AccessControl {
     }
 
     // ========================== VIEW METHODS ==========================
-    function getCost(uint256 _challenge_id) external view returns (uint256) {
+    function getCost(bytes32 _challenge_id) external view returns (uint256) {
         return _computeCost(_challenge_id);
     }
 
     function getTalentPayment(
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         address _talent
     ) external view returns (uint256) {
         return challenge_revenues[_challenge_id].talent_payments[_talent];
     }
 
     function getTotalRevenue(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) external view returns (uint256) {
         return challenge_revenues[_challenge_id].total_revenue;
     }
 
     function getTalents(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) external view returns (address[] memory) {
         return challenge_revenues[_challenge_id].talents;
     }

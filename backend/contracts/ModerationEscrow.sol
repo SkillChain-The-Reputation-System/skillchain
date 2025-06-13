@@ -20,12 +20,12 @@ contract ModerationEscrow is AccessControl {
 
     /* ============================= Events ============================= */
     event BountyDeposited(
-        uint256 indexed challenge_id,
+        bytes32 indexed challenge_id,
         address contributor,
         uint256 amount
     );
     event RewardsDistributed(
-        uint256 indexed challenge_id,
+        bytes32 indexed challenge_id,
         uint256 total_reward
     );
 
@@ -43,7 +43,7 @@ contract ModerationEscrow is AccessControl {
     }
 
     /* ============================= STATE VARIABLES ============================= */
-    mapping(uint256 challenge_id => Pot) private pots;
+    mapping(bytes32 challenge_id => Pot) private pots;
 
     IChallengeManager private challenge_manager; // IChallengeManager instance
     address private challenge_manager_address; // ChallengeManager address
@@ -53,7 +53,7 @@ contract ModerationEscrow is AccessControl {
     /* ============================= CONTRIBUTOR FLOW ============================= */ /// @dev Contributor deposits bounty for a challenge (native token only).
     //TODO: This function must be called once the challenge is created (contributed), called by ChallengeManager
     function depositBounty(
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         address _contributor
     ) external payable onlyRole(CHALLENGE_MANAGER_ROLE) {
         if (msg.value == 0) {
@@ -75,7 +75,7 @@ contract ModerationEscrow is AccessControl {
 
     /// @dev Sync moderators by copying the entire moderator list from ChallengeManager's ReviewPool
     function syncModeratorsFromReviewPool(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) external onlyRole(CHALLENGE_MANAGER_ROLE) {
         if (challenge_manager_address == address(0)) {
             revert("ChallengeManagerNotSet");
@@ -93,7 +93,7 @@ contract ModerationEscrow is AccessControl {
 
     // TODO: Add access control to this function, can only be called by ChallengeManager after the challenge is finalized
     function finalizeChallengePot(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) external onlyRole(CHALLENGE_MANAGER_ROLE) {
         Pot storage pot = pots[_challenge_id];
 
@@ -157,7 +157,7 @@ contract ModerationEscrow is AccessControl {
      * @param _challenge_id The challenge ID
      * @return The bounty amount
      */
-    function getBounty(uint256 _challenge_id) external view returns (uint256) {
+    function getBounty(bytes32 _challenge_id) external view returns (uint256) {
         return pots[_challenge_id].bounty;
     }
 
@@ -167,7 +167,7 @@ contract ModerationEscrow is AccessControl {
      * @return The total reward amount
      */
     function getTotalReward(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) external view returns (uint256) {
         return pots[_challenge_id].total_reward;
     }
@@ -179,7 +179,7 @@ contract ModerationEscrow is AccessControl {
      * @return The reward amount
      */
     function getModeratorReward(
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         address moderator
     ) external view returns (uint256) {
         return pots[_challenge_id].moderator_reward[moderator];
@@ -190,7 +190,7 @@ contract ModerationEscrow is AccessControl {
      * @param _challenge_id The challenge ID
      * @return True if rewards have been distributed
      */
-    function isDistributed(uint256 _challenge_id) external view returns (bool) {
+    function isDistributed(bytes32 _challenge_id) external view returns (bool) {
         return pots[_challenge_id].is_distributed;
     }
 
@@ -200,7 +200,7 @@ contract ModerationEscrow is AccessControl {
      * @return Array of moderator addresses
      */
     function getModerators(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) external view returns (address[] memory) {
         return pots[_challenge_id].moderators;
     }
@@ -211,7 +211,7 @@ contract ModerationEscrow is AccessControl {
      * @return Array of passed moderator addresses
      */
     function getPassedModerators(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) external view returns (address[] memory) {
         return pots[_challenge_id].passed_moderators;
     }
@@ -222,13 +222,13 @@ contract ModerationEscrow is AccessControl {
      * @return Array of failed moderator addresses
      */
     function getFailedModerators(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) external view returns (address[] memory) {
         return pots[_challenge_id].failed_moderators;
     }
 
     /* ============================= INTERNAL HOOK ============================= */
-    function _calculateDeviation(uint256 _challenge_id) internal {
+    function _calculateDeviation(bytes32 _challenge_id) internal {
         if (challenge_manager_address == address(0)) {
             revert("ChallengeManagerNotSet");
         }
@@ -257,7 +257,7 @@ contract ModerationEscrow is AccessControl {
         }
     }
 
-    function _calculateReward(uint256 _challenge_id) internal {
+    function _calculateReward(bytes32 _challenge_id) internal {
         Pot storage pot = pots[_challenge_id];
 
         if (
@@ -314,7 +314,7 @@ contract ModerationEscrow is AccessControl {
         }
     }
 
-    function _distributeRewards(uint256 _challenge_id) internal {
+    function _distributeRewards(bytes32 _challenge_id) internal {
         Pot storage pot = pots[_challenge_id];
 
         // Mark the pot as distributed

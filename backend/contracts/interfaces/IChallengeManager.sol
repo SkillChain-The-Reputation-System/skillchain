@@ -15,17 +15,16 @@ interface IChallengeManager {
      * @dev Represents a challenge in the system
      */
     struct Challenge {
-        uint256 id;
+        bytes32 id;
         address contributor;
-        string title_url;
-        string description_url;
+        string txid;
         SystemEnums.Domain category;
-        uint256 contribute_at;
-        SystemEnums.ChallengeStatus status;
+        uint256 contributed_at;
+        uint256 participants;
         uint256 quality_score;
         SystemEnums.DifficultyLevel difficulty_level;
         uint256 solve_time;
-        uint256 completed;
+        SystemEnums.ChallengeStatus status;
     }
 
     /**
@@ -33,7 +32,7 @@ interface IChallengeManager {
      */
     struct ModeratorReview {
         address moderator;
-        uint256 challenge_id;
+        bytes32 challenge_id;
         uint256 review_time;
         string review_txid;
         bool is_submitted;
@@ -49,36 +48,29 @@ interface IChallengeManager {
         uint256 suggested_solve_time;
         uint256 review_score;
     }
+    
+    // ============ Events ============
 
-    /**
-     * @dev Preview structure for joined challenges
-     */
-    struct JoinedChallengesPreview {
-        uint256 challenge_id;
-        string title_url;
-        string description_url;
-        SystemEnums.Domain domain;
-        SystemEnums.SolutionProgress progress;
-        uint256 joined_at;
-        uint256 score;
-    } // ============ Events ============
+    event ChallengeCreated(
+        address indexed contributor,
+        string indexed txid,
+        uint256 created_at
+    );
 
     /**
      * @dev Emitted when a challenge is contributed
      */
     event ChallengeContributed(
-        address indexed contributor,
-        string title_url,
-        string description_url,
+        bytes32 indexed id,
         SystemEnums.Domain category,
-        uint256 contribute_at
+        uint256 contributed_at
     );
 
     /**
      * @dev Emitted when a moderator joins a review pool
      */
     event ReviewPoolJoined(
-        uint256 indexed challenge_id,
+        bytes32 indexed challenge_id,
         address indexed moderator
     );
 
@@ -86,7 +78,7 @@ interface IChallengeManager {
      * @dev Emitted when a challenge is finalized
      */
     event ChallengeFinalized(
-        uint256 indexed challengeId,
+        bytes32 indexed challengeId,
         SystemEnums.ChallengeStatus status,
         uint256 averagePercent
     );
@@ -96,21 +88,22 @@ interface IChallengeManager {
      */
     event ChallengeJoinedByUser(
         address indexed user,
-        uint256 challengeId,
+        bytes32 challengeId,
         uint256 joinedAt
     ); 
     
     // ============ Challenge Management Functions ============
 
+    function createChallenge(
+        string calldata _challenge_txid
+    ) external returns (bytes32 id);
     /**
      * @dev Creates a new challenge contribution
-     * @param _title_url The URL for the challenge title
-     * @param _description_url The URL for the challenge description
+     * @param id The URL for the challenge title
      * @param _category The domain/category of the challenge
      */
     function contributeChallenge(
-        string calldata _title_url,
-        string calldata _description_url,
+        bytes32 id,
         SystemEnums.Domain _category
     ) external payable;
 
@@ -120,7 +113,7 @@ interface IChallengeManager {
      * @param _review_txid The transaction ID for the review
      */
     function joinReviewPool(
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         string calldata _review_txid
     ) external;
 
@@ -139,7 +132,7 @@ interface IChallengeManager {
      * @param _suggested_solve_time Suggested solve time
      */
     function submitModeratorReview(
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         SystemEnums.QualityFactorAnswer _relevance,
         SystemEnums.QualityFactorAnswer _technical_correctness,
         SystemEnums.QualityFactorAnswer _completeness,
@@ -158,7 +151,7 @@ interface IChallengeManager {
      * @param _solution_base_txid The transaction ID for the solution base
      */
     function userJoinChallenge(
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         string calldata _solution_base_txid
     ) external payable;
 
@@ -166,7 +159,7 @@ interface IChallengeManager {
      * @dev Marks a challenge as completed by a user
      * @param _challenge_id The ID of the challenge to mark as completed
      */
-    function userCompleteChallenge(uint256 _challenge_id) external; 
+    function userCompleteChallenge(bytes32 _challenge_id) external; 
     
     // ============ Setter Functions ============
 
@@ -208,7 +201,7 @@ interface IChallengeManager {
      * @return Challenge struct containing challenge details
      */
     function getChallengeById(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) external view returns (Challenge memory);
 
     /**
@@ -248,18 +241,9 @@ interface IChallengeManager {
      * @return ModeratorReview struct containing the review details
      */
     function getModeratorReviewOfChallenge(
-        uint256 challenge_id,
+        bytes32 challenge_id,
         address _moderator_address
     ) external view returns (ModeratorReview memory);
-
-    /**
-     * @dev Returns the title URL of a challenge by its ID
-     * @param _challenge_id The ID of the challenge
-     * @return The title URL of the challenge
-     */
-    function getChallengeTitleById(
-        uint256 _challenge_id
-    ) external view returns (string memory);
 
     /**
      * @dev Returns the domain/category of a challenge by its ID
@@ -267,7 +251,7 @@ interface IChallengeManager {
      * @return The domain of the challenge
      */
     function getChallengeDomainById(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) external view returns (SystemEnums.Domain);
 
     /**
@@ -276,7 +260,7 @@ interface IChallengeManager {
      * @return The difficulty level of the challenge
      */
     function getChallengeDifficultyById(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) external view returns (SystemEnums.DifficultyLevel);
 
     /**
@@ -285,7 +269,7 @@ interface IChallengeManager {
      * @return The quality score of the challenge
      */
     function getChallengeQualityScoreById(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) external view returns (uint256);
 
     /**
@@ -294,7 +278,7 @@ interface IChallengeManager {
      * @return The contributor address of the challenge
      */
     function getChallengeContributorById(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) external view returns (address);
 
     /**
@@ -304,7 +288,7 @@ interface IChallengeManager {
      * @return Boolean indicating if the moderator has joined the review pool
      */
     function getJoinReviewPoolStatus(
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         address _moderator_address
     ) external view returns (bool);
 
@@ -320,7 +304,7 @@ interface IChallengeManager {
      * @return The number of moderators in the review pool
      */
     function getReviewPoolSize(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) external view returns (uint256);
 
     /**
@@ -329,7 +313,7 @@ interface IChallengeManager {
      * @return Boolean indicating if the challenge is finalized
      */
     function getChallengeFinalizedStatus(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) external view returns (bool);
 
     /**
@@ -338,7 +322,7 @@ interface IChallengeManager {
      * @return Array of addresses of users who joined the challenge
      */
     function getChallengeParticipants(
-        uint256 challengeId
+        bytes32 challengeId
     ) external view returns (address[] memory);
 
     /**
@@ -347,7 +331,7 @@ interface IChallengeManager {
      * @return Array of moderator addresses in the review pool
      */
     function getReviewPoolModerators(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) external view returns (address[] memory);
 
     /**
@@ -355,9 +339,9 @@ interface IChallengeManager {
      * @param _user_address The address of the user
      * @return Array of JoinedChallengesPreview structs
      */
-    function getJoinedChallengesByUserForPreview(
-        address _user_address
-    ) external view returns (JoinedChallengesPreview[] memory);
+    // function getJoinedChallengesByUserForPreview(
+    //     address _user_address
+    // ) external view returns (JoinedChallengesPreview[] memory);
 
     /**
      * @dev Returns the review transaction ID for a moderator and challenge
@@ -367,7 +351,7 @@ interface IChallengeManager {
      */
     function getModeratorReviewTxId(
         address _moderator_address,
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) external view returns (string memory);
 
     /**
@@ -377,7 +361,7 @@ interface IChallengeManager {
      * @return The absolute deviation between moderator's score and final quality score
      */
     function getScoreDeviationOfModeratorReview(
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         address _moderator_address
     ) external view returns (uint256);
 
@@ -386,10 +370,9 @@ interface IChallengeManager {
     /**
      * @dev Seeds a challenge with predefined data (for testing/initialization)
      * @param _contributor The address of the contributor
-     * @param _title_url The title URL
-     * @param _description_url The description URL
+     * @param _challenge_txid The challenge TxID
      * @param _category The challenge category
-     * @param _contribute_at The contribution timestamp
+     * @param _contributed_at The contribution timestamp
      * @param _status The challenge status
      * @param _quality_score The quality score
      * @param _difficulty_level The difficulty level
@@ -397,10 +380,9 @@ interface IChallengeManager {
      */
     function seedChallenge(
         address _contributor,
-        string calldata _title_url,
-        string calldata _description_url,
+        string calldata _challenge_txid,
         SystemEnums.Domain _category,
-        uint256 _contribute_at,
+        uint256 _contributed_at,
         SystemEnums.ChallengeStatus _status,
         uint256 _quality_score,
         SystemEnums.DifficultyLevel _difficulty_level,

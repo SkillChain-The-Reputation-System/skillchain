@@ -155,7 +155,7 @@ contract ChallengeManager is AccessControl {
     }
 
     // Modifier to check if caller is a moderator for a challenge
-    modifier onlyModerator(uint256 challengeId) {
+    modifier onlyModerator(bytes32 challengeId) {
         require(address(role_manager) != address(0), "Role manager not set");
         SystemEnums.Domain domain = challenges[challengeId].category;
         require(
@@ -167,8 +167,9 @@ contract ChallengeManager is AccessControl {
 
     // ================= CONTRIBUTION METHODS =================
     function createChallenge(
-        string calldata _challenge_txid
-    ) external onlyContributor returns (bytes32 id) {
+        string calldata _challenge_txid,
+        SystemEnums.Domain _category
+    ) external onlyContributor(_category) returns (bytes32 id) {
         // Validate input
         require(bytes(_challenge_txid).length > 0, "TxId cannot be empty");
 

@@ -146,7 +146,7 @@ export async function createChallenge(
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
     abi: ContractConfig_ChallengeManager.abi,
     functionName: "createChallenge",
-    args: [challenge_upload_res_data.id],
+    args: [challenge_upload_res_data.id, data.category],
     account: address,
   });
 

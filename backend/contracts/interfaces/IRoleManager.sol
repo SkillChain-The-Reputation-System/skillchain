@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
+import "../Constants.sol";
+
 /**
  * @title IRoleManager
  * @dev Interface for the RoleManager contract
@@ -13,12 +15,24 @@ interface IRoleManager {
         int256 oldRequirement,
         int256 newRequirement
     );
+    event DomainRoleRequirementUpdated(
+        bytes32 indexed role,
+        SystemEnums.Domain indexed domain,
+        int256 oldRequirement,
+        int256 newRequirement
+    );
     event ReputationManagerUpdated(
         address indexed old_manager,
         address indexed new_manager
     );
     event RoleGrantedWithReputation(
         bytes32 indexed role,
+        address indexed account,
+        int256 reputation
+    );
+    event DomainRoleGranted(
+        bytes32 indexed role,
+        SystemEnums.Domain indexed domain,
         address indexed account,
         int256 reputation
     );
@@ -49,6 +63,7 @@ interface IRoleManager {
      */
     function updateRoleRequirement(
         bytes32 role,
+        SystemEnums.Domain domain,
         int256 _new_requirement
     ) external;
 
@@ -57,14 +72,18 @@ interface IRoleManager {
      * @param role The role to grant
      * @param account The account to grant the role to
      */
-    function emergencyGrantRole(bytes32 role, address account) external;
+    function emergencyGrantRole(
+        bytes32 role,
+        SystemEnums.Domain domain,
+        address account
+    ) external;
 
     // ============================== PUBLIC FUNCTIONS ==============================
     /**
      * @dev Request a role based on current reputation
      * @param role The role to request
      */
-    function requestRole(bytes32 role) external;
+    function requestRole(bytes32 role, SystemEnums.Domain domain) external;
 
     /**
      * @dev Check if an account can be granted a specific role based on reputation
@@ -76,6 +95,7 @@ interface IRoleManager {
      */
     function canGrantRole(
         bytes32 role,
+        SystemEnums.Domain domain,
         address account
     )
         external
@@ -94,7 +114,8 @@ interface IRoleManager {
      */
     function shouldRevokeRole(
         address account,
-        bytes32 role
+        bytes32 role,
+        SystemEnums.Domain domain
     ) external view returns (bool should_revoke);
 
     /**
@@ -102,7 +123,11 @@ interface IRoleManager {
      * @param account The account to potentially revoke the role from
      * @param role The role to potentially revoke
      */
-    function checkAndRevokeRole(address account, bytes32 role) external;
+    function checkAndRevokeRole(
+        address account,
+        bytes32 role,
+        SystemEnums.Domain domain
+    ) external;
 
     /**
      * @dev Grant a role to an account if they meet reputation requirements and don't already have it
@@ -112,7 +137,8 @@ interface IRoleManager {
      */
     function checkAndGrantRole(
         address account,
-        bytes32 role
+        bytes32 role,
+        SystemEnums.Domain domain
     ) external returns (bool granted);
 
     /**
@@ -121,8 +147,18 @@ interface IRoleManager {
      * @return requirement The minimum reputation required
      */
     function getRoleRequirement(
-        bytes32 role
+        bytes32 role,
+        SystemEnums.Domain domain
     ) external view returns (int256 requirement);
+
+    function getAllRoleRequirements(SystemEnums.Domain domain)
+        external
+        view
+        returns (
+            int256 contributor_requirement,
+            int256 evaluator_requirement,
+            int256 moderator_requirement
+        );
 
     /**
      * @dev Get user's current reputation and role eligibility
@@ -135,8 +171,9 @@ interface IRoleManager {
      * @return is_evaluator Whether currently has evaluator role
      * @return is_moderator Whether currently has moderator role
      */
-    function getUserStatus(
-        address account
+    function getUserDomainStatus(
+        address account,
+        SystemEnums.Domain domain
     )
         external
         view
@@ -156,21 +193,30 @@ interface IRoleManager {
      * @param account The account to check
      * @return Whether the account is a contributor
      */
-    function isContributor(address account) external view returns (bool);
+    function isContributor(
+        address account,
+        SystemEnums.Domain domain
+    ) external view returns (bool);
 
     /**
      * @dev Check if an account is an evaluator
      * @param account The account to check
      * @return Whether the account is an evaluator
      */
-    function isEvaluator(address account) external view returns (bool);
+    function isEvaluator(
+        address account,
+        SystemEnums.Domain domain
+    ) external view returns (bool);
 
     /**
      * @dev Check if an account is a moderator
      * @param account The account to check
      * @return Whether the account is a moderator
      */
-    function isModerator(address account) external view returns (bool);
+    function isModerator(
+        address account,
+        SystemEnums.Domain domain
+    ) external view returns (bool);
 
     /**
      * @dev Check if an account is an admin

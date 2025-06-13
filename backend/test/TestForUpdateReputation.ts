@@ -2,7 +2,7 @@ import hre from "hardhat";
 import path from "path";
 import Papa from "papaparse";
 import fs from "fs";
-import ChallengeManagerModule from "../ignition/modules/ChallengeManager";
+import ModerationEscrowModule from "../ignition/modules/ModerationEscrow";
 
 interface PendingChallengeData {
   contributor: string;
@@ -19,6 +19,7 @@ interface PendingChallengeData {
 interface ModeratorReviewData {
   moderator_address: string;
   challenge_id: number;
+  review_txid: string;
   relevance: number;
   technical_correctness: number;
   completeness: number;
@@ -29,6 +30,137 @@ interface ModeratorReviewData {
   suggested_difficulty: number;
   suggested_category: number;
   suggested_solve_time: number;
+}
+
+interface ReputationSeedData {
+  address: string;
+  COMPUTER_SCIENCE_FUNDAMENTALS: number;
+  SOFTWARE_DEVELOPMENT: number;
+  SYSTEMS_AND_NETWORKING: number;
+  CYBERSECURITY: number;
+  DATA_SCIENCE_AND_ANALYTICS: number;
+  DATABASE_ADMINISTRATION: number;
+  QUALITY_ASSURANCE_AND_TESTING: number;
+  PROJECT_MANAGEMENT: number;
+  USER_EXPERIENCE_AND_DESIGN: number;
+  BUSINESS_ANALYSIS: number;
+  ARTIFICIAL_INTELLIGENCE: number;
+  BLOCKCHAIN_AND_CRYPTOCURRENCY: number;
+  NETWORK_ADMINISTRATION: number;
+  CLOUD_COMPUTING: number;
+}
+
+// Domain enum mapping - matching Constants.sol
+const DOMAINS = {
+  COMPUTER_SCIENCE_FUNDAMENTALS: 0,
+  SOFTWARE_DEVELOPMENT: 1,
+  SYSTEMS_AND_NETWORKING: 2,
+  CYBERSECURITY: 3,
+  DATA_SCIENCE_AND_ANALYTICS: 4,
+  DATABASE_ADMINISTRATION: 5,
+  QUALITY_ASSURANCE_AND_TESTING: 6,
+  PROJECT_MANAGEMENT: 7,
+  USER_EXPERIENCE_AND_DESIGN: 8,
+  BUSINESS_ANALYSIS: 9,
+  ARTIFICIAL_INTELLIGENCE: 10,
+  BLOCKCHAIN_AND_CRYPTOCURRENCY: 11,
+  NETWORK_ADMINISTRATION: 12,
+  CLOUD_COMPUTING: 13,
+} as const;
+
+async function seedReputationScores(
+  publicClient: any,
+  reputationManagerContract: any,
+  ownerClient: any
+) {
+  const csvPath_reputation = path.resolve(__dirname, "reputation_seeds.csv");
+
+  if (!fs.existsSync(csvPath_reputation)) {
+    console.log(
+      `Reputation seeds CSV not found: ${csvPath_reputation}, skipping reputation seeding`
+    );
+    return;
+  }
+
+  console.log(`Reading reputation seeds from: ${csvPath_reputation}`);
+  const reputationDataFile = fs.readFileSync(csvPath_reputation, "utf8");
+
+  const parsed_reputation = Papa.parse<ReputationSeedData>(reputationDataFile, {
+    dynamicTyping: true,
+    header: true,
+    skipEmptyLines: true,
+  });
+
+  const reputationData = parsed_reputation.data;
+
+  if (reputationData.length === 0) {
+    console.log("No reputation data found in CSV file");
+    return;
+  }
+
+  console.log(`Seeding reputation for ${reputationData.length} addresses...`);
+
+  for (const [index, row] of reputationData.entries()) {
+    try {
+      console.log(
+        `Processing address ${index + 1}/${reputationData.length}: ${
+          row.address
+        }`
+      );
+
+      // Process each domain for this address
+      for (const [domainName, domainValue] of Object.entries(DOMAINS)) {
+        const reputationValue = row[domainName as keyof ReputationSeedData];
+
+        // Skip if value is 0 or undefined
+        if (!reputationValue || reputationValue === 0) {
+          continue;
+        }
+
+        // Convert to number to ensure proper type
+        const deltaValue = Number(reputationValue);
+        if (isNaN(deltaValue)) {
+          console.log(
+            `  ⚠️ Invalid value for ${domainName}: ${reputationValue}`
+          );
+          continue;
+        }
+
+        try {
+          console.log(`  Setting ${domainName} to ${deltaValue}...`);
+
+          // Simulate the transaction first
+          const { request } = await publicClient.simulateContract({
+            address: reputationManagerContract.address,
+            abi: reputationManagerContract.abi,
+            functionName: "emergencyAdjustReputation",
+            args: [row.address, domainValue, BigInt(deltaValue)],
+            account: ownerClient.account,
+          });
+
+          // Send the transaction
+          const txHash = await ownerClient.writeContract(request);
+          console.log(`    Transaction sent: ${txHash}`);
+
+          // Wait for transaction confirmation
+          await publicClient.waitForTransactionReceipt({ hash: txHash });
+          console.log(`    ✅ Reputation set successfully for ${domainName}`);
+
+          // Add a small delay between transactions to avoid overwhelming the network
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        } catch (error: any) {
+          console.error(
+            `    ❌ Error setting ${domainName}:`,
+            error?.message || error
+          );
+        }
+      }
+    } catch (error) {
+      console.error(`Error processing reputation for ${row.address}:`, error);
+    }
+  }
+
+  console.log("✅ Reputation seeding completed!");
 }
 
 async function seedModeratorReviews(
@@ -44,7 +176,6 @@ async function seedModeratorReviews(
     header: true,
     skipEmptyLines: true,
   });
-
   const reviews = parsed_reviews.data.filter(
     (review) => review.challenge_id === challengeIdToSeed
   );
@@ -53,6 +184,10 @@ async function seedModeratorReviews(
     console.log(`No reviews found for challenge ID: ${challengeIdToSeed}`);
     return;
   }
+  // Note: Moderator roles and reputation are already seeded in beforeEach
+  console.log(
+    `Processing ${reviews.length} reviews for challenge ${challengeIdToSeed}...`
+  );
 
   for (const [index, review] of reviews.entries()) {
     try {
@@ -81,7 +216,7 @@ async function seedModeratorReviews(
           address: challengeManagerContract.address,
           abi: challengeManagerContract.abi,
           functionName: "joinReviewPool",
-          args: [review.challenge_id],
+          args: [review.challenge_id, review.review_txid],
           account: moderatorWalletClient.account,
         });
         const joinTxHash = await moderatorWalletClient.writeContract(
@@ -216,7 +351,7 @@ describe("Challenge Finalized -> Update Reputation", () => {
   let ownerAddress: string, client1Address: string, client2Address: string;
   let ReputationManager_contract: any;
   let ChallengeManager_contract: any;
-
+  let RoleManager_contract: any;
   beforeEach(async () => {
     // setup clients
     publicClient = await hre.viem.getPublicClient();
@@ -224,13 +359,22 @@ describe("Challenge Finalized -> Update Reputation", () => {
     [ownerClient, client1, client2] = walletClients;
     ownerAddress = ownerClient.account.address;
     client1Address = client1.account.address;
-    client2Address = client2.account.address;
+    client2Address = client2.account.address; // Deploy contracts using Ignition
+    // Deploy ModerationEscrowModule which includes ChallengeManager with proper configuration
+    const moderationDeployment = await hre.ignition.deploy(
+      ModerationEscrowModule
+    );
+    ChallengeManager_contract = moderationDeployment.challengeManager;
+    // Use the RoleManager and ReputationManager from the same deployment
+    ReputationManager_contract = moderationDeployment.reputationManager;
+    RoleManager_contract = moderationDeployment.roleManager;
 
-    // Deploy contracts using Ignition
-    const deployment = await hre.ignition.deploy(ChallengeManagerModule);
-    ChallengeManager_contract = deployment.challengeManager;
-    // Get ReputationManager from the module dependency
-    ReputationManager_contract = deployment["reputationManager"];
+    // Seed reputation scores and grant moderator roles
+    await seedReputationScores(
+      publicClient,
+      ReputationManager_contract,
+      ownerClient
+    );
 
     // Seed pending challenge:
     await seedPendingChallenges(

@@ -1,6 +1,3 @@
-import RoleRequirementBanner from "@/components/role-requirement-banner";
-import { UserRole } from "@/constants/system";
-
 export default function ContributionLayout({
   children,
 }: {
@@ -8,7 +5,6 @@ export default function ContributionLayout({
 }) {
   return (
     <div className="flex flex-col">
-      <RoleRequirementBanner requiredRole={UserRole.CONTRIBUTOR} />
       {children}
     </div>
   );

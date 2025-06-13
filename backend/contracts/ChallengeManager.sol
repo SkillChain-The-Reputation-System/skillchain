@@ -148,16 +148,23 @@ contract ChallengeManager is AccessControl {
     }
 
     // Modifier to check if caller is a contributor
-    modifier onlyContributor() {
+    modifier onlyContributor(SystemEnums.Domain domain) {
         require(address(role_manager) != address(0), "Role manager not set");
-        require(role_manager.isContributor(msg.sender), "Not a contributor");
+        require(
+            role_manager.isContributor(msg.sender, domain),
+            "You are not a contributor for this domain"
+        );
         _;
     }
 
-    // Modifier to check if caller is a moderator
-    modifier onlyModerator() {
+    // Modifier to check if caller is a moderator for a challenge
+    modifier onlyModerator(uint256 challengeId) {
         require(address(role_manager) != address(0), "Role manager not set");
-        require(role_manager.isModerator(msg.sender), "Not a moderator");
+        SystemEnums.Domain domain = challenges[challengeId].category;
+        require(
+            role_manager.isModerator(msg.sender, domain),
+            "You are not a moderator for this domain"
+        );
         _;
     }
 
@@ -166,7 +173,7 @@ contract ChallengeManager is AccessControl {
         string calldata _title_url,
         string calldata _description_url,
         SystemEnums.Domain _category
-    ) external payable onlyContributor {
+    ) external payable onlyContributor(_category) {
         // Validate bounty amount
         if (msg.value == 0) {
             revert("Zero value");
@@ -231,7 +238,7 @@ contract ChallengeManager is AccessControl {
     function joinReviewPool(
         uint256 _challenge_id,
         string calldata _review_txid
-    ) public onlyBeforeFinalized(_challenge_id) onlyModerator {
+    ) public onlyBeforeFinalized(_challenge_id) onlyModerator(_challenge_id) {
         // Ensure moderation escrow is set
         if (address(moderation_escrow) == address(0)) {
             revert("Moderation escrow not set");
@@ -290,7 +297,7 @@ contract ChallengeManager is AccessControl {
         SystemEnums.DifficultyLevel _suggested_difficulty,
         SystemEnums.Domain _suggested_category,
         uint256 _suggested_solve_time
-    ) public onlyBeforeFinalized(_challenge_id) onlyModerator {
+    ) public onlyBeforeFinalized(_challenge_id) onlyModerator(_challenge_id) {
         // Ensure moderation escrow is set
         if (address(moderation_escrow) == address(0)) {
             revert("Moderation escrow not set");
@@ -356,14 +363,7 @@ contract ChallengeManager is AccessControl {
 
         Challenge storage cl = challenges[_challenge_id];
 
-        // Consolidate the challenge category, difficulty level and estimated solve time
-        cl.category = _consolidateChallengeCategory(_challenge_id, _pool);
-        console.log(
-            "Final category for challenge #%s: %s",
-            _challenge_id,
-            uint256(challenges[_challenge_id].category)
-        );
-
+        // Consolidate the challenge difficulty level and estimated solve time
         cl.difficulty_level = _consolidateChallengeDifficulty(
             _challenge_id,
             _pool
@@ -891,27 +891,16 @@ contract ChallengeManager is AccessControl {
      * @param domain_reputation The domain-specific reputation score of a moderator
      * @return The calculated reputation weight used for weighted average scoring
      *
-     * The weight is calculated using a logarithmic scale to prevent
-     * participants with very high reputation from dominating the scoring.
-     * Base weight constant is added to ensure minimum influence.
-     *
-     * The mathematical formula used:
-     * $W = W_{base} + \log_2(W_{base} + R_{domain})$
-     *
-     * Where:
-     * - $W$ is the final reputation weight
-     * - $W_{base}$ is the base reputation weight constant (bootstrap weight)
-     * - $R_{domain}$ is the domain-specific reputation score
+     * The weight is simply the domain reputation score itself. Any
+     * negative reputation results in a weight of zero.
      */
     function _computeReputationWeight(
         int256 domain_reputation
     ) internal pure returns (uint256) {
-        uint256 reputation_weight = SystemConsts.REPUTATION_WEIGHT_FOR_SCORING +
-            Math.log2(
-                SystemConsts.REPUTATION_WEIGHT_FOR_SCORING +
-                    uint256(domain_reputation)
-            );
-        return reputation_weight;
+        if (domain_reputation < 0) {
+            return 0;
+        }
+        return uint256(domain_reputation);
     }
 
     /**
@@ -1042,10 +1031,16 @@ contract ChallengeManager is AccessControl {
             uint256 reputation_weight = _computeReputationWeight(
                 moderator_domain_reputation
             );
+
+            console.log("[ChallengeManager]: moderator %s has reputation %s",
+                review.moderator,
+                reputation_weight
+            );
             total_weighted_score += review.review_score * reputation_weight;
             total_weight += reputation_weight;
         }
         if (total_weight == 0) {
+            console.log("[ChallengeManager]: return avarage score 0 because total_weight == 0");
             return 0;
         }
         return total_weighted_score / total_weight;

@@ -16,24 +16,9 @@ describe("ReputationManager - Initial State", () => {
     client1Address = client1.account.address;
     client2Address = client2.account.address;
 
-    // inside beforeEach
-    const mathUtils = await hre.viem.deployContract(
-      "MathUtils", // library name (fully-qualified)
-      [], // no constructor args
-      { client: { wallet: ownerClient } }
-    );
-
-    const weights = await hre.viem.deployContract("Weights", [], {
-      client: { wallet: ownerClient },
-    });
-
     // deploy ReputationManager
     contract = await hre.viem.deployContract("ReputationManager", [], {
       client: { wallet: ownerClient },
-      libraries: {
-        "contracts/Constants.sol:MathUtils": mathUtils.address,
-        "contracts/Constants.sol:Weights": weights.address,
-      },
     });
 
     publicContract = await hre.viem.getContractAt(
@@ -152,7 +137,7 @@ describe("ReputationManager - Initial State", () => {
     const domain = 0;
     const threshold = BigInt(50);
     const finalScore = BigInt(30);
-    const scalingConstant = BigInt(10);
+    const scalingConstant = BigInt(1e18);
     const difficulty = 0; // EASY
 
     const oldDomain = await publicContract.read.domain_reputation([
@@ -189,7 +174,7 @@ describe("ReputationManager - Initial State", () => {
     const domain = 0;
     const threshold = BigInt(80);
     const finalScore = BigInt(95);
-    const scalingConstant = BigInt(10);
+    const scalingConstant = BigInt(1e18);
     const difficulty = 0; // EASY
 
     const oldDomain = await publicContract.read.domain_reputation([
@@ -226,7 +211,7 @@ describe("ReputationManager - Initial State", () => {
     const domain = 0;
     const threshold = BigInt(80);
     const finalScore = BigInt(95);
-    const scalingConstant = BigInt(10);
+    const scalingConstant = BigInt(1e18);
     const difficulty = 0; // EASY
 
     const oldDomain = await publicContract.read.domain_reputation([
@@ -265,7 +250,7 @@ describe("ReputationManager - Initial State", () => {
     const finalScore = BigInt(90);
     const evaluateScore = BigInt(85);
     const threshold = BigInt(10);
-    const scalingConstant = BigInt(10);
+    const scalingConstant = BigInt(1e18);
 
     const oldDomain = await publicContract.read.domain_reputation([
       ownerAddress,
@@ -302,7 +287,7 @@ describe("ReputationManager - Initial State", () => {
     const finalScore = BigInt(90);
     const evaluateScore = BigInt(80);
     const threshold = BigInt(10);
-    const scalingConstant = BigInt(10);
+    const scalingConstant = BigInt(1e18);
 
     const oldDomain = await publicContract.read.domain_reputation([
       ownerAddress,
@@ -339,7 +324,7 @@ describe("ReputationManager - Initial State", () => {
     const finalScore = BigInt(50);
     const evaluateScore = BigInt(80);
     const threshold = BigInt(10);
-    const scalingConstant = BigInt(10);
+    const scalingConstant = BigInt(1e18);
 
     const oldDomain = await publicContract.read.domain_reputation([
       ownerAddress,
@@ -375,7 +360,7 @@ describe("ReputationManager - Initial State", () => {
     const domain = 0;
     const qualityScore = BigInt(30);
     const threshold = BigInt(50);
-    const scalingConstant = BigInt(10);
+    const scalingConstant = BigInt(1e18);
     const difficulty = 0; // EASY
 
     const oldDomain = await publicContract.read.domain_reputation([
@@ -411,7 +396,7 @@ describe("ReputationManager - Initial State", () => {
     const domain = 0;
     const qualityScore = BigInt(80);
     const threshold = BigInt(80);
-    const scalingConstant = BigInt(10);
+    const scalingConstant = BigInt(1e18);
     const difficulty = 0; // EASY
 
     const oldDomain = await publicContract.read.domain_reputation([
@@ -447,7 +432,7 @@ describe("ReputationManager - Initial State", () => {
     const domain = 0;
     const qualityScore = BigInt(95);
     const threshold = BigInt(80);
-    const scalingConstant = BigInt(10);
+    const scalingConstant = BigInt(1e18);
     const difficulty = 0; // EASY
 
     const oldDomain = await publicContract.read.domain_reputation([
@@ -485,7 +470,7 @@ describe("ReputationManager - Initial State", () => {
     const qualityScore = BigInt(90);
     const reviewScore = BigInt(85);
     const threshold = BigInt(10);
-    const scalingConstant = BigInt(10);
+    const scalingConstant = BigInt(1e18);
 
     const oldDomain = await publicContract.read.domain_reputation([
       ownerAddress,
@@ -521,7 +506,7 @@ describe("ReputationManager - Initial State", () => {
     const qualityScore = BigInt(90);
     const reviewScore = BigInt(80);
     const threshold = BigInt(10);
-    const scalingConstant = BigInt(10);
+    const scalingConstant = BigInt(1e18);
 
     const oldDomain = await publicContract.read.domain_reputation([
       ownerAddress,
@@ -557,7 +542,7 @@ describe("ReputationManager - Initial State", () => {
     const qualityScore = BigInt(50);
     const reviewScore = BigInt(80);
     const threshold = BigInt(10);
-    const scalingConstant = BigInt(10);
+    const scalingConstant = BigInt(1e18);
 
     const oldDomain = await publicContract.read.domain_reputation([
       ownerAddress,
@@ -602,7 +587,7 @@ describe("ReputationManager - Initial State", () => {
     ]);
 
     // scaling constant 1
-    const scale1 = BigInt(1);
+    const scale1 = BigInt(1e18);
     await contract.write.updateSolvingProblemReputation([
       ownerAddress,
       domain,
@@ -618,7 +603,7 @@ describe("ReputationManager - Initial State", () => {
     const delta1 = afterScale1 - baseDomain;
 
     // scaling constant 3
-    const scale3 = BigInt(3);
+    const scale3 = BigInt(3e18);
     await contract.write.updateSolvingProblemReputation([
       ownerAddress,
       domain,
@@ -641,11 +626,11 @@ describe("ReputationManager - Initial State", () => {
     const domain = 0;
     const threshold = BigInt(50);
     const finalScore = BigInt(100);
-    const scalingConstant = BigInt(100);
+    const scalingConstant = BigInt(100e18);
 
     // weights from Constants.sol
-    const easyWeight = BigInt(100);
-    const hardWeight = BigInt(140);
+    const easyWeight = BigInt(1e18);
+    const hardWeight = BigInt(1.4e18);
 
     // initial reputation
     const baseDomain = await publicContract.read.domain_reputation([

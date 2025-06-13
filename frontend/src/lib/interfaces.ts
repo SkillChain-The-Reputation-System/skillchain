@@ -50,17 +50,18 @@ export interface FetchUserDataOnChainOutput {
 }
 
 export interface ChallengeInterface {
-  id: string | undefined;
-  contributor: string | undefined;
-  title: string | undefined;
-  description: string | undefined;
-  category: string | Domain;
-  contributeAt: number;
-  status: string | ChallengeStatus;
-  qualityScore: number;
-  difficultyLevel: ChallengeDifficultyLevel;
-  solveTime: number;
-  completed: number;
+  id: `0x${string}`;
+  contributor: `0x${string}`;
+  title: string;
+  category: Domain;
+  status: ChallengeStatus;
+  bounty: number;
+  description?: string;
+  contributeAt?: number;
+  qualityScore?: number;
+  difficultyLevel?: ChallengeDifficultyLevel;
+  solveTime?: number;
+  participants?: number;
 }
 
 export interface JobPreviewInterface {

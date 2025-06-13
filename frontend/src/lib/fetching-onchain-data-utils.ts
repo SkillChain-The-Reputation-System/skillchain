@@ -13,7 +13,7 @@ import {
 import { wagmiConfig } from "@/features/wallet/Web3Provider";
 import {
   ChallengeInterface,
-  JoinedChallengePreview,
+  BriefJoinedChallenge,
   FetchUserDataOnChainOutput,
   ModeratorReview,
   SolutionInterface,
@@ -151,8 +151,21 @@ export const fetchJoinedReviewPoolChallenges = async (
   return meaning_joined_review_pool_challenges;
 };
 
+export const getChallengeTxIdById = async (
+  challenge_id: `0x${string}`
+): Promise<string> => {
+  const txid = (await readContract(wagmiConfig, {
+    address: ContractConfig_ChallengeManager.address as `0x${string}`,
+    abi: ContractConfig_ChallengeManager.abi,
+    functionName: "getChallengeTxIdById",
+    args: [challenge_id],
+  })) as string;
+
+  return txid;
+};
+
 export const getChallengeById = async (
-  challenge_id: number
+  challenge_id: `0x${string}`
 ): Promise<ChallengeInterface | null> => {
   const challenge = (await readContract(wagmiConfig, {
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
@@ -163,21 +176,23 @@ export const getChallengeById = async (
 
   if (!challenge) return null;
 
-  const title = await fetchStringDataOffChain(challenge.title_url);
-  const description = await fetchStringDataOffChain(challenge.description_url);
+  const challengeDetails = (await fetchStringDataOffChain(
+    `https://gateway.irys.xyz/mutable/${challenge.txid}`
+  )) as any;
 
   return {
-    id: challenge.id.toString(),
+    id: challenge.id,
     contributor: challenge.contributor,
-    title,
-    description,
-    category: challenge.category.toString(),
-    contributeAt: challenge.contribute_at,
+    title: challengeDetails.title,
+    description: challengeDetails.description,
+    category: challengeDetails.category as Domain,
+    contributeAt: challenge.contributed_at,
     status: challenge.status,
     qualityScore: challenge.quality_score,
     difficultyLevel: challenge.difficulty_level,
     solveTime: challenge.solve_time,
-    completed: challenge.completed,
+    participants: challenge.participants,
+    bounty: challengeDetails.bounty,
   };
 };
 
@@ -358,7 +373,7 @@ export const getChallengePotInfo = async (
   };
 };
 
-export const fetchContributedChallenges = async (
+export const fetchChallengesByContributor = async (
   address: `0x${string}`
 ): Promise<ChallengeInterface[]> => {
   const challenges = await readContract(wagmiConfig, {
@@ -370,24 +385,24 @@ export const fetchContributedChallenges = async (
 
   const challengesWithMeaningfulData = await Promise.all(
     (challenges as any[]).map(async (challenge) => {
-      const title = await fetchStringDataOffChain(challenge.title_url);
-      const description = await fetchStringDataOffChain(
-        challenge.description_url
-      );
+      const challengeDetails = (await fetchStringDataOffChain(
+        `https://gateway.irys.xyz/mutable/${challenge.txid}`
+      )) as any;
 
       return {
-        id: challenge.id.toString(),
+        id: challenge.id,
         contributor: challenge.contributor,
-        title,
-        description,
-        category: challenge.category.toString(),
-        contributeAt: challenge.contribute_at,
+        title: challengeDetails.title,
+        description: challengeDetails.description,
+        category: challengeDetails.category as Domain,
+        contributeAt: challenge.contributed_at,
         status: challenge.status,
         qualityScore: challenge.quality_score,
         difficultyLevel: challenge.difficulty_level,
         solveTime: challenge.solve_time,
-        completed: challenge.completed,
-      };
+        participants: challenge.participants,
+        bounty: challengeDetails.bounty,
+      } as ChallengeInterface;
     })
   );
 

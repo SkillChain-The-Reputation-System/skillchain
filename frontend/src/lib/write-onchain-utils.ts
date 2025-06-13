@@ -4,6 +4,7 @@ import {
   fetchJobContentID,
   fetchJobStatus,
   fetchMeetingTxIdById,
+  getChallengeTxIdById,
 } from "@/lib/fetching-onchain-data-utils";
 import {
   writeContract,
@@ -19,10 +20,14 @@ import {
 } from "@/constants/contracts-config";
 import { wagmiConfig } from "@/features/wallet/Web3Provider";
 import { ModeratorReviewValues } from "@/features/moderation/review-challenge-form";
-import { ChallengeFormValues } from "@/features/contribution/contribute-challenge-form";
+import { draftChallengeFormValues } from "@/features/contribution/create-challenge-form";
+import { editChallengeFormValues } from "@/features/contribution/edit-challenge-form";
 import axios from "axios";
 import { uploadImagesInHTML, generateRoomID } from "@/lib/utils";
-import { IrysUploadResponseInterface } from "@/lib/interfaces";
+import {
+  ChallengeInterface,
+  IrysUploadResponseInterface,
+} from "@/lib/interfaces";
 import { JobFormData } from "@/features/jobs-on-recruiter/create/create-job-form";
 import {
   JobApplicationStatus,
@@ -117,51 +122,110 @@ export async function submitModeratorReview(
   return txHash;
 }
 
+export async function createChallenge(
+  address: `0x${string}`,
+  data: draftChallengeFormValues
+) {
+  const handledDescription =
+    data.description && data.description !== "<p></p>"
+      ? await uploadImagesInHTML(data.description)
+      : "";
+
+  const { data: challenge_upload_res_data } =
+    await axios.post<IrysUploadResponseInterface>(
+      "/api/irys/upload/upload-string",
+      {
+        data: JSON.stringify({
+          ...data,
+          description: handledDescription,
+        }),
+      }
+    );
+
+  const { request } = await simulateContract(wagmiConfig, {
+    address: ContractConfig_ChallengeManager.address as `0x${string}`,
+    abi: ContractConfig_ChallengeManager.abi,
+    functionName: "createChallenge",
+    args: [challenge_upload_res_data.id],
+    account: address,
+  });
+
+  const txHash = await writeContract(wagmiConfig, request);
+  const receipt = await waitForTransactionReceipt(wagmiConfig, {
+    hash: txHash,
+  });
+
+  return receipt.status === "success";
+}
+
+export async function saveChallengeDraft(
+  challenge_id: `0x${string}`,
+  data: editChallengeFormValues
+) {
+  const challengeTxId = await getChallengeTxIdById(challenge_id);
+  const tags = [{ name: "Root-TX", value: challengeTxId }];
+
+  const handledDescription =
+    data.description && data.description !== "<p></p>"
+      ? await uploadImagesInHTML(data.description)
+      : "";
+
+  const { data: challenge_upload_res_data } =
+    await axios.post<IrysUploadResponseInterface>(
+      "/api/irys/upload/upload-string",
+      {
+        data: JSON.stringify({
+          ...data,
+          description: handledDescription,
+        }),
+        tags: tags,
+      }
+    );
+
+  return challenge_upload_res_data.success;
+}
+
 export async function contributeChallenge(
   address: `0x${string}`,
-  data: ChallengeFormValues
+  data: ChallengeInterface
 ) {
-  const handledDescription = await uploadImagesInHTML(data.description);
+  const challengeTxId = await getChallengeTxIdById(data.id);
+  const tags = [{ name: "Root-TX", value: challengeTxId }];
 
-  const [
-    { data: title_upload_res_data },
-    { data: description_upload_res_data },
-  ] = await Promise.all([
-    axios.post<IrysUploadResponseInterface>("/api/irys/upload/upload-string", {
-      data: data.title,
-    }),
-    axios.post<IrysUploadResponseInterface>("/api/irys/upload/upload-string", {
-      data: handledDescription,
-    }),
-  ]);
+  const handledDescription =
+    data.description && data.description !== "<p></p>"
+      ? await uploadImagesInHTML(data.description)
+      : "";
 
-  await simulateContract(wagmiConfig, {
+  const { data: challenge_upload_res_data } =
+    await axios.post<IrysUploadResponseInterface>(
+      "/api/irys/upload/upload-string",
+      {
+        data: JSON.stringify({
+          title: data.title,
+          category: data.category,
+          description: handledDescription,
+          bounty: data.bounty,
+        }),
+        tags: tags,
+      }
+    );
+
+  const { request } = await simulateContract(wagmiConfig, {
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
     abi: ContractConfig_ChallengeManager.abi,
     functionName: "contributeChallenge",
-    args: [
-      title_upload_res_data.url,
-      description_upload_res_data.url,
-      data.category,
-    ],
+    args: [data.id, data.category],
     account: address,
     value: parseEther(data.bounty.toString()),
   });
 
-  const txHash = await writeContract(wagmiConfig, {
-    address: ContractConfig_ChallengeManager.address as `0x${string}`,
-    abi: ContractConfig_ChallengeManager.abi,
-    functionName: "contributeChallenge",
-    args: [
-      title_upload_res_data.url,
-      description_upload_res_data.url,
-      data.category,
-    ],
-    account: address,
-    value: parseEther(data.bounty.toString()),
+  const txHash = await writeContract(wagmiConfig, request);
+  const receipt = await waitForTransactionReceipt(wagmiConfig, {
+    hash: txHash,
   });
 
-  return txHash;
+  return receipt.status === "success";
 }
 
 export async function userJoinChallenge(

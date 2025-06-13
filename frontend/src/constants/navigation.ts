@@ -6,7 +6,7 @@ export const pageUrlMapping = {
     account_profile: "/dashboard/account/profile",
     account_settings: "/dashboard/account/settings",
     contribution: "/dashboard/contribution",
-    contribution_contribute: "/dashboard/contribution/contribute",
+    contribution_create: "/dashboard/contribution/create",
     contribution_my_contributions: "/dashboard/contribution/my-contributions",
     moderation: "/dashboard/moderate",
     moderation_summary: "/dashboard/moderation/summary",

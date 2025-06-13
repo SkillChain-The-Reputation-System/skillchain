@@ -18,9 +18,10 @@ export enum Domain {
 }
 
 export enum ChallengeStatus {
-  PENDING = 0,
-  APPROVED = 1,
-  REJECTED = 2,
+  DRAFT = 0,
+  PENDING = 1,
+  APPROVED = 2,
+  REJECTED = 3,
 }
 
 export enum QualityFactorAnswer {
@@ -111,6 +112,7 @@ export const DomainLabels: Record<Domain, string> = {
 };
 
 export const ChallengeStatusLabels: Record<ChallengeStatus, string> = {
+  [ChallengeStatus.DRAFT]: "Draft",
   [ChallengeStatus.PENDING]: "Pending",
   [ChallengeStatus.APPROVED]: "Approved",
   [ChallengeStatus.REJECTED]: "Rejected",

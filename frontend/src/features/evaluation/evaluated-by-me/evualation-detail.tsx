@@ -470,7 +470,7 @@ export default function EvaluationDetail({
                         ChallengeSolutionProgress.REVIEWED ? (
                           <span>
                             {epochToDateTimeString(
-                              solutionReviewPool.completedAt!
+                              solutionReviewPool.completedAt || 0
                             )}
                           </span>
                         ) : (

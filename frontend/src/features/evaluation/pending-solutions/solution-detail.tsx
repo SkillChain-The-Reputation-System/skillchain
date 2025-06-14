@@ -296,9 +296,7 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
                 </span>
                 <div className="flex items-center gap-1.5">
                   <CalendarArrowUp className="h-full max-h-4 w-full max-w-4" />
-                  <span>
-                    {epochToDateString(Number(challenge.contributeAt) * 1000)}
-                  </span>
+                  <span>{epochToDateString(challenge.contributeAt || 0)}</span>
                 </div>
               </div>
 
@@ -372,7 +370,7 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
                   <CalendarDays className="h-full max-h-4 w-full max-w-4" />
                   <span>
                     {epochToDateTimeString(
-                      Number(solutionReviewPool.solution.submittedAt) * 1000
+                      solutionReviewPool.solution.submittedAt || 0
                     )}
                   </span>
                 </div>

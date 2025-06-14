@@ -26,7 +26,7 @@ export const getChallengeCost = async (challengeId: `0x${string}`): Promise<numb
  * @returns The total revenue in ETH
  */
 export const getChallengeTotalRevenue = async (
-  challengeId: number,
+  challengeId: `0x${string}`,
 ): Promise<number> => {
   const revenueInWei = (await readContract(wagmiConfig, {
     address: ContractConfig_ChallengeCostManager.address as `0x${string}`,
@@ -45,7 +45,7 @@ export const getChallengeTotalRevenue = async (
  * @returns The payment amount in ETH
  */
 export const getChallengeTalentPayment = async (
-  challengeId: number,
+  challengeId: `0x${string}`,
   talent: `0x${string}`,
 ): Promise<number> => {
   const paymentInWei = (await readContract(wagmiConfig, {
@@ -64,7 +64,7 @@ export const getChallengeTalentPayment = async (
  * @returns Array of talent addresses
  */
 export const getChallengeTalents = async (
-  challengeId: number,
+  challengeId: `0x${string}`,
 ): Promise<`0x${string}`[]> => {
   const talents = (await readContract(wagmiConfig, {
     address: ContractConfig_ChallengeCostManager.address as `0x${string}`,

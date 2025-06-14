@@ -773,7 +773,7 @@ export const fetchTimestampEvaluationCompleted = async (
       args: [solution_id],
     })) as number;
 
-    return Number(timestamp);
+    return Number(timestamp) * 1000;
   } catch (error) {
     return undefined;
   }

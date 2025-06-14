@@ -18,7 +18,7 @@ import { ChallengeCard } from "./joined-review-pool-challenge-card";
 
 export default function JoinedChallengesView() {
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [categoryFilter, setCategoryFilter] = useState<string | Domain>("All");
   const [sortOption, setSortOption] = useState("date-desc");
   const [joinedChallenges, setJoinedChallenges] = useState<
     ChallengeInterface[]

@@ -27,17 +27,17 @@ import { epochToDateString } from "@/lib/time-utils";
 
 interface ChallengeCardProps {
   challenge: ChallengeInterface;
-  onClick: (id: string) => void;
+  onClick: (id: `0x${string}`) => void;
 }
 
 export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
-  const formattedContributeDate = epochToDateString(challenge.contributeAt);
+  const formattedContributeDate = epochToDateString(challenge.contributeAt || 0);
 
   return (
     <>
       <Card
         className="w-full h-full group gap-2 overflow-hidden bg-blue-100 dark:bg-blue-950/60 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-lg dark:hover:shadow-blue-900/20 border-transparent hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer select-none"
-        onClick={() => onClick(challenge.id!)}>
+        onClick={() => onClick(challenge.id)}>
         <CardHeader>
           <div className="space-y-1.5">
             <CardTitle className="text-sm font-bold line-clamp-2 wrap-anywhere">
@@ -83,7 +83,7 @@ export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
 
               <div className="flex items-center">
                 <Users className="h-full max-h-3.5 w-full max-w-3.5 mr-1" />
-                <span>{challenge.completed} done</span>
+                <span>{challenge.participants} people</span>
               </div>
             </div>
           </div>

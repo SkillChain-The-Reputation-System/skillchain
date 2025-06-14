@@ -8,7 +8,7 @@ import { wagmiConfig } from "@/features/wallet/Web3Provider";
  * @param challengeId The ID of the challenge to get the cost for
  * @returns The cost amount in ETH as a number
  */
-export const getChallengeCost = async (challengeId: number): Promise<number> => {
+export const getChallengeCost = async (challengeId: `0x${string}`): Promise<number> => {
   const costInWei = (await readContract(wagmiConfig, {
     address: ContractConfig_ChallengeCostManager.address as `0x${string}`,
     abi: ContractConfig_ChallengeCostManager.abi,

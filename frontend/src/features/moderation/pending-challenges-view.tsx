@@ -21,7 +21,7 @@ export default function PendingChallengesView() {
   const { address } = useAccount();
 
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [categoryFilter, setCategoryFilter] = useState<Domain | string>("All");
   const [sortOption, setSortOption] = useState("date-desc");
   const [reload, setReload] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,7 +59,7 @@ export default function PendingChallengesView() {
       return;
     }
     try {
-      const txHash = await joinReviewPool(Number(challenge_id), address);
+      const txHash = await joinReviewPool(challenge_id as `0x${string}`, address);
       await waitForTransaction(txHash);
       setReload((prev) => !prev); // Trigger a reload to fetch updated data
       toast.success("Successfully joined the review pool!");

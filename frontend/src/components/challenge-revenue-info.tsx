@@ -28,7 +28,7 @@ import {
 } from "./ui/tooltip";
 
 interface ChallengeRevenueInfoProps {
-  challengeId: number;
+  challengeId: `0x${string}`;
 }
 
 // Utility functions for truncation and formatting

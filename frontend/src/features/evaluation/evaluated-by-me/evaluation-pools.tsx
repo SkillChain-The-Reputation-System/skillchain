@@ -14,8 +14,8 @@ import SearchBar from "@/features/evaluation/evaluated-by-me/search-bar"
 import { Pagination } from "@/components/pagination";
 
 // Import utils
-import { fetchUnderReviewSolutionsPreviewByEvaluator } from "@/lib/fetching-onchain-data-utils";
-import { UnderReviewSolutionPreview } from "@/lib/interfaces";
+import { fetchUnderReviewSolutionsEvaluator } from "@/lib/fetching-onchain-data-utils";
+import { BriefUnderReviewSolution } from "@/lib/interfaces";
 import { Domain } from "@/constants/system"
 import { pageUrlMapping } from "@/constants/navigation";
 
@@ -32,7 +32,7 @@ export default function EvaluationPools({ query, domain, page }: EvaluationPools
   const router = useRouter();       // programmatically change routes
 
   const [isLoading, setIsLoading] = useState(false);
-  const [solutions, setSolution] = useState<UnderReviewSolutionPreview[]>([]);
+  const [solutions, setSolution] = useState<BriefUnderReviewSolution[]>([]);
 
   const [searchQuery, setSearchQuery] = useState(query);
   const [domainFilter, setDomainFilter] = useState<Domain | null>(domain);
@@ -41,9 +41,9 @@ export default function EvaluationPools({ query, domain, page }: EvaluationPools
   const [currentPage, setCurrentPage] = useState(page);
   const itemsPerPage = 8;  // number of challenges displayed per page
 
-  const cardOnClick = (id: string) => {
+  const cardOnClick = (solutionId: `0x${string}`) => {
     router.push(
-      pageUrlMapping.evaluation_evaluatedbyme + `/${id}`
+      pageUrlMapping.evaluation_evaluatedbyme + `/${solutionId}`
     );
   }
 
@@ -117,7 +117,7 @@ export default function EvaluationPools({ query, domain, page }: EvaluationPools
 
       setIsLoading(true);
       try {
-        const fetchedSolutions = await fetchUnderReviewSolutionsPreviewByEvaluator(address);
+        const fetchedSolutions = await fetchUnderReviewSolutionsEvaluator(address);
         setSolution(fetchedSolutions);
       } catch (error) {
         console.error("Error fetching under review solutions:", error);
@@ -150,8 +150,8 @@ export default function EvaluationPools({ query, domain, page }: EvaluationPools
             currentSearchedSolutions.length > 0 ? (
               <div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-6xl mx-auto">
-                  {currentSearchedSolutions.map((solution, index) => (
-                    <SolutionCard key={index} solutionPreview={solution} onClick={cardOnClick} forEvaluator />
+                  {currentSearchedSolutions.map((solution) => (
+                    <SolutionCard key={solution.solutionId} solutionPreview={solution} onClick={cardOnClick} forEvaluator />
                   ))}
                 </div>
 

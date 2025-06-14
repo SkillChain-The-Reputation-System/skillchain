@@ -44,7 +44,7 @@ export function ChallengeCard({
     try {
       const joined = await getJoinReviewPoolStatus(
         address,
-        Number(challenge.id)
+        challenge.id
       );
       setIsJoined(joined);
     } catch (error) {
@@ -64,9 +64,9 @@ export function ChallengeCard({
     async function fetchPoolInfo() {
       try {
         const [size, q, is_finalized] = await Promise.all([
-          getReviewPoolSize(Number(challenge.id)),
+          getReviewPoolSize(challenge.id),
           getReviewQuorum(),
-          getChallengeFinalizedStatus(Number(challenge.id)),
+          getChallengeFinalizedStatus(challenge.id),
         ]);
         setIsChallengeFinalized(is_finalized);
         setIsFullReviewPool(size >= q);

@@ -80,7 +80,7 @@ export function GenericChallengeCard({
   extraContent,
 }: ChallengeCardProps) {
   const [showDetails, setShowDetails] = useState(false);
-  const formattedContributeDate = epochToDateString(challenge.contributeAt);
+  const formattedContributeDate = epochToDateString(challenge.contributeAt || 0);
   const [poolSize, setPoolSize] = useState<number | null>(null);
   const [quorum, setQuorum] = useState<number | null>(null);
 
@@ -88,7 +88,7 @@ export function GenericChallengeCard({
     async function fetchPoolInfo() {
       try {
         const [size, q] = await Promise.all([
-          getReviewPoolSize(Number(challenge.id)),
+          getReviewPoolSize(challenge.id),
           getReviewQuorum(),
         ]);
         setPoolSize(size);
@@ -189,7 +189,7 @@ export function GenericChallengeCard({
               {showParticipants && (
                 <div className="flex items-center">
                   <Users className="h-3.5 w-3.5 mr-1" />
-                  <span>{challenge.completed} completed</span>
+                  <span>{challenge.participants} people</span>
                 </div>
               )}
             </div>
@@ -267,7 +267,7 @@ export function GenericChallengeCard({
               </span>
               <div className="flex items-center">
                 <Users className="h-full max-h-3.5 w-full max-w-3.5 mr-1 text-muted-foreground" />
-                <span>{challenge.completed} completed</span>
+                <span>{challenge.participants} people</span>
               </div>
             </div>
 
@@ -308,7 +308,7 @@ export function GenericChallengeCard({
           )}
 
           <Separator />
-          <ChallengePotInfo challengeId={Number(challenge.id)} />
+          <ChallengePotInfo challengeId={challenge.id} />
           {extraContent}
           <div className="flex justify-end gap-2 mt-4">
             <Button variant="outline" onClick={() => setShowDetails(false)} className="bg-gray-300">

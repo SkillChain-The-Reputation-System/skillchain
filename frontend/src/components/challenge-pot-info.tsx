@@ -54,7 +54,7 @@ const copyToClipboard = async (text: string, type: string) => {
 };
 
 interface ChallengePotInfoProps {
-  challengeId: number;
+  challengeId: `0x${string}`;
 }
 
 export function ChallengePotInfo({ challengeId }: ChallengePotInfoProps) {

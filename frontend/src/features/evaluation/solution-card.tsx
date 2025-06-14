@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 // Import utils
-import { UnderReviewSolutionPreview } from "@/lib/interfaces";
+import { BriefUnderReviewSolution } from "@/lib/interfaces";
 import {
   ChallengeSolutionProgress,
   Domain,
@@ -27,8 +27,8 @@ import {
 import { epochToDateTimeString } from "@/lib/time-utils";
 
 interface SolutionCardProps {
-  solutionPreview: UnderReviewSolutionPreview;
-  onClick: (id: string) => void;
+  solutionPreview: BriefUnderReviewSolution;
+  onClick: (solutionId: `0x${string}`) => void;
   forEvaluator?: boolean
 }
 

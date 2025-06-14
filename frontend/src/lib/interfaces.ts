@@ -57,7 +57,7 @@ export interface ChallengeInterface {
   status: ChallengeStatus;
   bounty: number;
   description?: string;
-  contributeAt?: number;
+  contributeAt?: number;  // Epoch Unix Timestamp (miliseconds)
   qualityScore?: number;
   difficultyLevel?: ChallengeDifficultyLevel;
   solveTime?: number;
@@ -118,23 +118,23 @@ export interface ModeratorReview {
 }
 
 export interface SolutionInterface {
-  solutionId: string;
-  user: string | undefined;
-  challengeId: string | undefined;
-  solution: string | undefined;
+  solutionId: `0x${string}`;
+  user: `0x${string}`;
+  challengeId: `0x${string}`;
+  solution?: string;
   createdAt: number;
-  submittedAt: number;
+  submittedAt?: number; // Epoch Unix Timestamp (miliseconds)
   progress: ChallengeSolutionProgress;
-  score: number;
+  score?: number;
 }
 
-export interface JoinedChallengePreview {
-  challengeId: string;
-  title: string | undefined;
-  description: string | undefined;
-  category: string | Domain;
+export interface BriefJoinedChallenge {
+  challengeId: `0x${string}`;
+  title: string;
+  description: string;
+  category: Domain;
   progress: ChallengeSolutionProgress;
-  joinedAt: number;
+  joinedAt: number; // Epoch Unix Timestamp (miliseconds)
   score: number;
 }
 
@@ -151,13 +151,13 @@ export interface ReviewData {
   suggested_solve_time: number;
 }
 
-export interface UnderReviewSolutionPreview {
-  solutionId: string;
-  submitter: string | undefined;
-  challengeTitle: string | undefined;
-  category: string | Domain;
-  solution: string | undefined;
-  submittedAt: number;
+export interface BriefUnderReviewSolution {
+  solutionId: `0x${string}`;
+  submitter: `0x${string}`;
+  challengeTitle: string;
+  category: Domain;
+  solution: string;
+  submittedAt: number; // Epoch Unix Timestamp (miliseconds)
   progress: ChallengeSolutionProgress;
   numberOfEvaluators: number;
   totalEvaluators: number;
@@ -168,13 +168,13 @@ export interface SolutionReviewPool {
   numberOfEvaluators: number;
   numberOfSubmittedEvaluation: number;
   totalEvaluators: number;
-  completedAt: number | undefined;
+  completedAt?: number; // Epoch Unix Timestamp (miliseconds)
 }
 
 export interface EvaluationInterface {
   isSubmitted: boolean;
   score: number | undefined;
-  submittedAt: number | undefined;
+  submittedAt: number | undefined; // Epoch Unix Timestamp (miliseconds)
 }
 
 export interface BriefJobApplicationInterface {
@@ -270,7 +270,6 @@ export interface MeetingRoomInterface {
   status: MeetingStatus;
   note: string | undefined;
 }
-
 
 export interface ModeratorPotInfo {
   moderator: string;

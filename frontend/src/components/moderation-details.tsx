@@ -65,14 +65,14 @@ export function ModerationDetails({ challenge }: ModerationDetailsProps) {
       try {
         setLoading(true);
         const [finalized, potInfo] = await Promise.all([
-          getChallengeFinalizedStatus(Number(challenge.id)),
-          getChallengePotInfo(Number(challenge.id)),
+          getChallengeFinalizedStatus(challenge.id),
+          getChallengePotInfo(challenge.id),
         ]);
         setIsFinalized(finalized);
         const infos = await Promise.all(
           potInfo.moderators.map(async (mod) => {
             const review = await getModeratorReviewOfChallenge(
-              Number(challenge.id),
+              challenge.id,
               mod.moderator as `0x${string}`
             );
             let reputation: number | undefined = undefined;
@@ -84,7 +84,7 @@ export function ModerationDetails({ challenge }: ModerationDetailsProps) {
                   challenge.category as Domain
                 );
                 deviation = await getScoreDeviationOfModeratorReview(
-                  Number(challenge.id),
+                  challenge.id,
                   mod.moderator as `0x${string}`
                 );
               } catch (err) {

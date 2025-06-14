@@ -4,22 +4,12 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 
 // Import UI components
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
 // Import icons
-import {
-  Calendar,
-  Clock,
-  Users,
-  ShieldUser,
-} from "lucide-react";
+import { Calendar, Clock, Users, ShieldUser } from "lucide-react";
 
 // Import utils and constants
 import { cn } from "@/lib/utils";
@@ -42,7 +32,11 @@ interface ChallengeContentProps {
   className?: string; // Add className prop for styling
 }
 
-export function ChallengeContent({ challenge, reload, className }: ChallengeContentProps) {
+export function ChallengeContent({
+  challenge,
+  reload,
+  className,
+}: ChallengeContentProps) {
   const [poolSize, setPoolSize] = useState<number | null>(null);
   const [quorum, setQuorum] = useState<number | null>(null);
 
@@ -56,7 +50,7 @@ export function ChallengeContent({ challenge, reload, className }: ChallengeCont
 
       try {
         const [size, q] = await Promise.all([
-          getReviewPoolSize(Number(challenge.id)),
+          getReviewPoolSize(challenge.id),
           getReviewQuorum(),
         ]);
         setPoolSize(size);
@@ -82,7 +76,7 @@ export function ChallengeContent({ challenge, reload, className }: ChallengeCont
           >
             {
               ChallengeStatusLabels[
-              challenge.status as keyof typeof ChallengeStatusLabels
+                challenge.status as keyof typeof ChallengeStatusLabels
               ]
             }
           </Badge>
@@ -122,7 +116,7 @@ export function ChallengeContent({ challenge, reload, className }: ChallengeCont
             </span>
             <div className="flex items-center">
               <Users className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-              <span>{challenge.completed} completed</span>
+              <span>{challenge.participants} people</span>
             </div>
           </div>
 
@@ -145,9 +139,7 @@ export function ChallengeContent({ challenge, reload, className }: ChallengeCont
               Quality Score
             </span>
             <div className="flex items-center">
-              <span>
-                {challenge.qualityScore || "Not rated yet"}
-              </span>
+              <span>{challenge.qualityScore || "Not rated yet"}</span>
             </div>
           </div>
         </div>

@@ -212,7 +212,7 @@ contract SolutionManager is AccessControl {
         is_under_review_solution[id] = true;
         solutions_under_review.push(id);
 
-        emit SolutionPoolInitialized(id, block.timestamp * 1000);
+        emit SolutionPoolInitialized(id, block.timestamp);
     }
 
     function evaluatorJoinSolution(
@@ -268,7 +268,7 @@ contract SolutionManager is AccessControl {
             "Already submitted score"
         );
 
-        uint256 submittedAt = block.timestamp * 1000;
+        uint256 submittedAt = block.timestamp;
 
         // Store evaluation
         pool.evaluator_to_evaluation[msg.sender] = Evaluation({
@@ -331,7 +331,7 @@ contract SolutionManager is AccessControl {
         sl.score = final_score;
         sl.progress = SystemEnums.SolutionProgress.REVIEWED;
         // Update completed timestamp
-        uint256 done_at = block.timestamp * 1000;
+        uint256 done_at = block.timestamp;
         pool.completed_at = done_at;
 
         // Remove from under review tracking

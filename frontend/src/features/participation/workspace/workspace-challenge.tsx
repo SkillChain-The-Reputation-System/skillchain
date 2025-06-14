@@ -13,7 +13,6 @@ import {
   FormControl,
   FormMessage,
   FormItem,
-  FormLabel,
 } from "@/components/ui/form";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
@@ -28,7 +27,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Toaster, toast } from "sonner";
 import ChallengeDetailsSkeleton from "@/features/participation/challenge-details-skeleton";
@@ -37,7 +35,6 @@ import RichTextEditor from "@/components/rich-text-editor";
 // Import lucide-react icons
 import {
   ArrowBigUpDash,
-  ArrowLeft,
   CalendarArrowUp,
   Clock,
   Star,
@@ -71,7 +68,6 @@ import {
   saveSolutionDraft,
   submitSolution,
   putSolutionUnderReview,
-  waitForTransaction,
 } from "@/lib/write-onchain-utils";
 import {
   getChallengeById,
@@ -86,21 +82,19 @@ import { pageUrlMapping } from "@/constants/navigation";
 import { getErrorMessage } from "@/lib/error-utils";
 
 const solutionSchema = z.object({
-  solution: z
-    .string()
-    .max(10000, "Solution must be less than 4000 characters"),
+  solution: z.string().max(10000, "Solution must be less than 4000 characters"),
 });
 
 export type SolutionFormValues = z.infer<typeof solutionSchema>;
 
 interface WorkspaceChallengeDetailsProps {
-  challenge_id: number;
+  challenge_id: `0x${string}`;
 }
 
 export default function WorkspaceChallenge({
   challenge_id,
 }: WorkspaceChallengeDetailsProps) {
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -132,17 +126,24 @@ export default function WorkspaceChallenge({
 
       try {
         setSubmitting(true);
-        const txHash = await submitSolution(
-          Number(challenge_id),
+        const success = await submitSolution(
+          challenge_id,
           address,
           data.solution
         );
-        await waitForTransaction(txHash);
-        toast.success("You have submitted this solution");
-        setIsDialogOpen(false);
+
+        if (success) {
+          const fetchedSolution = await fetchSolutionByUserAndChallengeId(
+            address,
+            challenge_id
+          );
+          setSolution(fetchedSolution);
+          toast.success("You have submitted this solution");
+        }
       } catch (error: any) {
         toast.error(getErrorMessage(error));
       } finally {
+        setIsDialogOpen(false);
         setSubmitting(false);
       }
     })();
@@ -157,10 +158,16 @@ export default function WorkspaceChallenge({
 
       try {
         setSavingDraft(true);
-        await saveSolutionDraft(Number(challenge_id), address, data.solution);
-        toast.info("Saved draft for this solution");
+        const success = await saveSolutionDraft(
+          challenge_id,
+          address,
+          data.solution
+        );
+        if (success) {
+          toast.info("Saved draft for this solution");
+        }
       } catch (error: any) {
-        toast.error("Error occurs. Please try again!");
+        toast.error(getErrorMessage(error));
       } finally {
         setSavingDraft(false);
       }
@@ -174,12 +181,19 @@ export default function WorkspaceChallenge({
 
     try {
       setPuttingUnderReview(true);
-      await putSolutionUnderReview(Number(challenge_id), address);
-      toast.success("You've put this solution under review");
-      setIsDialogOpen(false);
+      const success = await putSolutionUnderReview(challenge_id, address);
+      if (success) {
+        const fetchedSolution = await fetchSolutionByUserAndChallengeId(
+          address,
+          challenge_id
+        );
+        setSolution(fetchedSolution);
+        toast.success("You've put this solution under review");
+      }
     } catch (error: any) {
       toast.error("Error occurs. Please try again!");
     } finally {
+      setIsDialogOpen(false);
       setPuttingUnderReview(false);
     }
   }
@@ -202,7 +216,7 @@ export default function WorkspaceChallenge({
         if (fetchedSolution && fetchedSolution.solution?.trim().length !== 0)
           form.reset({
             solution: fetchedSolution.solution,
-          })
+          });
 
         if (
           fetchedSolution?.progress == ChallengeSolutionProgress.UNDER_REVIEW ||
@@ -213,57 +227,30 @@ export default function WorkspaceChallenge({
             fetchedTotalEvaluators,
             fetchedCompletedDate,
           ] = await Promise.all([
-            fetchNumberOfJoinedEvaluatorsById(
-              Number(fetchedSolution.solutionId)
-            ),
-            fetchMaxEvaluatorsForSolutionById(
-              Number(fetchedSolution.solutionId)
-            ),
-            fetchTimestampEvaluationCompleted(
-              Number(fetchedSolution.solutionId)
-            ),
+            fetchNumberOfJoinedEvaluatorsById(fetchedSolution.solutionId),
+            fetchMaxEvaluatorsForSolutionById(fetchedSolution.solutionId),
+            fetchTimestampEvaluationCompleted(fetchedSolution.solutionId),
           ]);
 
           setJoinedEvaluators(fetchedEvaluators);
           setTotalEvaluators(fetchedTotalEvaluators);
           setCompletedDate(fetchedCompletedDate);
         }
-      } catch (error) {
-        toast.error("Error occurs. Please try again");
+      } catch (error: any) {
+        toast.error(getErrorMessage(error));
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [address]);
-
-  // fetch new solution data after submitting solution
-  useEffect(() => {
-    const fetchedData = async () => {
-      if (!address) return;
-
-      try {
-        const fetchedSolution = await fetchSolutionByUserAndChallengeId(
-          address,
-          challenge_id
-        );
-        setSolution(fetchedSolution);
-      } catch (error) {
-        toast.error("Error occurs. Please try again");
-      }
-    };
-
-    fetchedData();
-  }, [submitting, puttingUnderReview]);
+  }, [isConnected]);
 
   return (
     <>
       {address &&
         (isLoading ? (
-          <div>
-            <ChallengeDetailsSkeleton />
-          </div>
+          <ChallengeDetailsSkeleton />
         ) : challenge && solution ? (
           <div>
             <Toaster position="top-right" richColors />
@@ -323,15 +310,6 @@ export default function WorkspaceChallenge({
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-
-            <Button
-              size="sm"
-              className="mb-6 gap-1 cursor-pointer"
-              onClick={() => router.back()}
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Workspace
-            </Button>
 
             <div className="space-y-8">
               {/* Header section */}
@@ -419,7 +397,7 @@ export default function WorkspaceChallenge({
                       </span>
                       <div className="flex items-center gap-1.5">
                         <Users className="h-full max-h-4 w-full max-w-4" />
-                        <span>{challenge.completed} done</span>
+                        <span>{challenge.participants} people</span>
                       </div>
                     </div>
 
@@ -429,7 +407,9 @@ export default function WorkspaceChallenge({
                       </span>
                       <div className="flex items-center gap-1.5">
                         <CalendarArrowUp className="h-full max-h-4 w-full max-w-4" />
-                        <span>{epochToDateString(challenge.contributeAt)}</span>
+                        <span>
+                          {epochToDateString(challenge.contributeAt || 0)}
+                        </span>
                       </div>
                     </div>
 
@@ -489,7 +469,7 @@ export default function WorkspaceChallenge({
                       <div className="flex items-center gap-1.5">
                         <Trophy className="h-full max-h-4 w-full max-w-4 text-amber-500 dark:text-amber-400 fill-current" />
                         <span>
-                          {solution.progress !=
+                          {solution.progress !==
                           ChallengeSolutionProgress.REVIEWED
                             ? "--"
                             : solution.score}
@@ -498,7 +478,7 @@ export default function WorkspaceChallenge({
                     </div>
 
                     {/* Display submission date if solution is submitted */}
-                    {solution.progress !=
+                    {solution.progress !==
                       ChallengeSolutionProgress.IN_PROGRESS && (
                       <div className="flex flex-col gap-1.5">
                         <span className="text-sm font-medium text-muted-foreground">
@@ -507,13 +487,15 @@ export default function WorkspaceChallenge({
                         <div className="flex items-center gap-1.5">
                           <CalendarDays className="h-full max-h-4 w-full max-w-4" />
                           <span>
-                            {epochToDateTimeString(solution.submittedAt)}
+                            {epochToDateTimeString(
+                              Number(solution.submittedAt) * 1000
+                            )}
                           </span>
                         </div>
                       </div>
                     )}
 
-                    {solution.progress ==
+                    {solution.progress ===
                       ChallengeSolutionProgress.UNDER_REVIEW && (
                       <div className="flex flex-col gap-1.5">
                         <span className="text-sm font-medium text-muted-foreground">
@@ -528,7 +510,7 @@ export default function WorkspaceChallenge({
                       </div>
                     )}
 
-                    {solution.progress ==
+                    {solution.progress ===
                       ChallengeSolutionProgress.REVIEWED && (
                       <>
                         <div className="flex flex-col gap-1.5">
@@ -579,16 +561,18 @@ export default function WorkspaceChallenge({
                             <FormControl>
                               <RichTextEditor
                                 {...field}
-                                className="max-w-5xl min-h-[320px]"
+                                className="max-w-[1401px] min-h-[320px]"
                                 placeholder="What is your solution about this challenge..."
-                                editable={solution.progress == ChallengeSolutionProgress.IN_PROGRESS}
+                                editable={
+                                  solution.progress ==
+                                  ChallengeSolutionProgress.IN_PROGRESS
+                                }
                               />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-
                     </form>
                   </Form>
 

@@ -68,7 +68,7 @@ import { statusStyles } from "@/constants/styles";
 import { cn } from "@/lib/utils";
 
 export default function ContributionDashboard() {
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
   const pathname = usePathname();
   const [isLoading, setIsLoading] = useState(false);
   const [challenges, setChallenges] = useState<ChallengeInterface[]>([]);
@@ -95,7 +95,7 @@ export default function ContributionDashboard() {
     };
 
     fetchData();
-  }, [isConnected]);
+  }, [address]);
 
   const columns: ColumnDef<ChallengeInterface>[] = [
     {
@@ -118,7 +118,7 @@ export default function ContributionDashboard() {
       header: ({ column }) => {
         return (
           <div className="flex items-center">
-            Bounty Amount (ETH)
+            Bounty (ETH)
             <Button
               variant="ghost"
               onClick={() => {

@@ -39,7 +39,7 @@ export default function Explore({ query, sort, domain, page }: ExploreProps) {
   const [currentPage, setCurrentPage] = useState(page);
   const itemsPerPage = 8;  // number of challenges displayed per page
 
-  const cardOnClick = (id: string) => {
+  const cardOnClick = (id: `0x${string}`) => {
     router.push(
       pageUrlMapping.participation_explore + `/${id}`
     );
@@ -128,7 +128,7 @@ export default function Explore({ query, sort, domain, page }: ExploreProps) {
           // case ChallengeSortOption.VOTES:
           //   return Number(b.totalVotes ?? 0) - Number(a.totalVotes ?? 0);
           case ChallengeSortOption.PARTICIPANTS:
-            return Number(b.completed ?? 0) - Number(a.completed ?? 0);
+            return Number(b.participants ?? 0) - Number(a.participants ?? 0);
           case ChallengeSortOption.NEWEST:
           default:
             return Number(b.contributeAt) - Number(a.contributeAt);
@@ -168,8 +168,8 @@ export default function Explore({ query, sort, domain, page }: ExploreProps) {
           currentSearchedChallenges.length > 0 ? (
             <div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-6xl mx-auto">
-                {currentSearchedChallenges.map((challenge, index) => (
-                  <ChallengeCard key={index} challenge={challenge} onClick={cardOnClick} />
+                {currentSearchedChallenges.map((challenge) => (
+                  <ChallengeCard key={challenge.id} challenge={challenge} onClick={cardOnClick} />
                 ))}
               </div>
 

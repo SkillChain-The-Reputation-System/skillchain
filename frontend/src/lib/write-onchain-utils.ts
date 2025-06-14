@@ -38,7 +38,7 @@ import { ScheduleMeetingFormData } from "@/features/meetings/schedule-meeting-fo
 import { parseEther } from "viem";
 
 export async function joinReviewPool(
-  challengeId: number,
+  challengeId: `0x${string}`,
   address: `0x${string}`
 ) {
   // Upload empty review data to Irys to get the fixed transaction id
@@ -74,7 +74,7 @@ export async function waitForTransaction(txHash: `0x${string}`): Promise<void> {
 }
 
 export async function submitModeratorReview(
-  challengeId: number,
+  challengeId: `0x${string}`,
   address: `0x${string}`,
   data: ModeratorReviewValues
 ) {
@@ -229,7 +229,7 @@ export async function contributeChallenge(
 }
 
 export async function userJoinChallenge(
-  challengeId: number,
+  challengeId: `0x${string}`,
   address: `0x${string}`,
   paymentAmount: number
 ) {
@@ -239,7 +239,7 @@ export async function userJoinChallenge(
       { data: " " }
     );
 
-  await simulateContract(wagmiConfig, {
+  const { request } = await simulateContract(wagmiConfig, {
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
     abi: ContractConfig_ChallengeManager.abi,
     functionName: "userJoinChallenge",
@@ -248,20 +248,16 @@ export async function userJoinChallenge(
     value: parseEther(paymentAmount.toString()),
   });
 
-  const txHash = await writeContract(wagmiConfig, {
-    address: ContractConfig_ChallengeManager.address as `0x${string}`,
-    abi: ContractConfig_ChallengeManager.abi,
-    functionName: "userJoinChallenge",
-    args: [challengeId, solution_upload_res.id],
-    account: address,
-    value: parseEther(paymentAmount.toString()),
+  const txHash = await writeContract(wagmiConfig, request);
+  const receipt = await waitForTransactionReceipt(wagmiConfig, {
+    hash: txHash,
   });
 
-  return txHash;
+  return receipt.status === "success";
 }
 
 export async function saveSolutionDraft(
-  challengeId: number,
+  challengeId: `0x${string}`,
   address: `0x${string}`,
   solution: string
 ) {
@@ -273,17 +269,20 @@ export async function saveSolutionDraft(
 
   const handledSolution = await uploadImagesInHTML(solution);
 
-  await axios.post<IrysUploadResponseInterface>(
-    "/api/irys/upload/upload-string",
-    {
-      data: handledSolution,
-      tags: tags,
-    }
-  );
+  const { data: solution_upload_res } =
+    await axios.post<IrysUploadResponseInterface>(
+      "/api/irys/upload/upload-string",
+      {
+        data: handledSolution,
+        tags: tags,
+      }
+    );
+
+  return solution_upload_res.success;
 }
 
 export async function saveModeratorReviewDraft(
-  challengeId: number,
+  challengeId: `0x${string}`,
   address: `0x${string}`,
   review_data: string
 ) {
@@ -304,7 +303,7 @@ export async function saveModeratorReviewDraft(
 }
 
 export async function submitSolution(
-  challengeId: number,
+  challengeId: `0x${string}`,
   address: `0x${string}`,
   solution: string
 ) {
@@ -324,7 +323,7 @@ export async function submitSolution(
     }
   );
 
-  await simulateContract(wagmiConfig, {
+  const { request } = await simulateContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
     abi: ContractConfig_SolutionManager.abi,
     functionName: "submitSolution",
@@ -332,22 +331,19 @@ export async function submitSolution(
     account: address,
   });
 
-  const txHash = await writeContract(wagmiConfig, {
-    address: ContractConfig_SolutionManager.address as `0x${string}`,
-    abi: ContractConfig_SolutionManager.abi,
-    functionName: "submitSolution",
-    args: [challengeId],
-    account: address,
+  const txHash = await writeContract(wagmiConfig, request);
+  const receipt = await waitForTransactionReceipt(wagmiConfig, {
+    hash: txHash,
   });
 
-  return txHash;
+  return receipt.status === "success";
 }
 
 export async function putSolutionUnderReview(
-  challengeId: number,
+  challengeId: `0x${string}`,
   address: `0x${string}`
 ) {
-  await simulateContract(wagmiConfig, {
+  const { request } = await simulateContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
     abi: ContractConfig_SolutionManager.abi,
     functionName: "putSolutionUnderReview",
@@ -355,22 +351,19 @@ export async function putSolutionUnderReview(
     account: address,
   });
 
-  const txHash = await writeContract(wagmiConfig, {
-    address: ContractConfig_SolutionManager.address as `0x${string}`,
-    abi: ContractConfig_SolutionManager.abi,
-    functionName: "putSolutionUnderReview",
-    args: [challengeId],
-    account: address,
+  const txHash = await writeContract(wagmiConfig, request);
+  const receipt = await waitForTransactionReceipt(wagmiConfig, {
+    hash: txHash,
   });
 
-  return txHash;
+  return receipt.status === "success";
 }
 
 export async function joinEvaluationPool(
-  solutionId: number,
+  solutionId: `0x${string}`,
   address: `0x${string}`
 ) {
-  await simulateContract(wagmiConfig, {
+  const { request } = await simulateContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
     abi: ContractConfig_SolutionManager.abi,
     functionName: "evaluatorJoinSolution",
@@ -378,23 +371,20 @@ export async function joinEvaluationPool(
     account: address,
   });
 
-  const txHash = await writeContract(wagmiConfig, {
-    address: ContractConfig_SolutionManager.address as `0x${string}`,
-    abi: ContractConfig_SolutionManager.abi,
-    functionName: "evaluatorJoinSolution",
-    args: [solutionId],
-    account: address,
+  const txHash = await writeContract(wagmiConfig, request);
+  const receipt = await waitForTransactionReceipt(wagmiConfig, {
+    hash: txHash,
   });
 
-  return txHash;
+  return receipt.status === "success";
 }
 
 export async function submitEvaluationScore(
-  solutionId: number,
+  solutionId: `0x${string}`,
   address: `0x${string}`,
   score: number
 ) {
-  await simulateContract(wagmiConfig, {
+  const { request } = await simulateContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
     abi: ContractConfig_SolutionManager.abi,
     functionName: "evaluatorSubmitScore",
@@ -402,15 +392,12 @@ export async function submitEvaluationScore(
     account: address,
   });
 
-  const txHash = await writeContract(wagmiConfig, {
-    address: ContractConfig_SolutionManager.address as `0x${string}`,
-    abi: ContractConfig_SolutionManager.abi,
-    functionName: "evaluatorSubmitScore",
-    args: [solutionId, score],
-    account: address,
+  const txHash = await writeContract(wagmiConfig, request);
+  const receipt = await waitForTransactionReceipt(wagmiConfig, {
+    hash: txHash,
   });
 
-  return txHash;
+  return receipt.status === "success";
 }
 
 export async function createJob(address: `0x${string}`, _data: JobFormData) {

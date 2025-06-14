@@ -26,7 +26,6 @@ import {
   CalendarArrowUp,
   CircleDollarSign,
   Clock,
-  Loader,
   LoaderCircle,
   Send,
   SquarePen,
@@ -52,6 +51,8 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { contributeChallenge } from "@/lib/write-onchain-utils";
 import { Toaster, toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ChallengePotInfo } from "@/components/challenge-pot-info";
 
 interface ChallengeDetailsProps {
   id: `0x${string}`;
@@ -111,11 +112,57 @@ export default function ChallengeDetails({ id }: ChallengeDetailsProps) {
   };
 
   return isLoading ? (
-    <div>
-      <Toaster position="top-right" richColors />
+    <div className="flex flex-col gap-8">
+      {/* Header Skeleton */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="space-y-2 w-full sm:w-2/3">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-5 w-24" />
+          </div>
+          <Skeleton className="h-9 w-full" />
+        </div>
+        <Skeleton className="h-10 w-32" />
+      </div>
 
-      <Loader className="md:mt-40 mb-2 mx-auto animate-spin duration-3000 h-20 w-20" />
-      <p className="text-center">Loading challenge...</p>
+      <Skeleton className="h-px w-full" />
+
+      {/* Info Section Skeleton */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-7">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="flex flex-col gap-1.5">
+            <Skeleton className="h-5 w-24" />
+            <Skeleton className="h-8 w-32" />
+          </div>
+        ))}
+      </div>
+
+      <Skeleton className="h-px w-full" />
+
+      {/* Description Section Skeleton */}
+      <div className="space-y-4">
+        <Skeleton className="h-7 w-40" />
+        <div className="space-y-3">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+        </div>
+        <div className="space-y-3">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
+        </div>
+      </div>
+
+      {/* Action Section Skeleton */}
+      <div className="pt-4 flex flex-col sm:flex-row gap-4 justify-between items-center bg-muted/20 p-6 rounded-lg">
+        <div className="space-y-2">
+          <Skeleton className="h-5 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <Skeleton className="h-10 w-32" />
+      </div>
     </div>
   ) : challenge ? (
     <div>
@@ -199,7 +246,7 @@ export default function ChallengeDetails({ id }: ChallengeDetailsProps) {
         )}
       </div>
 
-      <Separator className="my-6 bg-gray-300" />
+      <Separator className="my-6 bg-gray-300 dark:bg-gray-800" />
 
       <div className="text-xl font-bold mb-6">General Info</div>
 
@@ -251,7 +298,7 @@ export default function ChallengeDetails({ id }: ChallengeDetailsProps) {
             {challenge.contributeAt ? (
               <>
                 <CalendarArrowUp className="h-full max-h-4 w-full max-w-4" />
-                {format(Number(challenge.contributeAt) * 1000, "PPP")}
+                {format(challenge.contributeAt, "PPP")}
               </>
             ) : (
               <Badge variant="secondary">Not contributed yet</Badge>
@@ -313,7 +360,7 @@ export default function ChallengeDetails({ id }: ChallengeDetailsProps) {
         </div>
       </div>
 
-      <Separator className="my-6 bg-gray-300" />
+      <Separator className="my-6 bg-gray-300 dark:bg-gray-800" />
 
       <div className="text-xl font-bold mb-6">Description</div>
 
@@ -322,6 +369,12 @@ export default function ChallengeDetails({ id }: ChallengeDetailsProps) {
         editable={false}
         className={cn(!challenge.description && "italic text-muted-foreground")}
       />
+
+      <Separator className="my-6 bg-gray-300 dark:bg-gray-800" />
+
+      {challenge.status !== ChallengeStatus.DRAFT && (
+        <ChallengePotInfo challengeId={id} />
+      )}
     </div>
   ) : (
     <>Not found</>

@@ -53,6 +53,8 @@ import { contributeChallenge } from "@/lib/write-onchain-utils";
 import { Toaster, toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChallengePotInfo } from "@/components/challenge-pot-info";
+import ModerationDetails from "@/components/moderation-details";
+import { ChallengeRevenueInfo } from "@/components/challenge-revenue-info";
 
 interface ChallengeDetailsProps {
   id: `0x${string}`;
@@ -370,10 +372,16 @@ export default function ChallengeDetails({ id }: ChallengeDetailsProps) {
         className={cn(!challenge.description && "italic text-muted-foreground")}
       />
 
-      <Separator className="my-6 bg-gray-300 dark:bg-gray-800" />
-
       {challenge.status !== ChallengeStatus.DRAFT && (
-        <ChallengePotInfo challengeId={id} />
+        <>
+          <Separator className="my-6 bg-gray-300 dark:bg-gray-800" />
+          <ChallengePotInfo challengeId={id} />
+          <ModerationDetails challenge={challenge} />
+
+          {challenge.status === ChallengeStatus.APPROVED && (
+            <ChallengeRevenueInfo challengeId={id} />
+          )}
+        </>
       )}
     </div>
   ) : (

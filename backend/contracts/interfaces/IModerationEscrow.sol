@@ -26,7 +26,7 @@ interface IModerationEscrow {
      * @param _challenge_id The ID of the challenge
      */
 
-    function syncModeratorsFromReviewPool(uint256 _challenge_id) external;
+    function syncModeratorsFromReviewPool(bytes32 _challenge_id) external;
 
     /**
      * @dev Emitted when rewards are distributed for a challenge
@@ -46,7 +46,7 @@ interface IModerationEscrow {
      * @notice This function must be called once the challenge is created (contributed), called by ChallengeManager
      */
     function depositBounty(
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         address _contributor
     ) external payable;
 
@@ -59,7 +59,7 @@ interface IModerationEscrow {
      * @param _challenge_id The ID of the challenge
      * @notice Can only be called by ChallengeManager after the challenge is finalized
      */
-    function finalizeChallengePot(uint256 _challenge_id) external;
+    function finalizeChallengePot(bytes32 _challenge_id) external;
 
     // ============================== VIEW FUNCTIONS ==============================
 
@@ -68,7 +68,7 @@ interface IModerationEscrow {
      * @param _challenge_id The challenge ID
      * @return The bounty amount
      */
-    function getBounty(uint256 _challenge_id) external view returns (uint256);
+    function getBounty(bytes32 _challenge_id) external view returns (uint256);
 
     /**
      * @dev Get the total reward for a challenge

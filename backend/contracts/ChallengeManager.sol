@@ -13,22 +13,21 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 contract ChallengeManager is AccessControl {
     // ================= STRUCTS =================
     struct Challenge {
-        uint256 id;
+        bytes32 id;
         address contributor;
-        string title_url;
-        string description_url;
+        string txid;
         SystemEnums.Domain category;
-        uint256 contribute_at;
-        SystemEnums.ChallengeStatus status;
+        uint256 contributed_at;
+        uint256 participants;
         uint256 quality_score;
         SystemEnums.DifficultyLevel difficulty_level;
         uint256 solve_time;
-        uint256 completed;
+        SystemEnums.ChallengeStatus status;
     }
 
     struct ModeratorReview {
         address moderator;
-        uint256 challenge_id;
+        bytes32 challenge_id;
         uint256 review_time;
         string review_txid;
         bool is_submitted;
@@ -55,12 +54,10 @@ contract ChallengeManager is AccessControl {
         mapping(address => bool) moderator_to_join_status;
     }
 
-    // Struct for joined challenges preview in workspace
-    struct JoinedChallengesPreview {
-        uint256 challenge_id;
-        string title_url;
-        string description_url;
-        SystemEnums.Domain domain;
+    struct JoinedChallenges {
+        bytes32 challenge_id;
+        string txid;
+        SystemEnums.Domain category;
         SystemEnums.SolutionProgress progress;
         uint256 joined_at;
         uint256 score;
@@ -68,25 +65,27 @@ contract ChallengeManager is AccessControl {
 
     // ================= STATE VARIABLES =================
     // Mapping: Challenge ID -> Challenge
-    mapping(uint256 => Challenge) private challenges;
+    mapping(bytes32 => Challenge) private challenges;
     // Mapping: Challenge ID -> Review Pool
-    mapping(uint256 => ReviewPool) private review_pool;
+    mapping(bytes32 => ReviewPool) private review_pool;
     // Mapping: Contributor address -> Challenge IDs
-    mapping(address => uint256[]) private contributor_to_challenges;
-    // Mapping: Moderator address -> Challenge I@Ds
-    mapping(address => uint256[]) private moderator_to_challenges;
-    // Mapping: User address -> Joined challenge IDs
-    mapping(address => uint256[]) private user_to_joined_challenges;
+    mapping(address => bytes32[]) private user_to_joined_challenges;
+    // Mapping: Contributor address -> Challenge IDs
+    mapping(address => bytes32[]) private contributor_to_challenges;
+    // Mapping: Moderator address -> Challenge IDs
+    mapping(address => bytes32[]) private moderator_to_challenges;
     // Mapping: Challenge ID -> Participant addresses
-    mapping(uint256 => address[]) private challenge_to_participants;
+    mapping(bytes32 => address[]) private challenge_to_participants;
     // Mapping: Challenge ID -> Is pending
-    mapping(uint256 => bool) is_pending_challenge;
+    mapping(bytes32 => bool) is_pending_challenge;
     // Array of pending challenges
-    uint256[] private pending_challenges;
+    bytes32[] private pending_challenges;
     // Mapping: Challenge ID -> Is approved
-    mapping(uint256 => bool) is_approved_challenge;
+    mapping(bytes32 => bool) is_approved_challenge;
     // Array of approved challenges
-    uint256[] private approved_challenges;
+    bytes32[] private approved_challenges;
+
+    // ================= CONTRACT INTERFACES =================
     IReputationManager private reputation_manager; // ReputationManager instance
     address private reputation_manager_address; // ReputationManager address
     IRoleManager private role_manager; // RoleManager instance
@@ -98,31 +97,29 @@ contract ChallengeManager is AccessControl {
     IChallengeCostManager private challenge_cost_manager; // ChallengeCostManager instance
     address private challenge_cost_manager_address; // ChallengeCostManager address
 
-    uint256 public total_challenges = 0;
-
     // ================= EVENTS =================
-    event ChallengeContributed(
+    event ChallengeCreated(
         address indexed contributor,
-        string title_url,
-        string description_url,
-        SystemEnums.Domain category,
-        uint256 contribute_at
+        string indexed txid,
+        uint256 created_at
     );
-    // Emitted when a moderator joins a review pool
+    event ChallengeContributed(
+        bytes32 indexed id,
+        SystemEnums.Domain category,
+        uint256 contributed_at
+    );
     event ReviewPoolJoined(
-        uint256 indexed challenge_id,
+        bytes32 indexed challenge_id,
         address indexed moderator
     );
-
     event ChallengeFinalized(
-        uint256 indexed challengeId,
+        bytes32 indexed challengeId,
         SystemEnums.ChallengeStatus status,
         uint256 averagePercent
     );
-
     event ChallengeJoinedByUser(
         address indexed user,
-        uint256 challengeId,
+        bytes32 challengeId,
         uint256 joinedAt
     );
 
@@ -133,7 +130,7 @@ contract ChallengeManager is AccessControl {
 
     // ================= MODIFIER =================
     // Modifier to check if the challenge is finalized
-    modifier onlyBeforeFinalized(uint256 challenge_id) {
+    modifier onlyBeforeFinalized(bytes32 challenge_id) {
         require(
             !review_pool[challenge_id].is_finalized,
             "Challenge already finalised"
@@ -158,7 +155,7 @@ contract ChallengeManager is AccessControl {
     }
 
     // Modifier to check if caller is a moderator for a challenge
-    modifier onlyModerator(uint256 challengeId) {
+    modifier onlyModerator(bytes32 challengeId) {
         require(address(role_manager) != address(0), "Role manager not set");
         SystemEnums.Domain domain = challenges[challengeId].category;
         require(
@@ -169,9 +166,31 @@ contract ChallengeManager is AccessControl {
     }
 
     // ================= CONTRIBUTION METHODS =================
+    function createChallenge(
+        string calldata _challenge_txid,
+        SystemEnums.Domain _category
+    ) external onlyContributor(_category) returns (bytes32 id) {
+        // Validate input
+        require(bytes(_challenge_txid).length > 0, "TxId cannot be empty");
+
+        uint256 createdAt = block.timestamp;
+        id = keccak256(
+            abi.encodePacked(msg.sender, _challenge_txid, createdAt)
+        );
+
+        Challenge storage cl = challenges[id];
+        cl.id = id;
+        cl.contributor = msg.sender;
+        cl.txid = _challenge_txid;
+
+        // Mark contributor to this challenge
+        contributor_to_challenges[msg.sender].push(id);
+
+        emit ChallengeCreated(msg.sender, _challenge_txid, createdAt);
+    }
+
     function contributeChallenge(
-        string calldata _title_url,
-        string calldata _description_url,
+        bytes32 id,
         SystemEnums.Domain _category
     ) external payable onlyContributor(_category) {
         // Validate bounty amount
@@ -184,66 +203,38 @@ contract ChallengeManager is AccessControl {
             revert("Moderation escrow not set");
         }
 
-        uint256 challengeId = total_challenges++;
-        uint256 contributeAt = block.timestamp * 1000;
+        Challenge storage cl = challenges[id];
 
-        // Create a challenge
-        challenges[challengeId] = Challenge({
-            id: challengeId,
-            contributor: msg.sender,
-            title_url: _title_url,
-            description_url: _description_url,
-            category: _category,
-            contribute_at: contributeAt,
-            status: SystemEnums.ChallengeStatus.PENDING,
-            quality_score: 0,
-            difficulty_level: SystemEnums.DifficultyLevel.EASY,
-            solve_time: 0,
-            completed: 0
-        });
+        if (cl.contributor != msg.sender) {
+            revert("Sender is not contributor of this challenge");
+        }
 
-        // Mark contributor to this challenge
-        contributor_to_challenges[msg.sender].push(challengeId);
+        uint256 contributedAt = block.timestamp;
+
+        cl.contributed_at = contributedAt;
+        cl.category = _category;
+        cl.status = SystemEnums.ChallengeStatus.PENDING;
 
         // Mark challenge is pending
-        is_pending_challenge[challengeId] = true;
-        pending_challenges.push(challengeId);
+        is_pending_challenge[id] = true;
+        pending_challenges.push(id);
 
         // Deposit bounty to moderation escrow
-        moderation_escrow.depositBounty{value: msg.value}(
-            challengeId,
-            msg.sender
-        );
+        moderation_escrow.depositBounty{value: msg.value}(id, msg.sender);
 
-        console.log(
-            "Challenge #%s contributed by %s at %s with:",
-            challengeId,
-            msg.sender,
-            contributeAt
-        );
-        console.log("- Title url        : %s", _title_url);
-        console.log("- Description url  : %s", _description_url);
-        console.log("- Bounty amount    : %s", msg.value);
-
-        emit ChallengeContributed(
-            msg.sender,
-            _title_url,
-            _description_url,
-            _category,
-            contributeAt
-        );
+        emit ChallengeContributed(id, _category, contributedAt);
     }
 
     // ================= MODERATION METHODS=================
     function joinReviewPool(
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         string calldata _review_txid
     ) public onlyBeforeFinalized(_challenge_id) onlyModerator(_challenge_id) {
         // Ensure moderation escrow is set
         if (address(moderation_escrow) == address(0)) {
             revert("Moderation escrow not set");
         }
-        
+
         ReviewPool storage pool = review_pool[_challenge_id];
 
         // Prevent joining the review pool if maximum number of moderators is reached
@@ -275,18 +266,14 @@ contract ChallengeManager is AccessControl {
         review.challenge_id = _challenge_id;
         review.review_txid = _review_txid;
 
-       moderation_escrow.syncModeratorsFromReviewPool(_challenge_id);
+        moderation_escrow.syncModeratorsFromReviewPool(_challenge_id);
 
         emit ReviewPoolJoined(_challenge_id, msg.sender);
-        console.log(
-            "Moderator %s joined review pool for challenge #%s",
-            msg.sender,
-            _challenge_id
-        );
+        console.log("Moderator %s joined a review pool", msg.sender);
     }
 
     function submitModeratorReview(
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         SystemEnums.QualityFactorAnswer _relevance,
         SystemEnums.QualityFactorAnswer _technical_correctness,
         SystemEnums.QualityFactorAnswer _completeness,
@@ -355,7 +342,7 @@ contract ChallengeManager is AccessControl {
     }
 
     function finalizeChallenge(
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         ReviewPool storage _pool
     ) internal {
         // Check if the challenge is already finalized
@@ -368,18 +355,18 @@ contract ChallengeManager is AccessControl {
             _challenge_id,
             _pool
         );
-        console.log(
-            "Final difficulty level for challenge #%s: %s",
-            _challenge_id,
-            uint256(challenges[_challenge_id].difficulty_level)
-        );
+        // console.log(
+        //     "Final difficulty level for challenge #%s: %s",
+        //     _challenge_id,
+        //     uint256(challenges[_challenge_id].difficulty_level)
+        // );
 
         cl.solve_time = _consolidateChallengeSolveTime(_challenge_id, _pool);
-        console.log(
-            "Final estimated solve time for challenge #%s: %s",
-            _challenge_id,
-            challenges[_challenge_id].solve_time
-        );
+        // console.log(
+        //     "Final estimated solve time for challenge #%s: %s",
+        //     _challenge_id,
+        //     challenges[_challenge_id].solve_time
+        // );
 
         // Consolidate average score of challenge
         uint256 average_score = _consolidateWeightedAverageScore(
@@ -387,11 +374,11 @@ contract ChallengeManager is AccessControl {
             _pool
         );
 
-        console.log(
-            "Average score for challenge #%s: %s",
-            _challenge_id,
-            average_score
-        );
+        // console.log(
+        //     "Average score for challenge #%s: %s",
+        //     _challenge_id,
+        //     average_score
+        // );
 
         // Update the challenge status based on the average score
         if (average_score >= SystemConsts.REVIEW_THRESHOLD) {
@@ -425,10 +412,10 @@ contract ChallengeManager is AccessControl {
 
         // Update contributor's and moderators' reputation scores
         if (reputation_manager_address != address(0)) {
-            console.log(
-                "Executing reputation update for contributor of challenge #%s",
-                _challenge_id
-            );
+            // console.log(
+            //     "Executing reputation update for contributor of challenge #%s",
+            //     _challenge_id
+            // );
             reputation_manager.updateContributionReputation(
                 cl.contributor,
                 cl.category,
@@ -460,21 +447,18 @@ contract ChallengeManager is AccessControl {
 
         // Finalize the challenge pot in the moderation escrow
         if (moderation_escrow_address != address(0)) {
-            console.log(
-                "Finalizing challenge pot for challenge #%s",
-                _challenge_id
-            );
+            // console.log(
+            //     "Finalizing challenge pot for challenge #%s",
+            //     _challenge_id
+            // );
             moderation_escrow.finalizeChallengePot(_challenge_id);
         }
     }
 
     function userJoinChallenge(
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         string calldata _solution_base_txid
     ) external payable {
-        // Check if challenge id exists
-        require(_challenge_id < total_challenges);
-
         // Check if user already joined this challenge
         require(
             !solution_manager.checkUserJoinedChallenge(
@@ -506,24 +490,15 @@ contract ChallengeManager is AccessControl {
             _solution_base_txid,
             joinAt
         );
+
         user_to_joined_challenges[msg.sender].push(_challenge_id);
         challenge_to_participants[_challenge_id].push(msg.sender);
-
-        console.log(
-            "User %s joined challenge %s at %s",
-            msg.sender,
-            _challenge_id,
-            joinAt
-        );
 
         emit ChallengeJoinedByUser(msg.sender, _challenge_id, joinAt);
     }
 
-    function userCompleteChallenge(uint256 _challenge_id) external {
-        // Check if challenge id exists
-        require(_challenge_id < total_challenges);
-
-        challenges[_challenge_id].completed++;
+    function userCompleteChallenge(bytes32 _challenge_id) external {
+        challenges[_challenge_id].participants++;
     }
 
     // ================= SETTER METHODS =================
@@ -571,7 +546,7 @@ contract ChallengeManager is AccessControl {
     function getChallengesByContributor(
         address _contributor_address
     ) public view returns (Challenge[] memory) {
-        uint256[] memory challengeIds = contributor_to_challenges[
+        bytes32[] memory challengeIds = contributor_to_challenges[
             _contributor_address
         ];
         Challenge[] memory contributorChallenges = new Challenge[](
@@ -581,12 +556,6 @@ contract ChallengeManager is AccessControl {
         for (uint256 i = 0; i < challengeIds.length; i++) {
             contributorChallenges[i] = challenges[challengeIds[i]];
         }
-
-        console.log(
-            "User %s had fetched %s contributed challenges",
-            _contributor_address,
-            challengeIds.length
-        );
 
         return contributorChallenges;
     }
@@ -599,12 +568,6 @@ contract ChallengeManager is AccessControl {
             pendingChallengeList[i] = challenges[pending_challenges[i]];
         }
 
-        console.log(
-            "Smart contract %s had fetch %s pending challenges",
-            msg.sender,
-            pendingChallengeList.length
-        );
-
         return pendingChallengeList;
     }
 
@@ -616,19 +579,13 @@ contract ChallengeManager is AccessControl {
             approvedChallengeList[i] = challenges[approved_challenges[i]];
         }
 
-        console.log(
-            "Smart contract %s had fetch %s approved challenges",
-            msg.sender,
-            approvedChallengeList.length
-        );
-
         return approvedChallengeList;
     }
 
     function getChallengesByModerator(
         address _moderator_address
     ) public view returns (Challenge[] memory) {
-        uint256[] memory challenge_ids = moderator_to_challenges[
+        bytes32[] memory challenge_ids = moderator_to_challenges[
             _moderator_address
         ];
         Challenge[] memory moderator_challenges = new Challenge[](
@@ -639,71 +596,54 @@ contract ChallengeManager is AccessControl {
             moderator_challenges[i] = challenges[challenge_ids[i]];
         }
 
-        console.log(
-            "User %s had fetched %s moderated challenges",
-            _moderator_address,
-            challenge_ids.length
-        );
-
         return moderator_challenges;
     }
 
     function getModeratorReviewOfChallenge(
-        uint256 challenge_id,
+        bytes32 challenge_id,
         address _moderator_address
     ) public view returns (ModeratorReview memory) {
-        console.log(
-            "User %s had fetched review of challenge #%s",
-            _moderator_address,
-            challenge_id
-        );
         return review_pool[challenge_id].moderator_reviews[_moderator_address];
     }
 
     function getChallengeById(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) public view returns (Challenge memory) {
-        console.log(
-            "User %s had fetched challenge #%s",
-            msg.sender,
-            _challenge_id
-        );
         return challenges[_challenge_id];
     }
 
-    function getChallengeTitleById(
-        uint256 _challenge_id
+    function getChallengeTxIdById(
+        bytes32 _challenge_id
     ) public view returns (string memory) {
-        return challenges[_challenge_id].title_url;
+        return challenges[_challenge_id].txid;
     }
 
     function getChallengeDomainById(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) public view returns (SystemEnums.Domain) {
         return challenges[_challenge_id].category;
     }
 
     function getChallengeDifficultyById(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) public view returns (SystemEnums.DifficultyLevel) {
         return challenges[_challenge_id].difficulty_level;
     }
 
     function getChallengeQualityScoreById(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) public view returns (uint256) {
         return challenges[_challenge_id].quality_score;
     }
 
     function getChallengeContributorById(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) public view returns (address) {
-        require(_challenge_id < total_challenges, "Challenge does not exist");
         return challenges[_challenge_id].contributor;
     }
 
     function getJoinReviewPoolStatus(
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         address _moderator_address
     ) public view returns (bool) {
         return
@@ -717,79 +657,70 @@ contract ChallengeManager is AccessControl {
     }
 
     function getReviewPoolSize(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) public view returns (uint256) {
         return review_pool[_challenge_id].moderator_list.length;
     }
 
     function getReviewPoolModerators(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) public view returns (address[] memory) {
         return review_pool[_challenge_id].moderator_list;
     }
 
     function getChallengeFinalizedStatus(
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) public view returns (bool) {
         return review_pool[_challenge_id].is_finalized;
     }
 
     function getChallengeParticipants(
-        uint256 challengeId
+        bytes32 challengeId
     ) external view returns (address[] memory) {
         return challenge_to_participants[challengeId];
     }
 
-    function getJoinedChallengesByUserForPreview(
+    function getJoinedChallengesByUser(
         address _user_address
-    ) public view returns (JoinedChallengesPreview[] memory) {
+    ) public view returns (JoinedChallenges[] memory) {
         require(
             solution_manager_address != address(0),
             "SolutionManager not set"
         );
-        uint256[] memory challengeIds = user_to_joined_challenges[
+
+        bytes32[] memory challengeIds = user_to_joined_challenges[
             _user_address
         ];
 
-        JoinedChallengesPreview[]
-            memory previewList = new JoinedChallengesPreview[](
-                challengeIds.length
-            );
+        JoinedChallenges[] memory challengeList = new JoinedChallenges[](
+            challengeIds.length
+        );
 
         for (uint256 i = 0; i < challengeIds.length; i++) {
-            uint256 id = challengeIds[i];
-            Challenge storage cl = challenges[id];
+            bytes32 id = challengeIds[i];
+            Challenge memory cl = challenges[id];
             (
-                uint256 created_at,
                 SystemEnums.SolutionProgress progress,
+                uint256 created_at,
                 uint256 score
-            ) = solution_manager.getSolutionPreviewByUserAndChallengeId(
-                    _user_address,
-                    id
-                );
+            ) = solution_manager.getBriefSolutionInfo(_user_address, id);
 
-            previewList[i] = JoinedChallengesPreview({
-                challenge_id: id,
-                title_url: cl.title_url,
-                description_url: cl.description_url,
-                domain: cl.category,
+            challengeList[i] = JoinedChallenges({
+                challenge_id: cl.id,
+                txid: cl.txid,
+                category: cl.category,
                 progress: progress,
                 joined_at: created_at,
                 score: score
             });
         }
 
-        console.log(
-            "User %s had fetched preview of joined challenges",
-            _user_address
-        );
-
-        return previewList;
+        return challengeList;
     }
 
     function getModeratorReviewTxId(
         address _moderator_address,
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) public view returns (string memory) {
         // Moderator must have joined the review pool
         require(
@@ -806,12 +737,9 @@ contract ChallengeManager is AccessControl {
     }
 
     function getScoreDeviationOfModeratorReview(
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         address _moderator_address
     ) public view returns (uint256) {
-        // Validate that the challenge exists
-        require(_challenge_id < total_challenges, "Challenge does not exist");
-
         // Moderator must have joined the review pool
         require(
             review_pool[_challenge_id].moderator_to_join_status[
@@ -839,29 +767,29 @@ contract ChallengeManager is AccessControl {
     // ================= SEEDING METHODS =================
     function seedChallenge(
         address _contributor,
-        string calldata _title_url,
-        string calldata _description_url,
+        string calldata _challenge_txid,
         SystemEnums.Domain _category,
-        uint256 _contribute_at,
+        uint256 _contributed_at,
         SystemEnums.ChallengeStatus _status,
         uint256 _quality_score,
         SystemEnums.DifficultyLevel _difficulty_level,
         uint256 _solve_time
     ) external {
-        uint256 challengeId = total_challenges++;
+        bytes32 challengeId = keccak256(
+            abi.encodePacked(msg.sender, _challenge_txid, _contributed_at)
+        );
 
         challenges[challengeId] = Challenge({
             id: challengeId,
             contributor: _contributor,
-            title_url: _title_url,
-            description_url: _description_url,
+            txid: _challenge_txid,
             category: _category,
-            contribute_at: _contribute_at,
+            contributed_at: _contributed_at,
+            participants: 0,
             status: _status,
             quality_score: _quality_score,
             difficulty_level: _difficulty_level,
-            solve_time: _solve_time,
-            completed: 0
+            solve_time: _solve_time
         });
 
         contributor_to_challenges[_contributor].push(challengeId);
@@ -873,15 +801,6 @@ contract ChallengeManager is AccessControl {
             is_approved_challenge[challengeId] = true;
             approved_challenges.push(challengeId);
         }
-
-        console.log(
-            "Challenge #%s seeded by %s at %s with:",
-            challengeId,
-            _contributor,
-            _contribute_at
-        );
-        console.log("- Title url        : %s", _title_url);
-        console.log("- Description url  : %s", _description_url);
     }
 
     // ================== INTERNAL METHODS =================
@@ -916,7 +835,7 @@ contract ChallengeManager is AccessControl {
      * contributor is maintained.
      */
     function _consolidateChallengeCategory(
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         ReviewPool storage _pool
     ) internal view returns (SystemEnums.Domain) {
         SystemEnums.Domain final_category = challenges[_challenge_id].category; // Default to contributor's suggested category
@@ -973,7 +892,7 @@ contract ChallengeManager is AccessControl {
      * 4. Select the difficulty level with the highest accumulated weight
      */
     function _consolidateChallengeDifficulty(
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         ReviewPool storage _pool
     ) internal view returns (SystemEnums.DifficultyLevel) {
         SystemEnums.DifficultyLevel final_difficulty = challenges[_challenge_id]
@@ -1014,7 +933,7 @@ contract ChallengeManager is AccessControl {
      * @return The weighted average score
      */
     function _consolidateWeightedAverageScore(
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         ReviewPool storage _pool
     ) internal view returns (uint256) {
         uint256 total_weighted_score = 0;
@@ -1055,7 +974,7 @@ contract ChallengeManager is AccessControl {
      * Aggregates moderator suggested solve times weighted by their domain reputation.
      */
     function _consolidateChallengeSolveTime(
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         ReviewPool storage _pool
     ) internal view returns (uint256) {
         uint256 total_weighted_time = 0;

@@ -96,20 +96,8 @@ export const navItems: NavItem[] = [
     url: pageUrlMapping.contribution,
     icon: "contribution",
     isActive: false,
-    items: [
-      {
-        title: "Contribute",
-        url: pageUrlMapping.contribution_contribute,
-        icon: "userPen",
-        shortcut: ["m", "m"],
-      },
-      {
-        title: "My Contributions",
-        url: pageUrlMapping.contribution_my_contributions,
-        icon: "userPen",
-        shortcut: ["m", "m"],
-      },
-    ],
+    shortcut: ["d", "d"],
+    items: [],
   },
   {
     title: "Moderation",

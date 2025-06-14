@@ -11,9 +11,9 @@ import "../Constants.sol";
 interface ISolutionManager {
     // ============================== STRUCTS ==============================
     struct Solution {
-        uint256 id;
+        bytes32 id;
         address user;
-        uint256 challenge_id;
+        bytes32 challenge_id;
         string solution_txid;
         uint256 created_at;
         uint256 submitted_at;
@@ -27,48 +27,46 @@ interface ISolutionManager {
         uint256 submitted_at;
     }
 
-    struct UnderReviewSolutionPreview {
-        uint256 id;
-        address submitter;
-        string challenge_title_url;
-        SystemEnums.Domain domain;
-        string solution_txid;
-        uint256 submitted_at;
-        SystemEnums.SolutionProgress progress;
-        uint256 number_of_joined_evaluators;
+    struct EvaluationPool {
         uint256 total_evaluators;
+        uint256 evaluation_count;
+        address[] evaluator_list;
+        mapping(address => bool) evaluator_joined;
+        mapping(address => bool) evaluator_submitted;
+        mapping(address => Evaluation) evaluator_to_evaluation;
+        uint256 completed_at;
     }
 
     // ============================== EVENTS ==============================
     event SolutionBaseCreated(
         address indexed user_address,
-        uint256 indexed challenge_id,
+        bytes32 indexed challenge_id,
         string solution_base_txid,
         uint256 created_at
     );
 
-    event SolutionSubmitted(uint256 indexed solution_id, uint256 submitted_at);
+    event SolutionSubmitted(bytes32 indexed solution_id, uint256 submitted_at);
 
     event SolutionPoolInitialized(
-        uint256 indexed solution_id,
+        bytes32 indexed solution_id,
         uint256 initialized_at
     );
 
     event SolutionJoinedByEvaluator(
         address indexed evaluator,
-        uint256 indexed solution_id,
+        bytes32 indexed solution_id,
         uint256 joined_at
     );
 
     event SolutionScoreSubmittedByEvaluator(
         address indexed evaluator,
-        uint256 indexed solution_id,
+        bytes32 indexed solution_id,
         uint256 score,
         uint256 submitted_at
     );
 
     event SolutionEvaluationFinalized(
-        uint256 indexed solution_id,
+        bytes32 indexed solution_id,
         uint256 score,
         uint256 finalized_at
     );
@@ -83,28 +81,28 @@ interface ISolutionManager {
      */
     function createSolutionBase(
         address _user_address,
-        uint256 _challenge_id,
+        bytes32 _challenge_id,
         string calldata _solution_base_txid,
         uint256 _created_at
-    ) external;
+    ) external returns (bytes32 id);
 
     /**
      * @dev Submit a solution for a challenge
      * @param _challenge_id ID of the challenge
      */
-    function submitSolution(uint256 _challenge_id) external;
+    function submitSolution(bytes32 _challenge_id) external;
 
     /**
      * @dev Put a solution under review for evaluation
      * @param _challenge_id ID of the challenge
      */
-    function putSolutionUnderReview(uint256 _challenge_id) external;
+    function putSolutionUnderReview(bytes32 _challenge_id) external;
 
     /**
      * @dev Join as an evaluator for a solution
      * @param _solution_id ID of the solution to evaluate
      */
-    function evaluatorJoinSolution(uint256 _solution_id) external;
+    function evaluatorJoinSolution(bytes32 _solution_id) external;
 
     /**
      * @dev Submit evaluation score for a solution
@@ -112,7 +110,7 @@ interface ISolutionManager {
      * @param _score Score given by the evaluator
      */
     function evaluatorSubmitScore(
-        uint256 _solution_id,
+        bytes32 _solution_id,
         uint256 _score
     ) external;
 
@@ -138,7 +136,7 @@ interface ISolutionManager {
      */
     function getSolutionTxId(
         address _user_address,
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) external view returns (string memory);
 
     /**
@@ -169,7 +167,7 @@ interface ISolutionManager {
      */
     function getSolutionByUserAndChallengeId(
         address _user_address,
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) external view returns (Solution memory);
 
     /**
@@ -178,7 +176,7 @@ interface ISolutionManager {
      * @return The solution struct
      */
     function getSolutionById(
-        uint256 _solution_id
+        bytes32 _solution_id
     ) external view returns (Solution memory);
 
     /**
@@ -188,16 +186,16 @@ interface ISolutionManager {
      */
     function getSolutionByEvaluator(
         address _evaluator_address
-    ) external view returns (UnderReviewSolutionPreview[] memory);
+    ) external view returns (Solution[] memory);
 
     /**
-     * @dev Get all solutions currently under review
-     * @return Array of solution previews under review
+     * @dev Get some properties of a solution
+     * @return Solution progress, created at, and score
      */
-    function getUnderReviewSolutionPreview()
-        external
-        view
-        returns (UnderReviewSolutionPreview[] memory);
+    function getBriefSolutionInfo(
+        address _user_address,
+        bytes32 _challenge_id
+    ) external view returns (SystemEnums.SolutionProgress, uint256, uint256);
 
     /**
      * @dev Get maximum number of evaluators for a solution
@@ -205,7 +203,7 @@ interface ISolutionManager {
      * @return Maximum number of evaluators
      */
     function getMaxEvaluatorsForSolution(
-        uint256 _solution_id
+        bytes32 _solution_id
     ) external view returns (uint256);
 
     /**
@@ -214,7 +212,7 @@ interface ISolutionManager {
      * @return Number of joined evaluators
      */
     function getNumberOfJoinedEvaluators(
-        uint256 _solution_id
+        bytes32 _solution_id
     ) external view returns (uint256);
 
     /**
@@ -223,7 +221,7 @@ interface ISolutionManager {
      * @return Number of submitted evaluations
      */
     function getNumberOfSubmittedEvaluations(
-        uint256 _solution_id
+        bytes32 _solution_id
     ) external view returns (uint256);
 
     /**
@@ -232,7 +230,7 @@ interface ISolutionManager {
      * @return Timestamp of evaluation completion
      */
     function getTimestampEvaluationCompleted(
-        uint256 _solution_id
+        bytes32 _solution_id
     ) external view returns (uint256);
 
     /**
@@ -243,7 +241,7 @@ interface ISolutionManager {
      */
     function getScoreSubmittedByEvaluator(
         address _evaluator_address,
-        uint256 _solution_id
+        bytes32 _solution_id
     ) external view returns (uint256);
 
     /**
@@ -254,7 +252,7 @@ interface ISolutionManager {
      */
     function getTimestampScoreSubmittedByEvaluator(
         address _evaluator_address,
-        uint256 _solution_id
+        bytes32 _solution_id
     ) external view returns (uint256);
 
     /**
@@ -265,7 +263,7 @@ interface ISolutionManager {
      */
     function checkUserJoinedChallenge(
         address _user_address,
-        uint256 _challenge_id
+        bytes32 _challenge_id
     ) external view returns (bool);
 
     /**
@@ -276,7 +274,7 @@ interface ISolutionManager {
      */
     function checkEvaluatorJoinedSolution(
         address _evaluator_address,
-        uint256 _solution_id
+        bytes32 _solution_id
     ) external view returns (bool);
 
     /**
@@ -287,7 +285,7 @@ interface ISolutionManager {
      */
     function checkEvalutorSubmittedScore(
         address _evaluator_address,
-        uint256 _solution_id
+        bytes32 _solution_id
     ) external view returns (bool);
 
     /**
@@ -298,6 +296,6 @@ interface ISolutionManager {
      */
     function getEvaluationDeviation(
         address _evaluator_address,
-        uint256 _solution_id
+        bytes32 _solution_id
     ) external view returns (uint256);
 }

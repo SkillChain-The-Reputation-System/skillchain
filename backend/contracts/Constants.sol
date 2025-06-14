@@ -22,9 +22,10 @@ library SystemEnums {
 
     // --- Challenge Status Constants ---
     enum ChallengeStatus {
-        PENDING, // 0 - Challenge submitted and awaiting reviews
-        APPROVED, // 1 - Challenge has been reviewed and approved
-        REJECTED // 2 - Challenge has been reviewed and rejected due to quality issues
+        DRAFT, // 0 - Challenge in progress
+        PENDING, // 1 - Challenge submitted and awaiting reviews
+        APPROVED, // 2 - Challenge has been reviewed and approved
+        REJECTED // 3 - Challenge has been reviewed and rejected due to quality issues
     }
 
     // --- Challenge Difficulty Level Constants ---

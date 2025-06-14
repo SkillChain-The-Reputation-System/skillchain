@@ -18,7 +18,7 @@ import {
   ModeratorReview,
   SolutionInterface,
   ReviewData,
-  UnderReviewSolutionPreview,
+  BriefUnderReviewSolution,
   SolutionReviewPool,
   EvaluationInterface,
   JobPreviewInterface,
@@ -47,6 +47,7 @@ import {
   JobDuration,
   JobStatus,
   JobApplicationStatus,
+  ChallengeSolutionProgress,
 } from "@/constants/system";
 import { Meie_Script } from "next/font/google";
 
@@ -103,7 +104,7 @@ export const checkUsernameAvailable = async (
 
 export const getJoinReviewPoolStatus = async (
   address: `0x${string}`,
-  challenge_id: number
+  challenge_id: `0x${string}`
 ): Promise<boolean> => {
   const is_joined = (await readContract(wagmiConfig, {
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
@@ -117,7 +118,7 @@ export const getJoinReviewPoolStatus = async (
 
 export const fetchJoinedReviewPoolChallenges = async (
   address: `0x${string}`
-): Promise<ChallengeInterface[]> => {
+) => {
   const joined_review_pool_challenges = (await readContract(wagmiConfig, {
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
     abi: ContractConfig_ChallengeManager.abi,
@@ -127,24 +128,24 @@ export const fetchJoinedReviewPoolChallenges = async (
 
   const meaning_joined_review_pool_challenges = await Promise.all(
     (joined_review_pool_challenges as any[]).map(async (challenge) => {
-      const title = await fetchStringDataOffChain(challenge.title_url);
-      const description = await fetchStringDataOffChain(
-        challenge.description_url
-      );
+      const challengeDetails = (await fetchStringDataOffChain(
+        `https://gateway.irys.xyz/mutable/${challenge.txid}`
+      )) as any;
 
       return {
-        id: challenge.id.toString(),
+        id: challenge.id,
         contributor: challenge.contributor,
-        title,
-        description,
-        category: challenge.category.toString(),
-        contributeAt: challenge.contribute_at,
+        title: challengeDetails.title,
+        description: challengeDetails.description,
+        category: challengeDetails.category as Domain,
+        contributeAt: Number(challenge.contributed_at) * 1000,
         status: challenge.status,
         qualityScore: challenge.quality_score,
         difficultyLevel: challenge.difficulty_level,
         solveTime: challenge.solve_time,
-        completed: challenge.completed,
-      };
+        participants: challenge.participants,
+        bounty: challengeDetails.bounty,
+      } as ChallengeInterface;
     })
   );
 
@@ -186,7 +187,7 @@ export const getChallengeById = async (
     title: challengeDetails.title,
     description: challengeDetails.description,
     category: challengeDetails.category as Domain,
-    contributeAt: challenge.contributed_at,
+    contributeAt: Number(challenge.contributed_at) * 1000,
     status: challenge.status,
     qualityScore: challenge.quality_score,
     difficultyLevel: challenge.difficulty_level,
@@ -197,7 +198,7 @@ export const getChallengeById = async (
 };
 
 export const getModeratorReviewOfChallenge = async (
-  challenge_id: number,
+  challenge_id: `0x${string}`,
   address: `0x${string}`
 ): Promise<ModeratorReview | null> => {
   try {
@@ -293,7 +294,7 @@ export const getReviewQuorum = async (): Promise<number> => {
 };
 
 export const getReviewPoolSize = async (
-  challenge_id: number
+  challenge_id: `0x${string}`
 ): Promise<number> => {
   const size = (await readContract(wagmiConfig, {
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
@@ -305,7 +306,7 @@ export const getReviewPoolSize = async (
 };
 
 export const getChallengeFinalizedStatus = async (
-  challenge_id: number
+  challenge_id: `0x${string}`
 ): Promise<boolean> => {
   const is_finalized = (await readContract(wagmiConfig, {
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
@@ -317,7 +318,7 @@ export const getChallengeFinalizedStatus = async (
 };
 
 export const getChallengePotInfo = async (
-  challenge_id: number
+  challenge_id: `0x${string}`
 ): Promise<ChallengePotInfoInterface> => {
   const [bountyRaw, totalRewardRaw, moderators, isDistributed] =
     await Promise.all([
@@ -395,7 +396,7 @@ export const fetchChallengesByContributor = async (
         title: challengeDetails.title,
         description: challengeDetails.description,
         category: challengeDetails.category as Domain,
-        contributeAt: challenge.contributed_at,
+        contributeAt: Number(challenge.contributed_at) * 1000,
         status: challenge.status,
         qualityScore: challenge.quality_score,
         difficultyLevel: challenge.difficulty_level,
@@ -421,24 +422,24 @@ export const fetchPendingChallenges = async (): Promise<
 
   const meaningPendingChallenges = await Promise.all(
     (pendingChallenges as any[]).map(async (challenge) => {
-      const title = await fetchStringDataOffChain(challenge.title_url);
-      const description = await fetchStringDataOffChain(
-        challenge.description_url
-      );
+      const challengeDetails = (await fetchStringDataOffChain(
+        `https://gateway.irys.xyz/mutable/${challenge.txid}`
+      )) as any;
 
       return {
-        id: challenge.id.toString(),
+        id: challenge.id,
         contributor: challenge.contributor,
-        title,
-        description,
-        category: challenge.category.toString(),
-        contributeAt: challenge.contribute_at,
+        title: challengeDetails.title,
+        description: challengeDetails.description,
+        category: challengeDetails.category as Domain,
+        contributeAt: Number(challenge.contributed_at) * 1000,
         status: challenge.status,
         qualityScore: challenge.quality_score,
         difficultyLevel: challenge.difficulty_level,
         solveTime: challenge.solve_time,
-        completed: challenge.completed,
-      };
+        participants: challenge.participants,
+        bounty: challengeDetails.bounty,
+      } as ChallengeInterface;
     })
   );
 
@@ -457,24 +458,24 @@ export const fetchApprovedChallenges = async (): Promise<
 
   const meaningApprovedChallenges = await Promise.all(
     (approvedChallenges as any[]).map(async (challenge) => {
-      const title = await fetchStringDataOffChain(challenge.title_url);
-      const description = await fetchStringDataOffChain(
-        challenge.description_url
-      );
+      const challengeDetails = (await fetchStringDataOffChain(
+        `https://gateway.irys.xyz/mutable/${challenge.txid}`
+      )) as any;
 
       return {
-        id: challenge.id.toString(),
+        id: challenge.id,
         contributor: challenge.contributor,
-        title,
-        description,
-        category: challenge.category.toString(),
-        contributeAt: challenge.contribute_at,
+        title: challengeDetails.title,
+        description: challengeDetails.description,
+        category: challengeDetails.category as Domain,
+        contributeAt: Number(challenge.contributed_at) * 1000,
         status: challenge.status,
         qualityScore: challenge.quality_score,
         difficultyLevel: challenge.difficulty_level,
         solveTime: challenge.solve_time,
-        completed: challenge.completed,
-      };
+        participants: challenge.participants,
+        bounty: challengeDetails.bounty,
+      } as ChallengeInterface;
     })
   );
 
@@ -483,75 +484,38 @@ export const fetchApprovedChallenges = async (): Promise<
 
 export const fetchJoinedChallengesByUser = async (
   address: `0x${string}`
-): Promise<ChallengeInterface[]> => {
-  const joinedChallenges = await readContract(wagmiConfig, {
+): Promise<BriefJoinedChallenge[]> => {
+  const challengeList = await readContract(wagmiConfig, {
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
     abi: ContractConfig_ChallengeManager.abi,
     functionName: "getJoinedChallengesByUser",
     args: [address],
   });
 
-  const meaningJoinedChallenges = await Promise.all(
-    (joinedChallenges as any[]).map(async (challenge) => {
-      const title = await fetchStringDataOffChain(challenge.title_url);
-      const description = await fetchStringDataOffChain(
-        challenge.description_url
-      );
+  const meaningChallengeList = await Promise.all(
+    (challengeList as any[]).map(async (challenge) => {
+      const challengeDetails = (await fetchStringDataOffChain(
+        `https://gateway.irys.xyz/mutable/${challenge.txid}`
+      )) as any;
 
       return {
-        id: challenge.id.toString(),
-        contributor: challenge.contributor,
-        title,
-        description,
-        category: challenge.category.toString(),
-        contributeAt: challenge.contribute_at,
-        status: challenge.status,
-        qualityScore: challenge.quality_score,
-        difficultyLevel: challenge.difficulty_level,
-        solveTime: challenge.solve_time,
-        completed: challenge.completed,
+        challengeId: challenge.challenge_id,
+        title: challengeDetails.title,
+        description: challengeDetails.description,
+        category: challenge.category,
+        progress: challenge.progress,
+        joinedAt: Number(challenge.joined_at) * 1000,
+        score: challenge.score,
       };
     })
   );
 
-  return meaningJoinedChallenges;
-};
-
-export const fetchJoinedChallengesPreviewByUser = async (
-  address: `0x${string}`
-): Promise<JoinedChallengePreview[]> => {
-  const previewList = await readContract(wagmiConfig, {
-    address: ContractConfig_ChallengeManager.address as `0x${string}`,
-    abi: ContractConfig_ChallengeManager.abi,
-    functionName: "getJoinedChallengesByUserForPreview",
-    args: [address],
-  });
-
-  const meaningPreviewList = await Promise.all(
-    (previewList as any[]).map(async (preview) => {
-      const title = await fetchStringDataOffChain(preview.title_url);
-      const description = await fetchStringDataOffChain(
-        preview.description_url
-      );
-
-      return {
-        challengeId: preview.challenge_id,
-        title,
-        description,
-        category: preview.domain.toString(),
-        progress: preview.progress,
-        joinedAt: preview.joined_at,
-        score: preview.score,
-      };
-    })
-  );
-
-  return meaningPreviewList;
+  return meaningChallengeList;
 };
 
 export const fetchUserHasJoinedChallengeState = async (
   address: `0x${string}`,
-  challenge_id: number
+  challenge_id: `0x${string}`
 ): Promise<boolean> => {
   const has_joined = (await readContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
@@ -565,12 +529,12 @@ export const fetchUserHasJoinedChallengeState = async (
 
 export const fetchSolutionTxIdByUserAndChallengeId = async (
   address: `0x${string}`,
-  challenge_id: number
+  challenge_id: `0x${string}`
 ): Promise<string> => {
   const fetchedTxId = (await readContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
     abi: ContractConfig_SolutionManager.abi,
-    functionName: "getSolutionTxId",
+    functionName: "getSolutionTxIdByUserAndChallengeId",
     args: [address, challenge_id],
   })) as string;
 
@@ -579,7 +543,7 @@ export const fetchSolutionTxIdByUserAndChallengeId = async (
 
 export const fetchModeratorReviewTxIdByModeratorAndChallengeId = async (
   address: `0x${string}`,
-  challenge_id: number
+  challenge_id: `0x${string}`
 ): Promise<string> => {
   const fetchedTxId = (await readContract(wagmiConfig, {
     address: ContractConfig_ChallengeManager.address as `0x${string}`,
@@ -593,7 +557,7 @@ export const fetchModeratorReviewTxIdByModeratorAndChallengeId = async (
 
 export const fetchSolutionByUserAndChallengeId = async (
   address: `0x${string}`,
-  challenge_id: number
+  challenge_id: `0x${string}`
 ): Promise<SolutionInterface | null> => {
   const fetchedSolution = (await readContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
@@ -613,15 +577,15 @@ export const fetchSolutionByUserAndChallengeId = async (
     user: fetchedSolution.user,
     challengeId: fetchedSolution.challenge_id,
     solution: solution,
-    createdAt: fetchedSolution.created_at,
-    submittedAt: fetchedSolution.submitted_at,
-    progress: fetchedSolution.progress,
+    createdAt: Number(fetchedSolution.created_at) * 1000,
+    submittedAt: Number(fetchedSolution.submitted_at) * 1000,
+    progress: fetchedSolution.progress as ChallengeSolutionProgress,
     score: fetchedSolution.score,
   };
 };
 
 export const fetchSolutionById = async (
-  solution_id: number
+  solution_id: `0x${string}`
 ): Promise<SolutionInterface | null> => {
   const fetchedSolution = (await readContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
@@ -641,8 +605,8 @@ export const fetchSolutionById = async (
     user: fetchedSolution.user,
     challengeId: fetchedSolution.challenge_id,
     solution: solution,
-    createdAt: fetchedSolution.created_at,
-    submittedAt: fetchedSolution.submitted_at,
+    createdAt: Number(fetchedSolution.created_at) * 1000,
+    submittedAt: Number(fetchedSolution.submitted_at) * 1000,
     progress: fetchedSolution.progress,
     score: fetchedSolution.score,
   };
@@ -663,45 +627,58 @@ export const fetchJobContentID = async (job_id: string): Promise<string> => {
   }
 };
 
-export const fetchUnderReviewSolutionsPreview = async (): Promise<
-  UnderReviewSolutionPreview[]
+export const fetchUnderReviewSolutions = async (): Promise<
+  BriefUnderReviewSolution[]
 > => {
   const underReviewSolutions = await readContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
     abi: ContractConfig_SolutionManager.abi,
-    functionName: "getUnderReviewSolutionPreview",
+    functionName: "getUnderReviewSolution",
     args: [],
   });
 
+  console.log(underReviewSolutions);
+
   const meaningUnderReviewSolutions = await Promise.all(
     (underReviewSolutions as any[]).map(async (solution) => {
-      const challengeTitle = await fetchStringDataOffChain(
-        solution.challenge_title_url
-      );
-      const solutionContent = await fetchStringDataOffChain(
-        `https://gateway.irys.xyz/mutable/${solution.solution_txid}`
-      );
+      const challengeTxId = await getChallengeTxIdById(solution.challenge_id);
+
+      const [
+        challengeDetails,
+        solutionContent,
+        numberOfEvaluators,
+        totalEvaluators,
+      ] = await Promise.all([
+        fetchStringDataOffChain(
+          `https://gateway.irys.xyz/mutable/${challengeTxId}`
+        ) as any,
+        fetchStringDataOffChain(
+          `https://gateway.irys.xyz/mutable/${solution.solution_txid}`
+        ) as any,
+        fetchNumberOfJoinedEvaluatorsById(solution.id),
+        fetchMaxEvaluatorsForSolutionById(solution.id),
+      ]);
 
       return {
         solutionId: solution.id,
-        submitter: solution.submitter,
-        challengeTitle: challengeTitle,
-        category: solution.domain.toString(),
+        submitter: solution.user,
+        challengeTitle: challengeDetails.title,
+        category: challengeDetails.category,
         solution: solutionContent,
-        submittedAt: solution.submitted_at,
+        submittedAt: Number(solution.submitted_at) * 1000,
         progress: solution.progress,
-        numberOfEvaluators: solution.number_of_joined_evaluators,
-        totalEvaluators: solution.total_evaluators,
-      };
+        numberOfEvaluators: numberOfEvaluators,
+        totalEvaluators: totalEvaluators,
+      } as BriefUnderReviewSolution;
     })
   );
 
   return meaningUnderReviewSolutions;
 };
 
-export const fetchUnderReviewSolutionsPreviewByEvaluator = async (
+export const fetchUnderReviewSolutionsEvaluator = async (
   address: `0x${string}`
-): Promise<UnderReviewSolutionPreview[]> => {
+): Promise<BriefUnderReviewSolution[]> => {
   const underReviewSolutions = await readContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
     abi: ContractConfig_SolutionManager.abi,
@@ -711,24 +688,35 @@ export const fetchUnderReviewSolutionsPreviewByEvaluator = async (
 
   const meaningUnderReviewSolutions = await Promise.all(
     (underReviewSolutions as any[]).map(async (solution) => {
-      const challengeTitle = await fetchStringDataOffChain(
-        solution.challenge_title_url
-      );
-      const solutionContent = await fetchStringDataOffChain(
-        `https://gateway.irys.xyz/mutable/${solution.solution_txid}`
-      );
+      const challengeTxId = await getChallengeTxIdById(solution.challenge_id);
+
+      const [
+        challengeDetails,
+        solutionContent,
+        numberOfEvaluators,
+        totalEvaluators,
+      ] = await Promise.all([
+        fetchStringDataOffChain(
+          `https://gateway.irys.xyz/mutable/${challengeTxId}`
+        ) as any,
+        fetchStringDataOffChain(
+          `https://gateway.irys.xyz/mutable/${solution.solution_txid}`
+        ) as any,
+        fetchNumberOfJoinedEvaluatorsById(solution.id),
+        fetchMaxEvaluatorsForSolutionById(solution.id),
+      ]);
 
       return {
         solutionId: solution.id,
-        submitter: solution.submitter,
-        challengeTitle: challengeTitle,
-        category: solution.domain.toString(),
+        submitter: solution.user,
+        challengeTitle: challengeDetails.title,
+        category: challengeDetails.category,
         solution: solutionContent,
-        submittedAt: solution.submitted_at,
+        submittedAt: Number(solution.submitted_at) * 1000,
         progress: solution.progress,
-        numberOfEvaluators: solution.number_of_joined_evaluators,
-        totalEvaluators: solution.total_evaluators,
-      };
+        numberOfEvaluators: numberOfEvaluators,
+        totalEvaluators: totalEvaluators,
+      } as BriefUnderReviewSolution;
     })
   );
 
@@ -736,7 +724,7 @@ export const fetchUnderReviewSolutionsPreviewByEvaluator = async (
 };
 
 export const fetchNumberOfJoinedEvaluatorsById = async (
-  solution_id: number
+  solution_id: `0x${string}`
 ): Promise<number> => {
   const numberOfEvaluators = (await readContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
@@ -749,7 +737,7 @@ export const fetchNumberOfJoinedEvaluatorsById = async (
 };
 
 export const fetchNumberOfSubmittedEvaluationById = async (
-  solution_id: number
+  solution_id: `0x${string}`
 ): Promise<number> => {
   const numberOfSubmittedEvaluation = (await readContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
@@ -762,7 +750,7 @@ export const fetchNumberOfSubmittedEvaluationById = async (
 };
 
 export const fetchMaxEvaluatorsForSolutionById = async (
-  solution_id: number
+  solution_id: `0x${string}`
 ): Promise<number> => {
   const totalEvaluators = (await readContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
@@ -775,7 +763,7 @@ export const fetchMaxEvaluatorsForSolutionById = async (
 };
 
 export const fetchTimestampEvaluationCompleted = async (
-  solution_id: number
+  solution_id: `0x${string}`
 ): Promise<number | undefined> => {
   try {
     const timestamp = (await readContract(wagmiConfig, {
@@ -792,7 +780,7 @@ export const fetchTimestampEvaluationCompleted = async (
 };
 
 export const fetchSolutionReviewPool = async (
-  solution_id: number
+  solution_id: `0x${string}`
 ): Promise<SolutionReviewPool | null> => {
   const solution = (await fetchSolutionById(solution_id)) as SolutionInterface;
 
@@ -819,7 +807,7 @@ export const fetchSolutionReviewPool = async (
 
 export const fetchEvaluatorHasJoinedSolutionState = async (
   address: `0x${string}`,
-  solution_id: number
+  solution_id: `0x${string}`
 ): Promise<boolean> => {
   const has_joined = (await readContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
@@ -833,7 +821,7 @@ export const fetchEvaluatorHasJoinedSolutionState = async (
 
 export const fetchEvaluatorHasSubmittedSolution = async (
   address: `0x${string}`,
-  solution_id: number
+  solution_id: `0x${string}`
 ): Promise<boolean> => {
   const has_submitted = (await readContract(wagmiConfig, {
     address: ContractConfig_SolutionManager.address as `0x${string}`,
@@ -847,7 +835,7 @@ export const fetchEvaluatorHasSubmittedSolution = async (
 
 export const fetchSubmittedEvaluationScore = async (
   address: `0x${string}`,
-  solution_id: number
+  solution_id: `0x${string}`
 ): Promise<number | undefined> => {
   try {
     const score = (await readContract(wagmiConfig, {
@@ -865,7 +853,7 @@ export const fetchSubmittedEvaluationScore = async (
 
 export const fetchTimestampScoreSubmittedByEvaluator = async (
   address: `0x${string}`,
-  solution_id: number
+  solution_id: `0x${string}`
 ): Promise<number | undefined> => {
   try {
     const timestamp = (await readContract(wagmiConfig, {
@@ -883,7 +871,7 @@ export const fetchTimestampScoreSubmittedByEvaluator = async (
 
 export const fetchEvaluationForSolutionByEvaluator = async (
   address: `0x${string}`,
-  solution_id: number
+  solution_id: `0x${string}`
 ): Promise<EvaluationInterface> => {
   const [isSubmitted, score, timestamp] = await Promise.all([
     fetchEvaluatorHasSubmittedSolution(address, solution_id),
@@ -894,7 +882,7 @@ export const fetchEvaluationForSolutionByEvaluator = async (
   return {
     isSubmitted: isSubmitted,
     score: score,
-    submittedAt: timestamp,
+    submittedAt: Number(timestamp) * 1000,
   };
 };
 

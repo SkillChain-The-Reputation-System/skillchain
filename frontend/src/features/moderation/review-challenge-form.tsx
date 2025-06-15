@@ -120,7 +120,7 @@ const reviewChallengeSchema = z.object({
 export type ModeratorReviewValues = z.infer<typeof reviewChallengeSchema>;
 
 interface ReviewChallengeFormProps {
-  challenge_id: number;
+  challenge_id: `0x${string}`;
 }
 
 export function ReviewChallengeForm({
@@ -248,9 +248,9 @@ export function ReviewChallengeForm({
       
       try {
         const [, , is_finalized] = await Promise.all([
-          getReviewPoolSize(Number(challenge_id)),
+          getReviewPoolSize(challenge_id),
           getReviewQuorum(),
-          getChallengeFinalizedStatus(Number(challenge_id)),
+          getChallengeFinalizedStatus(challenge_id),
         ]);
         
         if (isMounted) {

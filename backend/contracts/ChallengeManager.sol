@@ -476,7 +476,7 @@ contract ChallengeManager is AccessControl {
             "ChallengeCostManager not set"
         );
 
-        uint256 joinAt = block.timestamp * 1000;
+        uint256 joinAt = block.timestamp;
 
         // Process payment through ChallengeCostManager
         challenge_cost_manager.addTalentPayment{value: msg.value}(

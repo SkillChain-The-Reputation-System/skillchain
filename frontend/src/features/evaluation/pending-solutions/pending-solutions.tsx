@@ -13,8 +13,8 @@ import SearchBar from "@/features/evaluation/pending-solutions/search-bar"
 import { Pagination } from "@/components/pagination";
 
 // Import utils
-import { fetchUnderReviewSolutionsPreview } from "@/lib/fetching-onchain-data-utils";
-import { UnderReviewSolutionPreview } from "@/lib/interfaces";
+import { fetchUnderReviewSolutions } from "@/lib/fetching-onchain-data-utils";
+import { BriefUnderReviewSolution } from "@/lib/interfaces";
 import { Domain, SolutionSortOption } from "@/constants/system"
 import { pageUrlMapping } from "@/constants/navigation";
 
@@ -30,7 +30,7 @@ export default function PendingSolutions({ query, sort, domain, page }: PendingS
   const router = useRouter();       // programmatically change routes
 
   const [isLoading, setIsLoading] = useState(false);
-  const [solutions, setSolution] = useState<UnderReviewSolutionPreview[]>([]);
+  const [solutions, setSolution] = useState<BriefUnderReviewSolution[]>([]);
 
   // for searching and filtering
   const [searchQuery, setSearchQuery] = useState(query);
@@ -41,9 +41,9 @@ export default function PendingSolutions({ query, sort, domain, page }: PendingS
   const [currentPage, setCurrentPage] = useState(page);
   const itemsPerPage = 8;  // number of challenges displayed per page
 
-  const cardOnClick = (id: string) => {
+  const cardOnClick = (solutionId: `0x${string}`) => {
     router.push(
-      pageUrlMapping.evaluation_pendingsolutions + `/${id}`
+      pageUrlMapping.evaluation_pendingsolutions + `/${solutionId}`
     );
   }
 
@@ -130,7 +130,7 @@ export default function PendingSolutions({ query, sort, domain, page }: PendingS
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const fetchedSolutions = await fetchUnderReviewSolutionsPreview();
+        const fetchedSolutions = await fetchUnderReviewSolutions();
         setSolution(fetchedSolutions);
       } catch (error) {
         console.error("Error fetching under review solutions:", error);
@@ -164,8 +164,8 @@ export default function PendingSolutions({ query, sort, domain, page }: PendingS
           currentSearchedSolutions.length > 0 ? (
             <div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-6xl mx-auto">
-                {currentSearchedSolutions.map((solution, index) => (
-                  <SolutionCard key={index} solutionPreview={solution} onClick={cardOnClick} />
+                {currentSearchedSolutions.map((solution) => (
+                  <SolutionCard key={solution.solutionId} solutionPreview={solution} onClick={cardOnClick} />
                 ))}
               </div>
 

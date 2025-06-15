@@ -9,7 +9,7 @@ import { wagmiConfig } from "@/features/wallet/Web3Provider";
  * @returns The absolute deviation between moderator's score and final quality score
  */
 export const getScoreDeviationOfModeratorReview = async (
-  challengeId: number,
+  challengeId: `0x${string}`,
   moderatorAddress: `0x${string}`
 ): Promise<number> => {
   try {

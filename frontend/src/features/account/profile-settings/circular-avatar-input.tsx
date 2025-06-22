@@ -20,33 +20,35 @@ export const CircularAvatarInput = ({
   form,
   avatarURL,
 }: CircularAvatarInputProps) => {
+  // State to manage the preview URL
+  const [preview, setPreview] = useState<string | undefined>(avatarURL);
+
+  // Set the preview URL when the component mounts or when the avatarURL changes
+  useEffect(() => {
+    if (avatarURL) {
+      setPreview(avatarURL);
+    }
+  }, [avatarURL]);
+
+  // Dropzone configuration
+  const { isDragActive, getRootProps, getInputProps } = useDropzone({
+    accept: {
+      "image/*": [],
+    },
+    maxFiles: 1,
+    onDrop: (acceptedFiles: Blob[]) => {
+      const file = acceptedFiles[0];
+      const file_url = URL.createObjectURL(file);
+      setPreview(file_url);
+      form.setValue("avatar", file);
+    },
+  });
+
   return (
     <FormField
       control={form.control}
       name="avatar"
       render={({ field }) => {
-        // State to manage the preview URL
-        const [preview, setPreview] = useState<string | undefined>(avatarURL);
-
-        // Dropzone configuration
-        const { isDragActive, getRootProps, getInputProps } = useDropzone({
-          accept: {
-            "image/*": [],
-          },
-          maxFiles: 1,
-          onDrop: (acceptedFiles: Blob[]) => {
-            const file = acceptedFiles[0];
-            const file_url = URL.createObjectURL(file);
-            setPreview(file_url);
-            field.onChange(file);
-          },
-        });
-        // Set the preview URL when the component mounts or when the avatarURL changes
-        useEffect(() => {
-          if (avatarURL) {
-            setPreview(avatarURL);
-          }
-        }, [avatarURL]);
 
         return (
           <FormItem className="flex flex-col items-center mb-8">

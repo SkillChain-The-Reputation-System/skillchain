@@ -16,10 +16,6 @@ import {
 import ToggleTooltip from "@/components/toggle-tooltip"
 
 export function ImageUploader({ editor }: { editor: Editor | null }) {
-  if (!editor) {
-    return null
-  }
-
   const { isDragActive, getRootProps, getInputProps } = useDropzone({
     accept: {
       "image/*": [],
@@ -27,12 +23,16 @@ export function ImageUploader({ editor }: { editor: Editor | null }) {
     maxFiles: 1,
     onDrop: (acceptedFiles: Blob[]) => {
       const file = acceptedFiles[0];
-      if (file) {
+      if (file && editor) {
         const file_url = URL.createObjectURL(file);
         editor.chain().focus().setImage({ src: file_url }).run();
       }
     },
   });
+
+  if (!editor) {
+    return null
+  }
 
   return (
     <Popover>

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { Upload, X, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,39 +27,40 @@ export const RecruiterAvatarInput = ({
   console.log("Receive avatarURL on recruiter-avatar-input.tsx:", avatarURL);
 
   // Update preview when avatarURL prop changes
-  React.useEffect(() => {
+  useEffect(() => {
     setPreview(avatarURL);
   }, [avatarURL]);
+
+  // Dropzone configuration
+  const { isDragActive, getRootProps, getInputProps } = useDropzone({
+    accept: {
+      "image/*": [".png", ".jpg", ".jpeg", ".gif", ".webp"],
+    },
+    maxFiles: 1,
+    maxSize: 5 * 1024 * 1024, // 5MB
+    onDrop: (acceptedFiles) => {
+      const file = acceptedFiles[0];
+      if (file) {
+        const fileUrl = URL.createObjectURL(file);
+        setPreview(fileUrl);
+        form.setValue("recruiter_avatar", file);
+      }
+    },
+    onDropRejected: (rejectedFiles) => {
+      console.log("File rejected:", rejectedFiles);
+    },
+  });
+
+  const handleRemoveImage = () => {
+    setPreview(undefined);
+    form.setValue("recruiter_avatar", undefined);
+  };
 
   return (
     <FormField
       control={form.control}
       name="recruiter_avatar"
       render={({ field }) => {
-        const { isDragActive, getRootProps, getInputProps } = useDropzone({
-          accept: {
-            "image/*": [".png", ".jpg", ".jpeg", ".gif", ".webp"],
-          },
-          maxFiles: 1,
-          maxSize: 5 * 1024 * 1024, // 5MB
-          onDrop: (acceptedFiles) => {
-            if (acceptedFiles.length > 0) {
-              const file = acceptedFiles[0];
-              const fileUrl = URL.createObjectURL(file);
-              setPreview(fileUrl);
-              // Set the actual Blob file for form submission
-              field.onChange(file);
-            }
-          },
-          onDropRejected: (rejectedFiles) => {
-            console.log("File rejected:", rejectedFiles);
-          },
-        });
-        const handleRemoveImage = () => {
-          setPreview(undefined);
-          field.onChange(undefined);
-        };
-
         return (
           <FormItem className="flex flex-col items-center">
             <FormLabel className="text-sm font-medium">Profile Picture</FormLabel>

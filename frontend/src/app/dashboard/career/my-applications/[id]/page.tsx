@@ -1,11 +1,12 @@
 import ApplicationDetailContainer from "@/features/jobs-on-user/application-details/application-detail-container";
 
 interface ApplicationDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function ApplicationDetailPage({ params }: ApplicationDetailPageProps) {
+export default async function ApplicationDetailPage({ params }: ApplicationDetailPageProps) {
+  const { id } = await params;
   return <ApplicationDetailContainer />;
 }

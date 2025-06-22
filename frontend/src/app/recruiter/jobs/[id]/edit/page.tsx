@@ -65,6 +65,10 @@ const formSchema = z.object({
   domainReputations: z.record(z.string(), z.number().min(0)),
   requireGlobalReputation: z.boolean(),
   globalReputationScore: z.number().min(0).optional(),
+  deadlineDate: z.date({
+    required_error: "Application deadline date is required",
+  }),
+  deadlineTime: z.string().min(1, "Application deadline time is required"),
   deadline: z.number(), // Epoch time in milliseconds
 });
 

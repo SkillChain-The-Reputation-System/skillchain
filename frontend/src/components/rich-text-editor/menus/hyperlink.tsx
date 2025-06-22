@@ -17,11 +17,11 @@ import { Button } from '@/components/ui/button'
 import ToggleTooltip from "@/components/toggle-tooltip"
 
 export function Hyperlink({ editor }: { editor: Editor | null }) {
+  const [linkText, setLinkText] = useState("");
+
   if (!editor) {
     return null
   }
-
-  const [linkText, setLinkText] = useState("");
 
   const setLink = () => {
     if (linkText) {

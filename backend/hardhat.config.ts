@@ -1,5 +1,8 @@
 import type { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox-viem";
+import * as dotenv from "dotenv";
+
+dotenv.config();
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -12,7 +15,13 @@ const config: HardhatUserConfig = {
       viaIR: true, // Enable IR-based compilation to resolves stack too deep errors
     },
   },
-  
+  networks: {
+    amoy: {
+      url: process.env.AMOY_RPC_URL || "",
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      chainId: Number(process.env.CHAIN_ID) || 80002,
+    },
+  },
 };
 
 export default config;

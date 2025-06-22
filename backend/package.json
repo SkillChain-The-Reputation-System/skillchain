@@ -11,7 +11,8 @@
     "seed:moderator:review:local": "hardhat run scripts/seed_moderator_review.ts --network localhost",
     "seed:jobs": "hardhat run scripts/seed_job.ts --network localhost",
     "grant:role": "hardhat run scripts/grant_role.ts --network localhost",
-    "adjust:reputation": "hardhat run scripts/adjust_reputation.ts --network localhost"
+    "adjust:reputation": "hardhat run scripts/adjust_reputation.ts --network localhost",
+    "deploy:amoy": "NETWORK=amoy hardhat run scripts/deploy_and_copy.ts --network amoy"
   },
   "repository": {
     "type": "git",
@@ -33,6 +34,7 @@
     "@openzeppelin/contracts": "^5.3.0",
     "@prb/math": "^4.1.0",
     "@types/papaparse": "^5.3.15",
-    "papaparse": "^5.5.2"
+    "papaparse": "^5.5.2",
+    "dotenv": "^16.4.5"
   }
 }

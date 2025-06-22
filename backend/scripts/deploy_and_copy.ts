@@ -4,13 +4,16 @@ import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
 
+const NETWORK = process.env.NETWORK || "localhost";
+const CHAIN_ID = process.env.CHAIN_ID || "31337";
+
 async function generateContractsConfig(): Promise<void> {
   const backendRoot = path.resolve(__dirname, "..");
   const deploymentPath = path.join(
     backendRoot,
     "ignition",
     "deployments",
-    "chain-31337",
+    `chain-${CHAIN_ID}`,
     "deployed_addresses.json"
   );
   const contractsConfigPath = path.join(
@@ -110,7 +113,7 @@ async function main(): Promise<void> {
     const relativePath = path.relative(process.cwd(), modulePath);
     console.log(`>> Deploying ${file}`);
     execSync(
-      `npx hardhat ignition deploy ${relativePath} --network localhost`,
+      `npx hardhat ignition deploy ${relativePath} --network ${NETWORK}`,
       { stdio: "inherit" }
     );
 

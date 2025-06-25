@@ -1,5 +1,5 @@
 import hre from "hardhat";
-import ChallengeManagerArtifact from '../artifacts/contracts/ChallengeManager.sol/ChallengeManager.json'
+import ChallengeManagerArtifact from '../../artifacts/contracts/ChallengeManager.sol/ChallengeManager.json'
 import fs from 'fs';
 import path from 'path';
 import Papa from 'papaparse';
@@ -18,7 +18,7 @@ interface ChallengeData {
 const abi = ChallengeManagerArtifact.abi;
 const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
 
-const csvPath = path.resolve(__dirname, 'challenge.csv');
+const csvPath = path.resolve(__dirname, '../data/challenge.csv');
 
 async function seedChallenge() {
   const publicClient = await hre.viem.getPublicClient();

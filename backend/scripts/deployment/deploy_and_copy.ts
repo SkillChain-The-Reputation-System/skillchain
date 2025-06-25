@@ -8,7 +8,7 @@ const NETWORK = process.env.NETWORK || "localhost";
 const CHAIN_ID = process.env.CHAIN_ID || "31337";
 
 async function generateContractsConfig(): Promise<void> {
-  const backendRoot = path.resolve(__dirname, "..");
+  const backendRoot = path.resolve(__dirname, "../..");
   const deploymentPath = path.join(
     backendRoot,
     "ignition",
@@ -173,7 +173,7 @@ async function syncNonceIfNeeded(): Promise<void> {
     
     // Check for partial deployment state
     const deploymentPath = path.join(
-      path.resolve(__dirname, ".."),
+      path.resolve(__dirname, "../.."),
       "ignition",
       "deployments",
       `chain-${CHAIN_ID}`,
@@ -183,9 +183,9 @@ async function syncNonceIfNeeded(): Promise<void> {
     if (fs.existsSync(deploymentPath)) {
       console.log("⚠️  Found existing deployment state. Checking nonce...");
       try {
-        execSync(`npx hardhat run scripts/check_nonce.ts --network ${NETWORK}`, { 
+        execSync(`npx hardhat run scripts/deployment/check_nonce.ts --network ${NETWORK}`, { 
           stdio: "inherit", 
-          cwd: path.resolve(__dirname, "..") 
+          cwd: path.resolve(__dirname, "../..") 
         });
         
         // Check if we need to clean up incomplete deployments
@@ -210,7 +210,7 @@ async function syncNonceIfNeeded(): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  const backendRoot = path.resolve(__dirname, "..");
+  const backendRoot = path.resolve(__dirname, "../..");
   const modulesDir = path.join(backendRoot, "ignition", "modules");
   const artifactDir = path.join(backendRoot, "artifacts", "contracts");
   const outputDir = path.join(

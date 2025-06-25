@@ -2,13 +2,13 @@ import hre from "hardhat"
 import { createWalletClient, http, decodeEventLog } from "viem"
 import { hardhat } from "viem/chains"
 import { privateKeyToAccount } from 'viem/accounts'
-import JobManagerArtifact from '../artifacts/contracts/JobManager.sol/JobManager.json'
-import JobApplicationManagerArtifact from '../artifacts/contracts/JobApplicationManager.sol/JobApplicationManager.json'
+import JobManagerArtifact from '../../artifacts/contracts/JobManager.sol/JobManager.json'
+import JobApplicationManagerArtifact from '../../artifacts/contracts/JobApplicationManager.sol/JobApplicationManager.json'
 import path from 'path';
 import fs from 'fs';
 import Papa from 'papaparse';
 
-const csvPath = path.resolve(__dirname, 'job.csv');
+const csvPath = path.resolve(__dirname, '../data/job.csv');
 
 if (!fs.existsSync(csvPath)) {
   throw new Error("CSV file not found");

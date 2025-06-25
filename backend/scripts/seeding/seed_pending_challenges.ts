@@ -1,6 +1,6 @@
 // filepath: d:\Hai_Tuyen\thesis\skillchain\backend\scripts\seed_pending_challenges.ts
 import hre from "hardhat";
-import ChallengeManagerArtifact from '../artifacts/contracts/ChallengeManager.sol/ChallengeManager.json'
+import ChallengeManagerArtifact from '../../artifacts/contracts/ChallengeManager.sol/ChallengeManager.json'
 import fs from 'fs';
 import path from 'path';
 import Papa from 'papaparse';
@@ -20,7 +20,7 @@ interface PendingChallengeData {
 const abi = ChallengeManagerArtifact.abi;
 const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3'; // Ensure this is the correct deployed address of your ChallengeManager
 
-const csvPath = path.resolve(__dirname, 'pending-challenges.csv');
+const csvPath = path.resolve(__dirname, '../data/pending-challenges.csv');
 
 async function seedPendingChallenges() {
   const publicClient = await hre.viem.getPublicClient();

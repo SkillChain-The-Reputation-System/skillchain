@@ -1,6 +1,6 @@
 import hre from "hardhat";
 import { keccak256, toBytes, isAddress } from "viem";
-import RoleManagerArtifact from '../artifacts/contracts/RoleManager.sol/RoleManager.json';
+import RoleManagerArtifact from '../../artifacts/contracts/RoleManager.sol/RoleManager.json';
 import fs from 'fs';
 import path from 'path';
 import Papa from 'papaparse';
@@ -8,7 +8,7 @@ import Papa from 'papaparse';
 const abi = RoleManagerArtifact.abi;
 const contractAddress = '0x5FC8d32690cc91D4c39d9d3abcBD16989F875707'; // RoleManager address from deployed_addresses.json
 
-const csvPath = path.resolve(__dirname, 'grant_roles.csv');
+const csvPath = path.resolve(__dirname, '../data/grant_roles.csv');
 
 interface RoleGrantData {
   address: string;

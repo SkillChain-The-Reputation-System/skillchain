@@ -1,6 +1,6 @@
 import hre from "hardhat";
 import { isAddress } from "viem";
-import ReputationManagerArtifact from '../artifacts/contracts/ReputationManager.sol/ReputationManager.json';
+import ReputationManagerArtifact from '../../artifacts/contracts/ReputationManager.sol/ReputationManager.json';
 import fs from 'fs';
 import path from 'path';
 import Papa from 'papaparse';
@@ -8,7 +8,7 @@ import Papa from 'papaparse';
 const abi = ReputationManagerArtifact.abi;
 const contractAddress = '0x610178dA211FEF7D417bC0e6FeD39F05609AD788'; // ReputationManager address from deployed_addresses.json
 
-const csvPath = path.resolve(__dirname, 'reputation_adjustments.csv');
+const csvPath = path.resolve(__dirname, '../data/reputation_adjustments.csv');
 
 // Domain enum mapping - matching Constants.sol
 const DOMAINS = {

@@ -1,6 +1,6 @@
 // filepath: d:\Hai_Tuyen\thesis\skillchain\backend\scripts\seed_moderator_review.ts
 import hre from "hardhat";
-import ChallengeManagerArtifact from "../artifacts/contracts/ChallengeManager.sol/ChallengeManager.json";
+import ChallengeManagerArtifact from "../../artifacts/contracts/ChallengeManager.sol/ChallengeManager.json";
 import fs from "fs";
 import path from "path";
 import Papa from "papaparse";
@@ -24,7 +24,7 @@ interface ModeratorReviewData {
 const abi = ChallengeManagerArtifact.abi;
 // Replace with your deployed contract address
 const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-const csvPath = path.resolve(__dirname, "moderator_reviews.csv");
+const csvPath = path.resolve(__dirname, "../data/moderator_reviews.csv");
 
 async function seedModeratorReview(challengeIdToSeed: number) {
   const publicClient = await hre.viem.getPublicClient();

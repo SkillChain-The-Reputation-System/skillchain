@@ -19,7 +19,8 @@ const config: HardhatUserConfig = {
     localhost: {
       url: "http://127.0.0.1:8545",
       chainId: 31337,
-    },    amoy: {
+    },
+    amoy: {
       url: process.env.AMOY_RPC_URL || "",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       chainId: Number(process.env.CHAIN_ID) || 80002,

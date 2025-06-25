@@ -13,6 +13,7 @@ A decentralized skills assessment and job matching platform built on blockchain 
 - **Responsive Design**: Mobile-first approach with Tailwind CSS
 - **Rich Text Editor**: TipTap-based editor for job descriptions and challenges
 
+
 ## 🛠️ Tech Stack
 
 - **Framework**: Next.js 15 with App Router

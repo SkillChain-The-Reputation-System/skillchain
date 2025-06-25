@@ -1,0 +1,11 @@
+{
+  "LibrariesModule#ChallengeCostFormulas": "0xD4D1F474711D858F57ADe30F4f3120812a56aa0F",
+  "LibrariesModule#RecruitmentFeeFormulas": "0x7fDE981eAd91B7345b07F3244bCe5618798569F5",
+  "LibrariesModule#RewardTokenFormulas": "0xBB927EF46aF9A9c8578C59749c2af7eC86C64CCA",
+  "LibrariesModule#Weights": "0xC92c002238E299D529BaB0d1C554ACc190f3903d",
+  "LibrariesModule#ReputationFormulas": "0xa62caD37b5Cee105B62Dd0A8A40977d6D1788EEb",
+  "ReputationManagerModule#ReputationManager": "0x02e1CB155C0Ac632Cbf30100968B8f6ceFffe834",
+  "RoleManagerModule#RoleManager": "0x4c7dA71b8c7D4D6c5931826093bb214Dc58DCc44",
+  "ChallengeManagerModule#ChallengeManager": "0x1234De7ABE0a6b0655B682e7671AB432e8D42Aac",
+  "SolutionManagerModule#SolutionManager": "0x063AFeE9971855e7cB1dfeA7F870cd3469468089"
+}

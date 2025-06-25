@@ -1,0 +1,19 @@
+{
+  "ChallengeManagerModule#ChallengeManager": "0x6a2a3359F39fc3966E707cc6cA9a36e69097e9Ce",
+  "LibrariesModule#ChallengeCostFormulas": "0x3b06Ca0809B362bBAcCAB75ef93352EEeB6C70EA",
+  "LibrariesModule#RecruitmentFeeFormulas": "0x8e9BefDD03a9b928a26B80AdC5e3b648206dEe3c",
+  "LibrariesModule#RewardTokenFormulas": "0x24C2aC33FAfC76D3d645ABC4D2A17F2f59e2f744",
+  "LibrariesModule#Weights": "0xCE658e971E5c743169aed1F7F1a972eA228e3f90",
+  "RoleManagerModule#RoleManager": "0x6De40aB2abE8A28A7b7DfCEb31F25C576747EFDb",
+  "SolutionManagerModule#SolutionManager": "0x1f1eDC8bCb08d3CabA55eCb1e96c0B6E1F3fb974",
+  "LibrariesModule#ReputationFormulas": "0x052807a9E69a4343c14Cb5Fefd72C07dE12022aA",
+  "ChallengeCostManagerModule#ChallengeCostManager": "0xd315cb12dD8747a06dE31156aFa27a51ab6fc069",
+  "ModerationEscrowModule#ModerationEscrow": "0xE08b267a0AE6a81345c0158F5D3dd96282Cb085F",
+  "ReputationManagerModule#ReputationManager": "0xDCCCFEde9529451fC3fe50C3759424b5379489d2",
+  "JobApplicationManagerModule#JobApplicationManager": "0xfB57866Ef6c0B6F4e05B14641a4892aE97844DeB",
+  "JobManagerModule#JobManager": "0x81967C7b28B7d557A2538296DAeD17d90Ca8A5ee",
+  "RecruiterSubscriptionModule#RecruiterSubscription": "0x07F798FEdc2A02EBe3ABE7A6dd51a8e8A81A9AD4",
+  "MeetingManagerModule#MeetingManager": "0xB1b3f6D4B0c2CC2BC268Bf47167c848b24fF1FAD",
+  "RecruiterDataManagerModule#RecruiterDataManager": "0x354cf5c1ad191d95da4fA489Fd2D701688A6cfec",
+  "UserDataManagerModule#UserDataManager": "0xCB769c0136D87d0462aEe90bbfb29724206CDD74"
+}

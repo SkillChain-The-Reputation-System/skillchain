@@ -14,8 +14,11 @@ const config: HardhatUserConfig = {
       },
       viaIR: true, // Enable IR-based compilation to resolves stack too deep errors
     },
-  },
-  networks: {
+  },  networks: {
+    localhost: {
+      url: "http://127.0.0.1:8545",
+      chainId: 31337,
+    },
     amoy: {
       url: process.env.AMOY_RPC_URL || "",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],

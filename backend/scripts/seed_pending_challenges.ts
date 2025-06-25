@@ -54,7 +54,6 @@ async function seedPendingChallenges() {
         args: [
           challenge.contributor,
           challenge.title_url,
-          challenge.description_url,
           challenge.category,
           challenge.timestamp,
           challenge.status,

@@ -7,16 +7,16 @@ import { useAccount } from "wagmi";
 export default function HomePage() {
   const router = useRouter();
   const { isConnected } = useAccount();
-
   useEffect(() => {
     // Redirect based on wallet connection status
     if (isConnected) {
       router.push("/dashboard");
     } else {
-      router.push("/(auth)/(signin)");
+      router.push("/signin");
     }
   }, [isConnected, router]);
 
+  
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center">

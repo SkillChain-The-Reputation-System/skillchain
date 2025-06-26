@@ -1,14 +1,10 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import RecruiterSubscriptionModule from "./RecruiterSubscription";
 
 const MeetingManagerModule = buildModule("MeetingManagerModule", (m) => {
-  const { recruiterSubscription } = m.useModule(RecruiterSubscriptionModule);
-
+  // Phase 1: Deploy MeetingManager contract without dependencies
   const meetingManager = m.contract("MeetingManager");
 
-  m.call(meetingManager, "setRecruiterSubscriptionAddress", [recruiterSubscription]);
-
-  return { meetingManager, recruiterSubscription };
+  return { meetingManager };
 });
 
 export default MeetingManagerModule;

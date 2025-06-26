@@ -1,11 +1,8 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import RoleManagerModule from "./RoleManager";
 
 const SolutionManagerModule = buildModule("SolutionManagerModule", (m) => {
+  // Phase 1: Deploy SolutionManager contract without any dependencies
   const solutionManager = m.contract("SolutionManager");
-  const { roleManager } = m.useModule(RoleManagerModule);
-
-  m.call(solutionManager, "setRoleManagerAddress", [roleManager]);
 
   return { solutionManager };
 });

@@ -1,8 +1,3 @@
-import WeightsArtifact from "./contract-artifacts/Weights.json";
-import ChallengeCostFormulasArtifact from "./contract-artifacts/ChallengeCostFormulas.json";
-import RewardTokenFormulasArtifact from "./contract-artifacts/RewardTokenFormulas.json";
-import RecruitmentFeeFormulasArtifact from "./contract-artifacts/RecruitmentFeeFormulas.json";
-import ReputationFormulasArtifact from "./contract-artifacts/ReputationFormulas.json";
 import UserDataManagerArtifact from "./contract-artifacts/UserDataManager.json";
 import ReputationManagerArtifact from "./contract-artifacts/ReputationManager.json";
 import RoleManagerArtifact from "./contract-artifacts/RoleManager.json";
@@ -22,11 +17,6 @@ const useAmoyNetwork = isProduction || process.env.NEXT_PUBLIC_USE_AMOY === 'tru
 
 // Contract addresses for different networks
 const LOCALHOST_ADDRESSES = {
-  Weights: '0x0000000000000000000000000000000000000000',
-  ChallengeCostFormulas: '0x0000000000000000000000000000000000000000',
-  RewardTokenFormulas: '0x0000000000000000000000000000000000000000',
-  RecruitmentFeeFormulas: '0x0000000000000000000000000000000000000000',
-  ReputationFormulas: '0x0000000000000000000000000000000000000000',
   UserDataManager: '0x0000000000000000000000000000000000000000',
   ReputationManager: '0x0000000000000000000000000000000000000000',
   RoleManager: '0x0000000000000000000000000000000000000000',
@@ -42,11 +32,6 @@ const LOCALHOST_ADDRESSES = {
 };
 
 const AMOY_ADDRESSES = {
-  Weights: '0xd6552cf4dAFc4237652c0FAcF3CED65829f3e751',
-  ChallengeCostFormulas: '0x172f513513a9D44d54473BC22f0d1eA1D66E4021',
-  RewardTokenFormulas: '0x18F847b5F65db6324267089B144780E35835c5Ee',
-  RecruitmentFeeFormulas: '0x86e3d87Fc35752Bc27233cCa71724F3b97de1363',
-  ReputationFormulas: '0x41b41495cbCc67E89F3a320233Da68EE8c795A60',
   UserDataManager: '0x92d831A0F692301054Fe7dA6E6f61b6FE759FfB0',
   ReputationManager: '0x05bBcb6EB812754bD795fe9b440787684B95BBFC',
   RoleManager: '0xD1128930ccB130428165233ac8FF5e212A27db4D',
@@ -71,41 +56,6 @@ const getContractAddress = (contractName: keyof typeof LOCALHOST_ADDRESSES): str
   }
   
   return address;
-};
-
-export const ContractConfig_Weights = {
-  get address() {
-    return getContractAddress('Weights');
-  },
-  abi: WeightsArtifact.abi,
-};
-
-export const ContractConfig_ChallengeCostFormulas = {
-  get address() {
-    return getContractAddress('ChallengeCostFormulas');
-  },
-  abi: ChallengeCostFormulasArtifact.abi,
-};
-
-export const ContractConfig_RewardTokenFormulas = {
-  get address() {
-    return getContractAddress('RewardTokenFormulas');
-  },
-  abi: RewardTokenFormulasArtifact.abi,
-};
-
-export const ContractConfig_RecruitmentFeeFormulas = {
-  get address() {
-    return getContractAddress('RecruitmentFeeFormulas');
-  },
-  abi: RecruitmentFeeFormulasArtifact.abi,
-};
-
-export const ContractConfig_ReputationFormulas = {
-  get address() {
-    return getContractAddress('ReputationFormulas');
-  },
-  abi: ReputationFormulasArtifact.abi,
 };
 
 export const ContractConfig_UserDataManager = {

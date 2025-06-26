@@ -167,6 +167,50 @@ async function generateContractsConfig(): Promise<void> {
   console.log(`💡 The config will automatically switch between localhost and Amoy based on NODE_ENV`);
 }
 
+async function validateDeploymentOrder(moduleFiles: string[]): Promise<void> {
+  console.log("🔍 Validating deployment order...");
+  
+  // Define dependency mapping for validation
+  const dependencies: Record<string, string[]> = {
+    "Libraries.ts": ["Weights.ts", "ChallengeCostFormulas.ts", "RewardTokenFormulas.ts", "RecruitmentFeeFormulas.ts", "ReputationFormulas.ts"],
+    "ReputationManager.ts": ["Libraries.ts"],
+    "RoleManager.ts": ["ReputationManager.ts"],
+    "RecruiterSubscription.ts": ["ReputationManager.ts", "Libraries.ts"],
+    "SolutionManager.ts": ["RoleManager.ts"],
+    "ChallengeManager.ts": ["ReputationManager.ts", "SolutionManager.ts", "RoleManager.ts"],
+    "JobManager.ts": ["RecruiterSubscription.ts"],
+    "ModerationEscrow.ts": ["ChallengeManager.ts", "Libraries.ts"],
+    "ChallengeCostManager.ts": ["ChallengeManager.ts", "ModerationEscrow.ts", "Libraries.ts"],
+    "JobApplicationManager.ts": ["JobManager.ts", "RecruiterSubscription.ts"],
+    "MeetingManager.ts": ["RecruiterSubscription.ts"],
+    "RecruiterDataManager.ts": ["RecruiterSubscription.ts"]
+  };
+  
+  const moduleOrder = moduleFiles.map((file, index) => ({ file, index }));
+  let validationErrors: string[] = [];
+  
+  // Check if dependencies are deployed before dependent contracts
+  for (const { file, index } of moduleOrder) {
+    const deps = dependencies[file] || [];
+    for (const dep of deps) {
+      const depIndex = moduleFiles.indexOf(dep);
+      if (depIndex === -1) {
+        validationErrors.push(`⚠️  Dependency ${dep} not found for ${file}`);
+      } else if (depIndex > index) {
+        validationErrors.push(`❌ Dependency violation: ${file} (position ${index + 1}) depends on ${dep} (position ${depIndex + 1})`);
+      }
+    }
+  }
+  
+  if (validationErrors.length > 0) {
+    console.error("\n🚨 Deployment order validation failed:");
+    validationErrors.forEach(error => console.error(error));
+    throw new Error("Invalid deployment order detected");
+  }
+  
+  console.log("✅ Deployment order validation passed");
+}
+
 async function syncNonceIfNeeded(): Promise<void> {
   if (NETWORK === "amoy") {
     console.log("🔄 Checking nonce synchronization for Amoy network...");
@@ -236,60 +280,126 @@ async function main(): Promise<void> {
   await syncNonceIfNeeded();
   console.log("Deploying Ignition modules…");
   
-  // Get all module files
-  const moduleFiles = fs
+  // Define optimal deployment order based on dependencies
+  const deploymentOrder = [
+    // Layer 1: Pure libraries (no dependencies)
+    "Weights.ts",
+    "ChallengeCostFormulas.ts", 
+    "RewardTokenFormulas.ts",
+    "RecruitmentFeeFormulas.ts",
+    "ReputationFormulas.ts",
+    
+    // Layer 2: Library aggregator and standalone contracts
+    "Libraries.ts",
+    "UserDataManager.ts",
+    
+    // Layer 3: Core reputation system
+    "ReputationManager.ts",
+    
+    // Layer 4: Role management and recruiter subscription
+    "RoleManager.ts",
+    "RecruiterSubscription.ts",
+    
+    // Layer 5: Solution management
+    "SolutionManager.ts",
+    
+    // Layer 6: Challenge and job management
+    "ChallengeManager.ts",
+    "JobManager.ts",
+    
+    // Layer 7: Escrow system
+    "ModerationEscrow.ts",
+    
+    // Layer 8: Final dependent contracts
+    "ChallengeCostManager.ts",
+    "JobApplicationManager.ts",
+    "MeetingManager.ts",
+    "RecruiterDataManager.ts"
+  ];
+
+  // Get all module files and filter based on what exists
+  const allModuleFiles = fs
     .readdirSync(modulesDir)
-    .filter((f) => f.match(/\.(js|ts)$/))
-    .sort(); // Sort to ensure consistent order
+    .filter((f) => f.match(/\.(js|ts)$/));
+  
+  // Use deployment order for existing files, append any missing files at the end
+  const moduleFiles = deploymentOrder.filter(file => allModuleFiles.includes(file))
+    .concat(allModuleFiles.filter(file => !deploymentOrder.includes(file)));
+
+  console.log(`📋 Deployment order (${moduleFiles.length} modules):`);
+  moduleFiles.forEach((file, index) => {
+    console.log(`  ${index + 1}. ${file}`);
+  });
+  console.log("");
+  
+  // Validate deployment order
+  await validateDeploymentOrder(moduleFiles);
 
   // Deploy in smaller batches to avoid nonce conflicts on Amoy
-  const batchSize = NETWORK === "amoy" ? 3 : moduleFiles.length; // Smaller batches for Amoy
+  const batchSize = NETWORK === "amoy" ? 2 : 5; // Smaller batches for Amoy, medium for others
   
   for (let i = 0; i < moduleFiles.length; i += batchSize) {
     const batch = moduleFiles.slice(i, i + batchSize);
-    console.log(`\n📦 Deploying batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(moduleFiles.length/batchSize)}: [${batch.join(', ')}]`);
+    const batchNumber = Math.floor(i/batchSize) + 1;
+    const totalBatches = Math.ceil(moduleFiles.length/batchSize);
+    
+    console.log(`\n📦 Deploying batch ${batchNumber}/${totalBatches}: [${batch.join(', ')}]`);
     
     for (const file of batch) {
       const modulePath = path.join(modulesDir, file);
       const relativePath = path.relative(process.cwd(), modulePath);
-      console.log(`>> Deploying ${file}`);
+      const contractName = path.basename(file, path.extname(file));
+      
+      console.log(`\n⚡ [${batchNumber}/${totalBatches}] Deploying ${file}...`);
       
       try {
+        const startTime = Date.now();
         execSync(
           `npx hardhat ignition deploy ${relativePath} --network ${NETWORK}`,
           { stdio: "inherit" }
         );
-        contractNames.push(path.basename(file, path.extname(file)));
-        console.log(`✅ Successfully deployed ${file}`);
+        const deployTime = Date.now() - startTime;
+        
+        contractNames.push(contractName);
+        console.log(`✅ Successfully deployed ${file} (${deployTime}ms)`);
         
         // Add a small delay between deployments on Amoy to ensure nonce stability
-        if (NETWORK === "amoy") {
-          console.log("⏳ Waiting 2 seconds for nonce stability...");
-          await new Promise(resolve => setTimeout(resolve, 2000));
+        if (NETWORK === "amoy" && batch.indexOf(file) < batch.length - 1) {
+          console.log("⏳ Waiting 3 seconds for nonce stability...");
+          await new Promise(resolve => setTimeout(resolve, 3000));
         }
       } catch (error) {
-        console.error(`❌ Failed to deploy ${file}:`, error);
+        console.error(`❌ Failed to deploy ${file}:`);
         
         if (NETWORK === "amoy") {
-          console.log("🔄 Checking nonce and retrying...");
+          console.log("🔄 Attempting recovery for Amoy network...");
           try {
-            execSync(`npx hardhat run scripts/deployment/check_nonce.ts --network ${NETWORK}`, { stdio: "inherit" });
+            // Check nonce status
+            execSync(`npx hardhat run scripts/deployment/check_nonce.ts --network ${NETWORK}`, { 
+              stdio: "inherit" 
+            });
+            
             console.log("⏳ Waiting 5 seconds before retry...");
             await new Promise(resolve => setTimeout(resolve, 5000));
             
-            // Retry once
+            // Retry deployment
+            console.log(`🔄 Retrying deployment of ${file}...`);
             execSync(
               `npx hardhat ignition deploy ${relativePath} --network ${NETWORK}`,
               { stdio: "inherit" }
             );
-            contractNames.push(path.basename(file, path.extname(file)));
+            contractNames.push(contractName);
             console.log(`✅ Successfully deployed ${file} on retry`);
           } catch (retryError) {
-            console.error(`❌ Failed to deploy ${file} even after retry:`, retryError);
-            throw retryError;
+            console.error(`❌ Failed to deploy ${file} even after retry. This may cause issues with dependent contracts.`);
+            console.error(`Retry error:`, retryError);
+            
+            // Continue with other deployments but log the failure
+            console.log(`⚠️  Continuing with remaining deployments. Manual intervention may be required for ${file}.`);
           }
         } else {
-          throw error;
+          console.error(`Deployment error:`, error);
+          throw error; // Stop deployment on other networks
         }
       }
     }
@@ -321,6 +431,23 @@ async function main(): Promise<void> {
   }
   console.log("- Generating contract addresses in frontend config...");
   await generateContractsConfig();
+
+  // Deployment summary
+  console.log(`\n🎉 Deployment Summary for ${NETWORK} (Chain ID: ${CHAIN_ID})`);
+  console.log(`📊 Successfully deployed ${contractNames.length}/${moduleFiles.length} contracts:`);
+  contractNames.forEach((name, index) => {
+    console.log(`  ${index + 1}. ${name}`);
+  });
+  
+  if (contractNames.length < moduleFiles.length) {
+    const failedContracts = moduleFiles
+      .map(f => path.basename(f, path.extname(f)))
+      .filter(name => !contractNames.includes(name));
+    console.log(`\n⚠️  Failed deployments (${failedContracts.length}):`);
+    failedContracts.forEach((name, index) => {
+      console.log(`  ${index + 1}. ${name}`);
+    });
+  }
 
   console.log("All done.");
 }

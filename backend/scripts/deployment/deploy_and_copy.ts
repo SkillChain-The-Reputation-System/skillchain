@@ -352,7 +352,7 @@ async function main(): Promise<void> {
   // Get all module files and filter based on what exists
   const allModuleFiles = fs
     .readdirSync(modulesDir)
-    .filter((f) => f.match(/\.(js|ts)$/) && !f.includes("PhaseTwo") && !f.includes("CompleteDeployment") && !f.includes("MainDeployment"));
+    .filter((f) => f.match(/\.(js|ts)$/));
   
   // Use deployment order for existing files
   const moduleFiles = deploymentModules.filter(file => allModuleFiles.includes(file));

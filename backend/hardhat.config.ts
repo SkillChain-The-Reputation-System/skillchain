@@ -30,7 +30,7 @@ const config: HardhatUserConfig = {
     blockPollingInterval: 5000, // Poll every 5 seconds
     timeBeforeBumpingFees: 180 * 1000, // 3 minutes before fee bumping
     maxFeeBumps: 4,
-    requiredConfirmations: 2, // Require more confirmations for safety
+    requiredConfirmations: process.env.NETWORK === "localhost" ? 1 : 2, // Fewer confirmations on local network
     disableFeeBumping: false,
   },
 };

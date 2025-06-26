@@ -24,11 +24,14 @@ const config: HardhatUserConfig = {
       url: process.env.AMOY_RPC_URL || "",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       chainId: Number(process.env.CHAIN_ID) || 80002,
-      timeout: 120000, // Increased to 120 seconds
-      httpHeaders: {},
-      gas: 2100000,
-      gasPrice: 30000000000, // 30 gwei
     },
+  },
+  ignition: {
+    blockPollingInterval: 5000, // Poll every 5 seconds
+    timeBeforeBumpingFees: 180 * 1000, // 3 minutes before fee bumping
+    maxFeeBumps: 4,
+    requiredConfirmations: 2, // Require more confirmations for safety
+    disableFeeBumping: false,
   },
 };
 

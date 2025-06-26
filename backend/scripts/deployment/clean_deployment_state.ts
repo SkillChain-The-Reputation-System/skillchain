@@ -49,11 +49,6 @@ async function cleanDeploymentState(): Promise<void> {
             console.log("⚠️  Found pending transactions - cleaning is recommended");
           } else {
             console.log("✅ No pending transactions found");
-            const answer = await askUserConfirmation("State looks clean. Do you still want to clean it?");
-            if (!answer) {
-              console.log("❌ Cleanup cancelled by user");
-              return;
-            }
           }
         }
       }
@@ -75,12 +70,6 @@ async function cleanDeploymentState(): Promise<void> {
     console.log("ℹ️  No existing deployment state found. Nothing to clean.");
     console.log("✅ You can proceed with a fresh deployment.");
   }
-}
-
-async function askUserConfirmation(question: string): Promise<boolean> {
-  // In a real scenario, you'd use readline or similar for user input
-  // For now, we'll assume confirmation for non-pending transactions
-  return false;
 }
 
 cleanDeploymentState().catch((error) => {

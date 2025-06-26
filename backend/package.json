@@ -7,6 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "deploy:local": "cross-env NETWORK=localhost CHAIN_ID=31337 hardhat run scripts/deployment/deploy_and_copy.ts --network localhost",
     "deploy:amoy": "cross-env NETWORK=amoy CHAIN_ID=80002 HARDHAT_IGNITION_CONFIRM_DEPLOYMENT=false hardhat run scripts/deployment/deploy_and_copy.ts",
+    "configure:local": "cross-env NETWORK=localhost CHAIN_ID=31337 hardhat run scripts/deployment/configure_system.ts --network localhost",
+    "configure:amoy": "cross-env NETWORK=amoy CHAIN_ID=80002 hardhat run scripts/deployment/configure_system.ts --network amoy",
     "seed:challenge:local": "hardhat run scripts/seeding/seed_challenge.ts --network localhost",
     "seed:pending:challenge:local": "hardhat run scripts/seeding/seed_pending_challenges.ts --network localhost",
     "seed:moderator:review:local": "hardhat run scripts/seeding/seed_moderator_review.ts --network localhost",

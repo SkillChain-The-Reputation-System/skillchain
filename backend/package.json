@@ -5,7 +5,7 @@
   "main": "index.js",  
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy:local": "hardhat run scripts/deployment/deploy_and_copy.ts --network localhost",
+    "deploy:local": "cross-env NETWORK=localhost CHAIN_ID=31337 hardhat run scripts/deployment/deploy_and_copy.ts --network localhost",
     "deploy:amoy": "cross-env NETWORK=amoy CHAIN_ID=80002 HARDHAT_IGNITION_CONFIRM_DEPLOYMENT=false hardhat run scripts/deployment/deploy_and_copy.ts",
     "seed:challenge:local": "hardhat run scripts/seeding/seed_challenge.ts --network localhost",
     "seed:pending:challenge:local": "hardhat run scripts/seeding/seed_pending_challenges.ts --network localhost",

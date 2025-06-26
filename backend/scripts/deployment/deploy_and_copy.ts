@@ -10,10 +10,11 @@
  * - Core contracts (without cross-references)
  * - All contracts are deployed but not yet interconnected
  * 
- * Phase 2: Configure address dependencies and roles
- * - Set all contract addresses on dependent contracts
- * - Grant necessary roles and permissions
- * - Complete the interconnection of the contract ecosystem
+ * Phase 2: Configure address dependencies and roles using individual modules
+ * - Execute granular configuration scripts from the configurations/ folder
+ * - Each configuration script handles a specific address setting or role grant
+ * - Includes retry logic and delay between calls to prevent nonce conflicts
+ * - Complete the interconnection of the contract ecosystem step-by-step
  * 
  * Usage:
  *   NETWORK=amoy CHAIN_ID=80002 npm run deploy:copy
@@ -444,52 +445,159 @@ async function main(): Promise<void> {
   console.log("\n🎯 PHASE 2: Configuring address dependencies and roles");
   console.log("=" .repeat(60));
   
-  // Phase 2: Deploy the PhaseTwo_AddressConfiguration module
-  const phaseTwoFile = "PhaseTwo_AddressConfiguration.ts";
-  const phaseTwoPath = path.join(modulesDir, phaseTwoFile);
+  // Phase 2: Deploy individual configuration modules in logical order
+  const configurationsDir = path.join(modulesDir, "configurations");
   
-  if (fs.existsSync(phaseTwoPath)) {
-    console.log(`\n⚡ [Phase 2] Configuring cross-contract dependencies...`);
+  // Define the order of configuration deployments to handle dependencies
+  const configurationOrder = [
+    // Step 1: Core bidirectional relationships (RoleManager ↔ ReputationManager)
+    "setRoleManagerOnReputationManager.ts",
+    "setReputationManagerOnRoleManager.ts",
     
-    try {
-      const startTime = Date.now();
-      const relativePath = path.relative(process.cwd(), phaseTwoPath);
-      execSync(
-        `npx hardhat ignition deploy ${relativePath} --network ${NETWORK}`,
-        { stdio: "inherit" }
-      );
-      const configTime = Date.now() - startTime;
+    // Step 2: Set ReputationManager on dependent contracts
+    "setReputationManagerOnChallengeManager.ts",
+    "setReputationManagerOnSolutionManager.ts",
+    "setReputationManagerOnModerationEscrow.ts",
+    "setReputationManagerOnRecruiterSubscription.ts",
+    
+    // Step 3: Set RoleManager on dependent contracts
+    "setRoleManagerOnChallengeManager.ts",
+    "setRoleManagerOnSolutionManager.ts",
+    
+    // Step 4: Configure ChallengeManager dependencies
+    "setSolutionManagerOnChallengeManager.ts",
+    "setChallengeCostManagerOnChallengeManager.ts",
+    "setModerationEscrowOnChallengeManager.ts",
+    
+    // Step 5: Configure SolutionManager dependencies
+    "setChallengeManagerOnSolutionManager.ts",
+    
+    // Step 6: Configure ChallengeCostManager dependencies
+    "setChallengeManagerOnChallengeCostManager.ts",
+    "setModerationEscrowOnChallengeCostManager.ts",
+    
+    // Step 7: Configure ModerationEscrow dependencies
+    "setChallengeManagerOnModerationEscrow.ts",
+    
+    // Step 8: Configure recruitment system dependencies
+    "setRecruiterSubscriptionOnRecruiterDataManager.ts",
+    "setRecruiterSubscriptionOnJobManager.ts",
+    "setRecruiterSubscriptionOnJobApplicationManager.ts",
+    "setRecruiterSubscriptionOnMeetingManager.ts",
+    "setJobManagerOnJobApplicationManager.ts",
+    
+    // Step 9: Grant roles and permissions
+    "grantReputationUpdaterToChallengeManager.ts",
+    "grantReputationUpdaterToSolutionManager.ts",
+    "grantChallengeManagerRoleOnChallengeCostManager.ts",
+    "grantChallengeManagerRoleOnModerationEscrow.ts",
+    "grantJobApplicationManagerRoleOnRecruiterSubscription.ts"
+  ];
+  
+  // Filter to only include files that exist
+  const availableConfigurations = configurationOrder.filter(file => {
+    const filePath = path.join(configurationsDir, file);
+    return fs.existsSync(filePath);
+  });
+  
+  if (availableConfigurations.length === 0) {
+    console.warn(`⚠️  No configuration files found in ${configurationsDir}. Skipping Phase 2.`);
+  } else {
+    console.log(`📋 Phase 2 configuration order (${availableConfigurations.length} modules):`);
+    availableConfigurations.forEach((file, index) => {
+      console.log(`  ${index + 1}. ${file.replace('.ts', '')}`);
+    });
+    console.log("");
+    
+    let successCount = 0;
+    let failedConfigurations: string[] = [];
+    
+    for (let i = 0; i < availableConfigurations.length; i++) {
+      const configFile = availableConfigurations[i];
+      const configPath = path.join(configurationsDir, configFile);
+      const configName = configFile.replace('.ts', '');
       
-      console.log(`✅ Successfully configured address dependencies and roles (${configTime}ms)`);
-    } catch (error) {
-      console.error(`❌ Failed to configure address dependencies:`);
+      console.log(`\n⚡ [Phase 2 - ${i + 1}/${availableConfigurations.length}] Configuring ${configName}...`);
       
-      if (NETWORK === "amoy" || NETWORK === "polygon" || NETWORK === "mainnet") {
-        console.log("🔄 Attempting recovery for Phase 2...");
-        try {
-          console.log("⏳ Waiting 5 seconds before retry...");
-          await new Promise(resolve => setTimeout(resolve, 5000));
-          
-          // Retry Phase 2
-          console.log(`🔄 Retrying Phase 2 configuration...`);
-          const relativePath = path.relative(process.cwd(), phaseTwoPath);
-          execSync(
-            `npx hardhat ignition deploy ${relativePath} --network ${NETWORK}`,
-            { stdio: "inherit" }
-          );
-          console.log(`✅ Successfully configured address dependencies on retry`);
-        } catch (retryError) {
-          console.error(`❌ Failed Phase 2 configuration even after retry.`);
-          console.error(`Retry error:`, retryError);
-          console.log(`⚠️  Deployment completed but contracts may not be fully configured.`);
+      try {
+        const startTime = Date.now();
+        const relativePath = path.relative(process.cwd(), configPath);
+        execSync(
+          `npx hardhat ignition deploy ${relativePath} --network ${NETWORK}`,
+          { stdio: "inherit" }
+        );
+        const configTime = Date.now() - startTime;
+        
+        successCount++;
+        console.log(`✅ Successfully configured ${configName} (${configTime}ms)`);
+        
+        // Add delay between configuration calls to avoid nonce conflicts
+        if (i < availableConfigurations.length - 1) {
+          const delayTime = (NETWORK === "amoy" || NETWORK === "polygon" || NETWORK === "mainnet") ? 3000 : 1000;
+          console.log(`⏳ Waiting ${delayTime/1000} seconds to avoid nonce conflicts...`);
+          await new Promise(resolve => setTimeout(resolve, delayTime));
         }
-      } else {
-        console.error(`Phase 2 error:`, error);
-        throw error; // Stop deployment on other networks
+        
+      } catch (error) {
+        console.error(`❌ Failed to configure ${configName}:`);
+        failedConfigurations.push(configName);
+        
+        if (NETWORK === "amoy" || NETWORK === "polygon" || NETWORK === "mainnet") {
+          console.log("🔄 Attempting recovery for configuration...");
+          try {
+            console.log("⏳ Waiting 5 seconds before retry...");
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            
+            // Retry configuration
+            console.log(`🔄 Retrying configuration of ${configName}...`);
+            const relativePath = path.relative(process.cwd(), configPath);
+            execSync(
+              `npx hardhat ignition deploy ${relativePath} --network ${NETWORK}`,
+              { stdio: "inherit" }
+            );
+            successCount++;
+            console.log(`✅ Successfully configured ${configName} on retry`);
+            
+            // Remove from failed list if retry succeeded
+            failedConfigurations = failedConfigurations.filter(name => name !== configName);
+            
+            // Add delay after successful retry
+            if (i < availableConfigurations.length - 1) {
+              const delayTime = (NETWORK === "amoy" || NETWORK === "polygon" || NETWORK === "mainnet") ? 3000 : 1000;
+              console.log(`⏳ Waiting ${delayTime/1000} seconds after retry...`);
+              await new Promise(resolve => setTimeout(resolve, delayTime));
+            }
+            
+          } catch (retryError) {
+            console.error(`❌ Failed ${configName} configuration even after retry.`);
+            console.error(`Retry error:`, retryError);
+            console.log(`⚠️  Continuing with remaining configurations. Manual intervention may be required for ${configName}.`);
+            
+            // Add smaller delay even after failure to prevent cascading issues
+            if (i < availableConfigurations.length - 1) {
+              console.log("⏳ Waiting 2 seconds before next configuration...");
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+          }
+        } else {
+          console.error(`Configuration error:`, error);
+          // Continue with other configurations on localhost but log the failure
+          console.log(`⚠️  Continuing with remaining configurations. Manual intervention may be required for ${configName}.`);
+        }
       }
     }
-  } else {
-    console.warn(`⚠️  PhaseTwo_AddressConfiguration.ts not found. Skipping Phase 2.`);
+    
+    // Phase 2 Summary
+    console.log(`\n📊 Phase 2 Configuration Summary:`);
+    console.log(`✅ Successfully configured: ${successCount}/${availableConfigurations.length} modules`);
+    
+    if (failedConfigurations.length > 0) {
+      console.log(`❌ Failed configurations (${failedConfigurations.length}):`);
+      failedConfigurations.forEach((name, index) => {
+        console.log(`  ${index + 1}. ${name}`);
+      });
+      console.log(`⚠️  These configurations may need manual intervention.`);
+    }
   }
 
   console.log(`Ensuring output folder exists at ${outputDir}...`);
@@ -531,8 +639,8 @@ async function main(): Promise<void> {
     });
   }
   
-  console.log(`\n📋 Phase 2: Address configuration and role management completed`);
-  console.log(`💡 All contracts are now fully configured and ready for use`);
+  console.log(`\n📋 Phase 2: Individual address configurations and role management completed`);
+  console.log(`💡 All contracts are now configured using granular configuration modules`);
   console.log(`🌐 Network: ${NETWORK} (Chain ID: ${CHAIN_ID})`);
   console.log(`📁 Config file: ${contractsConfigPath}`);
   console.log(`🔄 The config will automatically switch between localhost and Amoy based on NODE_ENV`);

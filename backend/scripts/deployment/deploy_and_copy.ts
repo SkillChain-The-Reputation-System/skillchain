@@ -24,6 +24,15 @@ import { execSync } from "child_process";
 const NETWORK = process.env.NETWORK || "localhost";
 const CHAIN_ID = process.env.CHAIN_ID || "31337";
 
+// List of library contracts to exclude from frontend config and artifacts
+const LIBRARY_CONTRACTS = [
+  "Weights",
+  "ChallengeCostFormulas", 
+  "RewardTokenFormulas",
+  "RecruitmentFeeFormulas",
+  "ReputationFormulas"
+];
+
 async function generateContractsConfig(): Promise<void> {
   const backendRoot = path.resolve(__dirname, "../..");
   const deploymentPath = path.join(
@@ -75,6 +84,7 @@ async function generateContractsConfig(): Promise<void> {
   if (fs.existsSync(amoyDeploymentPath)) {
     amoyAddresses = JSON.parse(fs.readFileSync(amoyDeploymentPath, "utf8"));
   }
+
   // Automatically generate contract configurations from deployed addresses
   const contractConfigs = Object.keys(deployedAddresses)
     .filter((moduleKey) => !moduleKey.includes("Libraries")) // Skip library modules
@@ -88,7 +98,8 @@ async function generateContractsConfig(): Promise<void> {
         artifactName: `${contractName}Artifact`,
         importName: contractName,
       };
-    });
+    })
+    .filter((config) => !LIBRARY_CONTRACTS.includes(config.importName)); // Exclude library contracts
 
   // Generate the contracts config file content
   let configContent = "";
@@ -437,6 +448,12 @@ async function main(): Promise<void> {
   console.log("- Copying ABI files:");
 
   for (const contractName of contractNames) {
+    // Skip library contracts
+    if (LIBRARY_CONTRACTS.includes(contractName)) {
+      console.log(`${contractName}.json skipped (library contract)`);
+      continue;
+    }
+
     const contractDir = path.join(artifactDir, `${contractName}.sol`);
     const abiFilePath = path.join(contractDir, `${contractName}.json`);
 

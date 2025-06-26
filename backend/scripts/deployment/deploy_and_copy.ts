@@ -1,20 +1,10 @@
 // backend/scripts/deploy_and_copy.ts
 
 /**
- * Two-Phase Deployment Script
+ * Contract Deployment Script
  * 
- * This script implements a two-phase deployment strategy to handle circular dependencies:
- * 
- * Phase 1: Deploy all contracts without cross-dependencies
- * - Libraries and standalone contracts
- * - Core contracts (without cross-references)
- * - All contracts are deployed but not yet interconnected
- * 
- * Phase 2: Configure address dependencies and roles using individual modules
- * - Execute granular configuration scripts from the configurations/ folder
- * - Each configuration script handles a specific address setting or role grant
- * - Includes retry logic and delay between calls to prevent nonce conflicts
- * - Complete the interconnection of the contract ecosystem step-by-step
+ * This script deploys all smart contracts to the specified network.
+ * Configuration of cross-dependencies is handled separately via other scripts.
  * 
  * Usage:
  *   NETWORK=amoy CHAIN_ID=80002 npm run deploy:copy
@@ -194,13 +184,13 @@ async function generateContractsConfig(): Promise<void> {
   console.log(`💡 The config will automatically switch between localhost and Amoy based on NODE_ENV`);
 }
 
-async function validatePhaseOneOrder(moduleFiles: string[]): Promise<void> {
-  console.log("🔍 Validating Phase 1 deployment order...");
+async function validateDeploymentOrder(moduleFiles: string[]): Promise<void> {
+  console.log("🔍 Validating deployment order...");
   
-  // Define dependency mapping for Phase 1 validation (only dependencies needed for deployment)
-  const phaseDependencies: Record<string, string[]> = {
+  // Define dependency mapping for deployment validation
+  const deploymentDependencies: Record<string, string[]> = {
     "Libraries.ts": ["Weights.ts", "ChallengeCostFormulas.ts", "RewardTokenFormulas.ts", "RecruitmentFeeFormulas.ts", "ReputationFormulas.ts"],
-    // All other contracts in Phase 1 should be deployable independently
+    // All other contracts should be deployable independently
     "ReputationManager.ts": ["Libraries.ts"],
     "RoleManager.ts": [],
     "ChallengeManager.ts": ["Libraries.ts"],
@@ -219,24 +209,24 @@ async function validatePhaseOneOrder(moduleFiles: string[]): Promise<void> {
   
   // Check if dependencies are deployed before dependent contracts
   for (const { file, index } of moduleOrder) {
-    const deps = phaseDependencies[file] || [];
+    const deps = deploymentDependencies[file] || [];
     for (const dep of deps) {
       const depIndex = moduleFiles.indexOf(dep);
       if (depIndex === -1) {
-        validationErrors.push(`⚠️  Phase 1 dependency ${dep} not found for ${file}`);
+        validationErrors.push(`⚠️  Dependency ${dep} not found for ${file}`);
       } else if (depIndex > index) {
-        validationErrors.push(`❌ Phase 1 dependency violation: ${file} (position ${index + 1}) depends on ${dep} (position ${depIndex + 1})`);
+        validationErrors.push(`❌ Dependency violation: ${file} (position ${index + 1}) depends on ${dep} (position ${depIndex + 1})`);
       }
     }
   }
   
   if (validationErrors.length > 0) {
-    console.error("\n🚨 Phase 1 deployment order validation failed:");
+    console.error("\n🚨 Deployment order validation failed:");
     validationErrors.forEach(error => console.error(error));
-    throw new Error("Invalid Phase 1 deployment order detected");
+    throw new Error("Invalid deployment order detected");
   }
   
-  console.log("✅ Phase 1 deployment order validation passed");
+  console.log("✅ Deployment order validation passed");
 }
 
 async function syncNonceIfNeeded(): Promise<void> {
@@ -314,13 +304,13 @@ async function main(): Promise<void> {
 
   // Sync nonce and clean up incomplete deployments if needed
   await syncNonceIfNeeded();
-  console.log("🚀 Starting Two-Phase Deployment Strategy...");
+  console.log("🚀 Starting Contract Deployment...");
   
-  // Phase 1: Deploy all contracts without cross-dependencies
-  console.log("\n🎯 PHASE 1: Deploying contracts without cross-dependencies");
+  // Deploy all contracts
+  console.log("\n🎯 Deploying all contracts");
   console.log("=" .repeat(60));
   
-  const phaseOneModules = [
+  const deploymentModules = [
     // Layer 1: Pure libraries (no dependencies)
     "Weights.ts",
     "ChallengeCostFormulas.ts", 
@@ -332,7 +322,7 @@ async function main(): Promise<void> {
     "Libraries.ts",
     "UserDataManager.ts",
     
-    // Layer 3: Core contracts (deployed without cross-references)
+    // Layer 3: Core contracts
     "ReputationManager.ts",
     "RoleManager.ts",
     "ChallengeManager.ts",
@@ -353,35 +343,35 @@ async function main(): Promise<void> {
     .readdirSync(modulesDir)
     .filter((f) => f.match(/\.(js|ts)$/) && !f.includes("PhaseTwo") && !f.includes("CompleteDeployment") && !f.includes("MainDeployment"));
   
-  // Use phase one order for existing files
-  const moduleFiles = phaseOneModules.filter(file => allModuleFiles.includes(file));
+  // Use deployment order for existing files
+  const moduleFiles = deploymentModules.filter(file => allModuleFiles.includes(file));
 
-  console.log(`📋 Phase 1 deployment order (${moduleFiles.length} modules):`);
+  console.log(`📋 Deployment order (${moduleFiles.length} modules):`);
   moduleFiles.forEach((file, index) => {
     console.log(`  ${index + 1}. ${file}`);
   });
   console.log("");
   
-  // Validate deployment order for phase 1
-  await validatePhaseOneOrder(moduleFiles);
+  // Validate deployment order
+  await validateDeploymentOrder(moduleFiles);
 
   // Use batch size of 1 for real testnets (like Amoy), larger for localhost
   const batchSize = (NETWORK === "amoy" || NETWORK === "polygon" || NETWORK === "mainnet") ? 1 : 3;
   
-  // PHASE 1: Deploy all contracts without cross-dependencies
+  // Deploy all contracts
   for (let i = 0; i < moduleFiles.length; i += batchSize) {
     const batch = moduleFiles.slice(i, i + batchSize);
     const batchNumber = Math.floor(i/batchSize) + 1;
     const totalBatches = Math.ceil(moduleFiles.length/batchSize);
     
-    console.log(`\n📦 [Phase 1] Deploying batch ${batchNumber}/${totalBatches}: [${batch.join(', ')}]`);
+    console.log(`\n📦 Deploying batch ${batchNumber}/${totalBatches}: [${batch.join(', ')}]`);
     
     for (const file of batch) {
       const modulePath = path.join(modulesDir, file);
       const relativePath = path.relative(process.cwd(), modulePath);
       const contractName = path.basename(file, path.extname(file));
       
-      console.log(`\n⚡ [Phase 1 - ${batchNumber}/${totalBatches}] Deploying ${file}...`);
+      console.log(`\n⚡ [${batchNumber}/${totalBatches}] Deploying ${file}...`);
       
       try {
         const startTime = Date.now();
@@ -422,7 +412,7 @@ async function main(): Promise<void> {
             contractNames.push(contractName);
             console.log(`✅ Successfully deployed ${file} on retry`);
           } catch (retryError) {
-            console.error(`❌ Failed to deploy ${file} even after retry. This may cause issues with Phase 2.`);
+            console.error(`❌ Failed to deploy ${file} even after retry. This may cause issues later.`);
             console.error(`Retry error:`, retryError);
             
             // Continue with other deployments but log the failure
@@ -439,164 +429,6 @@ async function main(): Promise<void> {
     if ((NETWORK === "amoy" || NETWORK === "polygon" || NETWORK === "mainnet") && i + batchSize < moduleFiles.length) {
       console.log("⏳ Waiting 5 seconds between batches...");
       await new Promise(resolve => setTimeout(resolve, 5000));
-    }
-  }
-
-  console.log("\n🎯 PHASE 2: Configuring address dependencies and roles");
-  console.log("=" .repeat(60));
-  
-  // Phase 2: Deploy individual configuration modules in logical order
-  const configurationsDir = path.join(modulesDir, "configurations");
-  
-  // Define the order of configuration deployments to handle dependencies
-  const configurationOrder = [
-    // Step 1: Core bidirectional relationships (RoleManager ↔ ReputationManager)
-    "setRoleManagerOnReputationManager.ts",
-    "setReputationManagerOnRoleManager.ts",
-    
-    // Step 2: Set ReputationManager on dependent contracts
-    "setReputationManagerOnChallengeManager.ts",
-    "setReputationManagerOnSolutionManager.ts",
-    "setReputationManagerOnModerationEscrow.ts",
-    "setReputationManagerOnRecruiterSubscription.ts",
-    
-    // Step 3: Set RoleManager on dependent contracts
-    "setRoleManagerOnChallengeManager.ts",
-    "setRoleManagerOnSolutionManager.ts",
-    
-    // Step 4: Configure ChallengeManager dependencies
-    "setSolutionManagerOnChallengeManager.ts",
-    "setChallengeCostManagerOnChallengeManager.ts",
-    "setModerationEscrowOnChallengeManager.ts",
-    
-    // Step 5: Configure SolutionManager dependencies
-    "setChallengeManagerOnSolutionManager.ts",
-    
-    // Step 6: Configure ChallengeCostManager dependencies
-    "setChallengeManagerOnChallengeCostManager.ts",
-    "setModerationEscrowOnChallengeCostManager.ts",
-    
-    // Step 7: Configure ModerationEscrow dependencies
-    "setChallengeManagerOnModerationEscrow.ts",
-    
-    // Step 8: Configure recruitment system dependencies
-    "setRecruiterSubscriptionOnRecruiterDataManager.ts",
-    "setRecruiterSubscriptionOnJobManager.ts",
-    "setRecruiterSubscriptionOnJobApplicationManager.ts",
-    "setRecruiterSubscriptionOnMeetingManager.ts",
-    "setJobManagerOnJobApplicationManager.ts",
-    
-    // Step 9: Grant roles and permissions
-    "grantReputationUpdaterToChallengeManager.ts",
-    "grantReputationUpdaterToSolutionManager.ts",
-    "grantChallengeManagerRoleOnChallengeCostManager.ts",
-    "grantChallengeManagerRoleOnModerationEscrow.ts",
-    "grantJobApplicationManagerRoleOnRecruiterSubscription.ts"
-  ];
-  
-  // Filter to only include files that exist
-  const availableConfigurations = configurationOrder.filter(file => {
-    const filePath = path.join(configurationsDir, file);
-    return fs.existsSync(filePath);
-  });
-  
-  if (availableConfigurations.length === 0) {
-    console.warn(`⚠️  No configuration files found in ${configurationsDir}. Skipping Phase 2.`);
-  } else {
-    console.log(`📋 Phase 2 configuration order (${availableConfigurations.length} modules):`);
-    availableConfigurations.forEach((file, index) => {
-      console.log(`  ${index + 1}. ${file.replace('.ts', '')}`);
-    });
-    console.log("");
-    
-    let successCount = 0;
-    let failedConfigurations: string[] = [];
-    
-    for (let i = 0; i < availableConfigurations.length; i++) {
-      const configFile = availableConfigurations[i];
-      const configPath = path.join(configurationsDir, configFile);
-      const configName = configFile.replace('.ts', '');
-      
-      console.log(`\n⚡ [Phase 2 - ${i + 1}/${availableConfigurations.length}] Configuring ${configName}...`);
-      
-      try {
-        const startTime = Date.now();
-        const relativePath = path.relative(process.cwd(), configPath);
-        execSync(
-          `npx hardhat ignition deploy ${relativePath} --network ${NETWORK}`,
-          { stdio: "inherit" }
-        );
-        const configTime = Date.now() - startTime;
-        
-        successCount++;
-        console.log(`✅ Successfully configured ${configName} (${configTime}ms)`);
-        
-        // Add delay between configuration calls to avoid nonce conflicts
-        if (i < availableConfigurations.length - 1) {
-          const delayTime = (NETWORK === "amoy" || NETWORK === "polygon" || NETWORK === "mainnet") ? 3000 : 1000;
-          console.log(`⏳ Waiting ${delayTime/1000} seconds to avoid nonce conflicts...`);
-          await new Promise(resolve => setTimeout(resolve, delayTime));
-        }
-        
-      } catch (error) {
-        console.error(`❌ Failed to configure ${configName}:`);
-        failedConfigurations.push(configName);
-        
-        if (NETWORK === "amoy" || NETWORK === "polygon" || NETWORK === "mainnet") {
-          console.log("🔄 Attempting recovery for configuration...");
-          try {
-            console.log("⏳ Waiting 5 seconds before retry...");
-            await new Promise(resolve => setTimeout(resolve, 5000));
-            
-            // Retry configuration
-            console.log(`🔄 Retrying configuration of ${configName}...`);
-            const relativePath = path.relative(process.cwd(), configPath);
-            execSync(
-              `npx hardhat ignition deploy ${relativePath} --network ${NETWORK}`,
-              { stdio: "inherit" }
-            );
-            successCount++;
-            console.log(`✅ Successfully configured ${configName} on retry`);
-            
-            // Remove from failed list if retry succeeded
-            failedConfigurations = failedConfigurations.filter(name => name !== configName);
-            
-            // Add delay after successful retry
-            if (i < availableConfigurations.length - 1) {
-              const delayTime = (NETWORK === "amoy" || NETWORK === "polygon" || NETWORK === "mainnet") ? 3000 : 1000;
-              console.log(`⏳ Waiting ${delayTime/1000} seconds after retry...`);
-              await new Promise(resolve => setTimeout(resolve, delayTime));
-            }
-            
-          } catch (retryError) {
-            console.error(`❌ Failed ${configName} configuration even after retry.`);
-            console.error(`Retry error:`, retryError);
-            console.log(`⚠️  Continuing with remaining configurations. Manual intervention may be required for ${configName}.`);
-            
-            // Add smaller delay even after failure to prevent cascading issues
-            if (i < availableConfigurations.length - 1) {
-              console.log("⏳ Waiting 2 seconds before next configuration...");
-              await new Promise(resolve => setTimeout(resolve, 2000));
-            }
-          }
-        } else {
-          console.error(`Configuration error:`, error);
-          // Continue with other configurations on localhost but log the failure
-          console.log(`⚠️  Continuing with remaining configurations. Manual intervention may be required for ${configName}.`);
-        }
-      }
-    }
-    
-    // Phase 2 Summary
-    console.log(`\n📊 Phase 2 Configuration Summary:`);
-    console.log(`✅ Successfully configured: ${successCount}/${availableConfigurations.length} modules`);
-    
-    if (failedConfigurations.length > 0) {
-      console.log(`❌ Failed configurations (${failedConfigurations.length}):`);
-      failedConfigurations.forEach((name, index) => {
-        console.log(`  ${index + 1}. ${name}`);
-      });
-      console.log(`⚠️  These configurations may need manual intervention.`);
     }
   }
 
@@ -622,28 +454,27 @@ async function main(): Promise<void> {
   await generateContractsConfig();
 
   // Deployment summary
-  console.log(`\n🎉 Two-Phase Deployment Summary for ${NETWORK} (Chain ID: ${CHAIN_ID})`);
+  console.log(`\n🎉 Deployment Summary for ${NETWORK} (Chain ID: ${CHAIN_ID})`);
   console.log("=" .repeat(70));
-  console.log(`📊 Phase 1: Successfully deployed ${contractNames.length}/${moduleFiles.length} contracts:`);
+  console.log(`📊 Successfully deployed ${contractNames.length}/${moduleFiles.length} contracts:`);
   contractNames.forEach((name, index) => {
     console.log(`  ${index + 1}. ${name}`);
   });
   
   if (contractNames.length < moduleFiles.length) {
     const failedContracts = moduleFiles
-      .map(f => path.basename(f, path.extname(f)))
-      .filter(name => !contractNames.includes(name));
-    console.log(`\n⚠️  Phase 1 failed deployments (${failedContracts.length}):`);
-    failedContracts.forEach((name, index) => {
+      .map((f: string) => path.basename(f, path.extname(f)))
+      .filter((name: string) => !contractNames.includes(name));
+    console.log(`\n⚠️  Failed deployments (${failedContracts.length}):`);
+    failedContracts.forEach((name: string, index: number) => {
       console.log(`  ${index + 1}. ${name}`);
     });
   }
   
-  console.log(`\n📋 Phase 2: Individual address configurations and role management completed`);
-  console.log(`💡 All contracts are now configured using granular configuration modules`);
-  console.log(`🌐 Network: ${NETWORK} (Chain ID: ${CHAIN_ID})`);
+  console.log(`\n🌐 Network: ${NETWORK} (Chain ID: ${CHAIN_ID})`);
   console.log(`📁 Config file: ${contractsConfigPath}`);
   console.log(`🔄 The config will automatically switch between localhost and Amoy based on NODE_ENV`);
+  console.log(`💡 Use separate configuration scripts to set up contract dependencies and roles`);
 
   console.log("All done.");
 }

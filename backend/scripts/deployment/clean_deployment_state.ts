@@ -67,12 +67,6 @@ async function cleanDeploymentState(): Promise<void> {
       console.log(`✅ Backed up existing state to: ${backupPath}`);
       
       console.log("🎉 Deployment state cleaned successfully!");
-      console.log("🚀 You can now run deployment without nonce conflicts.");
-      console.log("");
-      console.log("💡 Next steps:");
-      console.log("   1. Run: npm run check-nonce");
-      console.log("   2. Or run: npm run deploy:<local/amoy>");
-      
     } catch (error) {
       console.error("❌ Error cleaning deployment state:", error);
       process.exit(1);

@@ -6,15 +6,15 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "deploy:local": "hardhat run scripts/deployment/deploy_and_copy.ts --network localhost",
+    "deploy:amoy": "cross-env NETWORK=amoy CHAIN_ID=80002 HARDHAT_IGNITION_CONFIRM_DEPLOYMENT=false hardhat run scripts/deployment/deploy_and_copy.ts --network amoy",
     "seed:challenge:local": "hardhat run scripts/seeding/seed_challenge.ts --network localhost",
     "seed:pending:challenge:local": "hardhat run scripts/seeding/seed_pending_challenges.ts --network localhost",
     "seed:moderator:review:local": "hardhat run scripts/seeding/seed_moderator_review.ts --network localhost",
     "seed:jobs": "hardhat run scripts/seeding/seed_job.ts --network localhost",
     "grant:role": "hardhat run scripts/utilities/grant_role.ts --network localhost",
     "adjust:reputation": "hardhat run scripts/utilities/adjust_reputation.ts --network localhost",
-    "deploy:amoy": "cross-env NETWORK=amoy CHAIN_ID=80002 hardhat run scripts/deployment/deploy_and_copy.ts --network amoy",
     "regenerate:config": "cross-env NETWORK=localhost CHAIN_ID=31337 node -r ts-node/register scripts/deployment/deploy_and_copy.ts --generate-only",
-    "clean:amoy": "cross-env NETWORK=amoy CHAIN_ID=80002 hardhat run scripts/deployment/clean_deployment_state.ts",
+    "clean:deployment:state:amoy": "cross-env NETWORK=amoy CHAIN_ID=80002 hardhat run scripts/deployment/clean_deployment_state.ts",
     "check:nonce:amoy": "hardhat run scripts/deployment/check_nonce.ts --network amoy"
   },
   "repository": {

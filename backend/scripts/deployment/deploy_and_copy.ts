@@ -273,7 +273,7 @@ async function main(): Promise<void> {
         if (NETWORK === "amoy") {
           console.log("🔄 Checking nonce and retrying...");
           try {
-            execSync(`npx hardhat run scripts/check_nonce.ts --network ${NETWORK}`, { stdio: "inherit" });
+            execSync(`npx hardhat run scripts/deployment/check_nonce.ts --network ${NETWORK}`, { stdio: "inherit" });
             console.log("⏳ Waiting 5 seconds before retry...");
             await new Promise(resolve => setTimeout(resolve, 5000));
             

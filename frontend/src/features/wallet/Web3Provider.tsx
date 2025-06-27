@@ -44,6 +44,9 @@ const NEXT_PUBLIC_ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY
 const POLYGON_AMOY_RPC_URL = process.env.POLYGON_AMOY_RPC_URL
 const NODE_ENV = process.env.NODE_ENV
 
+// Runtime network selection via NEXT_PUBLIC_NETWORK
+const APP_NETWORK = process.env["NEXT_PUBLIC_NETWORK"] || (NODE_ENV === 'production' ? 'amoy' : 'localhost')
+
 // Validate environment variables
 if (!NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID) {
   throw new Error(`NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID environment variable is not defined.`);
@@ -53,17 +56,15 @@ if (!NEXT_PUBLIC_ALCHEMY_API_KEY) {
   throw new Error(`NEXT_PUBLIC_ALCHEMY_API_KEY environment variable is not defined.`);
 }
 
-// Determine which network to use based on environment
-// - In production (NODE_ENV=production): Always use Amoy
-// - In development: Use localhost by default, unless NEXT_PUBLIC_USE_AMOY=true
-// - You can force Amoy in development by setting NEXT_PUBLIC_USE_AMOY=true
+// Determine which network to use based on env
 const isProduction = NODE_ENV === 'production';
-const useAmoyNetwork = isProduction || process.env.NEXT_PUBLIC_USE_AMOY === 'true';
+const useAmoyNetwork = APP_NETWORK === 'amoy';
 
 console.log(`🌐 Network Selection:`, {
   NODE_ENV,
   isProduction,
-  useAmoyNetwork: useAmoyNetwork,
+  APP_NETWORK,
+  useAmoyNetwork,
   selectedNetwork: useAmoyNetwork ? 'Polygon Amoy (Chain ID: 80002)' : 'Localhost Hardhat (Chain ID: 31337)'
 });
 

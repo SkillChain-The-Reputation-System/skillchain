@@ -114,8 +114,10 @@ async function generateContractsConfig(): Promise<void> {
 
   configContent += "\n";
   configContent += "// Network detection helper\n";
-  configContent += "const isProduction = process.env.NODE_ENV === 'production';\n";
-  configContent += "const useAmoyNetwork = isProduction || process.env.NEXT_PUBLIC_USE_AMOY === 'true';\n";
+  configContent += "const NODE_ENV = process.env.NODE_ENV;\n";
+  configContent += "const APP_NETWORK = process.env[\"NEXT_PUBLIC_NETWORK\"] || (NODE_ENV === 'production' ? 'amoy' : 'localhost');\n";
+  configContent += "const isProduction = NODE_ENV === 'production';\n";
+  configContent += "const useAmoyNetwork = APP_NETWORK === 'amoy';\n";
   configContent += "\n";
   configContent += "// Contract addresses for different networks\n";
   configContent += "const LOCALHOST_ADDRESSES = {\n";
@@ -166,6 +168,7 @@ async function generateContractsConfig(): Promise<void> {
   // Add network info export
   configContent += "\n// Network information\n";
   configContent += "export const NETWORK_INFO = {\n";
+  configContent += "  APP_NETWORK,\n";
   configContent += "  useAmoyNetwork,\n";
   configContent += "  isProduction,\n";
   configContent += "  currentNetwork: useAmoyNetwork ? 'Polygon Amoy (Chain ID: 80002)' : 'Localhost Hardhat (Chain ID: 31337)',\n";
@@ -192,7 +195,7 @@ async function generateContractsConfig(): Promise<void> {
   console.log("\n🎉 Generated new contracts-config.ts file with dual-network support!");
   console.log(`📍 Current deployment: ${NETWORK} (Chain ID: ${CHAIN_ID})`);
   console.log(`📁 Config file: ${contractsConfigPath}`);
-  console.log(`💡 The config will automatically switch between localhost and Amoy based on NODE_ENV`);
+  console.log(`💡 The config will automatically switch networks at runtime based on NEXT_PUBLIC_NETWORK`);
 }
 
 async function validateDeploymentOrder(moduleFiles: string[]): Promise<void> {
@@ -490,7 +493,7 @@ async function main(): Promise<void> {
   
   console.log(`\n🌐 Network: ${NETWORK} (Chain ID: ${CHAIN_ID})`);
   console.log(`📁 Config file: ${contractsConfigPath}`);
-  console.log(`🔄 The config will automatically switch between localhost and Amoy based on NODE_ENV`);
+  console.log(`🔄 The config will automatically switch networks at runtime based on NEXT_PUBLIC_NETWORK`);
   console.log(`💡 Use separate configuration scripts to set up contract dependencies and roles`);
 
   console.log("All done.");

@@ -12,8 +12,10 @@ import JobApplicationManagerArtifact from "./contract-artifacts/JobApplicationMa
 import MeetingManagerArtifact from "./contract-artifacts/MeetingManager.json";
 
 // Network detection helper
-const isProduction = process.env.NODE_ENV === 'production';
-const useAmoyNetwork = isProduction || process.env.NEXT_PUBLIC_USE_AMOY === 'true';
+const NODE_ENV = process.env.NODE_ENV;
+const APP_NETWORK = process.env["NEXT_PUBLIC_NETWORK"] || (NODE_ENV === 'production' ? 'amoy' : 'localhost');
+const isProduction = NODE_ENV === 'production';
+const useAmoyNetwork = APP_NETWORK === 'amoy';
 
 // Contract addresses for different networks
 const LOCALHOST_ADDRESSES = {
@@ -144,6 +146,7 @@ export const ContractConfig_MeetingManager = {
 
 // Network information
 export const NETWORK_INFO = {
+  APP_NETWORK,
   useAmoyNetwork,
   isProduction,
   currentNetwork: useAmoyNetwork ? 'Polygon Amoy (Chain ID: 80002)' : 'Localhost Hardhat (Chain ID: 31337)',

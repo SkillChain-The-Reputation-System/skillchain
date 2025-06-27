@@ -328,11 +328,11 @@ The deployment script automatically generates a **smart contract configuration**
 The frontend automatically detects which network to use based on:
 
 1. **NODE_ENV environment variable**:
-   - `NODE_ENV=production` → Uses Amoy testnet
-   - `NODE_ENV=development` → Uses localhost
+   - `NODE_ENV=production` → Defaults to Amoy testnet
+   - `NODE_ENV=development` → Defaults to localhost
 
 2. **Manual override**:
-   - `NEXT_PUBLIC_USE_AMOY=true` → Forces Amoy testnet usage
+   - Set `NEXT_PUBLIC_NETWORK=amoy` or `localhost` to explicitly choose a network
 
 3. **Fallback logic**:
    - If contracts aren't deployed to detected network, shows warning
@@ -344,8 +344,10 @@ The auto-generated `contracts-config.ts` includes:
 
 ```typescript
 // Network detection
-const isProduction = process.env.NODE_ENV === 'production';
-const useAmoyNetwork = isProduction || process.env.NEXT_PUBLIC_USE_AMOY === 'true';
+const NODE_ENV = process.env.NODE_ENV;
+const APP_NETWORK = process.env["NEXT_PUBLIC_NETWORK"] || (NODE_ENV === 'production' ? 'amoy' : 'localhost');
+const isProduction = NODE_ENV === 'production';
+const useAmoyNetwork = APP_NETWORK === 'amoy';
 
 // Contract addresses for both networks
 const LOCALHOST_ADDRESSES = { /* ... */ };

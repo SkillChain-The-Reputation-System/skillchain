@@ -79,7 +79,9 @@ A decentralized skills assessment and job matching platform built on blockchain 
 - `npm run dev` - Start development server
 - `npm run dev:turbo` - Start development server with Turbo mode
 - `npm run build` - Build for production
-- `npm run start` - Start production server
+- `npm run start` - Start production server (Connect Amoy network by defaut)
+- `npm run start:amoy` - Start server on Polygon Amoy network
+- `npm run start:localhost` - Start server on localhost Hardhat network
 - `npm run lint` - Run ESLint
 - `npm run test` - Run Jest tests
 - `npm run deploy` - Deploy to Vercel production
@@ -114,6 +116,7 @@ src/
 | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | WalletConnect project ID | Yes |
 | `NEXT_PUBLIC_ALCHEMY_API_KEY` | Alchemy API key for RPC | Yes |
 | `NEXT_PUBLIC_POLYGON_AMOY_RPC_URL` | Polygon Amoy testnet RPC URL | Yes |
+| `NEXT_PUBLIC_NETWORK` | `amoy` or `localhost` | No (defaults based on `NODE_ENV`) |
 | `NEXT_PUBLIC_JAAS_API_KEY` | Jitsi as a Service API key | No |
 | `SKILLCHAIN_WALLET_PRIVATE_KEY` | Contract owner private key | Yes |
 

@@ -68,7 +68,7 @@ async function adjustReputations() {
     // Check if CSV file exists
     if (!fs.existsSync(csvPath)) {
       console.error(`CSV file not found: ${csvPath}`);
-      console.log("Please create a reputation_adjustments.csv file with the following format:");
+      console.log("Please create a reputation_adjustments_local.csv file with the following format:");
       console.log("address,COMPUTER_SCIENCE_FUNDAMENTALS,SOFTWARE_DEVELOPMENT,SYSTEMS_AND_NETWORKING,CYBERSECURITY,DATA_SCIENCE_AND_ANALYTICS,DATABASE_ADMINISTRATION,QUALITY_ASSURANCE_AND_TESTING,PROJECT_MANAGEMENT,USER_EXPERIENCE_AND_DESIGN,BUSINESS_ANALYSIS,ARTIFICIAL_INTELLIGENCE,BLOCKCHAIN_AND_CRYPTOCURRENCY,NETWORK_ADMINISTRATION,CLOUD_COMPUTING");
       console.log("0x123...,5,-2,10,0,8,0,0,15,-3,0,12,20,0,0");
       console.log("Where positive numbers increase reputation and negative numbers decrease it");

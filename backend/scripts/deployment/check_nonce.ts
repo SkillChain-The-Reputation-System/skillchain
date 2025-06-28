@@ -92,7 +92,6 @@ async function checkNonce() {
         
         if (hasPendingTx) {
           console.log('   ⚠️  Found pending transactions in deployment state')
-          console.log('   💡 Consider running: npm run clean-deployment-state')
         } else {
           console.log('   ✅ No pending transactions found')
         }

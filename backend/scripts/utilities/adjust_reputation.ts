@@ -6,9 +6,22 @@ import path from 'path';
 import Papa from 'papaparse';
 
 const abi = ReputationManagerArtifact.abi;
-const contractAddress = '0x610178dA211FEF7D417bC0e6FeD39F05609AD788'; // ReputationManager address from deployed_addresses.json
+// Read ReputationManager address from Amoy deployment file
+const deploymentPath = path.resolve(
+  __dirname,
+  '../../ignition/deployments/chain-31337/deployed_addresses.json'
+);
 
-const csvPath = path.resolve(__dirname, '../data/reputation_adjustments.csv');
+if (!fs.existsSync(deploymentPath)) {
+  throw new Error(`Deployment file not found: ${deploymentPath}`);
+}
+
+const deployedAddresses = JSON.parse(fs.readFileSync(deploymentPath, 'utf8'));
+const contractAddress: `0x${string}` = deployedAddresses[
+  'ReputationManagerModule#ReputationManager'
+];
+
+const csvPath = path.resolve(__dirname, '../data/reputation_adjustments_local.csv');
 
 // Domain enum mapping - matching Constants.sol
 const DOMAINS = {
@@ -51,7 +64,7 @@ async function adjustReputations() {
     // Check if CSV file exists
     if (!fs.existsSync(csvPath)) {
       console.error(`CSV file not found: ${csvPath}`);
-      console.log("Please create a reputation_adjustments.csv file with the following format:");
+      console.log("Please create a reputation_adjustments_local.csv file with the following format:");
       console.log("address,COMPUTER_SCIENCE_FUNDAMENTALS,SOFTWARE_DEVELOPMENT,SYSTEMS_AND_NETWORKING,CYBERSECURITY,DATA_SCIENCE_AND_ANALYTICS,DATABASE_ADMINISTRATION,QUALITY_ASSURANCE_AND_TESTING,PROJECT_MANAGEMENT,USER_EXPERIENCE_AND_DESIGN,BUSINESS_ANALYSIS,ARTIFICIAL_INTELLIGENCE,BLOCKCHAIN_AND_CRYPTOCURRENCY,NETWORK_ADMINISTRATION,CLOUD_COMPUTING");
       console.log("0x123...,5,-2,10,0,8,0,0,15,-3,0,12,20,0,0");
       console.log("Where positive numbers increase reputation and negative numbers decrease it");

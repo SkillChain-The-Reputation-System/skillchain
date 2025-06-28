@@ -19,12 +19,11 @@ SkillChain is a revolutionary decentralized platform that transforms how skills 
 
 - **🔐 Decentralized Identity**: Wallet-based authentication with blockchain identity
 - **🏆 Reputation System**: Immutable skill verification and reputation tracking
-- **💼 Smart Job Matching**: AI-powered recommendations based on blockchain reputation
+- **💼 Job Seeking**: Find jobs based on reputation score 
 - **🎯 Skills Assessment**: Interactive challenges with peer review mechanisms
 - **🤝 Video Interviews**: Integrated Jitsi Meet for seamless remote interviews
-- **💰 Tokenized Economy**: Reward system for participation and quality contributions
+- **💰 Token Reward**: Reward system for moderators who assessing challenges
 - **🛡️ Secure Escrow**: Smart contract-based payment protection
-- **📊 Analytics Dashboard**: Comprehensive insights for users and recruiters
 
 ## 🏗️ Architecture
 
@@ -98,8 +97,15 @@ CHAIN_ID=80002
 # Deploy to local network
 npm run deploy:local
 
+# Configure system after deployement (local)
+npm run configure:local
+
 # Deploy to Polygon Amoy testnet
 npm run deploy:amoy
+
+# Configure system after deployement (amoy)
+npm run configure:amoy
+
 ```
 
 ### 3. Frontend Setup

@@ -27,11 +27,10 @@ const routeMapping: Record<string, BreadcrumbItem[]> = {
     { title: "Dashboard", link: pageUrlMapping.dashboard },
     { title: "Account", link: pageUrlMapping.account },
     { title: "Settings", link: pageUrlMapping.account_settings },
-  ],
-  [pageUrlMapping.contribution_contribute]: [
+  ],  [pageUrlMapping.contribution_create]: [
     { title: "Dashboard", link: pageUrlMapping.dashboard },
     { title: "Contribution", link: pageUrlMapping.contribution },
-    { title: "Contribute", link: pageUrlMapping.contribution_contribute },
+    { title: "Create", link: pageUrlMapping.contribution_create },
   ],
   [pageUrlMapping.contribution_my_contributions]: [
     { title: "Dashboard", link: pageUrlMapping.dashboard },

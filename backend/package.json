@@ -2,16 +2,23 @@
   "name": "skillchain",
   "version": "1.0.0",
   "description": "A Reputation System for Skill Assessment",
-  "main": "index.js",
+  "main": "index.js",  
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy:local": "hardhat run scripts/deploy_and_copy.ts --network localhost",
-    "seed:challenge:local": "hardhat run scripts/seed_challenge.ts --network localhost",
-    "seed:pending:challenge:local": "hardhat run scripts/seed_pending_challenges.ts --network localhost",
-    "seed:moderator:review:local": "hardhat run scripts/seed_moderator_review.ts --network localhost",
-    "seed:jobs": "hardhat run scripts/seed_job.ts --network localhost",
-    "grant:role": "hardhat run scripts/grant_role.ts --network localhost",
-    "adjust:reputation": "hardhat run scripts/adjust_reputation.ts --network localhost"
+    "deploy:local": "cross-env NETWORK=localhost CHAIN_ID=31337 HARDHAT_IGNITION_CONFIRM_DEPLOYMENT=false hardhat run scripts/deployment/deploy_and_copy.ts --network localhost",
+    "configure:local": "cross-env NETWORK=localhost CHAIN_ID=31337 hardhat run scripts/deployment/configure_system.ts --network localhost",
+    "seed:challenge:local": "hardhat run scripts/seeding/seed_challenge.ts --network localhost",
+    "seed:pending:challenge:local": "hardhat run scripts/seeding/seed_pending_challenges.ts --network localhost",
+    "seed:moderator:review:local": "hardhat run scripts/seeding/seed_moderator_review.ts --network localhost",
+    "seed:jobs:local": "hardhat run scripts/seeding/seed_job.ts --network localhost",
+    "grant:role:local": "hardhat run scripts/utilities/grant_role.ts --network localhost",
+    "adjust:reputation:local": "hardhat run scripts/utilities/adjust_reputation.ts --network localhost",
+    "regenerate:config:local": "cross-env NETWORK=localhost CHAIN_ID=31337 node -r ts-node/register scripts/deployment/deploy_and_copy.ts --generate-only",
+    "deploy:amoy": "cross-env NETWORK=amoy CHAIN_ID=80002 HARDHAT_IGNITION_CONFIRM_DEPLOYMENT=false hardhat run scripts/deployment/deploy_and_copy.ts",
+    "configure:amoy": "cross-env NETWORK=amoy CHAIN_ID=80002 hardhat run scripts/deployment/configure_system.ts --network amoy",
+    "adjust:reputation:amoy": "hardhat run scripts/utilities/adjust_reputation_amoy.ts --network amoy",
+    "regenerate:config:amoy": "cross-env NETWORK=amoy CHAIN_ID=80002 node -r ts-node/register scripts/deployment/deploy_and_copy.ts --generate-only",
+    "clean:deployment:state:amoy": "cross-env NETWORK=amoy CHAIN_ID=80002 hardhat run scripts/deployment/clean_deployment_state.ts",
+    "check:nonce:amoy": "hardhat run scripts/deployment/check_nonce.ts --network amoy"
   },
   "repository": {
     "type": "git",
@@ -26,6 +33,7 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-ignition": "^0.15.11",
     "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
+    "cross-env": "^7.0.3",
     "hardhat": "^2.22.19",
     "mocha": "^11.1.0"
   },
@@ -33,6 +41,8 @@
     "@openzeppelin/contracts": "^5.3.0",
     "@prb/math": "^4.1.0",
     "@types/papaparse": "^5.3.15",
-    "papaparse": "^5.5.2"
+    "dotenv": "^16.4.5",
+    "papaparse": "^5.5.2",
+    "viem": "^2.31.4"
   }
 }

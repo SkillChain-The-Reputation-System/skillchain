@@ -12,9 +12,6 @@ const RecruiterSubscriptionModule = buildModule("RecruiterSubscriptionModule", (
     },
   });
   
-  // Set the reputation manager address on the RecruiterSubscription
-  m.call(recruiterSubscription, "setReputationManagerAddress", [reputationManager]);
-  
   return { recruiterSubscription };
 });
 

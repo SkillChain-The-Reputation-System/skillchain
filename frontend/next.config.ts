@@ -4,6 +4,9 @@ const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   images: {
     domains: ["gateway.irys.xyz"],
   },

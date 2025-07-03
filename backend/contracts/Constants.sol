@@ -135,9 +135,10 @@ library SystemConsts {
     // ================= EVALUATION =================
     uint256 public constant EVALUATION_QUORUM = 3;
 
+    
     // ================= CHALLENGE FEE =================
-    uint256 public constant CHALLENGE_FEE_MIN = 1e18; // Minimum challenge fee in native token
-    uint256 public constant CHALLENGE_FEE_MAX = 5e18; // Maximum challenge fee in native token
+    uint256 public constant CHALLENGE_FEE_MIN = 0.01e18; // Minimum challenge fee in native token
+    uint256 public constant CHALLENGE_FEE_MAX = 0.05e18; // Maximum challenge fee in native token
     uint256 public constant CHALLENGE_FEE_ALPHA = 0.6e18; // influence of difficulty
     uint256 public constant CHALLENGE_FEE_BETA = 0.8e18; // influence of quality
     uint256 public constant CHALLENGE_FEE_GAMMA = 0.3e18; // percentage of bounty
@@ -176,11 +177,11 @@ library SystemConsts {
     uint256 public constant MODERATION_REWARD_DISTRIBUTION_SPREAD = 0.8e18; // alpha
 
     // ================= RECRUITMENT FEE =================
-    // Base platform fee for each hiring action (4 POL scaled to 1e18)
-    uint256 public constant RECRUITMENT_BASE_FEE = 4e18;
+    // Base platform fee for each hiring action (0.1 POL scaled to 1e18)
+    uint256 public constant RECRUITMENT_BASE_FEE = 0.1e18;
     // Coefficient controlling the impact of candidate reputation
     uint256 public constant RECRUITMENT_REPUTATION_COEFFICIENT = 0.2e18;
 
     // ================= RECRUITMENT BUDGET =================
-    uint256 public constant RECRUITMENT_BUDGET_MIN = 10e18; // Minimum budget to be considered a recruiter
+    uint256 public constant RECRUITMENT_BUDGET_MIN = 1e18; // Minimum budget to be considered a recruiter
 }

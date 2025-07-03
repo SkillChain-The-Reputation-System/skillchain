@@ -26,6 +26,7 @@ import {
 import { Domain, DomainLabels } from "@/constants/system";
 import { CheckCircle, Clock, Shield, XCircle } from "lucide-react";
 import { toast } from "react-toastify";
+import { getErrorMessage } from "@/lib/error-utils";
 
 interface UserRolesProps {
   address: `0x${string}` | undefined;
@@ -65,10 +66,9 @@ export function UserRoles({ address }: UserRolesProps) {
             })
         );
         setRoleData(data);
-      } catch (err) {
+      } catch (err:any) {
         console.error("Error fetching user roles:", err);
-        setError("Failed to load role data");
-        toast.error("Failed to load role data");
+        toast.error(getErrorMessage(err));
       } finally {
         setIsLoading(false);
       }

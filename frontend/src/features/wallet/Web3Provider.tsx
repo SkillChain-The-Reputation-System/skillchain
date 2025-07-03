@@ -11,22 +11,62 @@ if (typeof indexedDB === "undefined") {
 
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { polygon, hardhat } from "wagmi/chains";
+import type { Chain } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConnectKitProvider, getDefaultConfig } from "connectkit";
 
+// Define Polygon Amoy testnet (since it might not be in wagmi/chains)
+const polygonAmoy: Chain = {
+  id: 80002,
+  name: 'Polygon Amoy',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'MATIC',
+    symbol: 'MATIC',
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://rpc-amoy.polygon.technology'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Polygon Scan',
+      url: 'https://amoy.polygonscan.com',
+    },
+  },
+  testnet: true,
+};
 
 // Centralized configuration
 const NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
 const NEXT_PUBLIC_ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY
+const POLYGON_AMOY_RPC_URL = process.env.POLYGON_AMOY_RPC_URL
+const NODE_ENV = process.env.NODE_ENV
+
+// Runtime network selection via NEXT_PUBLIC_NETWORK
+const APP_NETWORK = process.env["NEXT_PUBLIC_NETWORK"] || (NODE_ENV === 'production' ? 'amoy' : 'localhost')
 
 // Validate environment variables
 if (!NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID) {
-  throw new Error(`${NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID} environment variable is not defined.`);
+  throw new Error(`NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID environment variable is not defined.`);
 }
 
 if (!NEXT_PUBLIC_ALCHEMY_API_KEY) {
-  throw new Error(`${NEXT_PUBLIC_ALCHEMY_API_KEY} environment variable is not defined.`);
+  throw new Error(`NEXT_PUBLIC_ALCHEMY_API_KEY environment variable is not defined.`);
 }
+
+// Determine which network to use based on env
+const isProduction = NODE_ENV === 'production';
+const useAmoyNetwork = APP_NETWORK === 'amoy';
+
+console.log(`🌐 Network Selection:`, {
+  NODE_ENV,
+  isProduction,
+  APP_NETWORK,
+  useAmoyNetwork,
+  selectedNetwork: useAmoyNetwork ? 'Polygon Amoy (Chain ID: 80002)' : 'Localhost Hardhat (Chain ID: 31337)'
+});
 
 declare module 'wagmi' {
   interface Register {
@@ -34,33 +74,40 @@ declare module 'wagmi' {
   }
 }
 
-const getConfig = () =>
-  createConfig(
-    getDefaultConfig({
-    // Your dApps chains
-    chains: [hardhat],
-    transports: {
-      // RPC URL for each chain
-      // [polygon.id]: http(
-      //   `https://polygon-mainnet.g.alchemy.com/v2/${NEXT_PUBLIC_ALCHEMY_API_KEY}`
-      // ),
-      [hardhat.id]: http('http://127.0.0.1:8545/'),
-    },
-    ssr: true,  // Enable SSR for wagmi  -> https://wagmi.sh/react/guides/ssr#ssr 
-                // When set this, Wagmi adjusts its behavior to play nicely with SSR frameworks. Specifically, it delays accessing or relying on data from client-only stores (like localStorage) until after the initial mount happens on the client side. -> Prevent the mismatch error between server and client rendering.
-
-    // Required API Keys
-    walletConnectProjectId: NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
-
-    // Required App Info
-    appName: "SkillChain",
-
-    // Optional App Info
-    appDescription: "A Reputation System For Skill Assessment",
-    appUrl: "https://family.co", // app's url
-    appIcon: "https://family.co/logo.png", // app's icon, no bigger than 1024x1024px (max. 1MB)
-    })
-  );
+const getConfig = () => {
+  if (useAmoyNetwork) {
+    // Production/Amoy configuration
+    return createConfig(
+      getDefaultConfig({
+        chains: [polygonAmoy],
+        transports: {
+          [polygonAmoy.id]: http(POLYGON_AMOY_RPC_URL || 'https://rpc-amoy.polygon.technology'),
+        },
+        ssr: true,
+        walletConnectProjectId: NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
+        appName: "SkillChain",
+        appDescription: "A Reputation System For Skill Assessment",
+        appUrl: "https://family.co",
+        appIcon: "https://family.co/logo.png",
+      })
+    );
+  } else {
+    // Development/localhost configuration
+    return createConfig(
+      getDefaultConfig({
+        chains: [hardhat],
+        transports: {
+          [hardhat.id]: http('http://127.0.0.1:8545/'),        },
+        ssr: true,
+        walletConnectProjectId: NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
+        appName: "SkillChain",
+        appDescription: "A Reputation System For Skill Assessment",
+        appUrl: "https://family.co",
+        appIcon: "https://family.co/logo.png",
+      })
+    );
+  }
+};
 
 // Avoid recreating config and queryClient on every hot reload
 const config: ReturnType<typeof getConfig> =

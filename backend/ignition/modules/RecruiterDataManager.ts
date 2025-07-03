@@ -1,11 +1,10 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import RecruiterSubscriptionModule from "./RecruiterSubscription";
 
 const RecruiterDataManagerModule = buildModule("RecruiterDataManagerModule", (m) => {
-  const { recruiterSubscription } = m.useModule(RecruiterSubscriptionModule);
+  // Phase 1: Deploy RecruiterDataManager contract without dependencies
   const recruiterDataManager = m.contract("RecruiterDataManager");
-  m.call(recruiterDataManager, "setRecruiterSubscriptionAddress", [recruiterSubscription]);
-  return { recruiterDataManager, recruiterSubscription };
+  
+  return { recruiterDataManager };
 });
 
 export default RecruiterDataManagerModule;

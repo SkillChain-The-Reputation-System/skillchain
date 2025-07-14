@@ -15,6 +15,11 @@ export const metadata: Metadata = {
   title: "SkillChain",
   description:
     "A Reputation System For Resume Verification And Skill Assessment",
+  icons: {
+    icon: '/favicon.svg',       
+    shortcut: '/favicon.svg',   
+    apple: '/favicon.svg',    
+  }
 };
 
 export default function RootLayout({

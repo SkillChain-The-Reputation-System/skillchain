@@ -167,7 +167,8 @@
   --card-foreground: hsl(20 51% 3%);
   --border: hsl(20 15% 94%);
   --input: hsl(20 15% 94%);
-  --primary: hsl(248 25% 84%);
+  --button-foreground: hsl(20, 16%, 89%);
+  --primary: #1aa3eb;
   --primary-foreground: hsl(20 48% 12%);
   --secondary: hsl(20 12% 92%);
   --secondary-foreground: hsl(20 12% 32%);
@@ -204,7 +205,7 @@
   --card-foreground: hsl(253 31% 99%);
   --border: hsl(215 27.9% 16.9%);
   --input: hsl(215 27.9% 16.9%);
-  --primary: hsl(253 91% 58%);
+  --primary: #1aa3eb;
   --primary-foreground: hsl(253 91% 98%);
   --secondary: hsl(253 7% 9%);
   --secondary-foreground: hsl(253 7% 69%);
@@ -526,4 +527,13 @@
       background-color: var(--color-indigo-950);
     }
   }
+}
+@keyframes blink-caret {
+  0%, 50% { border-color: transparent; }
+  50%, 100% { border-color: currentColor; }
+}
+
+.typing-caret {
+  border-right: 2px solid currentColor;
+  animation: blink-caret 0.8s step-end infinite;
 }

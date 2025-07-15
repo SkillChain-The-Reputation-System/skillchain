@@ -29,15 +29,28 @@ type JobInfo = {
   [recruiter_pvk: `0x${string}`]: `0x${string}`[];
 }
 
+const deploymentPath = path.resolve(
+  __dirname,
+  '../../ignition/deployments/chain-31337/deployed_addresses.json'
+);
+
+if (!fs.existsSync(deploymentPath)) {
+  throw new Error(`Deployment file not found: ${deploymentPath}`);
+}
+
+const deployedAddresses = JSON.parse(fs.readFileSync(deploymentPath, 'utf8'));
+
 const jobManagerContract = {
   abi: JobManagerArtifact.abi,
-  address: '0xE6E340D132b5f46d1e472DebcD681B2aBc16e57E'
-} as const
+  address: deployedAddresses['JobManagerModule#JobManager'] as `0x${string}`,
+} as const;
 
 const jobApplicationManagerContract = {
   abi: JobApplicationManagerArtifact.abi,
-  address: '0x67d269191c92Caf3cD7723F116c85e6E9bf55933'
-} as const
+  address: deployedAddresses[
+    'JobApplicationManagerModule#JobApplicationManager'
+  ] as `0x${string}`,
+} as const;
 
 const jobDataFile = fs.readFileSync(csvPath, 'utf8');
 const parsed = Papa.parse<JobData>(jobDataFile, {

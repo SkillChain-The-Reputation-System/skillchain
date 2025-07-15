@@ -16,7 +16,18 @@ interface ChallengeData {
 }
 
 const abi = ChallengeManagerArtifact.abi;
-const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+const deploymentPath = path.resolve(
+  __dirname,
+  '../../ignition/deployments/chain-31337/deployed_addresses.json'
+);
+
+if (!fs.existsSync(deploymentPath)) {
+  throw new Error(`Deployment file not found: ${deploymentPath}`);
+}
+
+const deployedAddresses = JSON.parse(fs.readFileSync(deploymentPath, 'utf8'));
+const contractAddress: `0x${string}` =
+  deployedAddresses['ChallengeManagerModule#ChallengeManager'];
 
 const csvPath = path.resolve(__dirname, '../data/challenge.csv');
 

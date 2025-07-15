@@ -83,20 +83,8 @@ export function DomainExpertise({
                         variant={getReputationBadgeVariant(score)}
                         className={cn(
                           "font-bold min-w-12 justify-center relative overflow-hidden",
-                          "bg-gradient-to-r shadow-lg transition-all duration-300 hover:scale-105",
-                          score >= 80 &&
-                            "from-emerald-500 to-green-500 text-white shadow-green-500/30",
-                          score >= 60 &&
-                            score < 80 &&
-                            "from-blue-500 to-cyan-500 text-white shadow-blue-500/30",
-                          score >= 40 &&
-                            score < 60 &&
-                            "from-yellow-500 to-orange-500 text-white shadow-yellow-500/30",
-                          score >= 20 &&
-                            score < 40 &&
-                            "from-orange-500 to-red-500 text-white shadow-orange-500/30",
-                          score < 20 &&
-                            "from-red-500 to-pink-500 text-white shadow-red-500/30"
+                          "shadow-lg transition-all duration-300 hover:scale-105",
+                          "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-primary/30",
                         )}
                       >
                         <span className="relative z-10 font-extrabold text-sm">

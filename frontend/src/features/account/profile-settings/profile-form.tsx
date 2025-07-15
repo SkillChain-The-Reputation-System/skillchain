@@ -42,7 +42,7 @@ import { Textarea } from "@/components/ui/textarea";
 const profileFormSchema = z.object({
   fullname: z.string().max(100).optional(),
   location: z.string().max(100).optional(),
-  email: z.string().email({ message: "Invalid email address" }).optional(),
+  email: z.string().email({ message: "Invalid email address" }).or(z.literal("")).optional(),
   bio: z.string().max(2000).optional(),
   avatar: z
     .instanceof(Blob)

@@ -19,11 +19,11 @@ const badgeVariants = cva(
           "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         // Custom role status variants
         achieved:
-          "border-transparent bg-green-100 text-green-800 [a&]:hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:[a&]:hover:bg-green-900/50",
+          "border-transparent bg-primary/10 text-primary [a&]:hover:bg-primary/20 dark:bg-primary/20 dark:text-primary-foreground dark:[a&]:hover:bg-primary/30",
         eligible:
-          "border-transparent bg-gray-100 text-gray-700 [a&]:hover:bg-gray-200 dark:bg-gray-800/50 dark:text-gray-300 dark:[a&]:hover:bg-gray-800/70",
+          "border-transparent bg-accent text-accent-foreground [a&]:hover:bg-accent/80 dark:bg-accent/50 dark:text-accent-foreground dark:[a&]:hover:bg-accent/70",
         ineligible:
-          "border-transparent bg-red-100 text-red-700 [a&]:hover:bg-red-200 dark:bg-red-900/30 dark:text-red-300 dark:[a&]:hover:bg-red-900/50",
+          "border-transparent bg-muted text-muted-foreground [a&]:hover:bg-muted/80 dark:bg-muted/50 dark:text-muted-foreground dark:[a&]:hover:bg-muted/70",
       },
     },
     defaultVariants: {

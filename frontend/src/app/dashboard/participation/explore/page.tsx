@@ -1,5 +1,8 @@
+
+import { PageHeader } from "@/components/layout/page-header";
+import { Separator } from "@/components/ui/separator";
 import Explore from "@/features/participation/explore/explore";
-import { ChallengeSortOption, Domain } from "@/constants/system"
+import { ChallengeSortOption, Domain } from "@/constants/system";
 
 export default async function Page(props: {
   searchParams?: Promise<{
@@ -16,9 +19,12 @@ export default async function Page(props: {
   const currentPage = Number(searchParams?.page) || 1;
 
   return (
-    <div>
-      <h1 className="flex flex-col items-center justify-center text-2xl font-bold mb-3">Grow your reputation!</h1>
-
+    <div className="flex flex-col px-4">
+      <PageHeader
+        title="Explore challenges"
+        description="Explore and solve challenges to build your reputation."
+      />
+      <Separator className="my-4 bg-gray-300 dark:bg-gray-700" />
       <div className="flex flex-col items-center justify-center p-4 w-full">
         <Explore query={query} sort={sort} domain={domain} page={currentPage} />
       </div>

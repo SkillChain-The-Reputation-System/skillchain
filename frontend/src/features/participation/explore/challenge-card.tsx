@@ -1,3 +1,5 @@
+"use client";
+
 // Import UI components
 import {
   Card,
@@ -18,6 +20,8 @@ import {
 
 // Import utils
 import { ChallengeInterface } from "@/lib/interfaces";
+import { getUserProfileData } from "@/lib/get/get-user-data-utils";
+import { useEffect, useState } from "react";
 import {
   ChallengeStatus,
   Domain,
@@ -31,7 +35,25 @@ interface ChallengeCardProps {
 }
 
 export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
+  const [contributorName, setContributorName] = useState<string | undefined>();
   const formattedContributeDate = epochToDateString(challenge.contributeAt || 0);
+
+  useEffect(() => {
+    async function fetchContributorName() {
+      try {
+        const data = await getUserProfileData(challenge.contributor);
+        if (data && data.fullname && data.fullname.trim() !== "") {
+          setContributorName(data.fullname);
+        } else {
+          setContributorName(undefined);
+        }
+      } catch (error) {
+        console.error("Error fetching contributor username:", error);
+      }
+    }
+
+    fetchContributorName();
+  }, [challenge.contributor]);
 
   return (
     <>
@@ -56,7 +78,7 @@ export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
             <UserRoundPen className="h-full max-h-3.5 w-full max-w-3.5" />
             <span>By:</span>
             <span className="ml-1 text-indigo-800 dark:text-indigo-300 break-all">
-              {challenge.contributor}
+              {contributorName ?? challenge.contributor}
             </span>
           </div>
 

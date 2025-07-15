@@ -22,35 +22,39 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { navItems } from "@/constants/data";
-import {
-  ChevronRight,
-  GalleryVerticalEnd,
-} from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
+
 import { Icons } from "../icons";
 import { AccountButton } from "./account-button";
-
-export const company = {
+// Company info object for sidebar
+const company = {
   name: "SkillChain",
-  logo: GalleryVerticalEnd,
-  plan: "User",
+  plan: "User"
 };
+
+
 
 export default function AppSidebar() {
   const pathname = usePathname();
   const { toggleSidebar } = useSidebar();
 
   return (
-    <Sidebar collapsible="icon" onDoubleClick={toggleSidebar} className="select-none">
+    <Sidebar
+      collapsible="icon"
+      onDoubleClick={toggleSidebar}
+      className="select-none"
+    >
       <SidebarHeader>
-        <div className="text-sidebar-accent-foreground flex gap-2 py-2">
-          <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-            <company.logo className="size-4" />
+        <div className="flex gap-2 py-2">
+          <div className="bg-sky-200 flex aspect-square size-8 items-center justify-center rounded-lg">
+            <Image src="/logo.svg" alt="SkillChain Logo" width={20} height={20} />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold">{company.name}</span>
+            <span className="truncate font-bold">{company.name}</span>
             <span className="truncate text-xs">{company.plan}</span>
           </div>
         </div>

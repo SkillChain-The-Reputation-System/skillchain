@@ -13,6 +13,7 @@
     "grant:role:local": "hardhat run scripts/utilities/grant_role.ts --network localhost",
     "adjust:reputation:local": "hardhat run scripts/utilities/adjust_reputation.ts --network localhost",
     "regenerate:config:local": "cross-env NETWORK=localhost CHAIN_ID=31337 node -r ts-node/register scripts/deployment/deploy_and_copy.ts --generate-only",
+    "seed:user:profiles:local": "hardhat run scripts/utilities/upload_user_profiles_to_irys.ts --network localhost",
     "deploy:amoy": "cross-env NETWORK=amoy CHAIN_ID=80002 HARDHAT_IGNITION_CONFIRM_DEPLOYMENT=false hardhat run scripts/deployment/deploy_and_copy.ts",
     "configure:amoy": "cross-env NETWORK=amoy CHAIN_ID=80002 hardhat run scripts/deployment/configure_system.ts --network amoy",
     "adjust:reputation:amoy": "hardhat run scripts/utilities/adjust_reputation_amoy.ts --network amoy",
@@ -43,6 +44,8 @@
     "@types/papaparse": "^5.3.15",
     "dotenv": "^16.4.5",
     "papaparse": "^5.5.2",
-    "viem": "^2.31.4"
+    "viem": "^2.31.4",
+    "@irys/upload": "^0.0.15",
+    "@irys/upload-ethereum": "^0.0.16"
   }
 }

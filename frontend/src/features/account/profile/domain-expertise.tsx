@@ -84,19 +84,7 @@ export function DomainExpertise({
                         className={cn(
                           "font-bold min-w-12 justify-center relative overflow-hidden",
                           "shadow-lg transition-all duration-300 hover:scale-105",
-                          score >= 80 &&
-                            "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-primary/30",
-                          score >= 60 &&
-                            score < 80 &&
-                            "bg-gradient-to-r from-primary/80 to-primary/60 text-primary-foreground shadow-primary/20",
-                          score >= 40 &&
-                            score < 60 &&
-                            "bg-gradient-to-r from-secondary to-secondary/80 text-secondary-foreground shadow-secondary/20",
-                          score >= 20 &&
-                            score < 40 &&
-                            "bg-gradient-to-r from-muted to-muted/80 text-muted-foreground shadow-muted/20",
-                          score < 20 &&
-                            "bg-gradient-to-r from-destructive/80 to-destructive/60 text-destructive-foreground shadow-destructive/20"
+                          "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-primary/30",
                         )}
                       >
                         <span className="relative z-10 font-extrabold text-sm">

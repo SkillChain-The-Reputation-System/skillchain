@@ -91,10 +91,10 @@ export default function ProfileViewPage() {
   const getReputationBadgeVariant = (
     score: number
   ): "default" | "secondary" | "destructive" | "outline" => {
-    if (score >= 60) return "default";
-    if (score >= 40) return "secondary";
-    if (score >= 20) return "outline";
-    return "destructive";
+    if (score >= 60) return "default"; // Uses primary color
+    if (score >= 40) return "secondary"; // Uses secondary color which complements primary
+    if (score >= 20) return "outline"; // Uses border with current text color
+    return "destructive"; // For very low scores
   };
 
   if (!address) {

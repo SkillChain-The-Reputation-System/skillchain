@@ -26,7 +26,7 @@ export function ProfileHeader({
 }: ProfileHeaderProps) {
   return (
     <Card className="relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-10" />
+      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-primary/50 via-primary/20 to-primary/5 opacity-50" />
       <CardContent className="pt-6">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
           <div className="relative">
@@ -45,7 +45,7 @@ export function ProfileHeader({
                 </AvatarFallback>
               </Avatar>
             )}
-            <div className="absolute -bottom-2 -right-2 h-8 w-8 bg-green-500 rounded-full border-4 border-background flex items-center justify-center">
+            <div className="absolute -bottom-2 -right-2 h-8 w-8 bg-primary/80 rounded-full border-4 border-background flex items-center justify-center">
               <Shield className="h-4 w-4 text-white" />
             </div>
           </div>
@@ -96,7 +96,7 @@ export function ProfileHeader({
             {!isLoadingReputation && reputationData && (
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-yellow-500" />
+                  <Trophy className="h-5 w-5 text-primary" />
                   <span className="font-semibold">Global Reputation:</span>
                   <Badge
                     variant={getReputationBadgeVariant(

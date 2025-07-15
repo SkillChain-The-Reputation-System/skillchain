@@ -536,3 +536,16 @@
   border-right: 2px solid currentColor;
   animation: blink-caret 0.8s step-end infinite;
 }
+
+@keyframes logo-loop {
+  0%, 100% {
+    filter: brightness(0.5);
+  }
+  50% {
+    filter: brightness(1);
+  }
+}
+
+.logo-loop {
+  animation: logo-loop 2s ease-in-out infinite;
+}

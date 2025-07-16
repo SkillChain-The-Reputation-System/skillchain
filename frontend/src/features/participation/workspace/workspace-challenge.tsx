@@ -488,7 +488,7 @@ export default function WorkspaceChallenge({
                           <CalendarDays className="h-full max-h-4 w-full max-w-4" />
                           <span>
                             {epochToDateTimeString(
-                              Number(solution.submittedAt) * 1000
+                              Number(solution.submittedAt)
                             )}
                           </span>
                         </div>

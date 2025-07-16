@@ -18,6 +18,7 @@ import {
 } from "@/lib/get/get-challenge-cost-utils";
 import { NATIVE_TOKEN_SYMBOL } from "@/constants/system";
 import { toast } from "react-toastify";
+import { getUserNameByAddress } from "@/lib/get/get-user-data-utils";
 import { Button } from "./ui/button";
 import { Copy } from "lucide-react";
 import {
@@ -72,6 +73,7 @@ export function ChallengeRevenueInfo({
   const [talents, setTalents] = useState<string[]>([]);
   const [payments, setPayments] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+  const [talentNames, setTalentNames] = useState<Record<string, string>>({});
 
   useEffect(() => {
     async function fetchRevenue() {
@@ -102,6 +104,27 @@ export function ChallengeRevenueInfo({
     fetchRevenue();
   }, [challengeId]);
 
+  useEffect(() => {
+    async function fetchNames() {
+      const entries = await Promise.all(
+        talents.map(async (t) => [t, await getUserNameByAddress(t as `0x${string}`)])
+      );
+      const map: Record<string, string> = {};
+      entries.forEach(([a, n]) => {
+        if (n && n !== a) {
+          map[a] = n as string;
+        }
+      });
+      setTalentNames(map);
+    }
+
+    if (talents.length > 0) {
+      fetchNames();
+    } else {
+      setTalentNames({});
+    }
+  }, [talents]);
+
   return (
     <div className="py-4">
       <h3 className="font-bold mb-2 text-xl">Revenue</h3>
@@ -129,7 +152,9 @@ export function ChallengeRevenueInfo({
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <span className="truncate max-w-[120px] cursor-pointer">
-                              {truncateAddress(talent)}
+                              {talentNames[talent] && talentNames[talent] !== talent
+                                ? talentNames[talent]
+                                : truncateAddress(talent)}
                             </span>
                           </TooltipTrigger>
                           <TooltipContent>

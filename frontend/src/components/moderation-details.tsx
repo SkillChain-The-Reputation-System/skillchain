@@ -29,6 +29,7 @@ import {
 import { getUserDomainReputationScore } from "@/lib/get/get-reputation-score-utils";
 import { getScoreDeviationOfModeratorReview } from "@/lib/get/get-moderation-data-utils";
 import { Domain } from "@/constants/system";
+import { getUserNameByAddress } from "@/lib/get/get-user-data-utils";
 
 interface ModerationDetailsProps {
   challenge: ChallengeInterface;
@@ -59,6 +60,7 @@ export function ModerationDetails({ challenge }: ModerationDetailsProps) {
   const [isFinalized, setIsFinalized] = useState(false);
   const [moderators, setModerators] = useState<ModeratorInfo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [moderatorNames, setModeratorNames] = useState<Record<string, string>>({});
 
   useEffect(() => {
     async function fetchData() {
@@ -100,6 +102,19 @@ export function ModerationDetails({ challenge }: ModerationDetailsProps) {
           })
         );
         setModerators(infos);
+        const entries = await Promise.all(
+          infos.map(async (m) => [
+            m.moderator,
+            await getUserNameByAddress(m.moderator as `0x${string}`),
+          ])
+        );
+        const map: Record<string, string> = {};
+        entries.forEach(([a, n]) => {
+          if (n && n !== a) {
+            map[a] = n as string;
+          }
+        });
+        setModeratorNames(map);
       } catch (err) {
         console.error("Error fetching moderation details:", err);
       } finally {
@@ -139,7 +154,10 @@ export function ModerationDetails({ challenge }: ModerationDetailsProps) {
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <span className="truncate w-[120px] cursor-pointer">
-                              {truncateAddress(mod.moderator)}
+                              {moderatorNames[mod.moderator] &&
+                              moderatorNames[mod.moderator] !== mod.moderator
+                                ? moderatorNames[mod.moderator]
+                                : truncateAddress(mod.moderator)}
                             </span>
                           </TooltipTrigger>
                           <TooltipContent>

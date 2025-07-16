@@ -57,6 +57,7 @@ import { userJoinChallenge } from "@/lib/write-onchain-utils";
 import { NATIVE_TOKEN_SYMBOL } from "@/constants/system";
 import { getChallengeCost } from "@/lib/get/get-challenge-cost-utils";
 import { getErrorMessage } from "@/lib/error-utils";
+import { getUserNameByAddress } from "@/lib/get/get-user-data-utils";
 
 interface ExploreChallengeDetailsProps {
   challenge_id: `0x${string}`;
@@ -69,6 +70,7 @@ export default function ExploreChallengeDetails({
   const router = useRouter();
   const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
   const [hasJoined, setHasJoined] = useState(false);
+  const [contributorName, setContributorName] = useState<string | undefined>();
 
   const [challengeCost, setChallengeCost] = useState<number>(0);
   const [costLoading, setCostLoading] = useState(true);
@@ -133,6 +135,16 @@ export default function ExploreChallengeDetails({
 
         setChallenge(fetchedChallenge);
         setHasJoined(fetchHasJoinedState);
+        if (fetchedChallenge) {
+          const name = await getUserNameByAddress(
+            fetchedChallenge.contributor as `0x${string}`
+          );
+          if (name && name !== fetchedChallenge.contributor) {
+            setContributorName(name);
+          } else {
+            setContributorName(undefined);
+          }
+        }
       } catch (error: any) {
         toast.error(getErrorMessage(error));
       } finally {
@@ -275,7 +287,7 @@ export default function ExploreChallengeDetails({
             <div className="flex items-center gap-1.5">
               <UserRoundPen className="h-full max-h-4 w-full max-w-4" />
               <span className="ml-1 text-indigo-800 dark:text-indigo-300 break-all">
-                {challenge.contributor}
+                {contributorName ?? challenge.contributor}
               </span>
             </div>
           </div>

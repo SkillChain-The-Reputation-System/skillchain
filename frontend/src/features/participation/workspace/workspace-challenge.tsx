@@ -80,6 +80,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { pageUrlMapping } from "@/constants/navigation";
 import { getErrorMessage } from "@/lib/error-utils";
+import { getUserNameByAddress } from "@/lib/get/get-user-data-utils";
 
 const solutionSchema = z.object({
   solution: z.string().max(10000, "Solution must be less than 4000 characters"),
@@ -109,6 +110,7 @@ export default function WorkspaceChallenge({
   const [joinedEvaluators, setJoinedEvaluators] = useState<number>(0);
   const [totalEvaluators, setTotalEvaluators] = useState<number>(0);
   const [completedDate, setCompletedDate] = useState<number | undefined>(0);
+  const [contributorName, setContributorName] = useState<string | undefined>();
 
   const form = useForm<SolutionFormValues>({
     resolver: zodResolver(solutionSchema),
@@ -212,6 +214,14 @@ export default function WorkspaceChallenge({
 
         setChallenge(fetchedChallenge);
         setSolution(fetchedSolution);
+        if (fetchedChallenge) {
+          const name = await getUserNameByAddress(
+            fetchedChallenge.contributor as `0x${string}`
+          );
+          setContributorName(
+            name && name !== fetchedChallenge.contributor ? name : undefined
+          );
+        }
 
         if (fetchedSolution && fetchedSolution.solution?.trim().length !== 0)
           form.reset({
@@ -364,7 +374,7 @@ export default function WorkspaceChallenge({
                       <div className="flex items-center gap-1.5">
                         <UserRoundPen className="h-full max-h-4 w-full max-w-4" />
                         <span className="ml-1 text-indigo-800 dark:text-indigo-300 break-all">
-                          {challenge.contributor}
+                          {contributorName ?? challenge.contributor}
                         </span>
                       </div>
                     </div>

@@ -13,8 +13,8 @@ interface UserProfileData {
   bio: string;
 }
 
-const csvPath = path.resolve(__dirname, '../data/user_profile.csv');
-const outputCsvPath = path.resolve(__dirname, '../data/user_profiles.csv');
+const csvPath = path.resolve(__dirname, '../data/user_profile_irys.csv');
+const outputCsvPath = path.resolve(__dirname, '../data/user_profiles_id_only.csv');
 
 const getIrysUploader = async () => {
   const uploader = await Uploader(Ethereum)

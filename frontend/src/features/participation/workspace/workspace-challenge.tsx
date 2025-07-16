@@ -283,7 +283,7 @@ export default function WorkspaceChallenge({
                   </AlertDialogCancel>
 
                   <AlertDialogAction
-                    className="cursor-pointer bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80"
+                    className="cursor-pointer"
                     onClick={() => {
                       if (
                         solution.progress ==
@@ -584,7 +584,7 @@ export default function WorkspaceChallenge({
                         <Button
                           variant="outline"
                           size="lg"
-                          className="flex items-center cursor-pointer gap-2 border-gray-300 hover:bg-accent"
+                          className="flex items-center cursor-pointer gap-2"
                           onClick={onSaveDraft}
                           disabled={savingDraft || submitting}
                         >
@@ -594,7 +594,7 @@ export default function WorkspaceChallenge({
 
                         <Button
                           size="lg"
-                          className="flex items-center gap-2 cursor-pointer shrink-0 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80"
+                          className="flex items-center gap-2 cursor-pointer shrink-0 "
                           onClick={() => setIsDialogOpen(true)}
                         >
                           <Send className="h-4 w-4" />
@@ -607,7 +607,7 @@ export default function WorkspaceChallenge({
                         <>
                           <Button
                             size="lg"
-                            className="flex items-center gap-2 cursor-pointer border bg-purple-800 hover:bg-purple-800/60 text-white dark:bg-purple-400 dark:hover:bg-purple-400/60 dark:text-black"
+                            className="flex items-center gap-2 cursor-pointer border"
                             onClick={() => setIsDialogOpen(true)}
                           >
                             <ArrowBigUpDash className="h-4 w-4" />

@@ -141,7 +141,7 @@ export default function EvaluationPools({ query, domain, page }: EvaluationPools
       {
         address && (
           isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full max-w-6xl mx-auto">
               {[...Array(8)].map((_, index) => (
                 <SolutionSkeleton key={index} />
               ))}
@@ -149,7 +149,7 @@ export default function EvaluationPools({ query, domain, page }: EvaluationPools
           ) : solutions.length > 0 ? (
             currentSearchedSolutions.length > 0 ? (
               <div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-6xl mx-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full max-w-6xl mx-auto">
                   {currentSearchedSolutions.map((solution) => (
                     <SolutionCard key={solution.solutionId} solutionPreview={solution} onClick={cardOnClick} forEvaluator />
                   ))}

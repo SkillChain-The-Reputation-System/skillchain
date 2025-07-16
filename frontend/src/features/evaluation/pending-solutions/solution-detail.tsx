@@ -187,7 +187,6 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
             </AlertDialogCancel>
 
             <AlertDialogAction
-              className="cursor-pointer bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80"
               onClick={handleJoinEvaluation}
               disabled={joining}
             >
@@ -206,15 +205,15 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
 
       <div className="space-y-8">
         {/* Header Section - styled card */}
-        <div className="rounded-xl bg-gradient-to-r from-slate-50 to-white dark:from-slate-900/30 dark:to-zinc-900/30 shadow-md p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border border-slate-200 dark:border-slate-700">
+        <div className="rounded-xl bg-gradient-to-r from-slate-50 to-white dark:from-slate-900/30 dark:to-zinc-900/30 shadow-md p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border border-slate-200 dark:border-slate-700">
           <div className="space-y-2">
             <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 break-all">{challenge.title}</h1>
           </div>
           {evaluatorHasJoined ? (
             <Button
               size="lg"
-              className="shrink-0 bg-green-600 hover:bg-green-700 text-white gap-2 rounded-lg"
               disabled
+              variant={"joined"}
             >
               <CheckCircle2 className="h-4 w-4" />
               Joined Evaluation
@@ -222,7 +221,7 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
           ) : solutionReviewPool.numberOfEvaluators == solutionReviewPool.totalEvaluators ? (
             <Button
               size="lg"
-              className="shrink-0 bg-red-800 text-white gap-2 rounded-lg"
+              className="shrink-0 gap-2 rounded-lg"
               disabled
             >
               <XCircle className="h-4 w-4" />
@@ -231,7 +230,6 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
           ) : (
             <Button
               size="lg"
-              className="shrink-0 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80 cursor-pointer rounded-lg"
               onClick={() => setIsDialogOpen(true)}
             >
               Evaluate Solution
@@ -345,6 +343,28 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
             </div>
           </TabsContent>
         </Tabs>
+        {/* Action Section - Only show if user has joined the evaluation pool */}
+        {evaluatorHasJoined && (
+          <div className="rounded-xl bg-white dark:bg-slate-900/60 shadow p-6 border border-slate-200 dark:border-slate-700 mt-8">
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
+              <div>
+                <h3 className="font-semibold text-slate-900 dark:text-slate-100">Want to see your evaluation?</h3>
+                <p className="text-sm text-muted-foreground">
+                  Go the evaluation of this solution.
+                </p>
+              </div>
+              <Button
+                size="lg"
+                className="cursor-pointer"
+                variant={"joined"}
+                onClick={() => router.push(`/dashboard/evaluation/evaluated-by-me/${solutionId}`)}
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                Go to My Evaluation
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   ) : (

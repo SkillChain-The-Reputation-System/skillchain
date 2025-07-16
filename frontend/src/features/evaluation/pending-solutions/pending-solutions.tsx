@@ -156,7 +156,7 @@ export default function PendingSolutions({ query, sort, domain, page }: PendingS
 
       {
         isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
             {[...Array(8)].map((_, index) => (
               <SolutionSkeleton key={index} />
             ))}
@@ -164,7 +164,7 @@ export default function PendingSolutions({ query, sort, domain, page }: PendingS
         ) : solutions.length > 0 ? (
           currentSearchedSolutions.length > 0 ? (
             <div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 w-full">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
                 {currentSearchedSolutions.map((solution) => (
                   <SolutionCard key={solution.solutionId} solutionPreview={solution} onClick={cardOnClick} />
                 ))}

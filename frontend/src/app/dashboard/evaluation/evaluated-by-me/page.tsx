@@ -1,5 +1,7 @@
 import EvaluationPools from "@/features/evaluation/evaluated-by-me/evaluation-pools";
 import { Domain } from "@/constants/system"
+import { PageHeader } from "@/components/layout/page-header";
+import { Separator } from "@/components/ui/separator";
 
 export default async function Page(props: {
   searchParams?: Promise<{
@@ -15,10 +17,15 @@ export default async function Page(props: {
   const currentPage = Number(searchParams?.page) || 1;
 
   return (
-    <div>
-      <h1 className="flex flex-col items-center justify-center text-2xl font-bold mb-3">Work on your evaluation</h1>
+    <div className="flex flex-col space-y-4">
+      <PageHeader
+        title="My evaluations"
+        description="Review and continue working on your evaluations."
+      />
 
-      <div className="flex flex-col items-center justify-center p-4 w-full">
+      <Separator />
+
+      <div className="flex flex-col w-full">
         <EvaluationPools query={query} domain={domain} page={currentPage} />
       </div>
     </div>

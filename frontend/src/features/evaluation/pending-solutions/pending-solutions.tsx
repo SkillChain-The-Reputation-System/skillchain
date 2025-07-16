@@ -67,9 +67,10 @@ export default function PendingSolutions({ query, sort, domain, page }: PendingS
     setCurrentPage(page);
   }
 
-  const handleClearFilter = () => {
+  const handleClearFilter = (): void => {
     setSearchQuery("");
     setDomainFilter(null);
+    setSortOption(SolutionSortOption.NEWEST); // Reset to default sort option
   }
 
   // replace url when user passes new query
@@ -143,7 +144,7 @@ export default function PendingSolutions({ query, sort, domain, page }: PendingS
   }, []);
 
   return (
-    <>
+    <div>
       <SearchBar
         onSearch={handleSearchChange}
         onSortChange={handleSort}
@@ -155,7 +156,7 @@ export default function PendingSolutions({ query, sort, domain, page }: PendingS
 
       {
         isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
             {[...Array(8)].map((_, index) => (
               <SolutionSkeleton key={index} />
             ))}
@@ -163,7 +164,7 @@ export default function PendingSolutions({ query, sort, domain, page }: PendingS
         ) : solutions.length > 0 ? (
           currentSearchedSolutions.length > 0 ? (
             <div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-6xl mx-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
                 {currentSearchedSolutions.map((solution) => (
                   <SolutionCard key={solution.solutionId} solutionPreview={solution} onClick={cardOnClick} />
                 ))}
@@ -191,6 +192,6 @@ export default function PendingSolutions({ query, sort, domain, page }: PendingS
           <EmptySolution />
         )
       }
-    </>
+    </div>
   );
 }

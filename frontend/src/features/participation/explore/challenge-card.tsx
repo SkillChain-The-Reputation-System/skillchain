@@ -20,7 +20,7 @@ import {
 
 // Import utils
 import { ChallengeInterface } from "@/lib/interfaces";
-import { getUserProfileData } from "@/lib/get/get-user-data-utils";
+import { getUserNameByAddress } from "@/lib/get/get-user-data-utils";
 import { useEffect, useState } from "react";
 import {
   ChallengeStatus,
@@ -40,15 +40,11 @@ export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
 
   useEffect(() => {
     async function fetchContributorName() {
-      try {
-        const data = await getUserProfileData(challenge.contributor);
-        if (data && data.fullname && data.fullname.trim() !== "") {
-          setContributorName(data.fullname);
-        } else {
-          setContributorName(undefined);
-        }
-      } catch (error) {
-        console.error("Error fetching contributor username:", error);
+      const name = await getUserNameByAddress(challenge.contributor);
+      if (name && name !== challenge.contributor) {
+        setContributorName(name);
+      } else {
+        setContributorName(undefined);
       }
     }
 
@@ -103,10 +99,10 @@ export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
                 <span>{challenge.status == ChallengeStatus.APPROVED ? challenge.qualityScore : "--"}</span>
               </div>
 
-              <div className="flex items-center">
+              {/* <div className="flex items-center">
                 <Users className="h-full max-h-3.5 w-full max-w-3.5 mr-1" />
                 <span>{challenge.participants} people</span>
-              </div>
+              </div> */}
             </div>
           </div>
         </CardContent>

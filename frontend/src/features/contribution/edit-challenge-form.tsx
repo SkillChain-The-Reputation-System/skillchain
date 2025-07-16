@@ -4,6 +4,8 @@
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 
 // Import UI components
 import {
@@ -27,13 +29,14 @@ import { Button } from "@/components/ui/button";
 import { Toaster, toast } from "sonner";
 import RichTextEditor from "@/components/rich-text-editor";
 
-// Import utils
-import { z } from "zod";
+// Import lucide-react icons
+import { MoveLeft } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DomainLabels, Domain } from "@/constants/system";
 import { getChallengeById } from "@/lib/fetching-onchain-data-utils";
 import { getErrorMessage } from "@/lib/error-utils";
 import { saveChallengeDraft } from "@/lib/write-onchain-utils";
+import { z } from "zod";
 
 // Set up challenge schema input
 const editChallengeSchema = z.object({
@@ -56,6 +59,7 @@ export type editChallengeFormValues = z.infer<typeof editChallengeSchema>;
 
 export function EditChallengeForm({ id }: EditChallengeForm) {
   const { address, isConnected } = useAccount();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -107,7 +111,9 @@ export function EditChallengeForm({ id }: EditChallengeForm) {
         const success = await saveChallengeDraft(id, data);
 
         if(success) {
-          toast.info("Saved changes")
+          toast.success("Changes saved successfully");
+          // Navigate back to challenge details page
+          router.push(`/dashboard/contribution/${id}`);
         }
       } catch(error: any) {
         toast.error(getErrorMessage(error))
@@ -120,6 +126,14 @@ export function EditChallengeForm({ id }: EditChallengeForm) {
   return (
     <div>
       <Toaster position="top-right" richColors />
+      
+      <Link
+        href={`/dashboard/contribution/${id}`}
+        className="flex gap-2 items-center mb-10 text-primary hover:underline hover:underline-offset-4"
+      >
+        <MoveLeft className="h-4 w-4" />
+        Back to Challenge
+      </Link>
 
       {isLoading ? (
         <>Loading...</>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Separator } from "@/components/ui/separator";
 import {
   Table,
   TableHeader,
@@ -11,22 +10,25 @@ import {
   TableCell,
   TableCaption,
 } from "@/components/ui/table";
-import {
-  getChallengeTotalRevenue,
-  getChallengeTalentPayment,
-  getChallengeTalents,
-} from "@/lib/get/get-challenge-cost-utils";
-import { NATIVE_TOKEN_SYMBOL } from "@/constants/system";
-import { toast } from "react-toastify";
-import { getUserNameByAddress } from "@/lib/get/get-user-data-utils";
 import { Button } from "./ui/button";
-import { Copy } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
+import { Copy, DollarSign, Users, Coins } from "lucide-react";
+import {
+  getChallengeTotalRevenue,
+  getChallengeTalentPayment,
+  getChallengeTalents,
+} from "@/lib/get/get-challenge-cost-utils";
+import { NATIVE_TOKEN_SYMBOL } from "@/constants/system";
+import { toast } from "sonner";
+import { getUserNameByAddress, getUserAvatarUrl } from "@/lib/get/get-user-data-utils";
+import { cn } from "@/lib/utils";
 
 interface ChallengeRevenueInfoProps {
   challengeId: `0x${string}`;
@@ -74,6 +76,7 @@ export function ChallengeRevenueInfo({
   const [payments, setPayments] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [talentNames, setTalentNames] = useState<Record<string, string>>({});
+  const [talentAvatars, setTalentAvatars] = useState<Record<string, string>>({});
 
   useEffect(() => {
     async function fetchRevenue() {
@@ -86,12 +89,12 @@ export function ChallengeRevenueInfo({
         setTotalRevenue(revenue);
         setTalents(ts);
         const paymentValues = await Promise.all(
-          ts.map((t) =>
+          ts.map((t: string) =>
             getChallengeTalentPayment(challengeId, t as `0x${string}`)
           )
         );
         const map: Record<string, number> = {};
-        ts.forEach((t, idx) => {
+        ts.forEach((t: string, idx: number) => {
           map[t] = paymentValues[idx];
         });
         setPayments(map);
@@ -105,97 +108,166 @@ export function ChallengeRevenueInfo({
   }, [challengeId]);
 
   useEffect(() => {
-    async function fetchNames() {
+    async function fetchNamesAndAvatars() {
       const entries = await Promise.all(
-        talents.map(async (t) => [t, await getUserNameByAddress(t as `0x${string}`)])
+        talents.map(async (t) => {
+          const [name, avatarUrl] = await Promise.all([
+            getUserNameByAddress(t as `0x${string}`),
+            getUserAvatarUrl(t as `0x${string}`)
+          ]);
+          return { address: t, name, avatarUrl };
+        })
       );
-      const map: Record<string, string> = {};
-      entries.forEach(([a, n]) => {
-        if (n && n !== a) {
-          map[a] = n as string;
+      
+      const nameMap: Record<string, string> = {};
+      const avatarMap: Record<string, string> = {};
+      
+      entries.forEach(({ address, name, avatarUrl }) => {
+        if (name && name !== address) {
+          nameMap[address] = name;
+        }
+        if (avatarUrl) {
+          avatarMap[address] = avatarUrl;
         }
       });
-      setTalentNames(map);
+      
+      setTalentNames(nameMap);
+      setTalentAvatars(avatarMap);
     }
 
     if (talents.length > 0) {
-      fetchNames();
+      fetchNamesAndAvatars();
     } else {
       setTalentNames({});
+      setTalentAvatars({});
     }
   }, [talents]);
 
   return (
-    <div className="py-4">
-      <h3 className="font-bold mb-2 text-xl">Revenue</h3>
+    <div>
+      <div className="flex items-center gap-2 mb-4">
+        <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">Revenue</h3>
+      </div>
+      
       {loading ? (
-        <p>Loading...</p>
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+          <span className="ml-2 text-muted-foreground">Loading revenue data...</span>
+        </div>
       ) : (
-        <div className="text-sm flex flex-col gap-1 mb-2">
-          <p className="mb-2">
-            Total Revenue: {totalRevenue?.toFixed(4)} {NATIVE_TOKEN_SYMBOL}
-          </p>
-          <Separator className="my-2" />
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Talent</TableHead>
-                <TableHead className="text-right">Payment</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {talents.map((talent) => (
-                <TableRow key={talent}>
-                  <TableCell className="truncate max-w-[120px] cursor-pointer">
-                    <TooltipProvider>
-                      <div className="flex items-center gap-2">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="truncate max-w-[120px] cursor-pointer">
-                              {talentNames[talent] && talentNames[talent] !== talent
-                                ? talentNames[talent]
-                                : truncateAddress(talent)}
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{talent}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0"
-                              onClick={() => copyToClipboard(talent, "Address")}
-                            >
-                              <Copy className="h-3 w-3" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Copy address</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
-                    </TooltipProvider>
-                  </TableCell>
-                  <TableCell className="text-right whitespace-nowrap overflow-hidden">
-                    <span
-                      className="truncate block"
-                      title={`${payments[talent]} ${NATIVE_TOKEN_SYMBOL}`}
-                    >
-                      {formatTokenAmount(
-                        `${payments[talent]} ${NATIVE_TOKEN_SYMBOL}`
-                      )}
-                    </span>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-            {talents.length === 0 && (
-              <TableCaption>No talent payments.</TableCaption>
-            )}
-          </Table>
+        <div className="space-y-4">
+          {/* Total Revenue Summary */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-muted-foreground">Total Revenue</span>
+            <div className="flex items-center gap-1.5">
+              <Coins className="h-4 w-4 text-green-500" />
+              <Badge variant="secondary" className="font-semibold bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 dark:from-green-900/20 dark:to-emerald-900/20 dark:text-green-300">
+                {totalRevenue?.toFixed(4)} {NATIVE_TOKEN_SYMBOL}
+              </Badge>
+            </div>
+          </div>
+
+          {/* Talents Table */}
+          {talents.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                <h4 className="font-semibold text-slate-900 dark:text-slate-100">Talent Payments</h4>
+              </div>
+              <div className="overflow-x-auto">
+                <Table className="bg-transparent border-none">
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="font-semibold">
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          Talent
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-right font-semibold">
+                        <div className="flex items-center justify-end gap-2">
+                          <Coins className="h-4 w-4 text-green-500" />
+                          Payment
+                        </div>
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {talents.map((talent, idx) => (
+                      <TableRow key={talent} className="group bg-transparent border-none">
+                        <TableCell className="font-medium bg-transparent border-none">
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage 
+                                src={talentAvatars[talent] || ""} 
+                                alt={talentNames[talent] || "Unknown Talent"} 
+                              />
+                              <AvatarFallback>
+                                {talentNames[talent] 
+                                  ? talentNames[talent].split(" ").map((n) => n[0]).join("").toUpperCase() 
+                                  : "UT"}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex items-center gap-2">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="break-all text-sm group-hover:text-primary transition-colors cursor-pointer">
+                                      {talentNames[talent] && talentNames[talent] !== talent
+                                        ? talentNames[talent]
+                                        : truncateAddress(talent)}
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{talent}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                      onClick={() => copyToClipboard(talent, "Address")}
+                                    >
+                                      <Copy className="h-3 w-3" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Copy address</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right bg-transparent border-none">
+                          <Badge variant="secondary" className="font-semibold bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 dark:from-blue-900/20 dark:to-cyan-900/20 dark:text-blue-300">
+                            {formatTokenAmount(`${payments[talent]} ${NATIVE_TOKEN_SYMBOL}`)}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="flex items-center justify-end text-xs text-muted-foreground bg-muted/30 rounded-lg p-3">
+                <div className="flex items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  <span>{talents.length} talent{talents.length !== 1 ? 's' : ''} paid</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {talents.length === 0 && (
+            <div className="text-center py-8">
+              <Users className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+              <p className="text-muted-foreground">No talent payments recorded.</p>
+            </div>
+          )}
         </div>
       )}
     </div>

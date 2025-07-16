@@ -205,26 +205,24 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
       </AlertDialog>
 
       <div className="space-y-8">
-        {/* Header Section */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        {/* Header Section - styled card */}
+        <div className="rounded-xl bg-gradient-to-r from-slate-50 to-white dark:from-slate-900/30 dark:to-zinc-900/30 shadow-md p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border border-slate-200 dark:border-slate-700">
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold break-all">{challenge.title}</h1>
+            <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 break-all">{challenge.title}</h1>
           </div>
-
           {evaluatorHasJoined ? (
             <Button
               size="lg"
-              className="shrink-0 bg-green-600 hover:bg-green-700 text-white gap-2"
+              className="shrink-0 bg-green-600 hover:bg-green-700 text-white gap-2 rounded-lg"
               disabled
             >
               <CheckCircle2 className="h-4 w-4" />
               Joined Evaluation
             </Button>
-          ) : solutionReviewPool.numberOfEvaluators ==
-            solutionReviewPool.totalEvaluators ? (
+          ) : solutionReviewPool.numberOfEvaluators == solutionReviewPool.totalEvaluators ? (
             <Button
               size="lg"
-              className="shrink-0 bg-red-800 text-white gap-2"
+              className="shrink-0 bg-red-800 text-white gap-2 rounded-lg"
               disabled
             >
               <XCircle className="h-4 w-4" />
@@ -233,7 +231,7 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
           ) : (
             <Button
               size="lg"
-              className="shrink-0 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80 cursor-pointer"
+              className="shrink-0 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80 cursor-pointer rounded-lg"
               onClick={() => setIsDialogOpen(true)}
             >
               Evaluate Solution
@@ -241,164 +239,107 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
           )}
         </div>
 
-        {/* Workspace section */}
+        {/* Workspace section - styled tabs */}
         <Tabs defaultValue="information">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="information" className="cursor-pointer">
+          <TabsList className="grid w-full grid-cols-2 rounded-xl bg-muted/40 p-1 mb-6">
+            <TabsTrigger value="information" className="cursor-pointer rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 transition-all">
               Challenge Information
             </TabsTrigger>
-            <TabsTrigger value="solution" className="cursor-pointer">
+            <TabsTrigger value="solution" className="cursor-pointer rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 transition-all">
               Solution Information
             </TabsTrigger>
           </TabsList>
           {/* Challenge info section */}
           <TabsContent value="information" className="space-y-8">
-            <Separator className="bg-black" />
-
-            {/* General info section */}
-            <h2 className="text-xl font-bold">General Info</h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-7">
-              <div className="col-span-2 flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Contributor
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <UserRoundPen className="h-full max-h-4 w-full max-w-4" />
-                  <span className="ml-1 text-indigo-800 dark:text-indigo-300 break-all">
-                    {contributorName ?? challenge.contributor}
-                  </span>
+            {/* About challenge section */}
+            <div className="rounded-xl bg-white dark:bg-slate-900/60 shadow p-6 border border-slate-200 dark:border-slate-700">
+              <h1 className="text-xl font-bold mb-4 text-slate-900 dark:text-slate-100">About challenge</h1>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-7">
+                <div className="col-span-2 flex flex-col gap-1.5">
+                  <span className="text-sm font-medium text-muted-foreground">Contributor</span>
+                  <div className="flex items-center gap-1.5">
+                    <UserRoundPen className="h-full max-h-4 w-full max-w-4" />
+                    <span className="ml-1 text-slate-700 dark:text-slate-300 break-all">{contributorName ?? challenge.contributor}</span>
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Domain
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <Tag className="h-full max-h-4 w-full max-w-4" />
-                  <span className="ml-1">
-                    {DomainLabels[challenge.category as Domain]}
-                  </span>
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-sm font-medium text-muted-foreground">Domain</span>
+                  <div className="flex items-center gap-1.5">
+                    <Tag className="h-full max-h-4 w-full max-w-4" />
+                    <span className="ml-1">{DomainLabels[challenge.category as Domain]}</span>
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Quality Score
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <Star className="h-full max-h-4 w-full max-w-4 text-amber-500 fill-current" />
-                  <span>{challenge.qualityScore} / 100</span>
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-sm font-medium text-muted-foreground">Quality Score</span>
+                  <div className="flex items-center gap-1.5">
+                    <Star className="h-full max-h-4 w-full max-w-4 text-amber-500 fill-current" />
+                    <span>{challenge.qualityScore} / 100</span>
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Participants
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <Users className="h-full max-h-4 w-full max-w-4" />
-                  <span>{challenge.participants} people</span>
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-sm font-medium text-muted-foreground">Participants</span>
+                  <div className="flex items-center gap-1.5">
+                    <Users className="h-full max-h-4 w-full max-w-4" />
+                    <span>{challenge.participants} people</span>
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Contributed date
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <CalendarArrowUp className="h-full max-h-4 w-full max-w-4" />
-                  <span>{epochToDateString(challenge.contributeAt || 0)}</span>
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-sm font-medium text-muted-foreground">Contributed date</span>
+                  <div className="flex items-center gap-1.5">
+                    <CalendarArrowUp className="h-full max-h-4 w-full max-w-4" />
+                    <span>{epochToDateString(challenge.contributeAt || 0)}</span>
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Difficulty Level
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <Badge
-                    className={cn(
-                      "capitalize",
-                      difficultyStyles[
-                        challenge.difficultyLevel as keyof typeof difficultyStyles
-                      ]
-                    )}
-                  >
-                    {
-                      ChallengeDifficultyLevelLabels[
-                        challenge.difficultyLevel as ChallengeDifficultyLevel
-                      ]
-                    }
-                  </Badge>
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-sm font-medium text-muted-foreground">Difficulty Level</span>
+                  <div className="flex items-center gap-1.5">
+                    <Badge className={cn("capitalize px-2 py-1 rounded-lg", difficultyStyles[challenge.difficultyLevel as keyof typeof difficultyStyles])}>
+                      {ChallengeDifficultyLevelLabels[challenge.difficultyLevel as ChallengeDifficultyLevel]}
+                    </Badge>
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Estimated solve time
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <Clock className="h-full max-h-4 w-full max-w-4" />
-                  <span>{challenge.solveTime} minutes</span>
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-sm font-medium text-muted-foreground">Estimated solve time</span>
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="h-full max-h-4 w-full max-w-4" />
+                    <span>{challenge.solveTime} minutes</span>
+                  </div>
                 </div>
               </div>
             </div>
-
-            <Separator className="bg-black" />
-
             {/* Description Section */}
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold">Description</h2>
+            <div className="rounded-xl bg-white dark:bg-slate-900/60 shadow p-6 border border-slate-200 dark:border-slate-700">
+              <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-slate-100">Description</h2>
               <RichTextEditor value={challenge.description} editable={false} />
             </div>
           </TabsContent>
 
           {/* Solution section */}
           <TabsContent value="solution" className="space-y-8">
-            <Separator className="bg-black" />
-
             {/* General info section */}
-            <h2 className="text-xl font-bold">General Info</h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-7">
-              <div className="col-span-2 flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Submitter
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <UserRoundPen className="h-full max-h-4 w-full max-w-4" />
-                  <span className="ml-1 text-indigo-800 dark:text-indigo-300 break-all">
-                    {submitterName ?? solutionReviewPool.solution.user}
-                  </span>
+            <div className="rounded-xl bg-white dark:bg-slate-900/60 shadow p-6 border border-slate-200 dark:border-slate-700">
+              <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-slate-100">General Info</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-7">
+                <div className="col-span-2 flex flex-col gap-1.5">
+                  <span className="text-sm font-medium text-muted-foreground">Submitter</span>
+                  <div className="flex items-center gap-1.5">
+                    <UserRoundPen className="h-full max-h-4 w-full max-w-4" />
+                    <span className="ml-1 text-slate-700 dark:text-slate-300 break-all">{submitterName ?? solutionReviewPool.solution.user}</span>
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Submission Date
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <CalendarDays className="h-full max-h-4 w-full max-w-4" />
-                  <span>
-                    {epochToDateTimeString(
-                      solutionReviewPool.solution.submittedAt || 0
-                    )}
-                  </span>
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-sm font-medium text-muted-foreground">Submission Date</span>
+                  <div className="flex items-center gap-1.5">
+                    <CalendarDays className="h-full max-h-4 w-full max-w-4" />
+                    <span>{epochToDateTimeString(solutionReviewPool.solution.submittedAt || 0)}</span>
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Evaluators
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <Eye className="h-full max-h-4 w-full max-w-4" />
-                  <span>
-                    {solutionReviewPool.numberOfEvaluators} /{" "}
-                    {solutionReviewPool.totalEvaluators} joined
-                  </span>
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-sm font-medium text-muted-foreground">Evaluators</span>
+                  <div className="flex items-center gap-1.5">
+                    <Eye className="h-full max-h-4 w-full max-w-4" />
+                    <span>{solutionReviewPool.numberOfEvaluators} / {solutionReviewPool.totalEvaluators} joined</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -414,6 +355,7 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
       </p>
       <Button
         onClick={() => router.push(pageUrlMapping.evaluation_pendingsolutions)}
+        className="rounded-lg"
       >
         Return to Explore Solutions
       </Button>

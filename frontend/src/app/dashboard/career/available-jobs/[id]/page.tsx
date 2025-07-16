@@ -222,11 +222,13 @@ export default function JobDetailPage() {
         <p className="text-slate-600 mb-6">
           The job you are looking for doesn't exist or has been removed.
         </p>
-        <Button
-          onClick={() => router.push(pageUrlMapping.career_available_jobs)}
+        <Link
+          href={pageUrlMapping.career_available_jobs}
+          className="flex gap-2 items-center text-primary hover:underline hover:underline-offset-4"
         >
+          <ArrowLeftIcon className="h-4 w-4" />
           Go Back to Available Jobs
-        </Button>
+        </Link>
       </div>
     );
   }
@@ -237,9 +239,9 @@ export default function JobDetailPage() {
     <div>
       <Link
         href={pageUrlMapping.career_available_jobs}
-        className={cn(buttonVariants(), "text-xs md:text-sm mb-4")}
+        className="flex gap-2 items-center mb-4 text-primary hover:underline hover:underline-offset-4"
       >
-        <ArrowLeftIcon className="mr-2 h-4 w-4" /> Back to Available Jobs
+        <ArrowLeftIcon className="h-4 w-4" /> Back to Available Jobs
       </Link>
 
       <div className="flex flex-col space-y-6">

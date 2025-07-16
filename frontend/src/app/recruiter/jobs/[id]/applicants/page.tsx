@@ -128,7 +128,7 @@ export default function JobApplicantsPage() {
       {/* Back to Job Post Link */}
       <Link
         href={`${pageUrlMapping.recruiter_jobs}/${jobId}`}
-        className={cn(buttonVariants(), "mb-4 flex-1 items-center gap-2")}
+        className="flex gap-2 items-center mb-4 text-primary hover:underline hover:underline-offset-4"
       >
         <ArrowLeft size={16} />
         <span>Back to Job Post</span>

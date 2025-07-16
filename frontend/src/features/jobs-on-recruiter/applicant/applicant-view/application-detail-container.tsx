@@ -169,9 +169,9 @@ export default function ApplicationDetailContainer() {
           actions={
             <Link
               href={`${pageUrlMapping.recruiter_jobs}/${jobId}/applicants`}
-              className={cn(buttonVariants(), "text-xs md:text-sm")}
+              className="flex gap-2 items-center text-primary hover:underline hover:underline-offset-4"
             >
-              <ArrowLeftIcon /> Back to Applicants
+              <ArrowLeftIcon className="h-4 w-4" /> Back to Applicants
             </Link>
           }
         />

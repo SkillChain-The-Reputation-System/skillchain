@@ -208,7 +208,6 @@ export default function ExploreChallengeDetails({
 
           <AlertDialogFooter>
             <AlertDialogCancel
-              className="cursor-pointer"
               onClick={() => {
                 setIsDialogOpen(false);
               }}
@@ -218,7 +217,7 @@ export default function ExploreChallengeDetails({
             </AlertDialogCancel>
 
             <AlertDialogAction
-              className="cursor-pointer bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80"
+              className="cursor-pointer"
               onClick={handleJoinChallenge}
               disabled={
                 joining
@@ -248,7 +247,7 @@ export default function ExploreChallengeDetails({
             <div>
               <Button
                 size="lg"
-                className="shrink-0 bg-green-600 hover:bg-green-700 text-white gap-2"
+                variant="joined"
                 disabled
               >
                 <CheckCircle2 className="h-4 w-4" />
@@ -258,7 +257,6 @@ export default function ExploreChallengeDetails({
           ) : (
             <Button
               size="lg"
-              className="shrink-0 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80 cursor-pointer"
               onClick={() => setIsDialogOpen(true)}
             >
               Join Challenge
@@ -380,7 +378,8 @@ export default function ExploreChallengeDetails({
 
               <Button
                 size="lg"
-                className="shrink-0 bg-green-600 hover:bg-green-700 text-white gap-2 cursor-pointer"
+                variant="joined"
+                className="cursor-pointer"
                 onClick={() => handleGoToWorkspace(challenge_id.toString())}
               >
                 <CheckCircle2 className="h-4 w-4" />
@@ -400,7 +399,6 @@ export default function ExploreChallengeDetails({
 
               <Button
                 size="lg"
-                className="shrink-0 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80 cursor-pointer"
                 onClick={() => setIsDialogOpen(true)}
               >
                 Join Challenge

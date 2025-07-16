@@ -1,5 +1,7 @@
 import Workspace from "@/features/participation/workspace/workspace";
 import { Domain, ChallengeSolutionProgress } from "@/constants/system"
+import { PageHeader } from "@/components/layout/page-header";
+import { Separator } from "@/components/ui/separator";
 
 export default async function Page(props: {
   searchParams?: Promise<{
@@ -18,10 +20,13 @@ export default async function Page(props: {
   const currentPage = Number(searchParams?.page) || 1;
 
   return (
-    <div>
-      <h1 className="flex flex-col items-center justify-center text-2xl font-bold mb-3">Work on your solution!</h1>
-
-      <div className="flex flex-col items-center justify-center p-4 w-full">
+    <div className="flex flex-col px-4">
+      <PageHeader
+        title="Solution Workspace"
+        description="Manage the solutions for the challenges you have taken part in"
+      />
+      <Separator className="my-4 bg-gray-300 dark:bg-gray-700" />
+      <div className="flex flex-col items-center justify-center w-full">
         <Workspace query={query} domain={domain} progress={progress} page={currentPage} />
       </div>
     </div>

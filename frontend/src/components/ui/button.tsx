@@ -21,7 +21,8 @@ const buttonVariants = cva(
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
         withdraw: "bg-red-500 text-white hover:bg-red-600 dark:bg-red-400 dark:hover:bg-red-500",
-        black: "bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80"
+        black: "bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80",
+        joined: "bg-green-600 hover:bg-green-700 text-white gap-2 cursor-default border border-green-700/60 disabled:opacity-80"
 
       },
       size: {

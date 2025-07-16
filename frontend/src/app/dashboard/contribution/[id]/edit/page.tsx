@@ -9,7 +9,7 @@ export default async function EditChallengePage({
   const { id } = await params;
 
   return (
-    <div className="flex flex-col px-12">
+    <div className="flex flex-col">
       <div className="flex items-center justify-between">
         <div className="space-y-0.5">
           <h1 className="text-2xl font-bold">Edit your challenge</h1>

@@ -2,7 +2,7 @@
   "name": "skillchain",
   "version": "1.0.0",
   "description": "A Reputation System for Skill Assessment",
-  "main": "index.js",  
+  "main": "index.js",
   "scripts": {
     "deploy:local": "cross-env NETWORK=localhost CHAIN_ID=31337 HARDHAT_IGNITION_CONFIRM_DEPLOYMENT=false hardhat run scripts/deployment/deploy_and_copy.ts --network localhost",
     "configure:local": "cross-env NETWORK=localhost CHAIN_ID=31337 hardhat run scripts/deployment/configure_system.ts --network localhost",
@@ -10,15 +10,17 @@
     "seed:pending:challenge:local": "hardhat run scripts/seeding/seed_pending_challenges_local.ts --network localhost",
     "seed:moderator:review:local": "hardhat run scripts/seeding/seed_moderator_review_local.ts --network localhost",
     "seed:jobs:local": "hardhat run scripts/seeding/seed_job_local.ts --network localhost",
+    "seed:user_profiles:local": "hardhat run scripts/seeding/seed_user_profiles_local.ts --network localhost",
+    "seed:reputation:local": "hardhat run scripts/utilities/adjust_reputation.ts --network localhost",
     "grant:role:local": "hardhat run scripts/utilities/grant_role.ts --network localhost",
-    "adjust:reputation:local": "hardhat run scripts/utilities/adjust_reputation.ts --network localhost",
     "regenerate:config:local": "cross-env NETWORK=localhost CHAIN_ID=31337 node -r ts-node/register scripts/deployment/deploy_and_copy.ts --generate-only",
     "deploy:amoy": "cross-env NETWORK=amoy CHAIN_ID=80002 HARDHAT_IGNITION_CONFIRM_DEPLOYMENT=false hardhat run scripts/deployment/deploy_and_copy.ts",
     "configure:amoy": "cross-env NETWORK=amoy CHAIN_ID=80002 hardhat run scripts/deployment/configure_system.ts --network amoy",
     "adjust:reputation:amoy": "hardhat run scripts/utilities/adjust_reputation_amoy.ts --network amoy",
     "regenerate:config:amoy": "cross-env NETWORK=amoy CHAIN_ID=80002 node -r ts-node/register scripts/deployment/deploy_and_copy.ts --generate-only",
     "clean:deployment:state:amoy": "cross-env NETWORK=amoy CHAIN_ID=80002 hardhat run scripts/deployment/clean_deployment_state.ts",
-    "check:nonce:amoy": "hardhat run scripts/deployment/check_nonce.ts --network amoy"
+    "check:nonce:amoy": "hardhat run scripts/deployment/check_nonce.ts --network amoy",
+    "upload:user_profiles:irys": "hardhat run scripts/utilities/upload_user_profiles_to_irys.ts --network localhost"
   },
   "repository": {
     "type": "git",
@@ -43,6 +45,8 @@
     "@types/papaparse": "^5.3.15",
     "dotenv": "^16.4.5",
     "papaparse": "^5.5.2",
-    "viem": "^2.31.4"
+    "viem": "^2.31.4",
+    "@irys/upload": "^0.0.15",
+    "@irys/upload-ethereum": "^0.0.16"
   }
 }

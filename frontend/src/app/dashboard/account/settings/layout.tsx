@@ -7,7 +7,7 @@ export default function SettingsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="px-4">
+    <div>
       <PageHeader
         title="Settings"
         description="Manage your account settings and preferences."

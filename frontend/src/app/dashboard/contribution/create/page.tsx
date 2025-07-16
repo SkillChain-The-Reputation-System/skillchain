@@ -3,7 +3,7 @@ import { CreateChallengeForm } from "@/features/contribution/create-challenge-fo
 
 export default function CreateChallengePage() {
   return (
-    <div className="flex flex-col px-12">
+    <div className="flex flex-col">
       <div className="flex items-center justify-between">
         <div className="space-y-0.5">
           <h1 className="text-2xl font-bold">Create new challenge</h1>

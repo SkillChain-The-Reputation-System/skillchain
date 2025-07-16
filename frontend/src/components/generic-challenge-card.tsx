@@ -21,6 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import RichTextEditor from "@/components/rich-text-editor";
 import { ChallengePotInfo } from "@/components/challenge-pot-info";
+import { getUserNameByAddress } from "@/lib/get/get-user-data-utils";
 
 import {
   Calendar,
@@ -81,6 +82,17 @@ export function GenericChallengeCard({
 }: ChallengeCardProps) {
   const [showDetails, setShowDetails] = useState(false);
   const formattedContributeDate = epochToDateString(challenge.contributeAt || 0);
+  const [contributorName, setContributorName] = useState<string | undefined>();
+
+  useEffect(() => {
+    async function fetchName() {
+      const name = await getUserNameByAddress(
+        challenge.contributor as `0x${string}`
+      );
+      setContributorName(name && name !== challenge.contributor ? name : undefined);
+    }
+    fetchName();
+  }, [challenge.contributor]);
   const [poolSize, setPoolSize] = useState<number | null>(null);
   const [quorum, setQuorum] = useState<number | null>(null);
 
@@ -141,7 +153,7 @@ export function GenericChallengeCard({
                   toast(`Redirect to user profile: ${challenge.contributor}`)
                 }
               >
-                {challenge.contributor}
+                {contributorName ?? challenge.contributor}
               </span>
             </div>
           )}

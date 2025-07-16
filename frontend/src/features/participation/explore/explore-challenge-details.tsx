@@ -7,7 +7,6 @@ import { useAccount } from "wagmi";
 
 // Import UI components
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import {
@@ -57,6 +56,7 @@ import { userJoinChallenge } from "@/lib/write-onchain-utils";
 import { NATIVE_TOKEN_SYMBOL } from "@/constants/system";
 import { getChallengeCost } from "@/lib/get/get-challenge-cost-utils";
 import { getErrorMessage } from "@/lib/error-utils";
+import { getUserNameByAddress } from "@/lib/get/get-user-data-utils";
 
 interface ExploreChallengeDetailsProps {
   challenge_id: `0x${string}`;
@@ -69,6 +69,7 @@ export default function ExploreChallengeDetails({
   const router = useRouter();
   const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
   const [hasJoined, setHasJoined] = useState(false);
+  const [contributorName, setContributorName] = useState<string | undefined>();
 
   const [challengeCost, setChallengeCost] = useState<number>(0);
   const [costLoading, setCostLoading] = useState(true);
@@ -133,6 +134,16 @@ export default function ExploreChallengeDetails({
 
         setChallenge(fetchedChallenge);
         setHasJoined(fetchHasJoinedState);
+        if (fetchedChallenge) {
+          const name = await getUserNameByAddress(
+            fetchedChallenge.contributor as `0x${string}`
+          );
+          if (name && name !== fetchedChallenge.contributor) {
+            setContributorName(name);
+          } else {
+            setContributorName(undefined);
+          }
+        }
       } catch (error: any) {
         toast.error(getErrorMessage(error));
       } finally {
@@ -208,7 +219,6 @@ export default function ExploreChallengeDetails({
 
           <AlertDialogFooter>
             <AlertDialogCancel
-              className="cursor-pointer"
               onClick={() => {
                 setIsDialogOpen(false);
               }}
@@ -218,7 +228,7 @@ export default function ExploreChallengeDetails({
             </AlertDialogCancel>
 
             <AlertDialogAction
-              className="cursor-pointer bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80"
+              className="cursor-pointer"
               onClick={handleJoinChallenge}
               disabled={
                 joining
@@ -238,17 +248,18 @@ export default function ExploreChallengeDetails({
         </AlertDialogContent>
       </AlertDialog>
 
+
       <div className="space-y-8">
-        {/* Header Section */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        {/* Header Section as Card */}
+        <div className="rounded-xl bg-white dark:bg-slate-900/60 shadow p-6 border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold break-all">{challenge.title}</h1>
+            <h1 className="text-xl font-bold break-all text-slate-900 dark:text-slate-100">{challenge.title}</h1>
           </div>
           {hasJoined ? (
             <div>
               <Button
                 size="lg"
-                className="shrink-0 bg-green-600 hover:bg-green-700 text-white gap-2"
+                variant="joined"
                 disabled
               >
                 <CheckCircle2 className="h-4 w-4" />
@@ -258,7 +269,6 @@ export default function ExploreChallengeDetails({
           ) : (
             <Button
               size="lg"
-              className="shrink-0 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80 cursor-pointer"
               onClick={() => setIsDialogOpen(true)}
             >
               Join Challenge
@@ -266,147 +276,111 @@ export default function ExploreChallengeDetails({
           )}
         </div>
 
-        <Separator className="bg-black" />
-
-        {/* Info Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-7">
-          <div className="col-span-2 flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-muted-foreground">
-              Contributor
-            </span>
-            <div className="flex items-center gap-1.5">
-              <UserRoundPen className="h-full max-h-4 w-full max-w-4" />
-              <span className="ml-1 text-indigo-800 dark:text-indigo-300 break-all">
-                {challenge.contributor}
-              </span>
+        {/* About challenge section */}
+        <div className="rounded-xl bg-white dark:bg-slate-900/60 shadow p-6 border border-slate-200 dark:border-slate-700">
+          <h1 className="text-xl font-bold mb-4 text-slate-900 dark:text-slate-100">About challenge</h1>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-7">
+            <div className="col-span-2 flex flex-col gap-1.5">
+              <span className="text-sm font-medium text-muted-foreground">Contributor</span>
+              <div className="flex items-center gap-1.5">
+                <UserRoundPen className="h-full max-h-4 w-full max-w-4" />
+                <span className="ml-1 text-slate-700 dark:text-slate-300 break-all">{contributorName ?? challenge.contributor}</span>
+              </div>
             </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-muted-foreground">
-              Domain
-            </span>
-            <div className="flex items-center gap-1.5">
-              <Tag className="h-full max-h-4 w-full max-w-4" />
-              <span className="ml-1">
-                {DomainLabels[challenge.category as Domain]}
-              </span>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium text-muted-foreground">Domain</span>
+              <div className="flex items-center gap-1.5">
+                <Tag className="h-full max-h-4 w-full max-w-4" />
+                <span className="ml-1">{DomainLabels[challenge.category as Domain]}</span>
+              </div>
             </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-muted-foreground">
-              Quality Score
-            </span>
-            <div className="flex items-center gap-1.5">
-              <Star className="h-full max-h-4 w-full max-w-4 text-amber-500 fill-current" />
-              <span>{challenge.qualityScore} / 100</span>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium text-muted-foreground">Quality Score</span>
+              <div className="flex items-center gap-1.5">
+                <Star className="h-full max-h-4 w-full max-w-4 text-amber-500 fill-current" />
+                <span>{challenge.qualityScore} / 100</span>
+              </div>
             </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-muted-foreground">
-              Participants
-            </span>
-            <div className="flex items-center gap-1.5">
-              <Users className="h-full max-h-4 w-full max-w-4" />
-              <span>{challenge.participants} done</span>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium text-muted-foreground">Participants</span>
+              <div className="flex items-center gap-1.5">
+                <Users className="h-full max-h-4 w-full max-w-4" />
+                <span>{challenge.participants} people</span>
+              </div>
             </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-muted-foreground">
-              Contributed date
-            </span>
-            <div className="flex items-center gap-1.5">
-              <CalendarArrowUp className="h-full max-h-4 w-full max-w-4" />
-              <span>
-                {epochToDateString(challenge.contributeAt || 0)}
-              </span>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium text-muted-foreground">Contributed date</span>
+              <div className="flex items-center gap-1.5">
+                <CalendarArrowUp className="h-full max-h-4 w-full max-w-4" />
+                <span>{epochToDateString(challenge.contributeAt || 0)}</span>
+              </div>
             </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-muted-foreground">
-              Difficulty Level
-            </span>
-            <div className="flex items-center gap-1.5">
-              <Badge
-                className={cn(
-                  "capitalize",
-                  difficultyStyles[
-                    challenge.difficultyLevel as keyof typeof difficultyStyles
-                  ]
-                )}
-              >
-                {
-                  ChallengeDifficultyLevelLabels[
-                    challenge.difficultyLevel as ChallengeDifficultyLevel
-                  ]
-                }
-              </Badge>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium text-muted-foreground">Difficulty Level</span>
+              <div className="flex items-center gap-1.5">
+                <Badge className={cn("capitalize px-2 py-1 rounded-lg", difficultyStyles[challenge.difficultyLevel as keyof typeof difficultyStyles])}>
+                  {ChallengeDifficultyLevelLabels[challenge.difficultyLevel as ChallengeDifficultyLevel]}
+                </Badge>
+              </div>
             </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-muted-foreground">
-              Estimated solve time
-            </span>
-            <div className="flex items-center gap-1.5">
-              <Clock className="h-full max-h-4 w-full max-w-4" />
-              <span>{challenge.solveTime} minutes</span>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium text-muted-foreground">Estimated solve time</span>
+              <div className="flex items-center gap-1.5">
+                <Clock className="h-full max-h-4 w-full max-w-4" />
+                <span>{challenge.solveTime} minutes</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <Separator className="bg-black" />
-
         {/* Description Section */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-bold">Challenge Description</h2>
+        <div className="rounded-xl bg-white dark:bg-slate-900/60 shadow p-6 border border-slate-200 dark:border-slate-700 space-y-4">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Challenge Description</h1>
           <RichTextEditor value={challenge.description!} editable={false} />
         </div>
 
         {/* Action Section */}
-        <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-between items-center bg-muted/50 p-6 rounded-lg">
-          {hasJoined ? (
-            <>
-              <div>
-                <h3 className="font-semibold">You've joined this challenge!</h3>
-                <p className="text-sm text-muted-foreground">
-                  Start working on your solution now.
-                </p>
-              </div>
+        <div className="rounded-xl bg-white dark:bg-slate-900/60 shadow p-6 border border-slate-200 dark:border-slate-700">
+          <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
+            {hasJoined ? (
+              <>
+                <div>
+                  <h3 className="font-semibold text-slate-900 dark:text-slate-100">You've joined this challenge!</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Start working on your solution now.
+                  </p>
+                </div>
 
-              <Button
-                size="lg"
-                className="shrink-0 bg-green-600 hover:bg-green-700 text-white gap-2 cursor-pointer"
-                onClick={() => handleGoToWorkspace(challenge_id.toString())}
-              >
-                <CheckCircle2 className="h-4 w-4" />
-                Go to Workspace
-              </Button>
-            </>
-          ) : (
-            <>
-              <div>
-                <h3 className="font-semibold">
-                  Ready to take on this challenge?
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Join now and start working on your solution.
-                </p>
-              </div>
+                <Button
+                  size="lg"
+                  variant="joined"
+                  className="cursor-pointer"
+                  onClick={() => handleGoToWorkspace(challenge_id.toString())}
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  Go to Workspace
+                </Button>
+              </>
+            ) : (
+              <>
+                <div>
+                  <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+                    Ready to take on this challenge?
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Join now and start working on your solution.
+                  </p>
+                </div>
 
-              <Button
-                size="lg"
-                className="shrink-0 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80 cursor-pointer"
-                onClick={() => setIsDialogOpen(true)}
-              >
-                Join Challenge
-              </Button>
-            </>
-          )}
+                <Button
+                  size="lg"
+                  onClick={() => setIsDialogOpen(true)}
+                >
+                  Join Challenge
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

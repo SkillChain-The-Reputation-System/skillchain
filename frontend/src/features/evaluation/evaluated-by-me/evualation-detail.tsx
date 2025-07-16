@@ -76,6 +76,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { pageUrlMapping } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
 import { getErrorMessage } from "@/lib/error-utils";
+import { getUserNameByAddress } from "@/lib/get/get-user-data-utils";
 
 const evaluationSchema = z.object({
   score: z.coerce
@@ -114,6 +115,8 @@ export default function EvaluationDetail({
   const [evaluation, setEvaluation] = useState<EvaluationInterface | null>(
     null
   );
+  const [contributorName, setContributorName] = useState<string | undefined>();
+  const [submitterName, setSubmitterName] = useState<string | undefined>();
 
   const submitEvaluation = () => {
     form.handleSubmit(async (data: EvaluationFormValues) => {
@@ -175,6 +178,16 @@ export default function EvaluationDetail({
           ]);
           setChallenge(fetchedChallenge);
           setEvaluation(fetchedEvaluation);
+          if (fetchedChallenge) {
+            const contributor = fetchedChallenge.contributor as `0x${string}`;
+            const cName = await getUserNameByAddress(contributor);
+            setContributorName(
+              cName && cName !== contributor ? cName : undefined
+            );
+          }
+          const submitter = fetchedSolution.solution.user as `0x${string}`;
+          const sName = await getUserNameByAddress(submitter);
+          setSubmitterName(sName && sName !== submitter ? sName : undefined);
         }
       } catch (error: any) {
         toast.error(getErrorMessage(error));
@@ -291,7 +304,7 @@ export default function EvaluationDetail({
                       <div className="flex items-center gap-1.5">
                         <UserRoundPen className="h-full max-h-4 w-full max-w-4" />
                         <span className="ml-1 text-indigo-800 dark:text-indigo-300 break-all">
-                          {challenge.contributor}
+                          {contributorName ?? challenge.contributor}
                         </span>
                       </div>
                     </div>
@@ -400,7 +413,7 @@ export default function EvaluationDetail({
                       <div className="flex items-center gap-1.5">
                         <UserRoundPen className="h-full max-h-4 w-full max-w-4" />
                         <span className="ml-1 text-indigo-800 dark:text-indigo-300 break-all">
-                          {solutionReviewPool.solution.user}
+                          {submitterName ?? solutionReviewPool.solution.user}
                         </span>
                       </div>
                     </div>

@@ -19,9 +19,9 @@ export default function JobDetailsHeader({ job, jobId }: JobDetailsHeaderProps) 
     <>
       <Link
         href={pageUrlMapping.recruiter_jobs}
-        className={cn(buttonVariants(), "text-xs md:text-sm mb-4")}
+        className="flex gap-2 items-center mb-4 text-primary hover:underline hover:underline-offset-4"
       >
-        <ArrowLeftIcon /> Back to Jobs
+        <ArrowLeftIcon className="h-4 w-4" /> Back to Jobs
       </Link>
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

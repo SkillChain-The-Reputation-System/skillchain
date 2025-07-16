@@ -141,12 +141,12 @@ export default function RescheduleMeetingForm({ meeting_id }: RescheduleMeetingF
 
   return (
     <div>
-      <Button
+      <button
         onClick={() => router.back()}
-        className="cursor-pointer"
+        className="flex gap-2 items-center text-primary hover:underline hover:underline-offset-4"
       >
-        <ArrowLeftIcon /> Go Back
-      </Button>
+        <ArrowLeftIcon className="h-4 w-4" /> Go Back
+      </button>
 
       {isLoading ? (
         <div className="w-full h-120 flex flex-col gap-4 justify-center items-center">

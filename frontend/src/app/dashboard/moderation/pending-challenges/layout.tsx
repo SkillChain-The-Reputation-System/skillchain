@@ -16,7 +16,7 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col px-4">
+    <div className="flex flex-col">
       <PageHeader
         title="Pending Challenges"
         description="Browse and manage all newly submitted challenges awaiting review by moderators."

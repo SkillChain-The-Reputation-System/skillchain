@@ -18,17 +18,20 @@ export default async function RecruiterLayout({
 }) {
   // Persisting the sidebar state in the cookie.
   const cookieStore = await cookies();
-  const defaultOpen = cookieStore.get("sidebar:state")?.value === "true";  return (
+  const defaultOpen = cookieStore.get("sidebar:state")?.value === "true"; return (
     <RecruiterProvider>
       <SidebarProvider defaultOpen={defaultOpen}>
         <RecruiterSidebar />
         <SidebarInset>
-          <Header />
-          <RecruiterRequirementBanner />
-          {/* page main content */}
-          <div className="py-4">{children}</div>
+          <div className="px-4">
+            <Header />
+            <RecruiterRequirementBanner />
+            {/* page main content */}
+            <div className="py-4">{children}</div>
 
-          {/* page main content ends */}
+            {/* page main content ends */}
+          </div>
+
         </SidebarInset>
       </SidebarProvider>
     </RecruiterProvider>

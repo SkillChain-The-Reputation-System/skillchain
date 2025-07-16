@@ -869,6 +869,37 @@ export const fetchTimestampScoreSubmittedByEvaluator = async (
   }
 };
 
+export const fetchSubmittedEvaluatorsForSolution = async (
+  solution_id: `0x${string}`
+): Promise<`0x${string}`[]> => {
+  const evaluators = (await readContract(wagmiConfig, {
+    address: ContractConfig_SolutionManager.address as `0x${string}`,
+    abi: ContractConfig_SolutionManager.abi,
+    functionName: "getSubmittedEvaluators",
+    args: [solution_id],
+  })) as string[];
+
+  return evaluators as `0x${string}`[];
+};
+
+export const fetchEvaluationDeviation = async (
+  address: `0x${string}`,
+  solution_id: `0x${string}`
+): Promise<number | undefined> => {
+  try {
+    const deviation = (await readContract(wagmiConfig, {
+      address: ContractConfig_SolutionManager.address as `0x${string}`,
+      abi: ContractConfig_SolutionManager.abi,
+      functionName: "getEvaluationDeviation",
+      args: [address, solution_id],
+    })) as number;
+
+    return Number(deviation);
+  } catch (_error) {
+    return undefined;
+  }
+};
+
 export const fetchEvaluationForSolutionByEvaluator = async (
   address: `0x${string}`,
   solution_id: `0x${string}`

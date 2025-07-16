@@ -1,3 +1,5 @@
+"use client";
+
 // Import UI components
 import {
   Card,
@@ -18,6 +20,8 @@ import {
 
 // Import utils
 import { ChallengeInterface } from "@/lib/interfaces";
+import { getUserNameByAddress } from "@/lib/get/get-user-data-utils";
+import { useEffect, useState } from "react";
 import {
   ChallengeStatus,
   Domain,
@@ -31,7 +35,21 @@ interface ChallengeCardProps {
 }
 
 export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
+  const [contributorName, setContributorName] = useState<string | undefined>();
   const formattedContributeDate = epochToDateString(challenge.contributeAt || 0);
+
+  useEffect(() => {
+    async function fetchContributorName() {
+      const name = await getUserNameByAddress(challenge.contributor);
+      if (name && name !== challenge.contributor) {
+        setContributorName(name);
+      } else {
+        setContributorName(undefined);
+      }
+    }
+
+    fetchContributorName();
+  }, [challenge.contributor]);
 
   return (
     <>
@@ -56,7 +74,7 @@ export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
             <UserRoundPen className="h-full max-h-3.5 w-full max-w-3.5" />
             <span>By:</span>
             <span className="ml-1 text-indigo-800 dark:text-indigo-300 break-all">
-              {challenge.contributor}
+              {contributorName ?? challenge.contributor}
             </span>
           </div>
 
@@ -81,10 +99,10 @@ export function ChallengeCard({ challenge, onClick }: ChallengeCardProps) {
                 <span>{challenge.status == ChallengeStatus.APPROVED ? challenge.qualityScore : "--"}</span>
               </div>
 
-              <div className="flex items-center">
+              {/* <div className="flex items-center">
                 <Users className="h-full max-h-3.5 w-full max-w-3.5 mr-1" />
                 <span>{challenge.participants} people</span>
-              </div>
+              </div> */}
             </div>
           </div>
         </CardContent>

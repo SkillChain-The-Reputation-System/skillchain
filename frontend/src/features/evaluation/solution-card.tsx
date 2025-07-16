@@ -25,6 +25,8 @@ import {
   DomainLabels,
 } from "@/constants/system";
 import { epochToDateTimeString } from "@/lib/time-utils";
+import { getUserNameByAddress } from "@/lib/get/get-user-data-utils";
+import { useEffect, useState } from "react";
 
 interface SolutionCardProps {
   solutionPreview: BriefUnderReviewSolution;
@@ -34,6 +36,17 @@ interface SolutionCardProps {
 
 export function SolutionCard({ solutionPreview, onClick, forEvaluator = false }: SolutionCardProps) {
   const submittedDate = epochToDateTimeString(solutionPreview.submittedAt);
+  const [submitterName, setSubmitterName] = useState<string | undefined>();
+
+  useEffect(() => {
+    async function fetchName() {
+      const name = await getUserNameByAddress(
+        solutionPreview.submitter as `0x${string}`
+      );
+      setSubmitterName(name && name !== solutionPreview.submitter ? name : undefined);
+    }
+    fetchName();
+  }, [solutionPreview.submitter]);
 
   return (
     <>
@@ -70,7 +83,7 @@ export function SolutionCard({ solutionPreview, onClick, forEvaluator = false }:
             <UserRoundPen className="h-full max-h-3.5 w-full max-w-3.5" />
             <span>By</span>
             <span className="ml-1 text-indigo-800 dark:text-indigo-300 break-all">
-              {solutionPreview.submitter}
+              {submitterName ?? solutionPreview.submitter}
             </span>
           </div>
 

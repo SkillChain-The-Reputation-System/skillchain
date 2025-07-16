@@ -59,6 +59,7 @@ import { difficultyStyles } from "@/constants/styles";
 import { pageUrlMapping } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
 import { getErrorMessage } from "@/lib/error-utils";
+import { getUserNameByAddress } from "@/lib/get/get-user-data-utils";
 
 interface SolutionDetailProps {
   solutionId: `0x${string}`;
@@ -76,6 +77,8 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
     useState<SolutionReviewPool | null>(null);
   const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
   const [evaluatorHasJoined, setEvaluatorHasJoined] = useState(false);
+  const [contributorName, setContributorName] = useState<string | undefined>();
+  const [submitterName, setSubmitterName] = useState<string | undefined>();
 
   const handleJoinEvaluation = async () => {
     if (!address || !solutionReviewPool) {
@@ -136,6 +139,16 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
           ]);
           setChallenge(fetchedChallenge);
           setEvaluatorHasJoined(fetchedJoinedState);
+          if (fetchedChallenge) {
+            const contributor = fetchedChallenge.contributor as `0x${string}`;
+            const cName = await getUserNameByAddress(contributor);
+            setContributorName(cName && cName !== contributor ? cName : undefined);
+          } else {
+            setContributorName(undefined);
+          }
+          const submitter = fetchedSolution.solution.user as `0x${string}`;
+          const sName = await getUserNameByAddress(submitter);
+          setSubmitterName(sName && sName !== submitter ? sName : undefined);
         }
       } catch (error) {
         console.error(error);
@@ -253,7 +266,7 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
                 <div className="flex items-center gap-1.5">
                   <UserRoundPen className="h-full max-h-4 w-full max-w-4" />
                   <span className="ml-1 text-indigo-800 dark:text-indigo-300 break-all">
-                    {challenge.contributor}
+                    {contributorName ?? challenge.contributor}
                   </span>
                 </div>
               </div>
@@ -357,7 +370,7 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
                 <div className="flex items-center gap-1.5">
                   <UserRoundPen className="h-full max-h-4 w-full max-w-4" />
                   <span className="ml-1 text-indigo-800 dark:text-indigo-300 break-all">
-                    {solutionReviewPool.solution.user}
+                    {submitterName ?? solutionReviewPool.solution.user}
                   </span>
                 </div>
               </div>

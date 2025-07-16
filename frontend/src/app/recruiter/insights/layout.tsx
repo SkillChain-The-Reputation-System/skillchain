@@ -12,7 +12,7 @@ export default function InsightsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col px-4">
+    <div className="flex flex-col">
       <PageHeader
         title="Recruitment Insights"
         description="Analytics and insights about your recruitment process."

@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { ChallengePotInfoInterface } from "@/lib/interfaces";
 import { getChallengePotInfo } from "@/lib/fetching-onchain-data-utils";
 import { NATIVE_TOKEN_SYMBOL } from "@/constants/system";
+import { getUserNameByAddress } from "@/lib/get/get-user-data-utils";
 
 // Utility functions for truncation and formatting
 const truncateAddress = (address: string): string => {
@@ -59,12 +60,26 @@ interface ChallengePotInfoProps {
 
 export function ChallengePotInfo({ challengeId }: ChallengePotInfoProps) {
   const [potInfo, setPotInfo] = useState<ChallengePotInfoInterface | null>(null);
+  const [moderatorNames, setModeratorNames] = useState<Record<string, string>>({});
 
   useEffect(() => {
     async function fetchInfo() {
       try {
         const info = await getChallengePotInfo(challengeId);
         setPotInfo(info);
+        const entries = await Promise.all(
+          info.moderators.map(async (m) => [
+            m.moderator,
+            await getUserNameByAddress(m.moderator as `0x${string}`),
+          ])
+        );
+        const map: Record<string, string> = {};
+        entries.forEach(([a, n]) => {
+          if (n && n !== a) {
+            map[a] = n as string;
+          }
+        });
+        setModeratorNames(map);
       } catch (error) {
         console.error("Error fetching pot info:", error);
       }
@@ -105,7 +120,10 @@ export function ChallengePotInfo({ challengeId }: ChallengePotInfoProps) {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <span className="truncate w-auto cursor-pointer">
-                          {truncateAddress(mod.moderator)}
+                          {moderatorNames[mod.moderator] &&
+                          moderatorNames[mod.moderator] !== mod.moderator
+                            ? moderatorNames[mod.moderator]
+                            : truncateAddress(mod.moderator)}
                         </span>
                       </TooltipTrigger>
                       <TooltipContent>

@@ -603,4 +603,38 @@ contract SolutionManager is AccessControl {
                 ? evaluatorScore - finalScore
                 : finalScore - evaluatorScore;
     }
+
+    function getSubmittedEvaluators(
+        bytes32 _solution_id
+    ) public view returns (address[] memory) {
+        EvaluationPool storage pool = solution_to_evaluation_pool[_solution_id];
+        uint256 evaluatorCount = pool.evaluator_list.length;
+        address[] memory evaluators = new address[](pool.evaluation_count);
+        uint256 idx = 0;
+
+        for (uint256 i = 0; i < evaluatorCount; i++) {
+            address evaluator = pool.evaluator_list[i];
+            if (pool.evaluator_submitted[evaluator]) {
+                evaluators[idx] = evaluator;
+                idx++;
+            }
+        }
+
+        return evaluators;
+    }
+
+    function getEvaluationByEvaluator(
+        address _evaluator_address,
+        bytes32 _solution_id
+    ) public view returns (Evaluation memory) {
+        EvaluationPool storage pool = solution_to_evaluation_pool[_solution_id];
+
+        require(
+            pool.evaluator_joined[_evaluator_address] &&
+                pool.evaluator_submitted[_evaluator_address],
+            "Evaluator not submitted score"
+        );
+
+        return pool.evaluator_to_evaluation[_evaluator_address];
+    }
 }

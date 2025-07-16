@@ -9,6 +9,6 @@ export default function MeetingsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="px-4">{children}</div>
+    <div>{children}</div>
   );
 }

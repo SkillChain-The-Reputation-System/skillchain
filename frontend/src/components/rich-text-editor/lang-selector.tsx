@@ -12,25 +12,26 @@ export default function LangSelector(
 
   return (
     <NodeViewWrapper className="relative">
-      <select
-        className="absolute rounded-md top-[0.5rem] right-[0.5rem] p-[0.2rem] bg-white dark:bg-black text-sm !disabled:cursor-pointer"
-        contentEditable={false}
-        defaultValue={language}
-        onChange={event => updateAttributes({ language: event.target.value })}
-        disabled={!editor.isEditable}
-      >
-        <option value="null">
-          auto
-        </option>
-        <option disabled>
-          —
-        </option>
-        {extension.options.lowlight.listLanguages().map((lang: string, index: number) => (
-          <option key={index} value={lang}>
-            {lang}
+      {editor.isEditable && (
+        <select
+          className="absolute rounded-md top-[0.5rem] right-[0.5rem] p-[0.2rem] bg-white dark:bg-black text-sm border border-gray-300 dark:border-gray-600 shadow-sm"
+          contentEditable={false}
+          defaultValue={language}
+          onChange={event => updateAttributes({ language: event.target.value })}
+        >
+          <option value="null">
+            auto
           </option>
-        ))}
-      </select>
+          <option disabled>
+            —
+          </option>
+          {extension.options.lowlight.listLanguages().map((lang: string, index: number) => (
+            <option key={index} value={lang}>
+              {lang}
+            </option>
+          ))}
+        </select>
+      )}
 
       <pre>
         <NodeViewContent as="code" />

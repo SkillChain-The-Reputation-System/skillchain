@@ -122,5 +122,32 @@ export const isUserRegistered = async (
   }
 };
 
+/**
+ * Get a user's name by wallet address
+ * @param address - The user's wallet address
+ * @returns Promise<string> - The user's name or the address if not available
+ */
+export const getUserNameByAddress = async (
+  address: `0x${string}`
+): Promise<string> => {
+  try {
+    const registered = await isUserRegistered(address);
+    if (!registered) {
+      return address;
+    }
+
+    const profile = await getUserProfileData(address);
+    const fullname = profile?.fullname ?? "";
+
+    if (fullname.trim() === "") {
+      return address;
+    }
+
+    return fullname;
+  } catch (_error) {
+    return address;
+  }
+};
+
 
 

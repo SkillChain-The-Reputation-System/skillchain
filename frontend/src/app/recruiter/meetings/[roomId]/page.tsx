@@ -16,9 +16,9 @@ export default async function MeetingRoomPage({
     <div>
       <Link
         href={pageUrlMapping.recruiter_meetings}
-        className={cn(buttonVariants(), "text-xs md:text-sm mb-2")}
+        className="flex gap-2 items-center mb-2 text-primary hover:underline hover:underline-offset-4"
       >
-        <ArrowLeftIcon /> Back to Meetings
+        <ArrowLeftIcon className="h-4 w-4" /> Back to Meetings
       </Link>
 
       <MeetingRoom roomId={roomId} />

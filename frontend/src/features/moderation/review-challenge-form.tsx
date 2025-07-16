@@ -315,15 +315,13 @@ export function ReviewChallengeForm({
   }, [router]);
   // Memoize UI components that don't need to re-render often
   const backButton = useMemo(() => (
-    <Button
-      variant="outline"
-      size="sm"
-      className="mb-6 gap-1 text-muted-foreground hover:text-foreground bg-gray-200 cursor-pointer"
+    <button
       onClick={handleGoBack}
+      className="flex gap-2 items-center mb-6 text-primary hover:underline hover:underline-offset-4"
     >
       <ArrowLeftCircle className="h-4 w-4" />
       Back to My Reviews
-    </Button>
+    </button>
   ), [handleGoBack]);
   
   const loadingIndicator = useMemo(() => (

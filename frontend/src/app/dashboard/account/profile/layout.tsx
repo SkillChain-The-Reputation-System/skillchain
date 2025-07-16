@@ -14,7 +14,7 @@ export default async function DashboardLayout({
 }) {
   return (
     <div>
-      <div className="flex flex-col px-4">
+      <div className="flex flex-col">
         <PageHeader
           title="Profile"
           description="View your profile information and your activity on SkillChain."

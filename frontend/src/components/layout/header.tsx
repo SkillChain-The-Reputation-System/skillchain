@@ -8,7 +8,7 @@ import ThemeToggle from './ThemeToggle/theme-toggle';
 export default function Header() {
   return (
     <header className='flex h-16 shrink-0 items-center justify-between gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12'>
-      <div className='flex items-center gap-2 px-4 overflow-hidden'>
+      <div className='flex items-center gap-2 overflow-hidden'>
         <SidebarTrigger className='-ml-1 flex-shrink-0' />
         <Separator orientation='vertical' className='mr-2 h-4 flex-shrink-0' />
         <div className="overflow-hidden">
@@ -16,7 +16,7 @@ export default function Header() {
         </div>
       </div>
 
-      <div className='flex items-center gap-2 px-4'>
+      <div className='flex items-center gap-2'>
         <ThemeToggle />
       </div>
     </header>

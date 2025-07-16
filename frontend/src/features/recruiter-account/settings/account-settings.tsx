@@ -34,6 +34,7 @@ import {
 import { depositToRecruiterBudget } from "@/lib/set/set-recruiter-subscription-data-utils";
 import { NATIVE_TOKEN_SYMBOL } from "@/constants/system";
 import { getErrorMessage } from "@/lib/error-utils";
+import { getUserNameByAddress } from "@/lib/get/get-user-data-utils";
 import { useRouter } from "next/navigation";
 
 export function AccountSettings() {
@@ -50,6 +51,26 @@ export function AccountSettings() {
   const [depositAmount, setDepositAmount] = useState("0.1"); // Default deposit amount
 
   const router = useRouter();
+
+  const [accountName, setAccountName] = useState<string | undefined>();
+  const [applicantNames, setApplicantNames] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    async function fetchName() {
+      if (!address) {
+        setAccountName(undefined);
+        return;
+      }
+      const name = await getUserNameByAddress(address);
+      if (name && name !== address) {
+        setAccountName(name);
+      } else {
+        setAccountName(undefined);
+      }
+    }
+
+    fetchName();
+  }, [address]);
 
   // Function to copy address to clipboard with visual feedback
   const handleCopyAddress = async (addressToCopy: string) => {
@@ -102,6 +123,23 @@ export function AccountSettings() {
         try {
           const data = await getComprehensiveRecruiterData(address);
           setRecruiterData(data);
+
+          const uniqueApplicants = Array.from(
+            new Set(data.paymentHistory?.map((p) => p.applicant) || [])
+          );
+          const entries = await Promise.all(
+            uniqueApplicants.map(async (addr) => [
+              addr,
+              await getUserNameByAddress(addr as `0x${string}`),
+            ])
+          );
+          const map: Record<string, string> = {};
+          entries.forEach(([a, n]) => {
+            if (n && n !== a) {
+              map[a] = n as string;
+            }
+          });
+          setApplicantNames(map);
         } catch (error) {
           console.error("Error fetching recruiter data:", error);
         } finally {
@@ -130,7 +168,7 @@ export function AccountSettings() {
             </h3>
             <div className="flex items-center justify-between space-x-4">
               <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm truncate line-clamp-1">
-                {address ? address : "Not connected"}
+                {address ? accountName ?? address : "Not connected"}
               </code>
               <Button
                 variant="outline"
@@ -313,7 +351,10 @@ export function AccountSettings() {
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             <code className="text-sm bg-muted px-2 py-1 rounded">
-                              {truncateAddress(payment.applicant)}
+                              {applicantNames[payment.applicant] &&
+                              applicantNames[payment.applicant] !== payment.applicant
+                                ? applicantNames[payment.applicant]
+                                : truncateAddress(payment.applicant)}
                             </code>
                             <Button
                               variant="ghost"

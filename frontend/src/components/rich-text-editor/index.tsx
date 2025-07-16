@@ -154,12 +154,11 @@ export default function RichTextEditor({
             "box-border",
             editable && [
               "px-4 py-3 rounded-lg",
-              "bg-[var(--rte-content-bg)] border-2 border-[var(--rte-border)]",
-              "shadow-[var(--rte-shadow)]",
-              "focus-within:border-[var(--rte-border-focus)] focus-within:shadow-[var(--rte-shadow-focus)]",
-              "hover:border-[var(--rte-border-focus)]/60"
+              "bg-[var(--rte-content-bg)]",
             ],
-            !editable && "bg-transparent border-0",
+            !editable && [
+              "bg-transparent border-0"
+            ],
             error && [
               "border-destructive focus-within:border-destructive",
               "shadow-destructive/10 focus-within:shadow-destructive/20"
@@ -190,6 +189,7 @@ export default function RichTextEditor({
       "transition-all duration-200 ease-in-out",
       "w-full max-w-full min-w-0",
       "box-border contain-layout contain-inline-size",
+      "p-1",
       editable && "hover:shadow-[var(--rte-shadow-focus)]",
       error && "border-destructive shadow-destructive/10"
     )}>

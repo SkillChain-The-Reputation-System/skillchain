@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AlertTriangle, ArrowLeftIcon } from "lucide-react";
 import { pageUrlMapping } from "@/constants/navigation";
+import Link from "next/link";
 
 export default function JobNotFound() {
   const router = useRouter();

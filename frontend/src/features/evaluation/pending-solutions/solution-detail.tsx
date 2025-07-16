@@ -139,9 +139,13 @@ export default function SolutionDetail({ solutionId }: SolutionDetailProps) {
           ]);
           setChallenge(fetchedChallenge);
           setEvaluatorHasJoined(fetchedJoinedState);
-          const contributor = fetchedChallenge.contributor as `0x${string}`;
-          const cName = await getUserNameByAddress(contributor);
-          setContributorName(cName && cName !== contributor ? cName : undefined);
+          if (fetchedChallenge) {
+            const contributor = fetchedChallenge.contributor as `0x${string}`;
+            const cName = await getUserNameByAddress(contributor);
+            setContributorName(cName && cName !== contributor ? cName : undefined);
+          } else {
+            setContributorName(undefined);
+          }
           const submitter = fetchedSolution.solution.user as `0x${string}`;
           const sName = await getUserNameByAddress(submitter);
           setSubmitterName(sName && sName !== submitter ? sName : undefined);

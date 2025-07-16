@@ -178,9 +178,13 @@ export default function EvaluationDetail({
           ]);
           setChallenge(fetchedChallenge);
           setEvaluation(fetchedEvaluation);
-          const contributor = fetchedChallenge.contributor as `0x${string}`;
-          const cName = await getUserNameByAddress(contributor);
-          setContributorName(cName && cName !== contributor ? cName : undefined);
+          if (fetchedChallenge) {
+            const contributor = fetchedChallenge.contributor as `0x${string}`;
+            const cName = await getUserNameByAddress(contributor);
+            setContributorName(
+              cName && cName !== contributor ? cName : undefined
+            );
+          }
           const submitter = fetchedSolution.solution.user as `0x${string}`;
           const sName = await getUserNameByAddress(submitter);
           setSubmitterName(sName && sName !== submitter ? sName : undefined);

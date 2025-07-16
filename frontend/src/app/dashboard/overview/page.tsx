@@ -16,7 +16,7 @@ export default function Overview() {
         title="Dashboard Overview"
         description="Manage your SkillChain activity and explore all available features."
       />
-      <Separator className="my-4 bg-gray-300 dark:bg-gray-700" />
+      <Separator/>
       <p>
         SkillChain is a decentralized platform for verified skills, peer review
         and job matching. Use the links below to access each section of the

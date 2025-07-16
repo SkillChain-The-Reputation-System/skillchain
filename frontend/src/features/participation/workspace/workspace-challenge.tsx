@@ -29,6 +29,14 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Toaster, toast } from "sonner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import ChallengeDetailsSkeleton from "@/features/participation/challenge-details-skeleton";
 import RichTextEditor from "@/components/rich-text-editor";
 
@@ -49,6 +57,9 @@ import {
   Send,
   CalendarDays,
   LoaderCircle,
+  TrendingUp,
+  TrendingDown,
+  Minus,
 } from "lucide-react";
 
 // Import utils
@@ -75,12 +86,15 @@ import {
   fetchNumberOfJoinedEvaluatorsById,
   fetchMaxEvaluatorsForSolutionById,
   fetchTimestampEvaluationCompleted,
+  fetchSubmittedEvaluatorsForSolution,
+  fetchSubmittedEvaluationScore,
+  fetchEvaluationDeviation,
 } from "@/lib/fetching-onchain-data-utils";
+import { getUserNameByAddress } from "@/lib/get/get-user-data-utils";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { pageUrlMapping } from "@/constants/navigation";
 import { getErrorMessage } from "@/lib/error-utils";
-import { getUserNameByAddress } from "@/lib/get/get-user-data-utils";
 
 const solutionSchema = z.object({
   solution: z.string().max(10000, "Solution must be less than 4000 characters"),
@@ -111,6 +125,9 @@ export default function WorkspaceChallenge({
   const [totalEvaluators, setTotalEvaluators] = useState<number>(0);
   const [completedDate, setCompletedDate] = useState<number | undefined>(0);
   const [contributorName, setContributorName] = useState<string | undefined>();
+  const [evaluatorResults, setEvaluatorResults] = useState<
+    { address: `0x${string}`; name: string; score?: number; deviation?: number }[]
+  >([]);
 
   const form = useForm<SolutionFormValues>({
     resolver: zodResolver(solutionSchema),
@@ -245,6 +262,25 @@ export default function WorkspaceChallenge({
           setJoinedEvaluators(fetchedEvaluators);
           setTotalEvaluators(fetchedTotalEvaluators);
           setCompletedDate(fetchedCompletedDate);
+
+          if (fetchedSolution.progress == ChallengeSolutionProgress.REVIEWED) {
+            const addresses = await fetchSubmittedEvaluatorsForSolution(
+              fetchedSolution.solutionId
+            );
+
+            const infos = await Promise.all(
+              addresses.map(async (addr) => {
+                const [name, score, deviation] = await Promise.all([
+                  getUserNameByAddress(addr),
+                  fetchSubmittedEvaluationScore(addr, fetchedSolution.solutionId),
+                  fetchEvaluationDeviation(addr, fetchedSolution.solutionId),
+                ]);
+                return { address: addr, name, score, deviation };
+              })
+            );
+
+            setEvaluatorResults(infos);
+          }
         }
       } catch (error: any) {
         toast.error(getErrorMessage(error));
@@ -272,15 +308,15 @@ export default function WorkspaceChallenge({
                     {solution.progress == ChallengeSolutionProgress.IN_PROGRESS
                       ? "Confirm submitting solution"
                       : solution.progress ==
-                          ChallengeSolutionProgress.SUBMITTED &&
-                        "Confirm publishing for Evaluation"}
+                      ChallengeSolutionProgress.SUBMITTED &&
+                      "Confirm publishing for Evaluation"}
                   </AlertDialogTitle>
                   <AlertDialogDescription>
                     {solution.progress == ChallengeSolutionProgress.IN_PROGRESS
                       ? "This action cannot be undone, and you won't be able to edit this solution afterward."
                       : solution.progress ==
-                          ChallengeSolutionProgress.SUBMITTED &&
-                        "Your solution will be published to your Evaluators. Are you ready to submit it for evaluation?"}
+                      ChallengeSolutionProgress.SUBMITTED &&
+                      "Your solution will be published to your Evaluators. Are you ready to submit it for evaluation?"}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -334,13 +370,13 @@ export default function WorkspaceChallenge({
                   className={cn(
                     "text-md font-bold",
                     solutionProgressStyles[
-                      solution.progress as keyof typeof solutionProgressStyles
+                    solution.progress as keyof typeof solutionProgressStyles
                     ]
                   )}
                 >
                   {
                     ChallengeSolutionProgressLabels[
-                      solution.progress as ChallengeSolutionProgress
+                    solution.progress as ChallengeSolutionProgress
                     ]
                   }
                 </Badge>
@@ -432,13 +468,13 @@ export default function WorkspaceChallenge({
                           className={cn(
                             "capitalize",
                             difficultyStyles[
-                              challenge.difficultyLevel as keyof typeof difficultyStyles
+                            challenge.difficultyLevel as keyof typeof difficultyStyles
                             ]
                           )}
                         >
                           {
                             ChallengeDifficultyLevelLabels[
-                              challenge.difficultyLevel as ChallengeDifficultyLevel
+                            challenge.difficultyLevel as ChallengeDifficultyLevel
                             ]
                           }
                         </Badge>
@@ -480,7 +516,7 @@ export default function WorkspaceChallenge({
                         <Trophy className="h-full max-h-4 w-full max-w-4 text-amber-500 dark:text-amber-400 fill-current" />
                         <span>
                           {solution.progress !==
-                          ChallengeSolutionProgress.REVIEWED
+                            ChallengeSolutionProgress.REVIEWED
                             ? "--"
                             : solution.score}
                         </span>
@@ -490,61 +526,170 @@ export default function WorkspaceChallenge({
                     {/* Display submission date if solution is submitted */}
                     {solution.progress !==
                       ChallengeSolutionProgress.IN_PROGRESS && (
-                      <div className="flex flex-col gap-1.5">
-                        <span className="text-sm font-medium text-muted-foreground">
-                          Submission Date
-                        </span>
-                        <div className="flex items-center gap-1.5">
-                          <CalendarDays className="h-full max-h-4 w-full max-w-4" />
-                          <span>
-                            {epochToDateTimeString(
-                              Number(solution.submittedAt)
-                            )}
+                        <div className="flex flex-col gap-1.5">
+                          <span className="text-sm font-medium text-muted-foreground">
+                            Submission Date
                           </span>
+                          <div className="flex items-center gap-1.5">
+                            <CalendarDays className="h-full max-h-4 w-full max-w-4" />
+                            <span>
+                              {epochToDateTimeString(
+                                Number(solution.submittedAt)
+                              )}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
                     {solution.progress ===
                       ChallengeSolutionProgress.UNDER_REVIEW && (
-                      <div className="flex flex-col gap-1.5">
-                        <span className="text-sm font-medium text-muted-foreground">
-                          Evaluators
-                        </span>
-                        <div className="flex items-center gap-1.5">
-                          <Eye className="h-full max-h-4 w-full max-w-4" />
-                          <span>
-                            {joinedEvaluators} / {totalEvaluators} joined
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
-                    {solution.progress ===
-                      ChallengeSolutionProgress.REVIEWED && (
-                      <>
                         <div className="flex flex-col gap-1.5">
                           <span className="text-sm font-medium text-muted-foreground">
-                            Total Evaluators
+                            Evaluators
                           </span>
                           <div className="flex items-center gap-1.5">
                             <Eye className="h-full max-h-4 w-full max-w-4" />
-                            <span>{totalEvaluators} reviewed</span>
+                            <span>
+                              {joinedEvaluators} / {totalEvaluators} joined
+                            </span>
                           </div>
+                        </div>
+                      )}
+
+                    {solution.progress ===
+                      ChallengeSolutionProgress.REVIEWED && (
+                        <>
+                          <div className="flex flex-col gap-1.5">
+                            <span className="text-sm font-medium text-muted-foreground">
+                              Total Evaluators
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <Eye className="h-full max-h-4 w-full max-w-4" />
+                              <span>{totalEvaluators} reviewed</span>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-1.5">
+                            <span className="text-sm font-medium text-muted-foreground">
+                              Evaluation Completed Date
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <CalendarCheck className="h-full max-h-4 w-full max-w-4" />
+                              <span>{epochToDateTimeString(completedDate!)}</span>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                  </div>
+
+                  <Separator className="bg-black" />
+
+                  {solution.progress ===
+                    ChallengeSolutionProgress.REVIEWED &&
+                    evaluatorResults.length > 0 && (
+                      <div className="mt-6 space-y-4">
+                        <div className="flex items-center gap-2">
+                          <h1 className="text-lg font-bold">Evaluation Results</h1>
                         </div>
 
-                        <div className="flex flex-col gap-1.5">
-                          <span className="text-sm font-medium text-muted-foreground">
-                            Evaluation Completed Date
-                          </span>
-                          <div className="flex items-center gap-1.5">
-                            <CalendarCheck className="h-full max-h-4 w-full max-w-4" />
-                            <span>{epochToDateTimeString(completedDate!)}</span>
+                        <div className="rounded-lg border bg-card">
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="hover:bg-transparent">
+                                <TableHead className="font-semibold">
+                                  <div className="flex items-center gap-2">
+                                    <UserRoundPen className="h-4 w-4" />
+                                    Evaluator
+                                  </div>
+                                </TableHead>
+                                <TableHead className="text-center font-semibold">
+                                  <div className="flex items-center justify-center gap-2">
+                                    <Star className="h-4 w-4 text-amber-500 fill-current" />
+                                    Score
+                                  </div>
+                                </TableHead>
+                                <TableHead className="text-right font-semibold">
+                                  <div className="flex items-center justify-end gap-2">
+                                    <TrendingUp className="h-4 w-4" />
+                                    Deviation
+                                  </div>
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {evaluatorResults.map((ev, idx) => (
+                                <TableRow key={idx} className="group">
+                                  <TableCell className="font-medium">
+                                    <div className="flex items-center gap-2">
+                                      <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                                        {ev.name?.charAt(0)?.toUpperCase() || "U"}
+                                      </div>
+                                      <span className="break-all text-sm group-hover:text-primary transition-colors">
+                                        {ev.name || "Unknown Evaluator"}
+                                      </span>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    <Badge
+                                      variant="secondary"
+                                      className="font-semibold bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 dark:from-green-900/20 dark:to-emerald-900/20 dark:text-green-300"
+                                    >
+                                      {ev.score || "N/A"}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    <div className="flex items-center justify-end gap-1">
+                                      {ev.deviation !== undefined ? (
+                                        <>
+                                          {ev.deviation > 0 ? (
+                                            <TrendingUp className="h-3 w-3 text-red-500" />
+                                          ) : ev.deviation < 0 ? (
+                                            <TrendingDown className="h-3 w-3 text-green-500" />
+                                          ) : (
+                                            <Minus className="h-3 w-3 text-gray-500" />
+                                          )}
+                                          <span className={cn(
+                                            "text-sm font-medium",
+                                            ev.deviation > 0 ? "text-red-600 dark:text-red-400" :
+                                              ev.deviation < 0 ? "text-green-600 dark:text-green-400" :
+                                                "text-gray-600 dark:text-gray-400"
+                                          )}>
+                                            {ev.deviation > 0 ? "+" : ""}{ev.deviation}
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <span className="text-sm text-muted-foreground">N/A</span>
+                                      )}
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+
+                        <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/30 rounded-lg p-3">
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-1">
+                              <TrendingUp className="h-3 w-3 text-red-500" />
+                              <span>Above average</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <TrendingDown className="h-3 w-3 text-green-500" />
+                              <span>Below average</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Minus className="h-3 w-3 text-gray-500" />
+                              <span>At average</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Eye className="h-3 w-3" />
+                            <span>{evaluatorResults.length} evaluator{evaluatorResults.length !== 1 ? 's' : ''}</span>
                           </div>
                         </div>
-                      </>
+                      </div>
                     )}
-                  </div>
                 </TabsContent>
                 {/* Description of challenge section */}
                 <TabsContent value="description" className="space-y-8">
@@ -589,7 +734,7 @@ export default function WorkspaceChallenge({
                   {/* Display buttons according to status of solution */}
                   <div className="flex justify-end items-center gap-5 mt-5">
                     {solution.progress ==
-                    ChallengeSolutionProgress.IN_PROGRESS ? (
+                      ChallengeSolutionProgress.IN_PROGRESS ? (
                       <>
                         <Button
                           variant="outline"
@@ -613,7 +758,7 @@ export default function WorkspaceChallenge({
                       </>
                     ) : (
                       solution.progress ==
-                        ChallengeSolutionProgress.SUBMITTED && (
+                      ChallengeSolutionProgress.SUBMITTED && (
                         <>
                           <Button
                             size="lg"

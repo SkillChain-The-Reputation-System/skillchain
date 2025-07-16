@@ -26,6 +26,7 @@ import {
 } from "@/constants/system";
 import { epochToDateTimeString } from "@/lib/time-utils";
 import { getUserNameByAddress } from "@/lib/get/get-user-data-utils";
+import { useEffect, useState } from "react";
 
 interface SolutionCardProps {
   solutionPreview: BriefUnderReviewSolution;

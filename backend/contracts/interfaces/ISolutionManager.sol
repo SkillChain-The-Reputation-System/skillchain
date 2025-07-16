@@ -298,4 +298,24 @@ interface ISolutionManager {
         address _evaluator_address,
         bytes32 _solution_id
     ) external view returns (uint256);
+
+    /**
+     * @dev Get addresses of evaluators who submitted evaluations
+     * @param _solution_id ID of the solution
+     * @return Array of evaluator addresses
+     */
+    function getSubmittedEvaluators(
+        bytes32 _solution_id
+    ) external view returns (address[] memory);
+
+    /**
+     * @dev Get evaluation struct submitted by an evaluator
+     * @param _evaluator_address Address of the evaluator
+     * @param _solution_id ID of the solution
+     * @return Evaluation struct
+     */
+    function getEvaluationByEvaluator(
+        address _evaluator_address,
+        bytes32 _solution_id
+    ) external view returns (Evaluation memory);
 }

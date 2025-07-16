@@ -1,5 +1,8 @@
+
 import PendingSolutions from "@/features/evaluation/pending-solutions/pending-solutions";
-import { Domain, SolutionSortOption } from "@/constants/system"
+import { Domain, SolutionSortOption } from "@/constants/system";
+import { PageHeader } from "@/components/layout/page-header";
+import { Separator } from "@/components/ui/separator";
 
 export default async function Page(props: {
   searchParams?: Promise<{
@@ -16,10 +19,15 @@ export default async function Page(props: {
   const currentPage = Number(searchParams?.page) || 1;
 
   return (
-    <div>
-      <h1 className="flex flex-col items-center justify-center text-2xl font-bold mb-3">Evaluate Solutions to Real Challenges</h1>
+    <div className="flex flex-col space-y-4">
+      <PageHeader
+        title="Pending Solutions"
+        description="Find and evaluate solutions submitted by others."
+      />
 
-      <div className="flex flex-col items-center justify-center p-4 w-full">
+      <Separator />
+
+      <div className="flex flex-col w-full">
         <PendingSolutions query={query} sort={sort} domain={domain} page={currentPage} />
       </div>
     </div>

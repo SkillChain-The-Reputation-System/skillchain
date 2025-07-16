@@ -1,7 +1,7 @@
 # SkillChain - Decentralized Skills Assessment & Job Matching Platform
 
 <div align="center">
-  <img src="./frontend/public/favicon.ico" alt="SkillChain Logo" width="100" height="100">
+  <img src="./frontend/public/favicon.svg" alt="SkillChain Logo" width="100" height="100">
   
   **A blockchain-based reputation system for skill assessment and job matching**
   

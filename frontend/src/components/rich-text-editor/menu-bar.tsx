@@ -15,20 +15,43 @@ export default function MenuBar({ editor }: { editor: Editor | null }) {
   }
 
   return (
-    <div className="border-gray-300 dark:border-gray-300/30 w-full rounded-md border bg-transparent p-1 mb-1 shadow-xs transition-[color,box-shadow] outline-none space-x-2">
-      <HeadingSection editor={editor} />
+    <div className="
+      bg-[var(--rte-menubar-bg)] 
+      border-b border-[var(--rte-menubar-border)]
+      px-3 py-2
+      flex items-center gap-1 flex-wrap
+      transition-colors duration-200
+      overflow-x-auto scrollbar-thin
+      max-w-full min-w-0
+      whitespace-nowrap
+    ">
+      <div className="flex items-center gap-1 flex-wrap min-w-0">
+        <HeadingSection editor={editor} />
 
-      <TextDecorationSection editor={editor} />
+        <div className="w-px h-6 bg-[var(--rte-menubar-border)] mx-1 flex-shrink-0" />
 
-      <ListingSection editor={editor} />
+        <TextDecorationSection editor={editor} />
 
-      <TableSection editor={editor} />
+        <div className="w-px h-6 bg-[var(--rte-menubar-border)] mx-1 flex-shrink-0" />
 
-      <FunctionalitySection editor={editor} />
+        <ListingSection editor={editor} />
 
-      <ImageUploader editor={editor} />
+        <div className="w-px h-6 bg-[var(--rte-menubar-border)] mx-1 flex-shrink-0" />
 
-      <Hyperlink editor={editor} />
+        <TableSection editor={editor} />
+
+        <div className="w-px h-6 bg-[var(--rte-menubar-border)] mx-1 flex-shrink-0" />
+
+        <FunctionalitySection editor={editor} />
+
+        <div className="w-px h-6 bg-[var(--rte-menubar-border)] mx-1 flex-shrink-0" />
+
+        <ImageUploader editor={editor} />
+
+        <div className="w-px h-6 bg-[var(--rte-menubar-border)] mx-1 flex-shrink-0" />
+
+        <Hyperlink editor={editor} />
+      </div>
     </div>
   )
 }

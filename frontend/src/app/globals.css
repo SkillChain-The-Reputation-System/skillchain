@@ -191,6 +191,16 @@
   --sidebar-border: hsl(206 20% 90%);
   --sidebar-ring: hsl(201 96% 32%);
   --sidebar: hsl(206 30% 98%);
+  
+  /* Rich Text Editor Theme Variables */
+  --rte-background: hsl(206 50% 97%);
+  --rte-border: hsl(206 20% 85%);
+  --rte-border-focus: hsl(201 96% 32%);
+  --rte-shadow: 0 2px 8px rgba(26, 163, 235, 0.08);
+  --rte-shadow-focus: 0 4px 12px rgba(26, 163, 235, 0.15);
+  --rte-menubar-bg: hsl(206 50% 98%);
+  --rte-menubar-border: hsl(206 15% 88%);
+  --rte-content-bg: hsl(0 0% 100%);
 }
 
 .dark {
@@ -227,6 +237,16 @@
   --sidebar-border: hsl(220 15% 16%);
   --sidebar-ring: hsl(201 96% 32%);
   --sidebar: hsl(220 30% 10%);
+  
+  /* Rich Text Editor Dark Theme Variables */
+  --rte-background: hsl(220 30% 5%);
+  --rte-border: hsl(215 27% 20%);
+  --rte-border-focus: hsl(201 96% 32%);
+  --rte-shadow: 0 2px 8px rgba(26, 163, 235, 0.15);
+  --rte-shadow-focus: 0 4px 12px rgba(26, 163, 235, 0.25);
+  --rte-menubar-bg: hsl(220 30% 6%);
+  --rte-menubar-border: hsl(215 27% 18%);
+  --rte-content-bg: hsl(220 30% 4%);
 }
 
 @layer base {
@@ -273,6 +293,119 @@
   }
 
   .editor {
+    /* Enhanced editor content area with strict overflow control */
+    min-height: 120px;
+    max-width: 100%;
+    overflow: hidden;
+    width: 100%;
+    
+    .ProseMirror {
+      min-height: inherit;
+      padding: 0.75rem 1rem;
+      outline: none;
+      max-width: 100%;
+      width: 100%;
+      overflow-wrap: break-word !important;
+      word-wrap: break-word !important;
+      word-break: break-word !important;
+      hyphens: auto;
+      white-space: pre-wrap;
+      
+      &:focus {
+        outline: none;
+      }
+      
+      /* Force all content to respect container width */
+      * {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow-wrap: break-word !important;
+        word-wrap: break-word !important;
+      }
+      
+      /* Handle paragraphs and text elements */
+      p, div, span, strong, em, u, s {
+        max-width: 100% !important;
+        overflow-wrap: break-word !important;
+        word-break: break-word !important;
+        white-space: pre-wrap !important;
+      }
+      
+      /* Handle long URLs and code snippets aggressively */
+      a, code {
+        overflow-wrap: break-word !important;
+        word-break: break-all !important;
+        max-width: 100% !important;
+        display: inline-block;
+        white-space: pre-wrap !important;
+      }
+      
+      /* Pre and code blocks with contained scrolling */
+      pre {
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        white-space: pre !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        
+        code {
+          white-space: pre !important;
+          word-break: normal !important;
+          overflow-wrap: normal !important;
+          display: block !important;
+        }
+      }
+      
+      /* Tables with strict width control */
+      table {
+        max-width: 100% !important;
+        width: 100% !important;
+        table-layout: fixed !important;
+        overflow: hidden !important;
+        
+        td, th {
+          overflow-wrap: break-word !important;
+          word-break: break-word !important;
+          max-width: 0 !important;
+          overflow: hidden !important;
+          text-overflow: ellipsis;
+        }
+      }
+      
+      /* Images with strict responsive behavior */
+      img {
+        max-width: 100% !important;
+        width: auto !important;
+        height: auto !important;
+        display: block !important;
+      }
+      
+      /* Lists with proper width control */
+      ul, ol {
+        max-width: 100% !important;
+        
+        li {
+          max-width: 100% !important;
+          overflow-wrap: break-word !important;
+          word-break: break-word !important;
+        }
+      }
+      
+      /* Block quotes */
+      blockquote {
+        max-width: 100% !important;
+        overflow-wrap: break-word !important;
+        word-break: break-word !important;
+      }
+      
+      /* Headings */
+      h1, h2, h3, h4, h5, h6 {
+        max-width: 100% !important;
+        overflow-wrap: break-word !important;
+        word-break: break-word !important;
+      }
+    }
+
     :first-child {
       margin-top: 0;
     }
@@ -304,11 +437,13 @@
 
     /* Placeholder styles */
     p.is-editor-empty:first-child::before {
-      color: var(--color-gray-500);
+      color: hsl(var(--muted-foreground));
       content: attr(data-placeholder);
       float: left;
       height: 0;
       pointer-events: none;
+      opacity: 0.7;
+      font-style: italic;
     }
 
     /* Hyperlink styles */
@@ -503,7 +638,8 @@
   /* Dark theme style */
   .dark .editor {
     p.is-editor-empty:first-child::before {
-      color: var(--color-gray-400);
+      color: hsl(var(--muted-foreground));
+      opacity: 0.6;
     }
 
     a {
@@ -527,25 +663,57 @@
     }
   }
 }
-@keyframes blink-caret {
-  0%, 50% { border-color: transparent; }
-  50%, 100% { border-color: currentColor; }
-}
 
-.typing-caret {
-  border-right: 2px solid currentColor;
-  animation: blink-caret 0.8s step-end infinite;
-}
-
-@keyframes logo-loop {
-  0%, 100% {
-    filter: brightness(0.5);
+/* Rich Text Editor Enhancements */
+.rich-text-editor-container {
+  &:focus-within {
+    border-color: var(--rte-border-focus);
+    box-shadow: var(--rte-shadow-focus);
   }
-  50% {
-    filter: brightness(1);
+  
+  /* Enhanced button styling for RTE toolbar */
+  button[data-state="on"],
+  button.bg-accent {
+    background-color: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
+    border-color: hsl(var(--primary) / 0.2);
+  }
+  
+  button:hover {
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+    transition: all 0.15s ease-in-out;
+  }
+  
+  button[data-state="on"]:hover {
+    background-color: hsl(var(--primary) / 0.15);
+    color: hsl(var(--primary));
   }
 }
 
-.logo-loop {
-  animation: logo-loop 2s ease-in-out infinite;
-}
+/* Rich Text Editor Scrollbar Styling */
+.rich-text-editor-container {
+    /* Scrollbar styling for webkit browsers */
+    .scrollbar-thin::-webkit-scrollbar {
+      height: 4px;
+    }
+    
+    .scrollbar-thin::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+      background: hsl(var(--border));
+      border-radius: 2px;
+    }
+    
+    .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+      background: hsl(var(--border)) / 0.8;
+    }
+    
+    /* Firefox scrollbar */
+    .scrollbar-thin {
+      scrollbar-width: thin;
+      scrollbar-color: hsl(var(--border)) transparent;
+    }
+  }

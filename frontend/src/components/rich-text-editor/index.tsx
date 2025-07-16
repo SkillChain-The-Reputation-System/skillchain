@@ -146,12 +146,24 @@ export default function RichTextEditor({
       ],
       editorProps: {
         attributes: {
-          // This is general style for Text Area
+          // Enhanced styling with strict overflow control
           class: cn(
-            "w-full border-input min-w-0 bg-transparent transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
-            "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-            editable && "px-3 py-2 dark:bg-input/30 rounded-md border border-gray-300 dark:border-input",
-            error && "focus-visible:border-destructive focus-visible:ring-destructive/20 border-destructive ring-destructive/20 dark:ring-destructive/40",
+            "w-full min-w-0 max-w-full outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
+            "transition-all duration-200 ease-in-out",
+            "overflow-hidden break-words",
+            "box-border",
+            editable && [
+              "px-4 py-3 rounded-lg",
+              "bg-[var(--rte-content-bg)] border-2 border-[var(--rte-border)]",
+              "shadow-[var(--rte-shadow)]",
+              "focus-within:border-[var(--rte-border-focus)] focus-within:shadow-[var(--rte-shadow-focus)]",
+              "hover:border-[var(--rte-border-focus)]/60"
+            ],
+            !editable && "bg-transparent border-0",
+            error && [
+              "border-destructive focus-within:border-destructive",
+              "shadow-destructive/10 focus-within:shadow-destructive/20"
+            ],
             className
           )
         }
@@ -169,9 +181,22 @@ export default function RichTextEditor({
   )
 
   return (
-    <div>
+    <div className={cn(
+      "rich-text-editor-container",
+      "rounded-lg overflow-hidden",
+      "bg-[var(--rte-background)]",
+      "border border-[var(--rte-border)]",
+      "shadow-[var(--rte-shadow)]",
+      "transition-all duration-200 ease-in-out",
+      "w-full max-w-full min-w-0",
+      "box-border contain-layout contain-inline-size",
+      editable && "hover:shadow-[var(--rte-shadow-focus)]",
+      error && "border-destructive shadow-destructive/10"
+    )}>
       {editable && <MenuBar editor={editor} />}
-      <EditorContent editor={editor} className='editor' spellCheck={false} />
+      <div className="overflow-hidden w-full max-w-full min-w-0">
+        <EditorContent editor={editor} className="editor w-full max-w-full min-w-0" spellCheck={false} />
+      </div>
     </div>
   );
 }

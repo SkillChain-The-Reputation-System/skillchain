@@ -11,7 +11,7 @@ export default async function Page({
   const { solutionId } = await params;
 
   return (
-    <div className="flex flex-col px-12">
+    <div className="flex flex-col">
       <Link
         href={pageUrlMapping.evaluation_pendingsolutions}
         className="flex gap-2 items-center mb-10 text-zinc-700 hover:underline hover:underline-offset-4 dark:text-zinc-300"

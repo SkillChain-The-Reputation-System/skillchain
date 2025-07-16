@@ -6,7 +6,7 @@ import ContributionDashboard from "@/features/contribution/contribution-dashboar
 
 export default function ContributionPage() {
   return (
-    <div className="flex flex-col px-4">
+    <div className="flex flex-col">
       <PageHeader
         title="Challenge Contribution"
         description="Work on challenges and track contributed ones"

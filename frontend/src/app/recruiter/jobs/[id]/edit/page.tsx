@@ -195,7 +195,7 @@ export default function EditJobPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col px-4 space-y-8">
+      <div className="flex flex-col space-y-8">
         <div className="h-8 w-64 bg-slate-200 animate-pulse rounded-md" />
         <div className="h-96 bg-slate-200 animate-pulse rounded-md" />
       </div>
@@ -204,7 +204,7 @@ export default function EditJobPage() {
 
   if (!job) {
     return (
-      <div className="flex flex-col px-4 items-center justify-center py-12">
+      <div className="flex flex-col items-center justify-center py-12">
         <h2 className="text-2xl font-bold mb-2">Job Not Found</h2>
         <p className="text-slate-600 mb-6">
           The job you are trying to edit doesn't exist or has been removed.

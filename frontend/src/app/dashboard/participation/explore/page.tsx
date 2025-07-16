@@ -19,13 +19,13 @@ export default async function Page(props: {
   const currentPage = Number(searchParams?.page) || 1;
 
   return (
-    <div className="flex flex-col px-4">
+    <div className="flex flex-col">
       <PageHeader
         title="Explore challenges"
         description="Explore and solve challenges to build your reputation."
       />
       <Separator className="my-4 bg-gray-300 dark:bg-gray-700" />
-      <div className="flex flex-col items-center justify-center p-4 w-full">
+      <div className="flex flex-col items-center justify-center w-full">
         <Explore query={query} sort={sort} domain={domain} page={currentPage} />
       </div>
     </div>

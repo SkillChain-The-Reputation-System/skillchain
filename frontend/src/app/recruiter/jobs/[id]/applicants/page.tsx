@@ -124,7 +124,7 @@ export default function JobApplicantsPage() {
   }, [jobId]);
 
   return (
-    <div className="px-4 py-6">
+    <div className="py-6">
       {/* Back to Job Post Link */}
       <Link
         href={`${pageUrlMapping.recruiter_jobs}/${jobId}`}

@@ -20,7 +20,7 @@ export default async function Page(props: {
   const currentPage = Number(searchParams?.page) || 1;
 
   return (
-    <div className="flex flex-col px-4">
+    <div className="flex flex-col">
       <PageHeader
         title="Solution Workspace"
         description="Manage the solutions for the challenges you have taken part in"

@@ -23,10 +23,11 @@ export default async function DashboardLayout({
       <SidebarProvider defaultOpen={defaultOpen}>
         <AppSidebar />
         <SidebarInset>
-          <Header />
-          {/* page main content */}
-          <div className="py-4">{children}</div>
-
+          <div className="px-4">
+            <Header />
+            {/* page main content */}
+            <div className="py-4">{children}</div>
+          </div>
           {/* page main content ends */}
         </SidebarInset>
       </SidebarProvider>

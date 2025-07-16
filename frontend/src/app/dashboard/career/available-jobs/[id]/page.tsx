@@ -55,11 +55,11 @@ const RequiredSkillsCard = dynamic(() => import('@/features/jobs-on-user/opening
 function CardSkeleton() {
   return (
     <div className="border rounded-xl py-6 shadow-sm space-y-4">
-      <div className="px-6 flex gap-2">
+      <div className="flex gap-2">
         <div className="h-6 w-6 rounded-md bg-slate-200 animate-pulse"></div>
         <div className="h-6 w-36 rounded-md bg-slate-200 animate-pulse"></div>
       </div>
-      <div className="px-6">
+      <div>
         <div className="h-24 bg-slate-200 animate-pulse rounded-lg"></div>
       </div>
     </div>
@@ -197,7 +197,7 @@ export default function JobDetailPage() {
   // Loading skeletons
   if (loading) {
     return (
-      <div className="flex flex-col px-4 space-y-8">
+      <div className="flex flex-col space-y-8">
         <div className="h-8 w-64 bg-slate-200 animate-pulse rounded-md" />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
@@ -216,7 +216,7 @@ export default function JobDetailPage() {
   // Job not found
   if (!job) {
     return (
-      <div className="flex flex-col px-4 items-center justify-center py-12">
+      <div className="flex flex-col items-center justify-center py-12">
         <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
         <h2 className="text-2xl font-bold mb-2">Job Not Found</h2>
         <p className="text-slate-600 mb-6">
@@ -234,7 +234,7 @@ export default function JobDetailPage() {
   // Check if job is open
   const isJobOpen = job.status === JobStatus.OPEN;
   return (
-    <div className="px-4">
+    <div>
       <Link
         href={pageUrlMapping.career_available_jobs}
         className={cn(buttonVariants(), "text-xs md:text-sm mb-4")}
@@ -247,7 +247,7 @@ export default function JobDetailPage() {
         {getEligibilityNotification() && (
           <div
             className={cn(
-              "border px-4 py-3 rounded-lg flex items-center gap-3",
+              "border py-3 rounded-lg flex items-center gap-3",
               getEligibilityNotification()?.style
             )}
           >

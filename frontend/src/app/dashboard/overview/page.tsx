@@ -11,7 +11,7 @@ export default function Overview() {
   const items = navItems.filter((item) => item.title !== "Overview");
 
   return (
-    <div className="flex flex-col px-4 space-y-6">
+    <div className="flex flex-col space-y-6">
       <PageHeader
         title="Dashboard Overview"
         description="Manage your SkillChain activity and explore all available features."

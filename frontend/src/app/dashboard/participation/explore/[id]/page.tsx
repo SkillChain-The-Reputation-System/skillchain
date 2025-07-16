@@ -11,7 +11,7 @@ export default async function Page({
   const { id } = await params;
 
   return (
-    <div className="flex flex-col px-12">
+    <div className="flex flex-col">
       <Link
         href={pageUrlMapping.participation_explore}
         className="flex gap-2 items-center mb-10 text-zinc-700 hover:underline hover:underline-offset-4 dark:text-zinc-300"
@@ -20,7 +20,7 @@ export default async function Page({
         Back to Explore
       </Link>
 
-      <ExploreChallengeDetails challenge_id={id} />;
+      <ExploreChallengeDetails challenge_id={id} />
     </div>
   );
 }

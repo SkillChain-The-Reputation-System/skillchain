@@ -1,11 +1,11 @@
 address,fullname,location,email,avatar_url,bio
-0x70997970C51812dc3A010C7d01b50e0d17dc79C8,User One,Location A,user1@example.com,https://example.com/avatar1.png,Bio for user one
-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC,User Two,Location B,user2@example.com,https://example.com/avatar2.png,Bio for user two
-0x90F79bf6EB2c4f870365E785982E1f101E93b906,User Three,Location C,user3@example.com,https://example.com/avatar3.png,Bio for user three
-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65,User Four,Location D,user4@example.com,https://example.com/avatar4.png,Bio for user four
-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc,User Five,Location E,user5@example.com,https://example.com/avatar5.png,Bio for user five
-0x976EA74026E726554dB657fA54763abd0C3a0aa9,User Six,Location F,user6@example.com,https://example.com/avatar6.png,Bio for user six
-0x14dC79964da2C08b23698B3D3cc7Ca32193d9955,User Seven,Location G,user7@example.com,https://example.com/avatar7.png,Bio for user seven
-0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f,User Eight,Location H,user8@example.com,https://example.com/avatar8.png,Bio for user eight
-0xa0Ee7A142d267C1f36714E4a8F75612F20a79720,User Nine,Location I,user9@example.com,https://example.com/avatar9.png,Bio for user nine
-0xBcd4042DE499d14e55001CcABbAcFbF8A643bA53,User Ten,Location J,user10@example.com,https://example.com/avatar10.png,Bio for user ten
+0x70997970C51812dc3A010C7d01b50e0d17dc79C8,User One,Location A,user1@example.com,https://cdn.jsdelivr.net/gh/alohe/memojis/png/vibrent_1.png,Bio for user one
+0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC,User Two,Location B,user2@example.com,https://cdn.jsdelivr.net/gh/alohe/memojis/png/vibrent_2.png,Bio for user two
+0x90F79bf6EB2c4f870365E785982E1f101E93b906,User Three,Location C,user3@example.com,https://cdn.jsdelivr.net/gh/alohe/memojis/png/vibrent_3.png,Bio for user three
+0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65,User Four,Location D,user4@example.com,https://cdn.jsdelivr.net/gh/alohe/memojis/png/vibrent_4.png,Bio for user four
+0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc,User Five,Location E,user5@example.com,https://cdn.jsdelivr.net/gh/alohe/memojis/png/vibrent_5.png,Bio for user five
+0x976EA74026E726554dB657fA54763abd0C3a0aa9,User Six,Location F,user6@example.com,https://cdn.jsdelivr.net/gh/alohe/memojis/png/vibrent_6.png,Bio for user six
+0x14dC79964da2C08b23698B3D3cc7Ca32193d9955,User Seven,Location G,user7@example.com,https://cdn.jsdelivr.net/gh/alohe/memojis/png/vibrent_7.png,Bio for user seven
+0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f,User Eight,Location H,user8@example.com,https://cdn.jsdelivr.net/gh/alohe/memojis/png/vibrent_8.png,Bio for user eight
+0xa0Ee7A142d267C1f36714E4a8F75612F20a79720,User Nine,Location I,user9@example.com,https://cdn.jsdelivr.net/gh/alohe/memojis/png/vibrent_9.png,Bio for user nine
+0xBcd4042DE499d14e55001CcABbAcFbF8A643bA53,User Ten,Location J,user10@example.com,https://cdn.jsdelivr.net/gh/alohe/memojis/png/vibrent_10.png,Bio for user ten

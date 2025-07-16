@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: ["gateway.irys.xyz"],
+    domains: ["gateway.irys.xyz", "cdn.jsdelivr.net"],
   },
   webpack: (config, { isServer }) => {
     config.resolve = config.resolve || {};

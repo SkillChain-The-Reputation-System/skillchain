@@ -196,8 +196,6 @@ export function CreateChallengeForm() {
 
           <div className="flex justify-end mt-15">
             <Button
-              size="lg"
-              className="cursor-pointer text-base bg-green-600 hover:bg-green-600/80 text-white"
               disabled={submitting}
               onClick={onSubmit}
             >

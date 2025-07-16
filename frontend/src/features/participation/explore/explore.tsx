@@ -159,15 +159,15 @@ export default function Explore({ query, sort, domain, page }: ExploreProps) {
 
       {
         isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
             {[...Array(itemsPerPage)].map((_, index) => (
               <ChallengeSkeleton key={index} />
             ))}
           </div>
         ) : challenges.length > 0 ? (
           currentSearchedChallenges.length > 0 ? (
-            <div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-6xl mx-auto">
+            <div className="w-full">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
                 {currentSearchedChallenges.map((challenge) => (
                   <ChallengeCard key={challenge.id} challenge={challenge} onClick={cardOnClick} />
                 ))}

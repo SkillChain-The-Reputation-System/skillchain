@@ -8,7 +8,6 @@ import { useAccount } from "wagmi";
 // Import UI components
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +18,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import RichTextEditor from "@/components/rich-text-editor";
 
 // Import lucide-react icons
@@ -32,6 +37,7 @@ import {
   Star,
   Tag,
   Users,
+  MoreHorizontal,
 } from "lucide-react";
 
 // Import utils
@@ -70,6 +76,7 @@ export default function ChallengeDetails({ id }: ChallengeDetailsProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [contributing, setIsContributing] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedAction, setSelectedAction] = useState<'edit' | 'contribute' | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -110,39 +117,49 @@ export default function ChallengeDetails({ id }: ChallengeDetailsProps) {
     } finally {
       setIsContributing(false);
       setIsDialogOpen(false);
+      setSelectedAction(null);
+    }
+  };
+
+  const handleActionSelect = (action: 'edit' | 'contribute') => {
+    setSelectedAction(action);
+    if (action === 'edit') {
+      router.push(pathname + `/edit`);
+    } else if (action === 'contribute') {
+      setIsDialogOpen(true);
     }
   };
 
   return isLoading ? (
-    <div className="flex flex-col gap-8">
-      {/* Header Skeleton */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="space-y-2 w-full sm:w-2/3">
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-5 w-20" />
-            <Skeleton className="h-5 w-24" />
+    <div className="space-y-8">
+      {/* Header Card Skeleton */}
+      <div className="rounded-xl bg-white dark:bg-slate-900/60 shadow p-6 border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col w-full">
+          <div className="flex items-center justify-between w-full">
+            <Skeleton className="h-7 w-64" />
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-6 w-20" />
+              <Skeleton className="h-8 w-8" />
+            </div>
           </div>
-          <Skeleton className="h-9 w-full" />
         </div>
-        <Skeleton className="h-10 w-32" />
       </div>
 
-      <Skeleton className="h-px w-full" />
-
-      {/* Info Section Skeleton */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-7">
-        {[...Array(6)].map((_, i) => (
-          <div key={i} className="flex flex-col gap-1.5">
-            <Skeleton className="h-5 w-24" />
-            <Skeleton className="h-8 w-32" />
-          </div>
-        ))}
+      {/* General Info Card Skeleton */}
+      <div className="rounded-xl bg-white dark:bg-slate-900/60 shadow p-6 border border-slate-200 dark:border-slate-700">
+        <Skeleton className="h-7 w-32 mb-4" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-7">
+          {[...Array(7)].map((_, i) => (
+            <div key={i} className="flex flex-col gap-1.5">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-6 w-32" />
+            </div>
+          ))}
+        </div>
       </div>
 
-      <Skeleton className="h-px w-full" />
-
-      {/* Description Section Skeleton */}
-      <div className="space-y-4">
+      {/* Description Card Skeleton */}
+      <div className="rounded-xl bg-white dark:bg-slate-900/60 shadow p-6 border border-slate-200 dark:border-slate-700 space-y-4">
         <Skeleton className="h-7 w-40" />
         <div className="space-y-3">
           <Skeleton className="h-4 w-full" />
@@ -157,13 +174,13 @@ export default function ChallengeDetails({ id }: ChallengeDetailsProps) {
         </div>
       </div>
 
-      {/* Action Section Skeleton */}
-      <div className="pt-4 flex flex-col sm:flex-row gap-4 justify-between items-center bg-muted/20 p-6 rounded-lg">
-        <div className="space-y-2">
-          <Skeleton className="h-5 w-48" />
-          <Skeleton className="h-4 w-64" />
+      {/* Additional Info Cards Skeleton */}
+      <div className="rounded-xl bg-white dark:bg-slate-900/60 shadow p-6 border border-slate-200 dark:border-slate-700">
+        <Skeleton className="h-6 w-32 mb-4" />
+        <div className="space-y-3">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
         </div>
-        <Skeleton className="h-10 w-32" />
       </div>
     </div>
   ) : challenge ? (
@@ -186,14 +203,16 @@ export default function ChallengeDetails({ id }: ChallengeDetailsProps) {
           <AlertDialogFooter>
             <AlertDialogCancel
               className="cursor-pointer"
-              onClick={() => setIsDialogOpen(false)}
+              onClick={() => {
+                setIsDialogOpen(false);
+                setSelectedAction(null);
+              }}
               disabled={contributing}
             >
               Cancel
             </AlertDialogCancel>
 
             <AlertDialogAction
-              className="cursor-pointer bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80"
               onClick={onContribute}
               disabled={contributing}
             >
@@ -210,181 +229,210 @@ export default function ChallengeDetails({ id }: ChallengeDetailsProps) {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between ">
-        <div className="flex gap-4 items-center">
-          <div className="text-3xl font-bold break-words max-w-[200px] sm:max-w-[300px] md:max-w-[700px]">
-            {challenge.title}
-          </div>
-
-          <Badge
-            className={cn(
-              statusStyles[challenge.status as ChallengeStatus],
-              "text-md font-bold"
-            )}
-          >
-            {ChallengeStatusLabels[challenge.status as ChallengeStatus]}
-          </Badge>
-        </div>
-
-        {challenge.status === ChallengeStatus.DRAFT && (
-          <div className="flex gap-4 items-center">
-            <Button
-              className="flex gap-2 items-center"
-              onClick={() => router.push(pathname + `/edit`)}
-            >
-              Edit
-              <SquarePen />
-            </Button>
-
-            <Button
-              disabled={contributing}
-              className="flex gap-2 items-center bg-green-600 hover:bg-green-600/80 text-white"
-              onClick={() => setIsDialogOpen(true)}
-            >
-              Contribute
-              <Send />
-            </Button>
-          </div>
-        )}
-      </div>
-
-      <Separator className="my-6 bg-gray-300 dark:bg-gray-800" />
-
-      <div className="text-xl font-bold mb-6">General Info</div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-7">
-        <div className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-muted-foreground">
-            Domain
-          </span>
-          <div className="flex items-center gap-1.5">
-            <Tag className="h-full max-h-4 w-full max-w-4" />
-            <span>{DomainLabels[challenge.category as Domain]}</span>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-muted-foreground">
-            Quality Score
-          </span>
-          <div className="flex items-center gap-1.5">
-            <div className="flex items-center gap-1.5">
-              {challenge.status === ChallengeStatus.APPROVED ||
-              challenge.status === ChallengeStatus.REJECTED ? (
-                <>
-                  <Star className="h-full max-h-4 w-full max-w-4 text-amber-500 fill-current" />
-                  {challenge.qualityScore} / 100
-                </>
-              ) : (
-                <Badge variant="secondary">Unrated</Badge>
-              )}
+      <div className="space-y-8">
+        {/* Header Section as Card */}
+        <div className="rounded-xl bg-white dark:bg-slate-900/60 shadow p-6 border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex flex-col w-full">
+            <div className="flex items-center justify-between w-full">
+              <h1 className="text-xl font-bold break-all text-slate-900 dark:text-slate-100">{challenge.title}</h1>
+              <div className="flex items-center gap-3">
+                <Badge
+                  className={cn(
+                    statusStyles[challenge.status as ChallengeStatus],
+                    "text-sm font-bold"
+                  )}
+                >
+                  {ChallengeStatusLabels[challenge.status as ChallengeStatus]}
+                </Badge>
+                {challenge.status === ChallengeStatus.DRAFT && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        disabled={contributing}
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        className="flex items-center gap-2 cursor-pointer"
+                        onClick={() => handleActionSelect('edit')}
+                      >
+                        <SquarePen className="h-4 w-4" />
+                        <span>Edit Challenge</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="flex items-center gap-2 cursor-pointer"
+                        onClick={() => handleActionSelect('contribute')}
+                        disabled={contributing}
+                      >
+                        <Send className="h-4 w-4" />
+                        <span>Contribute Challenge</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-muted-foreground">
-            Participants
-          </span>
-          <div className="flex items-center gap-1.5">
-            <Users className="h-full max-h-4 w-full max-w-4" />
-            <span>{challenge.participants} people</span>
-          </div>
-        </div>
+        {/* About challenge section */}
+        <div className="rounded-xl bg-white dark:bg-slate-900/60 shadow p-6 border border-slate-200 dark:border-slate-700">
+          <h1 className="text-xl font-bold mb-4 text-slate-900 dark:text-slate-100">General Info</h1>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-7">
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium text-muted-foreground">
+                Domain
+              </span>
+              <div className="flex items-center gap-1.5">
+                <Tag className="h-full max-h-4 w-full max-w-4" />
+                <span className="ml-1">{DomainLabels[challenge.category as Domain]}</span>
+              </div>
+            </div>
 
-        <div className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-muted-foreground">
-            Contributed date
-          </span>
-          <div className="flex items-center gap-1.5">
-            {challenge.contributeAt ? (
-              <>
-                <CalendarArrowUp className="h-full max-h-4 w-full max-w-4" />
-                {format(challenge.contributeAt, "PPP")}
-              </>
-            ) : (
-              <Badge variant="secondary">Not contributed yet</Badge>
-            )}
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-muted-foreground">
-            Difficulty Level
-          </span>
-          <div className="flex items-center gap-1.5">
-            {challenge.status === ChallengeStatus.APPROVED ||
-            challenge.status === ChallengeStatus.REJECTED ? (
-              <Badge
-                className={cn(
-                  difficultyStyles[
-                    challenge.difficultyLevel as ChallengeDifficultyLevel
-                  ]
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium text-muted-foreground">
+                Quality Score
+              </span>
+              <div className="flex items-center gap-1.5">
+                {challenge.status === ChallengeStatus.APPROVED ||
+                challenge.status === ChallengeStatus.REJECTED ? (
+                  <>
+                    <Star className="h-full max-h-4 w-full max-w-4 text-amber-500 fill-current" />
+                    <span>{challenge.qualityScore} / 100</span>
+                  </>
+                ) : (
+                  <Badge variant="secondary">Unrated</Badge>
                 )}
-              >
-                {
-                  ChallengeDifficultyLevelLabels[
-                    challenge.difficultyLevel as ChallengeDifficultyLevel
-                  ]
-                }
-              </Badge>
-            ) : (
-              <Badge variant="secondary">Unconfirmed</Badge>
-            )}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium text-muted-foreground">
+                Participants
+              </span>
+              <div className="flex items-center gap-1.5">
+                <Users className="h-full max-h-4 w-full max-w-4" />
+                <span>{challenge.participants} people</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium text-muted-foreground">
+                Contributed date
+              </span>
+              <div className="flex items-center gap-1.5">
+                {challenge.contributeAt ? (
+                  <>
+                    <CalendarArrowUp className="h-full max-h-4 w-full max-w-4" />
+                    <span>{format(challenge.contributeAt, "PPP")}</span>
+                  </>
+                ) : (
+                  <Badge variant="secondary">Not contributed yet</Badge>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium text-muted-foreground">
+                Difficulty Level
+              </span>
+              <div className="flex items-center gap-1.5">
+                {challenge.status === ChallengeStatus.APPROVED ||
+                challenge.status === ChallengeStatus.REJECTED ? (
+                  <Badge
+                    className={cn(
+                      "capitalize px-2 py-1 rounded-lg",
+                      difficultyStyles[
+                        challenge.difficultyLevel as ChallengeDifficultyLevel
+                      ]
+                    )}
+                  >
+                    {
+                      ChallengeDifficultyLevelLabels[
+                        challenge.difficultyLevel as ChallengeDifficultyLevel
+                      ]
+                    }
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary">Unconfirmed</Badge>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium text-muted-foreground">
+                Estimated solve time
+              </span>
+              <div className="flex items-center gap-1.5">
+                {challenge.status === ChallengeStatus.APPROVED ||
+                challenge.status === ChallengeStatus.REJECTED ? (
+                  <>
+                    <Clock className="h-full max-h-4 w-full max-w-4" />
+                    <span>{challenge.solveTime} minutes</span>
+                  </>
+                ) : (
+                  <Badge variant="secondary">Unconfirmed</Badge>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium text-muted-foreground">
+                Bounty Amount
+              </span>
+              <div className="flex items-center gap-1.5">
+                <CircleDollarSign className="h-full max-h-4 w-full max-w-4" />
+                <span>{challenge.bounty} ETH</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-muted-foreground">
-            Estimated solve time
-          </span>
-          <div className="flex items-center gap-1.5">
-            {challenge.status === ChallengeStatus.APPROVED ||
-            challenge.status === ChallengeStatus.REJECTED ? (
-              <>
-                <Clock className="h-full max-h-4 w-full max-w-4" />
-                <span>{challenge.solveTime} minutes</span>
-              </>
-            ) : (
-              <Badge variant="secondary">Unconfirmed</Badge>
-            )}
-          </div>
+        {/* Description Section */}
+        <div className="rounded-xl bg-white dark:bg-slate-900/60 shadow p-6 border border-slate-200 dark:border-slate-700 space-y-4">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Challenge Description</h1>
+          <RichTextEditor
+            value={challenge.description || `No description provided`}
+            editable={false}
+            className={cn(!challenge.description && "italic text-muted-foreground")}
+          />
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-muted-foreground">
-            Bounty Amount
-          </span>
-          <div className="flex items-center gap-1.5">
-            <CircleDollarSign className="h-full max-h-4 w-full max-w-4" />
-            <span>{challenge.bounty} ETH</span>
-          </div>
-        </div>
+        {challenge.status !== ChallengeStatus.DRAFT && (
+          <>
+            {/* Challenge Info Section */}
+            <div className="rounded-xl bg-white dark:bg-slate-900/60 shadow p-6 border border-slate-200 dark:border-slate-700 space-y-4">
+              <ChallengePotInfo challengeId={id} />
+            </div>
+
+            {/* Moderation Details Section */}
+            <div className="rounded-xl bg-white dark:bg-slate-900/60 shadow p-6 border border-slate-200 dark:border-slate-700 space-y-4">
+              <ModerationDetails challenge={challenge} />
+            </div>
+
+            {challenge.status === ChallengeStatus.APPROVED && (
+              <div className="rounded-xl bg-white dark:bg-slate-900/60 shadow p-6 border border-slate-200 dark:border-slate-700 space-y-4">
+                <ChallengeRevenueInfo challengeId={id} />
+              </div>
+            )}
+          </>
+        )}
       </div>
-
-      <Separator className="my-6 bg-gray-300 dark:bg-gray-800" />
-
-      <div className="text-xl font-bold mb-6">Description</div>
-
-      <RichTextEditor
-        value={challenge.description || `No giving description`}
-        editable={false}
-        className={cn(!challenge.description && "italic text-muted-foreground")}
-      />
-
-      {challenge.status !== ChallengeStatus.DRAFT && (
-        <>
-          <Separator className="my-6 bg-gray-300 dark:bg-gray-800" />
-          <ChallengePotInfo challengeId={id} />
-          <ModerationDetails challenge={challenge} />
-
-          {challenge.status === ChallengeStatus.APPROVED && (
-            <ChallengeRevenueInfo challengeId={id} />
-          )}
-        </>
-      )}
     </div>
   ) : (
-    <>Not found</>
+    <div className="rounded-xl bg-white dark:bg-slate-900/60 shadow p-12 border border-slate-200 dark:border-slate-700 text-center">
+      <h2 className="text-xl font-semibold mb-2 text-slate-900 dark:text-slate-100">Challenge not found</h2>
+      <p className="text-muted-foreground mb-6">
+        The challenge you're looking for doesn't exist or has been removed.
+      </p>
+      <Button onClick={() => router.back()}>
+        Go Back
+      </Button>
+    </div>
   );
 }

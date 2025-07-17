@@ -26,13 +26,29 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ChallengeStatus } from "@/constants/system";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuGroup,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { X, ChevronDown } from "lucide-react";
+import { Icons } from "@/components/icons";
+import {
+  ChallengeStatus,
+  Domain,
+  DomainLabels,
+  ChallengeStatusLabels,
+  ReviewStatus,
+  ReviewStatusLabels,
+} from "@/constants/system";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -50,15 +66,110 @@ export function DataTable<TData, TValue>({
   isLoading = false,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
-  const [statusFilter, setStatusFilter] = React.useState<string>("all");
+
+  const [searchTerm, setSearchTerm] = React.useState<string>("");
+  const [selectedCategories, setSelectedCategories] = React.useState<Domain[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = React.useState<ChallengeStatus[]>([]);
+  const [selectedReviewStatuses, setSelectedReviewStatuses] = React.useState<ReviewStatus[]>([]);
+  const [filteredData, setFilteredData] = React.useState<TData[]>(data);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+
+  const getAllCategories = () => {
+    return Object.keys(Domain)
+      .filter((key) => !isNaN(Number(key)))
+      .map((key) => Number(key) as Domain);
+  };
+
+  const getAllStatuses = () => {
+    return Object.keys(ChallengeStatus)
+      .filter((key) => !isNaN(Number(key)))
+      .map((key) => Number(key) as ChallengeStatus);
+  };
+
+  const getAllReviewStatuses = () => {
+    return [ReviewStatus.NOT_SUBMITTED, ReviewStatus.SUBMITTED];
+  };
+
+  const handleClearSearch = () => setSearchTerm("");
+  const handleClearCategoryFilters = () => setSelectedCategories([]);
+  const handleClearStatusFilters = () => setSelectedStatuses([]);
+  const handleClearReviewStatusFilters = () => setSelectedReviewStatuses([]);
+  const handleClearAll = () => {
+    handleClearSearch();
+    handleClearCategoryFilters();
+    handleClearStatusFilters();
+    handleClearReviewStatusFilters();
+  };
+
+  const toggleCategoryFilter = (cat: Domain) => {
+    setSelectedCategories((prev) =>
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+    );
+  };
+
+  const toggleStatusFilter = (status: ChallengeStatus) => {
+    setSelectedStatuses((prev) =>
+      prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
+    );
+  };
+
+  const toggleReviewStatusFilter = (rs: ReviewStatus) => {
+    setSelectedReviewStatuses((prev) =>
+      prev.includes(rs) ? prev.filter((r) => r !== rs) : [...prev, rs]
+    );
+  };
+
+  const hasActiveFilters =
+    searchTerm.length > 0 ||
+    selectedCategories.length > 0 ||
+    selectedStatuses.length > 0 ||
+    selectedReviewStatuses.length > 0;
+
+  const activeFilterCount =
+    selectedCategories.length +
+    selectedStatuses.length +
+    selectedReviewStatuses.length;
+
+  React.useEffect(() => {
+    let filtered = [...data] as any[];
+
+    if (searchTerm) {
+      filtered = filtered.filter((item) => {
+        return searchColumn
+          ? (item as any)[searchColumn]
+              ?.toString()
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase())
+          : true;
+      });
+    }
+
+    if (selectedCategories.length > 0) {
+      filtered = filtered.filter((item) =>
+        selectedCategories.includes((item as any).category)
+      );
+    }
+
+    if (selectedStatuses.length > 0) {
+      filtered = filtered.filter((item) =>
+        selectedStatuses.includes((item as any).status)
+      );
+    }
+
+    if (selectedReviewStatuses.length > 0) {
+      filtered = filtered.filter((item) => {
+        const submitted = (item as any).reviewSubmitted ? ReviewStatus.SUBMITTED : ReviewStatus.NOT_SUBMITTED;
+        return selectedReviewStatuses.includes(submitted);
+      });
+    }
+
+    setFilteredData(filtered as TData[]);
+  }, [data, searchTerm, selectedCategories, selectedStatuses, selectedReviewStatuses, searchColumn]);
 
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -74,42 +185,233 @@ export function DataTable<TData, TValue>({
     },
   });
 
-  React.useEffect(() => {
-    const statusCol = table.getColumn("status");
-    if (!statusCol) return;
-
-    if (statusFilter === "all") {
-      statusCol.setFilterValue(undefined);
-    } else {
-      statusCol.setFilterValue(Number(statusFilter));
-    }
-  }, [statusFilter, table]);
-
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between py-4 gap-4">
-        {searchColumn && (
+      <div className="flex flex-col md:flex-row justify-between items-start gap-4 py-2">
+        <div className="relative w-full">
           <Input
             placeholder={searchPlaceholder}
-            value={(table.getColumn(searchColumn)?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn(searchColumn)?.setFilterValue(event.target.value)
-            }
-            className="flex-1"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            className="h-10 pl-4 pr-10 rounded-md border border-gray-300 dark:border-gray-700 text-sm"
           />
-        )}
-        <Select value={statusFilter || "all"} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="All statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value={ChallengeStatus.PENDING.toString()}>Pending</SelectItem>
-            <SelectItem value={ChallengeStatus.APPROVED.toString()}>Approved</SelectItem>
-            <SelectItem value={ChallengeStatus.REJECTED.toString()}>Rejected</SelectItem>
-          </SelectContent>
-        </Select>
+          {searchTerm && (
+            <button
+              onClick={handleClearSearch}
+              className="absolute right-3 top-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
+        <div className="flex w-full md:w-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="h-10 w-full md:w-auto flex items-center gap-1">
+                <span>Filters</span>
+                {activeFilterCount > 0 && (
+                  <Badge variant="secondary" className="px-1">
+                    {activeFilterCount}
+                  </Badge>
+                )}
+                <ChevronDown className="ml-1 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Filters</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="cursor-pointer">
+                    <span>Category</span>
+                    {selectedCategories.length > 0 && (
+                      <Badge variant="secondary" className="ml-auto">
+                        {selectedCategories.length}
+                      </Badge>
+                    )}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent className="max-h-60 overflow-y-auto">
+                      {getAllCategories().map((cat) => (
+                        <DropdownMenuItem
+                          key={cat}
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            toggleCategoryFilter(cat);
+                          }}
+                          className="flex items-center justify-between cursor-pointer"
+                        >
+                          <span>{DomainLabels[cat]}</span>
+                          {selectedCategories.includes(cat) && (
+                            <Icons.check className="h-4 w-4" />
+                          )}
+                        </DropdownMenuItem>
+                      ))}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onSelect={handleClearCategoryFilters}
+                        disabled={selectedCategories.length === 0}
+                        className={`${
+                          selectedCategories.length === 0
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "cursor-pointer"
+                        }`}
+                      >
+                        Clear filter
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="cursor-pointer">
+                    <span>Challenge Status</span>
+                    {selectedStatuses.length > 0 && (
+                      <Badge variant="secondary" className="ml-auto">
+                        {selectedStatuses.length}
+                      </Badge>
+                    )}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent className="max-h-60 overflow-y-auto">
+                      {getAllStatuses().map((status) => (
+                        <DropdownMenuItem
+                          key={status}
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            toggleStatusFilter(status);
+                          }}
+                          className="flex items-center justify-between cursor-pointer"
+                        >
+                          <span>{ChallengeStatusLabels[status]}</span>
+                          {selectedStatuses.includes(status) && (
+                            <Icons.check className="h-4 w-4" />
+                          )}
+                        </DropdownMenuItem>
+                      ))}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onSelect={handleClearStatusFilters}
+                        disabled={selectedStatuses.length === 0}
+                        className={`${
+                          selectedStatuses.length === 0
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "cursor-pointer"
+                        }`}
+                      >
+                        Clear filter
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="cursor-pointer">
+                    <span>Review Status</span>
+                    {selectedReviewStatuses.length > 0 && (
+                      <Badge variant="secondary" className="ml-auto">
+                        {selectedReviewStatuses.length}
+                      </Badge>
+                    )}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent className="max-h-60 overflow-y-auto">
+                      {getAllReviewStatuses().map((rs) => (
+                        <DropdownMenuItem
+                          key={rs}
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            toggleReviewStatusFilter(rs);
+                          }}
+                          className="flex items-center justify-between cursor-pointer"
+                        >
+                          <span>{ReviewStatusLabels[rs]}</span>
+                          {selectedReviewStatuses.includes(rs) && (
+                            <Icons.check className="h-4 w-4" />
+                          )}
+                        </DropdownMenuItem>
+                      ))}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onSelect={handleClearReviewStatusFilters}
+                        disabled={selectedReviewStatuses.length === 0}
+                        className={`${
+                          selectedReviewStatuses.length === 0
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "cursor-pointer"
+                        }`}
+                      >
+                        Clear filter
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+              </DropdownMenuGroup>
+
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                disabled={!hasActiveFilters}
+                onSelect={handleClearAll}
+                className="text-center justify-center font-medium cursor-pointer"
+              >
+                Clear All Filters
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
+
+      {hasActiveFilters && (
+        <div className="flex flex-wrap gap-2 my-2">
+          {searchTerm && (
+            <Badge variant="secondary" className="px-3 py-1 flex items-center gap-1">
+              Search: {searchTerm}
+              <span className="cursor-pointer" onClick={handleClearSearch}>
+                <X size={14} />
+              </span>
+            </Badge>
+          )}
+          {selectedCategories.map((cat) => (
+            <Badge key={`cat-${cat}`} variant="secondary" className="px-3 py-1 flex items-center gap-1">
+              Category: {DomainLabels[cat]}
+              <span
+                className="cursor-pointer"
+                onClick={() =>
+                  setSelectedCategories((prev) => prev.filter((c) => c !== cat))
+                }
+              >
+                <X size={14} />
+              </span>
+            </Badge>
+          ))}
+          {selectedStatuses.map((status) => (
+            <Badge key={`status-${status}`} variant="secondary" className="px-3 py-1 flex items-center gap-1">
+              Status: {ChallengeStatusLabels[status]}
+              <span
+                className="cursor-pointer"
+                onClick={() =>
+                  setSelectedStatuses((prev) => prev.filter((s) => s !== status))
+                }
+              >
+                <X size={14} />
+              </span>
+            </Badge>
+          ))}
+          {selectedReviewStatuses.map((rs) => (
+            <Badge key={`review-${rs}`} variant="secondary" className="px-3 py-1 flex items-center gap-1">
+              Review: {ReviewStatusLabels[rs]}
+              <span
+                className="cursor-pointer"
+                onClick={() =>
+                  setSelectedReviewStatuses((prev) => prev.filter((r) => r !== rs))
+                }
+              >
+                <X size={14} />
+              </span>
+            </Badge>
+          ))}
+        </div>
+      )}
       <div className="rounded-md border border-gray-300 dark:border-input shadow-sm w-full">
         <Table className="border-collapse table-fixed">
           <TableHeader>

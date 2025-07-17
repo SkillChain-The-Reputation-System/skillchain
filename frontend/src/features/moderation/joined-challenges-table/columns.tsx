@@ -106,9 +106,6 @@ export const columns: ColumnDef<JoinedChallengeRow>[] = [
             <DropdownMenuItem onClick={() => navigator.clipboard.writeText(challenge.id)}>
               <span className="text-sm cursor-pointer">Copy Challenge ID</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(challenge.reviewTxId)}>
-              <span className="text-sm cursor-pointer">Copy Review ID</span>
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

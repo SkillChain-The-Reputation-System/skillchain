@@ -50,7 +50,7 @@ export default function AppSidebar() {
     >
       <SidebarHeader>
         <div className="flex gap-2 py-2">
-          <div className="bg-sky-200 flex aspect-square size-8 items-center justify-center rounded-lg">
+          <div className="bg-sky-200 dark:bg-sky-950 flex aspect-square size-8 items-center justify-center rounded-lg">
             <Image src="/logo.svg" alt="SkillChain Logo" width={20} height={20} />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">

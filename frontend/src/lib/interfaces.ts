@@ -62,6 +62,7 @@ export interface ChallengeInterface {
   difficultyLevel?: ChallengeDifficultyLevel;
   solveTime?: number;
   participants?: number;
+  isJoined?: boolean;
 }
 
 export interface JobPreviewInterface {

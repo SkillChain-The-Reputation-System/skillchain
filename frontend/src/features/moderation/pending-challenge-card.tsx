@@ -31,7 +31,7 @@ export function ChallengeCard({
   handleJoiningReviewPool,
 }: ChallengeCardProps) {
   const { address } = useAccount();
-  const [isJoined, setIsJoined] = useState(false);
+  const [isJoined, setIsJoined] = useState<boolean>(challenge.isJoined ?? false);
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [isChallengeFinalized, setIsChallengeFinalized] = useState(false);
   const [isFullReviewPool, setIsFullReviewPool] = useState(false);
@@ -56,8 +56,13 @@ export function ChallengeCard({
 
   // check if current user already joined review pool
   useEffect(() => {
-    handleGetJoinReviewPoolStatus();
-  }, [address, challenge.id, reload]);
+    if (challenge.isJoined !== undefined) {
+      setIsJoined(challenge.isJoined);
+      setLoadingStatus(false);
+    } else {
+      handleGetJoinReviewPoolStatus();
+    }
+  }, [address, challenge.id, reload, challenge.isJoined]);
 
   // Fetch review pool size and quorum when the challenge ID changes
   useEffect(() => {

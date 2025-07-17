@@ -208,7 +208,7 @@ export default function ScheduleMeetingForm() {
           <CardDescription>Schedule a meeting with an applicant for a specific job position</CardDescription>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="space-y-6">
           <Form {...form}>
             <form className="space-y-6">
               <FormField
@@ -453,8 +453,6 @@ export default function ScheduleMeetingForm() {
           </Form>
 
           <Button
-            size="lg"
-            className="cursor-pointer mt-10 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80"
             onClick={handleScheduleMeeting}
             disabled={scheduling || isHasMeeting}
           >

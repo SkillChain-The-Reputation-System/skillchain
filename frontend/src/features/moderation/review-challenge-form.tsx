@@ -15,6 +15,7 @@ import RichTextEditor from "@/components/rich-text-editor";
 const ChallengeContent = lazy(() => import("./challenge-content"));
 const ReviewFormSection = lazy(() => import("./review-form-section"));
 const ReviewDetailsSection = lazy(() => import("./review-details-section"));
+const RewardInfo = lazy(() => import("./reward-info"));
 
 // Import utils - optimize imports
 import { z } from "zod";
@@ -348,6 +349,13 @@ export function ReviewChallengeForm({
                 <ReviewDetailsSection
                   moderatorReview={moderatorReview}
                   challengeId={challenge_id}
+                />
+              </Suspense>
+              <Suspense fallback={loadingIndicator}>
+                <RewardInfo
+                  challengeId={challenge_id}
+                  challenge={challenge}
+                  moderatorReview={moderatorReview}
                 />
               </Suspense>
             </TabsContent>

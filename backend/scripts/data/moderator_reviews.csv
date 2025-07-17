@@ -1,7 +1,4 @@
 moderator_address,challenge_id,review_txid,relevance,technical_correctness,completeness,clarity,originality,unbiased,plagiarism_free,suggested_difficulty,suggested_solve_time
-0x90F79bf6EB2c4f870365E785982E1f101E93b906,6,dummy_txid_1,0,0,0,0,0,0,0,0,0
-0x70997970C51812dc3A010C7d01b50e0d17dc79C8,6,dummy_txid_2,1,1,1,1,1,1,1,0,0
-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC,6,dummy_txid_3,1,1,1,1,1,1,1,0,0
-0x90F79bf6EB2c4f870365E785982E1f101E93b906,7,dummy_txid_4,1,1,1,1,1,1,1,0,0
-0x70997970C51812dc3A010C7d01b50e0d17dc79C8,7,dummy_txid_5,0,0,0,0,1,1,1,0,0
-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC,7,dummy_txid_6,1,1,1,1,1,1,1,0,0
+0x90F79bf6EB2c4f870365E785982E1f101E93b906,0xf633437fea0f461d0db63ba2f4dba35e85b728d8efd7a50524d47fe2a150a76e,dummy_txid_1,0,0,0,0,0,0,0,0,0
+0x70997970C51812dc3A010C7d01b50e0d17dc79C8,0xf633437fea0f461d0db63ba2f4dba35e85b728d8efd7a50524d47fe2a150a76e,dummy_txid_2,1,1,1,1,1,1,1,0,0
+0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC,0xf633437fea0f461d0db63ba2f4dba35e85b728d8efd7a50524d47fe2a150a76e,dummy_txid_3,1,1,1,1,1,1,1,0,0

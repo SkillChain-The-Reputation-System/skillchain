@@ -20,7 +20,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import RichTextEditor from "@/components/rich-text-editor";
-import { ChallengePotInfo } from "@/components/challenge-pot-info";
 import { getUserNameByAddress } from "@/lib/get/get-user-data-utils";
 
 import {
@@ -31,6 +30,7 @@ import {
   UserRoundPen,
   ShieldUser,
   Star,
+  Copy,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -43,9 +43,11 @@ import {
 } from "@/constants/system";
 import { statusStyles } from "@/constants/styles";
 import { epochToDateString } from "@/lib/time-utils";
+
 import {
   getReviewPoolSize,
   getReviewQuorum,
+  getChallengePotInfo,
 } from "@/lib/fetching-onchain-data-utils";
 
 import { renderMathInElement } from "@/lib/katex-auto-render";
@@ -93,23 +95,28 @@ export function GenericChallengeCard({
     }
     fetchName();
   }, [challenge.contributor]);
+
   const [poolSize, setPoolSize] = useState<number | null>(null);
   const [quorum, setQuorum] = useState<number | null>(null);
+  const [totalBounty, setTotalBounty] = useState<number | null>(null);
+
 
   useEffect(() => {
-    async function fetchPoolInfo() {
+    async function fetchInfo() {
       try {
-        const [size, q] = await Promise.all([
+        const [size, q, potInfo] = await Promise.all([
           getReviewPoolSize(challenge.id),
           getReviewQuorum(),
+          getChallengePotInfo(challenge.id),
         ]);
         setPoolSize(size);
         setQuorum(q);
+        setTotalBounty(potInfo.totalReward);
       } catch (error) {
-        toast.error(`Error fetching review pool info: ${error}`);
+        toast.error(`Error fetching challenge info: ${error}`);
       }
     }
-    fetchPoolInfo();
+    fetchInfo();
   }, [showDetails, challenge.id, reload]);
 
   return (
@@ -249,6 +256,24 @@ export function GenericChallengeCard({
           <div className="grid grid-cols-2 gap-4 py-4">
             <div className="flex flex-col gap-1">
               <span className="text-sm font-medium text-muted-foreground">
+                Challenge ID
+              </span>
+              <div className="flex items-center gap-1">
+                <span className="break-all select-all text-xs">{challenge.id}</span>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    navigator.clipboard.writeText(challenge.id);
+                    toast.success('Challenge ID copied!');
+                  }}
+                  title="Copy Challenge ID"
+                >
+                  <Copy size={16} className="text-gray-500 dark:text-gray-300" />
+                </Button>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-muted-foreground">
                 Category
               </span>
               <span>
@@ -258,9 +283,9 @@ export function GenericChallengeCard({
 
             <div className="flex flex-col gap-1">
               <span className="text-sm font-medium text-muted-foreground">
-                Contribution fee
+                Total Bounty
               </span>
-              <span>0 ETHs</span>
+              <span>{totalBounty !== null ? `${totalBounty} ETH` : "Loading..."}</span>
             </div>
 
             <div className="flex flex-col gap-1">
@@ -319,8 +344,6 @@ export function GenericChallengeCard({
             </>
           )}
 
-          <Separator />
-          <ChallengePotInfo challengeId={challenge.id} />
           {extraContent}
           <div className="flex justify-end gap-2 mt-4">
             <Button variant="outline" onClick={() => setShowDetails(false)} className="bg-gray-300">

@@ -1,0 +1,6 @@
+title,category,description,bounty
+Intro to Arrays,0,Learn about arrays and perform basic operations,0.1
+Web App Deployment,1,Deploy a simple web application to a cloud provider,0.2
+Network Security Basics,3,Understand fundamentals of securing networked systems,0.15
+Data Cleaning Task,4,Clean a dataset and generate basic statistics,0.05
+Smart Contract HelloWorld,11,Write and deploy a simple Solidity contract,0.3

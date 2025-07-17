@@ -20,7 +20,8 @@
     "regenerate:config:amoy": "cross-env NETWORK=amoy CHAIN_ID=80002 node -r ts-node/register scripts/deployment/deploy_and_copy.ts --generate-only",
     "clean:deployment:state:amoy": "cross-env NETWORK=amoy CHAIN_ID=80002 hardhat run scripts/deployment/clean_deployment_state.ts",
     "check:nonce:amoy": "hardhat run scripts/deployment/check_nonce.ts --network amoy",
-    "upload:user_profiles:irys": "hardhat run scripts/utilities/upload_user_profiles_to_irys.ts --network localhost"
+    "upload:user_profiles:irys": "hardhat run scripts/utilities/upload_user_profiles_to_irys.ts --network localhost",
+    "upload:challenges:irys": "hardhat run scripts/utilities/upload_challenges_to_irys.ts --network localhost"
   },
   "repository": {
     "type": "git",

@@ -17,7 +17,6 @@ interface ModeratorReviewData {
   unbiased: number;
   plagiarism_free: number;
   suggested_difficulty: number;
-  suggested_category: number;
   suggested_solve_time: number;
 }
 
@@ -138,7 +137,6 @@ async function seedModeratorReview(challengeIdToSeed: number) {
           review.unbiased,
           review.plagiarism_free,
           review.suggested_difficulty,
-          review.suggested_category,
           review.suggested_solve_time,
         ],
         account: moderatorWalletClient.account,

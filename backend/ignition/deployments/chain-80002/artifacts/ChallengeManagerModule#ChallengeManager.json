@@ -847,11 +847,6 @@
               "type": "uint8"
             },
             {
-              "internalType": "enum SystemEnums.Domain",
-              "name": "suggested_category",
-              "type": "uint8"
-            },
-            {
               "internalType": "uint256",
               "name": "suggested_solve_time",
               "type": "uint256"
@@ -1307,11 +1302,6 @@
         {
           "internalType": "enum SystemEnums.DifficultyLevel",
           "name": "_suggested_difficulty",
-          "type": "uint8"
-        },
-        {
-          "internalType": "enum SystemEnums.Domain",
-          "name": "_suggested_category",
           "type": "uint8"
         },
         {

@@ -21,7 +21,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import { ChallengeInterface, ModeratorReview } from "@/lib/interfaces";
-import { ChallengeDifficultyLevel, Domain, QualityFactorAnswer } from "@/constants/system";
+import { ChallengeDifficultyLevel, QualityFactorAnswer } from "@/constants/system";
 
 // Import icons - only load what's needed
 import { ArrowLeftCircle, Loader2 } from "lucide-react";
@@ -94,16 +94,6 @@ const reviewChallengeSchema = z.object({
         errorMap: () => ({ message: "Select difficulty level" }),
       })
     ),
-  suggested_category: z.coerce
-    .number({
-      required_error: "Answer is required",
-      invalid_type_error: "Answer is required",
-    })
-    .pipe(
-      z.nativeEnum(Domain, {
-        errorMap: () => ({ message: "Category is required" }),
-      })
-    ),
   suggested_solve_time: z.coerce
     .number({
       required_error: "Answer is required",
@@ -145,7 +135,6 @@ export function ReviewChallengeForm({
       unbiased: undefined,
       plagiarism_free: undefined,
       suggested_difficulty: undefined,
-      suggested_category: undefined,
       suggested_solve_time: 1,
     },
   });
@@ -203,7 +192,6 @@ export function ReviewChallengeForm({
             unbiased: review.unbiased,
             plagiarism_free: review.plagiarism_free,
             suggested_difficulty: review.suggested_difficulty,
-            suggested_category: review.suggested_category,
             suggested_solve_time: review.suggested_solve_time,
           });
           setModeratorReview(review);

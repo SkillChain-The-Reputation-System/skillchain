@@ -44,7 +44,6 @@ interface IChallengeManager {
         SystemEnums.QualityFactorAnswer unbiased;
         SystemEnums.QualityFactorAnswer plagiarism_free;
         SystemEnums.DifficultyLevel suggested_difficulty;
-        SystemEnums.Domain suggested_category;
         uint256 suggested_solve_time;
         uint256 review_score;
     }
@@ -128,7 +127,6 @@ interface IChallengeManager {
      * @param _unbiased Quality factor: unbiased
      * @param _plagiarism_free Quality factor: plagiarism free
      * @param _suggested_difficulty Suggested difficulty level
-     * @param _suggested_category Suggested category
      * @param _suggested_solve_time Suggested solve time
      */
     function submitModeratorReview(
@@ -141,7 +139,6 @@ interface IChallengeManager {
         SystemEnums.QualityFactorAnswer _unbiased,
         SystemEnums.QualityFactorAnswer _plagiarism_free,
         SystemEnums.DifficultyLevel _suggested_difficulty,
-        SystemEnums.Domain _suggested_category,
         uint256 _suggested_solve_time
     ) external;
 

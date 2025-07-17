@@ -4,14 +4,13 @@ import { useMemo } from 'react';
 import { UseFormReturn } from "react-hook-form";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Save, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { quality_factors_questions } from "@/constants/data";
 import { ModeratorReviewValues } from "./review-challenge-form";
-import { ChallengeDifficultyLevel, Domain, DomainLabels, QualityFactorAnswer } from "@/constants/system";
+import { ChallengeDifficultyLevel, QualityFactorAnswer } from "@/constants/system";
 
 interface ReviewFormSectionProps {
   form: UseFormReturn<ModeratorReviewValues>;
@@ -166,54 +165,6 @@ export function ReviewFormSection({
                     </ToggleGroupItem>
                   </ToggleGroup>
                 </FormControl>
-                <FormMessage />
-              </div>
-            </div>
-          </FormItem>
-        )}
-      />
-      {/* Category */}
-      <FormField
-        control={form.control}
-        name="suggested_category"
-        render={({ field }) => (
-          <FormItem>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-              <div>
-                <FormLabel>Category</FormLabel>
-              </div>
-              <div>
-                <Select
-                  value={field.value?.toString() ?? ""}
-                  onValueChange={(val) =>
-                    field.onChange(Number(val))
-                  }
-                  disabled={isSubmitted}
-                >
-                  <FormControl>
-                    <SelectTrigger className="w-[300px] hover:border-blue-500 border-2 border-gray-300 dark:border-gray-800 shadow-lg select-none">
-                      <SelectValue placeholder="Select category of your challenge" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent className="w-[300px] ">
-                    {
-                      (
-                        Object.values(
-                          Domain
-                        ) as unknown as number[]
-                      )
-                        .filter((v) => typeof v === "number")
-                        .map((num) => (
-                          <SelectItem
-                            key={num}
-                            value={num.toString()}
-                          >
-                            {DomainLabels[num as Domain]}
-                          </SelectItem>
-                        ))
-                    }
-                  </SelectContent>
-                </Select>
                 <FormMessage />
               </div>
             </div>

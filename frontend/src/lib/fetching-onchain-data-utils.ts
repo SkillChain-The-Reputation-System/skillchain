@@ -224,7 +224,6 @@ export const getModeratorReviewOfChallenge = async (
       unbiased: QualityFactorAnswer.NO,
       plagiarism_free: QualityFactorAnswer.NO,
       suggested_difficulty: ChallengeDifficultyLevel.EASY,
-      suggested_category: Domain.COMPUTER_SCIENCE_FUNDAMENTALS,
       suggested_solve_time: 0,
     };
 
@@ -250,9 +249,6 @@ export const getModeratorReviewOfChallenge = async (
         suggested_difficulty: Number(
           review_data_raw.suggested_difficulty
         ) as ChallengeDifficultyLevel,
-        suggested_category: Number(
-          review_data_raw.suggested_category
-        ) as Domain,
         suggested_solve_time: Number(review_data_raw.suggested_solve_time),
       };
     }
@@ -272,7 +268,6 @@ export const getModeratorReviewOfChallenge = async (
       unbiased: review_data.unbiased,
       plagiarism_free: review_data.plagiarism_free,
       suggested_difficulty: review_data.suggested_difficulty,
-      suggested_category: review_data.suggested_category,
       suggested_solve_time: review_data.suggested_solve_time,
       review_score: Number(review.review_score),
     };

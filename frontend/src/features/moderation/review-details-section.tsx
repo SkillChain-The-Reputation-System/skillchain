@@ -1,25 +1,67 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ModeratorReview } from "@/lib/interfaces";
-import { User, Hash, Clock, Link2, CheckCircle, Star } from "lucide-react";
+import { User, Hash, Clock, CheckCircle, Star, Copy } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { toast } from "sonner";
+import { getUserNameByAddress } from "@/lib/get/get-user-data-utils";
 
 interface ReviewDetailsProps {
   moderatorReview: ModeratorReview | null | undefined;
+  challengeId: `0x${string}`;
 }
 
-export default function ReviewDetailsSection({ moderatorReview }: ReviewDetailsProps) {
+export default function ReviewDetailsSection({ moderatorReview, challengeId }: ReviewDetailsProps) {
+  const [moderatorName, setModeratorName] = useState<string | undefined>();
+
+  useEffect(() => {
+    async function fetchName() {
+      if (!moderatorReview?.moderator) return;
+      const name = await getUserNameByAddress(
+        moderatorReview.moderator as `0x${string}`
+      );
+      setModeratorName(
+        name && name !== moderatorReview.moderator ? name : undefined
+      );
+    }
+
+    fetchName();
+  }, [moderatorReview?.moderator]);
+
+  const truncate = (str: string): string => {
+    if (!str || str.length <= 16) return str;
+    return `${str.slice(0, 8)}...${str.slice(-4)}`;
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Address copied to clipboard");
+    } catch (error) {
+      toast.error("Failed to copy address");
+    }
+  };
+
   const details = useMemo(
     () => [
       {
         icon: <User className="h-full max-h-4 w-full max-w-4" />,
         label: "Moderator",
-        value: moderatorReview?.moderator ?? "-",
+        value: moderatorName || truncate(moderatorReview?.moderator ?? "-"),
+        raw: moderatorReview?.moderator ?? "-",
+        copy: true,
       },
       {
         icon: <Hash className="h-full max-h-4 w-full max-w-4" />,
         label: "Challenge ID",
-        value: moderatorReview?.challenge_id ?? "-",
+        value: truncate(challengeId),
+        raw: challengeId,
       },
       {
         icon: <Clock className="h-full max-h-4 w-full max-w-4" />,
@@ -27,11 +69,6 @@ export default function ReviewDetailsSection({ moderatorReview }: ReviewDetailsP
         value: moderatorReview?.review_time
           ? new Date(moderatorReview.review_time * 1000).toLocaleString()
           : "-",
-      },
-      {
-        icon: <Link2 className="h-full max-h-4 w-full max-w-4" />,
-        label: "Review TxID",
-        value: moderatorReview?.review_txid ?? "-",
       },
       {
         icon: (
@@ -52,7 +89,7 @@ export default function ReviewDetailsSection({ moderatorReview }: ReviewDetailsP
         value: moderatorReview?.review_score ?? "-",
       },
     ],
-    [moderatorReview]
+    [moderatorReview, moderatorName, challengeId]
   );
 
   return (
@@ -64,7 +101,38 @@ export default function ReviewDetailsSection({ moderatorReview }: ReviewDetailsP
             <span className="text-sm font-medium text-muted-foreground">{row.label}</span>
             <div className="flex items-center gap-1.5">
               {row.icon}
-              <span className="break-all">{row.value}</span>
+              {row.raw ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="break-all cursor-pointer">{row.value}</span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{row.raw}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <span className="break-all">{row.value}</span>
+              )}
+              {row.copy && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        className="p-0 h-6 w-6 opacity-80 hover:opacity-100"
+                        onClick={() => copyToClipboard(row.raw as string)}
+                      >
+                        <Copy className="h-3 w-3" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Copy address</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
           </div>
         ))}

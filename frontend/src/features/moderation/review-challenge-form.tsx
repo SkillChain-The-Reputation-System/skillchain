@@ -357,7 +357,10 @@ export function ReviewChallengeForm({
                 <ChallengeContent challenge={challenge} />
               </Suspense>
               <Suspense fallback={loadingIndicator}>
-                <ReviewDetailsSection moderatorReview={moderatorReview} />
+                <ReviewDetailsSection
+                  moderatorReview={moderatorReview}
+                  challengeId={challenge_id}
+                />
               </Suspense>
             </TabsContent>
             <TabsContent value="description">

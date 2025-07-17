@@ -4,14 +4,13 @@ import { useMemo } from 'react';
 import { UseFormReturn } from "react-hook-form";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Save, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { quality_factors_questions } from "@/constants/data";
 import { ModeratorReviewValues } from "./review-challenge-form";
-import { ChallengeDifficultyLevel, Domain, DomainLabels, QualityFactorAnswer } from "@/constants/system";
+import { ChallengeDifficultyLevel, QualityFactorAnswer } from "@/constants/system";
 
 interface ReviewFormSectionProps {
   form: UseFormReturn<ModeratorReviewValues>;
@@ -56,16 +55,16 @@ export function ReviewFormSection({
                 {/* Right: Controls */}
                 <div>
                   <FormControl>
-                    <ToggleGroup
-                      type="single"
-                      className="grid grid-cols-2 gap-2 mt-2"
-                      value={field.value?.toString()}
-                      onValueChange={field.onChange}
-                      aria-label={q.label}
-                      disabled={isSubmitted}
-                      defaultChecked={true}
-                      defaultValue={field.value?.toString()}
-                    >
+                  <ToggleGroup
+                    type="single"
+                    className="grid grid-cols-2 gap-2 mt-2"
+                    value={field.value?.toString()}
+                    onValueChange={(val) => val && field.onChange(val)}
+                    aria-label={q.label}
+                    disabled={isSubmitted}
+                    defaultChecked={true}
+                    defaultValue={field.value?.toString()}
+                  >
                       <ToggleGroupItem
                         value={QualityFactorAnswer.YES.toString()}
                         className={cn(
@@ -123,7 +122,7 @@ export function ReviewFormSection({
                     type="single"
                     className="flex space-x-4"
                     value={field.value?.toString()}
-                    onValueChange={field.onChange}
+                    onValueChange={(val) => val && field.onChange(val)}
                     aria-label="Difficulty Level"
                     disabled={isSubmitted}
                     defaultValue={field.value?.toString()}
@@ -172,54 +171,6 @@ export function ReviewFormSection({
           </FormItem>
         )}
       />
-      {/* Category */}
-      <FormField
-        control={form.control}
-        name="suggested_category"
-        render={({ field }) => (
-          <FormItem>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-              <div>
-                <FormLabel>Category</FormLabel>
-              </div>
-              <div>
-                <Select
-                  value={field.value?.toString() ?? ""}
-                  onValueChange={(val) =>
-                    field.onChange(Number(val))
-                  }
-                  disabled={isSubmitted}
-                >
-                  <FormControl>
-                    <SelectTrigger className="w-[300px] hover:border-blue-500 border-2 border-gray-300 dark:border-gray-800 shadow-lg select-none">
-                      <SelectValue placeholder="Select category of your challenge" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent className="w-[300px] ">
-                    {
-                      (
-                        Object.values(
-                          Domain
-                        ) as unknown as number[]
-                      )
-                        .filter((v) => typeof v === "number")
-                        .map((num) => (
-                          <SelectItem
-                            key={num}
-                            value={num.toString()}
-                          >
-                            {DomainLabels[num as Domain]}
-                          </SelectItem>
-                        ))
-                    }
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </div>
-            </div>
-          </FormItem>
-        )}
-      />
       {/* Estimated Solve Time */}
       <FormField
         control={form.control}
@@ -261,7 +212,6 @@ export function ReviewFormSection({
           variant="outline"
           onClick={onSaveDraft}
           disabled={isSavingDraft || isChallengeFinalized}
-          className="gap-2 cursor-pointer border border-zinc-700"
         >
           <Save className="h-4 w-4" />
           Save Draft
@@ -270,7 +220,6 @@ export function ReviewFormSection({
         <Button
           type="submit"
           disabled={isSubmitDisabled || isChallengeFinalized}
-          className="gap-2 cursor-pointer shrink-0 bg-zinc-700 hover:bg-zinc-700/60 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/60"
         >
           <Send className="h-4 w-4" />
           Submit Review
@@ -291,7 +240,7 @@ export function ReviewFormSection({
   ), [isSavingDraft, isChallengeFinalized, isSubmitDisabled, isSubmitted, onSaveDraft]);
 
   return (
-    <div className="bg-muted/40 p-6 rounded-lg shadow-md">
+    <div className="rounded-xl bg-white dark:bg-slate-900/60 shadow p-6 border border-slate-200 dark:border-slate-700">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}

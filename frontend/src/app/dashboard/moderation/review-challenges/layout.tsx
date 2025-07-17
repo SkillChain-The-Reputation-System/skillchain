@@ -14,15 +14,7 @@ export default async function DashboardLayout({
 }) {
   return (
     <div>
-      <div className="flex flex-col"><PageHeader
-          title="Review Challenge"
-          description="Inspect full challenge details, assign difficulty and quality ratings, add comments, and cast moderation vote for approval, rejection, or revision."
-        ></PageHeader>
-
-        <Separator className="my-6" />
-        <div className="flex-1">{children}</div>
-      </div>
-  
+      {children}
     </div>
   );
 }

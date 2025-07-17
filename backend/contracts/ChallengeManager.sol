@@ -39,7 +39,6 @@ contract ChallengeManager is AccessControl {
         SystemEnums.QualityFactorAnswer unbiased;
         SystemEnums.QualityFactorAnswer plagiarism_free;
         SystemEnums.DifficultyLevel suggested_difficulty;
-        SystemEnums.Domain suggested_category;
         uint256 suggested_solve_time;
         uint256 review_score;
     }
@@ -282,7 +281,6 @@ contract ChallengeManager is AccessControl {
         SystemEnums.QualityFactorAnswer _unbiased,
         SystemEnums.QualityFactorAnswer _plagiarism_free,
         SystemEnums.DifficultyLevel _suggested_difficulty,
-        SystemEnums.Domain _suggested_category,
         uint256 _suggested_solve_time
     ) public onlyBeforeFinalized(_challenge_id) onlyModerator(_challenge_id) {
         // Ensure moderation escrow is set
@@ -331,7 +329,6 @@ contract ChallengeManager is AccessControl {
         review.unbiased = _unbiased;
         review.plagiarism_free = _plagiarism_free;
         review.suggested_difficulty = _suggested_difficulty;
-        review.suggested_category = _suggested_category;
         review.suggested_solve_time = _suggested_solve_time;
         review.review_score = review_score;
 
@@ -834,43 +831,6 @@ contract ChallengeManager is AccessControl {
      * If no category achieves a supermajority, the original category suggested by the
      * contributor is maintained.
      */
-    function _consolidateChallengeCategory(
-        bytes32 _challenge_id,
-        ReviewPool storage _pool
-    ) internal view returns (SystemEnums.Domain) {
-        SystemEnums.Domain final_category = challenges[_challenge_id].category; // Default to contributor's suggested category
-        uint256[] memory accumulated_weights = new uint256[](
-            SystemConsts.N_DOMAIN
-        );
-        uint256 total_weight_sum = 0;
-
-        for (uint256 i = 0; i < _pool.moderator_list.length; i++) {
-            address moderator = _pool.moderator_list[i];
-            ModeratorReview storage review = _pool.moderator_reviews[moderator];
-            int256 moderator_domain_reputation = reputation_manager
-                .getDomainReputation(
-                    moderator,
-                    review.suggested_category // Moderator suggested category
-                );
-            require(
-                moderator_domain_reputation >= 0,
-                "ERROR: Negative domain reputation"
-            );
-            uint256 weight = _computeReputationWeight(
-                moderator_domain_reputation
-            );
-            accumulated_weights[uint256(review.suggested_category)] += weight;
-            total_weight_sum += weight;
-        }
-
-        for (uint256 i = 0; i < accumulated_weights.length; i++) {
-            if (accumulated_weights[i] * 2 > total_weight_sum) {
-                final_category = SystemEnums.Domain(i);
-            }
-        }
-
-        return final_category;
-    }
 
     /**
      * @dev Consolidates the final difficulty level for a challenge based on moderator suggestions

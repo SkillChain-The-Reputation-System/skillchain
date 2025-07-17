@@ -9,22 +9,20 @@ import { useRouter } from "next/navigation";
 // Import external UI components - optimize imports
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import RichTextEditor from "@/components/rich-text-editor";
 
 // Lazy load heavy components
-const ChallengeContent = lazy(() => 
-  import("@/components/challenge-content").then(module => ({ 
-    default: module.ChallengeContent 
-  }))
-);
+const ChallengeContent = lazy(() => import("./challenge-content"));
 const ReviewFormSection = lazy(() => import("./review-form-section"));
 const ReviewDetailsSection = lazy(() => import("./review-details-section"));
+const RewardInfo = lazy(() => import("./reward-info"));
 
 // Import utils - optimize imports
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import { ChallengeInterface, ModeratorReview } from "@/lib/interfaces";
-import { ChallengeDifficultyLevel, Domain, QualityFactorAnswer } from "@/constants/system";
+import { ChallengeDifficultyLevel, QualityFactorAnswer } from "@/constants/system";
 
 // Import icons - only load what's needed
 import { ArrowLeftCircle, Loader2 } from "lucide-react";
@@ -34,8 +32,6 @@ import {
   getChallengeById,
   getChallengeFinalizedStatus,
   getModeratorReviewOfChallenge,
-  getReviewPoolSize,
-  getReviewQuorum,
 } from "@/lib/fetching-onchain-data-utils";
 
 // Import data mutation utilities
@@ -99,16 +95,6 @@ const reviewChallengeSchema = z.object({
         errorMap: () => ({ message: "Select difficulty level" }),
       })
     ),
-  suggested_category: z.coerce
-    .number({
-      required_error: "Answer is required",
-      invalid_type_error: "Answer is required",
-    })
-    .pipe(
-      z.nativeEnum(Domain, {
-        errorMap: () => ({ message: "Category is required" }),
-      })
-    ),
   suggested_solve_time: z.coerce
     .number({
       required_error: "Answer is required",
@@ -135,7 +121,7 @@ export function ReviewChallengeForm({
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [moderatorReview, setModeratorReview] = useState<ModeratorReview | null>();
   const { data: hash, isPending } = useWriteContract();
-  const [activeTab, setActiveTab] = useState("challenge");
+  const [activeTab, setActiveTab] = useState("information");
   const [challenge, setChallenge] = useState<ChallengeInterface | null>(null);
   
   // Use memoized form setup to prevent unnecessary re-renders
@@ -150,7 +136,6 @@ export function ReviewChallengeForm({
       unbiased: undefined,
       plagiarism_free: undefined,
       suggested_difficulty: undefined,
-      suggested_category: undefined,
       suggested_solve_time: 1,
     },
   });
@@ -208,7 +193,6 @@ export function ReviewChallengeForm({
             unbiased: review.unbiased,
             plagiarism_free: review.plagiarism_free,
             suggested_difficulty: review.suggested_difficulty,
-            suggested_category: review.suggested_category,
             suggested_solve_time: review.suggested_solve_time,
           });
           setModeratorReview(review);
@@ -239,34 +223,29 @@ export function ReviewChallengeForm({
     }
   }, [isPending, hash, router]);
 
-  // Fetch review pool size and quorum only when needed
+  // Fetch challenge finalized status
   useEffect(() => {
     let isMounted = true;
-    
-    async function fetchPoolInfo() {
-      if (activeTab !== 'details') return; // Only fetch when details tab is active
-      
+
+    async function fetchStatus() {
       try {
-        const [, , is_finalized] = await Promise.all([
-          getReviewPoolSize(challenge_id),
-          getReviewQuorum(),
-          getChallengeFinalizedStatus(challenge_id),
-        ]);
-        
+        const is_finalized = await getChallengeFinalizedStatus(challenge_id);
         if (isMounted) {
           setIsChallengeFinalized(is_finalized);
         }
       } catch (error) {
         if (isMounted) {
-          toast.error(`Error fetching review pool info: ${error}`);
+          toast.error(`Error fetching challenge status: ${error}`);
         }
       }
     }
-    
-    fetchPoolInfo();
-    
-    return () => { isMounted = false; };
-  }, [challenge_id, activeTab]);
+
+    fetchStatus();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [challenge_id]);
   // Memoize handlers to prevent unnecessary re-renders
   const onSaveDraft = useMemo(() => async () => {
     if (isSubmitted) {
@@ -330,22 +309,61 @@ export function ReviewChallengeForm({
     </div>
   ), []);
   
-  const tabsList = useMemo(() => (
-    <TabsList className="grid w-full grid-cols-3 mb-2">
-      <TabsTrigger value="challenge">About the challenge</TabsTrigger>
-      <TabsTrigger value="review">Review Form</TabsTrigger>
-      <TabsTrigger value="details">Review Info</TabsTrigger>
-    </TabsList>
-  ), []);
+  const tabsList = useMemo(
+    () => (
+      <TabsList className="grid w-full grid-cols-3 rounded-xl bg-muted/40 p-1 mb-6">
+        <TabsTrigger
+          value="information"
+          className="cursor-pointer rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 transition-all"
+        >
+          Information
+        </TabsTrigger>
+        <TabsTrigger
+          value="description"
+          className="cursor-pointer rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 transition-all"
+        >
+          Description
+        </TabsTrigger>
+        <TabsTrigger
+          value="review"
+          className="cursor-pointer rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 transition-all"
+        >
+          Review Form
+        </TabsTrigger>
+      </TabsList>
+    ),
+    []
+  );
   
   return (
     <div>
       {backButton}      {isLoading ? loadingIndicator : (
         <div className="space-y-8">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            {tabsList}            <TabsContent value="challenge">
+            {tabsList}
+            <TabsContent value="information" className="space-y-8">
               <Suspense fallback={loadingIndicator}>
-                <ChallengeContent challenge={challenge} reload={isPending} className="bg-muted/40 p-6 rounded-lg shadow-md" />
+                <ChallengeContent challenge={challenge} />
+              </Suspense>
+              <Suspense fallback={loadingIndicator}>
+                <ReviewDetailsSection
+                  moderatorReview={moderatorReview}
+                  challengeId={challenge_id}
+                />
+              </Suspense>
+              <Suspense fallback={loadingIndicator}>
+                <RewardInfo
+                  challengeId={challenge_id}
+                  challenge={challenge}
+                  moderatorReview={moderatorReview}
+                />
+              </Suspense>
+            </TabsContent>
+            <TabsContent value="description">
+              <Suspense fallback={loadingIndicator}>
+                {challenge && (
+                  <RichTextEditor value={challenge.description!} editable={false} />
+                )}
               </Suspense>
             </TabsContent>
             <TabsContent value="review">
@@ -359,11 +377,6 @@ export function ReviewChallengeForm({
                   onSaveDraft={onSaveDraft}
                   onSubmit={onSubmit}
                 />
-              </Suspense>
-            </TabsContent>
-            <TabsContent value="details">
-              <Suspense fallback={loadingIndicator}>
-                <ReviewDetailsSection moderatorReview={moderatorReview} />
               </Suspense>
             </TabsContent>
           </Tabs>

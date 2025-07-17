@@ -1,19 +1,17 @@
-// filepath: d:\Hai_Tuyen\thesis\skillchain\backend\scripts\seed_pending_challenges.ts
 import hre from "hardhat";
-import ChallengeManagerArtifact from '../../artifacts/contracts/ChallengeManager.sol/ChallengeManager.json'
+import ChallengeManagerArtifact from "../../artifacts/contracts/ChallengeManager.sol/ChallengeManager.json";
 import fs from 'fs';
 import path from 'path';
 import Papa from 'papaparse';
 
 interface PendingChallengeData {
   contributor: string;
-  title_url: string;
-  description_url: string;
+  challenge_txid: string;
   category: number;
   timestamp: number;
   status: number;
-  quality_score: number; 
-  difficulty_level: number; 
+  quality_score: number;
+  difficulty_level: number;
   solve_time: number;
 }
 
@@ -29,18 +27,18 @@ if (!fs.existsSync(deploymentPath)) {
 
 const deployedAddresses = JSON.parse(fs.readFileSync(deploymentPath, 'utf8'));
 const contractAddress: `0x${string}` =
-  deployedAddresses['ChallengeManagerModule#ChallengeManager']; // Ensure this is the correct deployed address of your ChallengeManager
+  deployedAddresses["ChallengeManagerModule#ChallengeManager"];
 
 const csvPath = path.resolve(__dirname, '../data/pending-challenges.csv');
 
 async function seedPendingChallenges() {
-  const publicClient = await hre.viem.getPublicClient();
-  const [ownerClient] = await hre.viem.getWalletClients(); // account #0 of hardhat network
-
   if (!fs.existsSync(csvPath)) {
     console.error(`CSV file not found: ${csvPath}`);
     return;
   }
+
+  const publicClient = await hre.viem.getPublicClient();
+  const [ownerClient] = await hre.viem.getWalletClients();
 
   console.log(`Reading CSV from: ${csvPath}`);
   const pendingChallengeDataFile = fs.readFileSync(csvPath, 'utf8');
@@ -54,17 +52,23 @@ async function seedPendingChallenges() {
   const pendingChallenges = parsed.data;
 
   for (const [index, challenge] of pendingChallenges.entries()) {
+    const values = Object.values(challenge) as Array<string | number | undefined>;
+    const hasEmptyField = values.some((v) => v === '' || v === undefined || v === null);
+    if (hasEmptyField) {
+      console.warn(`Skipping row ${index + 1} due to empty fields`);
+      continue;
+    }
+
     try {
       console.log(`Processing pending challenge ${index + 1}/${pendingChallenges.length}`);
 
-        // Send transaction to add challenge
       const { request } = await publicClient.simulateContract({
         address: contractAddress,
-        abi: abi,
+        abi,
         functionName: 'seedChallenge',
         args: [
           challenge.contributor,
-          challenge.title_url,
+          challenge.challenge_txid,
           challenge.category,
           challenge.timestamp,
           challenge.status,
@@ -75,16 +79,12 @@ async function seedPendingChallenges() {
       });
 
       const txHash = await ownerClient.writeContract(request);
-
       console.log(`Transaction sent: ${txHash}`);
 
-      // Wait for transaction to be mined
       const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
       console.log(`Transaction confirmed in block ${receipt.blockNumber}`);
-
     } catch (error) {
       console.error(`Error processing pending challenge ${index + 1}:`, error);
-      // Consider if you want to continue with other entries or stop on error
     }
   }
 }

@@ -87,6 +87,11 @@ export enum MeetingStatus {
   CANCELLED = 2
 }
 
+export enum ReviewStatus {
+  NOT_SUBMITTED = 0,
+  SUBMITTED = 1,
+}
+
 export enum UserRole {
   NORMAL_USER = 0,
   CONTRIBUTOR = 1,
@@ -179,6 +184,11 @@ export const ApplicationStatusLabels: Record<JobApplicationStatus, string> = {
   [JobApplicationStatus.REJECTED]: "Rejected",
   [JobApplicationStatus.WITHDRAWN]: "Withdrawn",
   [JobApplicationStatus.HIRED]: "Hired",
+};
+
+export const ReviewStatusLabels: Record<ReviewStatus, string> = {
+  [ReviewStatus.NOT_SUBMITTED]: "Not Submitted",
+  [ReviewStatus.SUBMITTED]: "Submitted",
 };
 
 export const MeetingStatusLabels: Record<MeetingStatus, string> = {

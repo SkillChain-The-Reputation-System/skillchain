@@ -17,7 +17,6 @@ interface ModeratorReviewData {
   unbiased: number;
   plagiarism_free: number;
   suggested_difficulty: number;
-  suggested_category: number;
   suggested_solve_time: number;
 }
 
@@ -37,7 +36,7 @@ const contractAddress: `0x${string}` =
   deployedAddresses['ChallengeManagerModule#ChallengeManager'];
 const csvPath = path.resolve(__dirname, "../data/moderator_reviews.csv");
 
-async function seedModeratorReview(challengeIdToSeed: number) {
+async function seedModeratorReviews() {
   const publicClient = await hre.viem.getPublicClient();
   const walletClients = await hre.viem.getWalletClients();
 
@@ -55,17 +54,34 @@ async function seedModeratorReview(challengeIdToSeed: number) {
     skipEmptyLines: true,
   });
 
-  const reviews = parsed.data.filter(
-    (review) => review.challenge_id === challengeIdToSeed
-  );
+  const reviews = parsed.data;
 
   if (reviews.length === 0) {
-    console.log(`No reviews found for challenge ID: ${challengeIdToSeed}`);
+    console.log(`No review data found in ${csvPath}`);
     return;
   }
 
   for (const [index, review] of reviews.entries()) {
+    const values = Object.values(review) as Array<string | number | undefined>;
+    const hasEmptyField = values.some(
+      (v) => v === '' || v === undefined || v === null || (typeof v === 'number' && isNaN(v))
+    );
+    if (hasEmptyField) {
+      throw new Error(`Invalid data at row ${index + 1}`);
+    }
+
     try {
+      const finalized: boolean = await publicClient.readContract({
+        address: contractAddress,
+        abi,
+        functionName: 'getChallengeFinalizedStatus',
+        args: [review.challenge_id],
+      }) as boolean;
+
+      if (finalized) {
+        console.log(`Challenge ${review.challenge_id} already finalized. Skipping.`);
+        continue;
+      }
       console.log(
         `Processing review ${index + 1}/${reviews.length} for challenge ID ${
           review.challenge_id
@@ -138,7 +154,6 @@ async function seedModeratorReview(challengeIdToSeed: number) {
           review.unbiased,
           review.plagiarism_free,
           review.suggested_difficulty,
-          review.suggested_category,
           review.suggested_solve_time,
         ],
         account: moderatorWalletClient.account,
@@ -169,12 +184,7 @@ async function seedModeratorReview(challengeIdToSeed: number) {
 }
 
 async function main() {
-  const challengeIdToSeed = 6; // Choose a challenge ID to seed 3 moderaror reviews
-  if (isNaN(challengeIdToSeed)) {
-    console.error("Invalid challenge ID provided.");
-    process.exit(1);
-  }
-  await seedModeratorReview(challengeIdToSeed);
+  await seedModeratorReviews();
 }
 
 main()

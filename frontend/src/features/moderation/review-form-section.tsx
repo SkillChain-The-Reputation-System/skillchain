@@ -55,16 +55,16 @@ export function ReviewFormSection({
                 {/* Right: Controls */}
                 <div>
                   <FormControl>
-                    <ToggleGroup
-                      type="single"
-                      className="grid grid-cols-2 gap-2 mt-2"
-                      value={field.value?.toString()}
-                      onValueChange={field.onChange}
-                      aria-label={q.label}
-                      disabled={isSubmitted}
-                      defaultChecked={true}
-                      defaultValue={field.value?.toString()}
-                    >
+                  <ToggleGroup
+                    type="single"
+                    className="grid grid-cols-2 gap-2 mt-2"
+                    value={field.value?.toString()}
+                    onValueChange={(val) => val && field.onChange(val)}
+                    aria-label={q.label}
+                    disabled={isSubmitted}
+                    defaultChecked={true}
+                    defaultValue={field.value?.toString()}
+                  >
                       <ToggleGroupItem
                         value={QualityFactorAnswer.YES.toString()}
                         className={cn(
@@ -122,7 +122,7 @@ export function ReviewFormSection({
                     type="single"
                     className="flex space-x-4"
                     value={field.value?.toString()}
-                    onValueChange={field.onChange}
+                    onValueChange={(val) => val && field.onChange(val)}
                     aria-label="Difficulty Level"
                     disabled={isSubmitted}
                     defaultValue={field.value?.toString()}
@@ -212,7 +212,6 @@ export function ReviewFormSection({
           variant="outline"
           onClick={onSaveDraft}
           disabled={isSavingDraft || isChallengeFinalized}
-          className="gap-2 cursor-pointer border border-zinc-700"
         >
           <Save className="h-4 w-4" />
           Save Draft
@@ -221,7 +220,6 @@ export function ReviewFormSection({
         <Button
           type="submit"
           disabled={isSubmitDisabled || isChallengeFinalized}
-          className="gap-2 cursor-pointer shrink-0 bg-zinc-700 hover:bg-zinc-700/60 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/60"
         >
           <Send className="h-4 w-4" />
           Submit Review
@@ -242,7 +240,7 @@ export function ReviewFormSection({
   ), [isSavingDraft, isChallengeFinalized, isSubmitDisabled, isSubmitted, onSaveDraft]);
 
   return (
-    <div className="bg-muted/40 p-6 rounded-lg shadow-md">
+    <div className="rounded-xl bg-white dark:bg-slate-900/60 shadow p-6 border border-slate-200 dark:border-slate-700">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}

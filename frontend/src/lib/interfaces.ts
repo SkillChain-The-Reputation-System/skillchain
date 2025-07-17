@@ -62,6 +62,7 @@ export interface ChallengeInterface {
   difficultyLevel?: ChallengeDifficultyLevel;
   solveTime?: number;
   participants?: number;
+  isJoined?: boolean;
 }
 
 export interface JobPreviewInterface {
@@ -112,7 +113,6 @@ export interface ModeratorReview {
   unbiased: QualityFactorAnswer;
   plagiarism_free: QualityFactorAnswer;
   suggested_difficulty: ChallengeDifficultyLevel;
-  suggested_category: Domain;
   suggested_solve_time: number;
   review_score: number;
 }
@@ -147,7 +147,6 @@ export interface ReviewData {
   unbiased: QualityFactorAnswer;
   plagiarism_free: QualityFactorAnswer;
   suggested_difficulty: ChallengeDifficultyLevel;
-  suggested_category: Domain;
   suggested_solve_time: number;
 }
 

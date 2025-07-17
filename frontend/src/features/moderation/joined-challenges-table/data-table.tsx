@@ -104,7 +104,6 @@ export function DataTable<TData, TValue>({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value={ChallengeStatus.DRAFT.toString()}>Draft</SelectItem>
             <SelectItem value={ChallengeStatus.PENDING.toString()}>Pending</SelectItem>
             <SelectItem value={ChallengeStatus.APPROVED.toString()}>Approved</SelectItem>
             <SelectItem value={ChallengeStatus.REJECTED.toString()}>Rejected</SelectItem>

@@ -208,7 +208,7 @@ export default function ScheduleMeetingForm() {
           <CardDescription>Schedule a meeting with an applicant for a specific job position</CardDescription>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="space-y-6">
           <Form {...form}>
             <form className="space-y-6">
               <FormField
@@ -331,10 +331,9 @@ export default function ScheduleMeetingForm() {
                               <PopoverTrigger asChild>
                                 <FormControl>
                                   <Button
-                                    className={cn(
-                                      "w-[240px] pl-3 text-left font-normal border-gray-300 border cursor-pointer bg-white hover:bg-white dark:border-input  dark:bg-input/30",
-                                      !field.value && "text-muted-foreground"
-                                    )}
+                                    variant="outline"
+                                    data-empty={!field.value}
+                                    className="data-[empty=true]:text-muted-foreground w-[280px] justify-start text-left font-normal"
                                   >
                                     {field.value ? (
                                       format(field.value, "PPP")
@@ -454,8 +453,6 @@ export default function ScheduleMeetingForm() {
           </Form>
 
           <Button
-            size="lg"
-            className="cursor-pointer mt-10 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80"
             onClick={handleScheduleMeeting}
             disabled={scheduling || isHasMeeting}
           >

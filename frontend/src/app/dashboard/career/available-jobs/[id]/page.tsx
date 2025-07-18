@@ -67,7 +67,7 @@ function CardSkeleton() {
 
 export default function JobDetailPage() {
   const params = useParams();
-  const router = useRouter();  const [job, setJob] = useState<JobInterface | null>(null);
+  const router = useRouter(); const [job, setJob] = useState<JobInterface | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEligible, setIsEligible] = useState<boolean | null>(null);
   const [isCheckingEligibility, setIsCheckingEligibility] = useState(false);
@@ -79,7 +79,7 @@ export default function JobDetailPage() {
   // Handle job application submission
   const handleApplyForJob = async () => {
     if (!address || !jobId || !isEligible) return;
-    
+
     setIsSubmitting(true);
     try {
       await submitJobApplication(address, jobId);
@@ -248,7 +248,7 @@ export default function JobDetailPage() {
         {getEligibilityNotification() && (
           <div
             className={cn(
-              "border py-3 rounded-lg flex items-center gap-3",
+              "border p-3 rounded-lg flex items-center gap-3",
               getEligibilityNotification()?.style
             )}
           >
@@ -272,7 +272,8 @@ export default function JobDetailPage() {
               )}
             >
               {JobStatusLabels[job.status]}
-            </Badge>            {isJobOpen &&
+            </Badge>
+            {isJobOpen &&
               (isEligible === false ? (
                 <TooltipProvider>
                   <Tooltip>

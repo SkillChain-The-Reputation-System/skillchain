@@ -274,17 +274,17 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
       </div>
     ) : (
       meeting ? (
-        <div className="mt-5 space-y-4">
+        <div className="mt-5 space-y-4 max-w-full overflow-hidden">
           <Toaster position="top-right" richColors />
 
-          <div className="flex items-center justify-between">
-            <div className="flex gap-4 items-center">
-              <div className="flex gap-4 items-center">
-                <Calendar />
-                <p className="font-bold text-2xl">Meeting Details</p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex gap-4 items-center min-w-0 flex-1">
+              <div className="flex gap-4 items-center min-w-0">
+                <Calendar className="flex-shrink-0" />
+                <p className="font-bold text-2xl truncate">Meeting Details</p>
               </div>
 
-              <Badge className={cn(meetingStatusStyles[meeting.status as MeetingStatus])}>
+              <Badge className={cn(meetingStatusStyles[meeting.status as MeetingStatus], "flex-shrink-0")}>
                 {MeetingStatusLabels[meeting.status as MeetingStatus]}
               </Badge>
             </div>
@@ -336,32 +336,32 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <div className="space-y-4">
+                <div className="flex justify-between items-start gap-4">
+                  <div className="space-y-4 flex-1 min-w-0">
                     <div className="space-y-1">
-                      <p className="text-lg font-bold">{meeting.application.profile_data.fullname || "Unknown Name"}</p>
-                      <p className="text-muted-foreground text-sm">{meeting.application.applicant}</p>
+                      <p className="text-lg font-bold truncate">{meeting.application.profile_data.fullname || "Unknown Name"}</p>
+                      <p className="text-muted-foreground text-sm break-all">{meeting.application.applicant}</p>
                     </div>
 
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{meeting.application.profile_data.email || "no registered email"}</span>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="text-sm truncate">{meeting.application.profile_data.email || "no registered email"}</span>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <MapPinHouse className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{meeting.application.profile_data.location || "no registered residence"}</span>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <MapPinHouse className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="text-sm truncate">{meeting.application.profile_data.location || "no registered residence"}</span>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <MessageSquareText className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">{meeting.application.profile_data.bio || "no registered bio"}</span>
+                      <div className="flex items-start gap-2 min-w-0">
+                        <MessageSquareText className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                        <span className="text-sm text-muted-foreground break-words">{meeting.application.profile_data.bio || "no registered bio"}</span>
                       </div>
                     </div>
                   </div>
 
-                  <Avatar className="h-35 w-35">
+                  <Avatar className="h-20 w-20 flex-shrink-0">
                     <AvatarImage
                       src={meeting.application.profile_data.avatar_url || ""}
                       alt={meeting.application.applicant || "Applicant"}
@@ -380,14 +380,14 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
 
                 <p className="font-bold text-lg">Reputations</p>
 
-                <div className="grid grid-rows-3 gap-2">
+                <div className="grid grid-cols-1 gap-2 max-w-full">
                   {meeting.application.job.domains.map((domain) =>
-                    <Badge key={domain}>{DomainLabels[domain as Domain]} : {meeting.application.reputation_data.domain_reputation[domain]}</Badge>
+                    <Badge key={domain} className="truncate text-xs">{DomainLabels[domain as Domain]} : {meeting.application.reputation_data.domain_reputation[domain]}</Badge>
                   )}
                 </div>
 
                 {meeting.application.job.requireGlobalReputation &&
-                  <Badge className="mt-8">Global Reputation : {meeting.application.reputation_data.global_reputation}</Badge>
+                  <Badge className="mt-2 max-w-full truncate text-xs">Global Reputation : {meeting.application.reputation_data.global_reputation}</Badge>
                 }
               </CardContent>
             </Card>
@@ -402,8 +402,8 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
               <CardContent className="space-y-4">
                 <div className="space-y-4">
                   <div className="space-y-1">
-                    <div className="flex items-center gap-4">
-                      <p className="text-lg font-bold">{meeting.application.job.title}</p>
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <p className="text-lg font-bold break-words flex-1 min-w-0">{meeting.application.job.title}</p>
                       <Badge
                         className={(jobStatusStyles[meeting.application.job.status as JobStatus])}
                       >
@@ -411,35 +411,35 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
                       </Badge>
                     </div>
 
-                    <div className="flex h-4 items-center gap-3">
+                    <div className="flex flex-col sm:flex-row sm:h-4 sm:items-center gap-2 sm:gap-3">
                       <p className="text-muted-foreground text-sm">
                         {JobDurationLabels[meeting.application.job.duration as JobDuration]}
                       </p>
-                      <Separator orientation="vertical" className="bg-gray-500" />
-                      <p className="text-muted-foreground text-sm">
+                      <Separator orientation="vertical" className="bg-gray-500 hidden sm:block" />
+                      <p className="text-muted-foreground text-sm break-words">
                         Posted on {format(meeting.application.job.posted, "PPP")} at {format(meeting.application.job.posted, "HH:mm")}
                       </p>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground text-sm">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-muted-foreground text-sm truncate">
                         {meeting.application.job.applicants} applicants
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground text-sm">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <CircleDollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-muted-foreground text-sm break-words">
                         {meeting.application.job.compensation}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <MapPinned className="h-4 w-4 text-muted-foreground" />
-                      <span className="flex gap-1.5 text-muted-foreground items-center text-sm italic">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <MapPinned className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="flex gap-1.5 text-muted-foreground items-center text-sm italic break-words">
                         {meeting.application.job.location}
                       </span>
                     </div>
@@ -449,26 +449,35 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
                 <Separator className="my-5 bg-gray-300" />
 
                 <Tabs defaultValue="job-description">
-                  <TabsList className="grid w-full grid-cols-3 mb-2">
-                    <TabsTrigger value="job-description" className="cursor-pointer">Description</TabsTrigger>
-                    <TabsTrigger value="job-requirement" className="cursor-pointer">Job Requirements</TabsTrigger>
-                    <TabsTrigger value="reputation-requirements" className="cursor-pointer">Reputation Requirements</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-3 mb-2 h-auto p-1">
+                    <TabsTrigger value="job-description" className="cursor-pointer text-xs md:text-sm px-1 py-2 truncate">
+                      <span className="hidden md:inline">Description</span>
+                      <span className="md:hidden">Desc</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="job-requirement" className="cursor-pointer text-xs md:text-sm px-1 py-2 truncate">
+                      <span className="hidden lg:inline">Job Requirements</span>
+                      <span className="lg:hidden">Requirements</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="reputation-requirements" className="cursor-pointer text-xs md:text-sm px-1 py-2 truncate">
+                      <span className="hidden lg:inline">Reputation Req</span>
+                      <span className="lg:hidden">Reputation</span>
+                    </TabsTrigger>
                   </TabsList>
                   <TabsContent value="job-description">
-                    <div className="wrap-break-word text-muted-foreground text-sm">{meeting.application.job.description}</div>
+                    <div className="break-words text-muted-foreground text-sm whitespace-pre-wrap overflow-hidden">{meeting.application.job.description}</div>
                   </TabsContent>
                   <TabsContent value="job-requirement">
-                    <div className="wrap-break-word text-muted-foreground text-sm">{meeting.application.job.requirements}</div>
+                    <div className="break-words text-muted-foreground text-sm whitespace-pre-wrap overflow-hidden">{meeting.application.job.requirements}</div>
                   </TabsContent>
                   <TabsContent value="reputation-requirements">
-                    <div className="grid grid-rows-3 gap-2">
+                    <div className="grid grid-cols-1 gap-2 max-w-full">
                       {meeting.application.job.domains.map((domain) =>
-                        <Badge key={domain}>{DomainLabels[domain as Domain]} : {meeting.application.job.domainReputations[domain]}</Badge>
+                        <Badge key={domain} className="truncate text-xs">{DomainLabels[domain as Domain]} : {meeting.application.job.domainReputations[domain]}</Badge>
                       )}
                     </div>
 
                     {meeting.application.job.requireGlobalReputation &&
-                      <Badge className="mt-8">Global Reputation : {meeting.application.job.globalReputationScore}</Badge>
+                      <Badge className="mt-2 max-w-full truncate text-xs">Global Reputation : {meeting.application.job.globalReputationScore}</Badge>
                     }
                   </TabsContent>
                 </Tabs>
@@ -485,24 +494,24 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div className="space-y-2">
+                <div className="space-y-2 min-w-0">
                   <h5 className="font-bold mb-1">Date & Time</h5>
                   <div className="flex flex-col text-sm text-muted-foreground gap-1">
-                    {format(meeting.date, "PPP")}
-                    <div>
+                    <span className="break-words">{format(meeting.date, "PPP")}</span>
+                    <div className="break-words">
                       {meeting.fromTime} - {meeting.toTime}
                     </div>
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 min-w-0">
                   <h5 className="font-bold mb-1">Duration</h5>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground break-words">
                     {calculateMeetingDuration(meeting.fromTime, meeting.toTime)} minutes
                   </p>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 min-w-0">
                   <h5 className="font-bold mb-1">Scheduled on</h5>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground break-words">
                     {format(meeting.scheduledAt, "PPP")}
                   </p>
                 </div>
@@ -511,21 +520,21 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
               {meeting.note && (
                 <>
                   <Separator className="my-6 bg-gray-300" />
-                  <div className="mb-4">
+                  <div className="mb-4 min-w-0">
                     <h5 className="font-bold mb-2">Note for Applicant</h5>
-                    <p className="text-sm text-muted-foreground">{meeting.note}</p>
+                    <p className="text-sm text-muted-foreground break-words whitespace-pre-wrap">{meeting.note}</p>
                   </div>
                 </>
               )}
 
               <Separator className="my-6 bg-gray-300" />
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="min-w-0 flex-1">
                   <h5 className="font-bold mb-1">Online Meeting</h5>
-                  <p className="text-sm text-muted-foreground">Room ID: {meeting.roomId}</p>
+                  <p className="text-sm text-muted-foreground break-all">Room ID: {meeting.roomId}</p>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-shrink-0">
                   {isInterviewing ? (
                     <Button
                       variant="destructive"
@@ -533,7 +542,8 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
                       className="flex items-center gap-2 cursor-pointer"
                     >
                       <VideoOff className="h-5 w-5" />
-                      Stop Meeting
+                      <span className="hidden sm:inline">Stop Meeting</span>
+                      <span className="sm:hidden">Stop</span>
                     </Button>
                   ) : (
                     <Button
@@ -541,7 +551,8 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
                       className="flex items-center gap-2 cursor-pointer"
                     >
                       <Video className="h-5 w-5" />
-                      Start Meeting
+                      <span className="hidden sm:inline">Start Meeting</span>
+                      <span className="sm:hidden">Start</span>
                     </Button>
                   )}
                 </div>
@@ -550,7 +561,7 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
           </Card>
 
           {isInterviewing && (
-            <div ref={jitsiRef}>
+            <div ref={jitsiRef} className="w-full overflow-hidden">
               <JaaSMeeting
                 appId={JAAS_API_KEY}
                 roomName={meeting.roomId}
@@ -570,7 +581,11 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
                   displayName: 'Recruiter',
                   email: 'recruiter@example.com'
                 }}
-                getIFrameRef={(iframeRef) => { iframeRef.style.height = '650px'; setIsMeetingReady(true); }}
+                getIFrameRef={(iframeRef) => { 
+                  iframeRef.style.height = '650px'; 
+                  iframeRef.style.width = '100%';
+                  setIsMeetingReady(true); 
+                }}
               />
             </div>
           )}

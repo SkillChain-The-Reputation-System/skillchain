@@ -310,10 +310,9 @@ export default function CreateJobForm() {
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            className={cn(
-                              "w-[240px] pl-3 text-left font-normal border-gray-300 border cursor-pointer bg-white hover:bg-white dark:border-input dark:bg-input/30",
-                              !field.value && "text-muted-foreground"
-                            )}
+                            variant="outline"
+                            data-empty={!field.value}
+                            className="data-[empty=true]:text-muted-foreground w-[280px] justify-start text-left font-normal"
                           >
                             {field.value ? (
                               format(field.value, "PPP")
@@ -408,7 +407,7 @@ export default function CreateJobForm() {
               <div className="space-y-3">
                 <FormLabel>Required Reputation Scores by Domain</FormLabel>
                 <div className="space-y-3">
-                  
+
                   {selectedDomains.map((domainId) => {
                     const domain = DOMAINS.find((d) => d.id === domainId);
                     return (

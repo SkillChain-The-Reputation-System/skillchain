@@ -22,10 +22,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { recruiterNavItems } from "@/constants/data";
-import {
-  ChevronRight,
-  GalleryVerticalEnd,
-} from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
@@ -34,7 +32,6 @@ import { RecruiterAccountButton } from "./recruiter-account-button";
 
 export const company = {
   name: "SkillChain",
-  logo: GalleryVerticalEnd,
   plan: "Recruiter",
 };
 
@@ -45,9 +42,9 @@ export default function RecruiterSidebar() {
   return (
     <Sidebar collapsible="icon" onDoubleClick={toggleSidebar} className="select-none">
       <SidebarHeader>
-        <div className="text-sidebar-accent-foreground flex gap-2 py-2">
-          <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-            <company.logo className="size-4" />
+        <div className="flex gap-2 py-2">
+          <div className="bg-sky-200 dark:bg-sky-950 flex aspect-square size-8 items-center justify-center rounded-lg">
+            <Image src="/logo.svg" alt="SkillChain Logo" width={20} height={20} />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-semibold">{company.name}</span>

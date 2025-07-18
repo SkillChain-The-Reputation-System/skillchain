@@ -19,6 +19,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -49,28 +59,11 @@ export function AccountSettings() {
   // State for deposit functionality
   const [isDepositing, setIsDepositing] = useState(false);
   const [depositAmount, setDepositAmount] = useState("0.1"); // Default deposit amount
+  const [depositDialogOpen, setDepositDialogOpen] = useState(false);
 
   const router = useRouter();
 
-  const [accountName, setAccountName] = useState<string | undefined>();
   const [applicantNames, setApplicantNames] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    async function fetchName() {
-      if (!address) {
-        setAccountName(undefined);
-        return;
-      }
-      const name = await getUserNameByAddress(address);
-      if (name && name !== address) {
-        setAccountName(name);
-      } else {
-        setAccountName(undefined);
-      }
-    }
-
-    fetchName();
-  }, [address]);
 
   // Function to copy address to clipboard with visual feedback
   const handleCopyAddress = async (addressToCopy: string) => {
@@ -107,6 +100,7 @@ export function AccountSettings() {
       );
 
       router.refresh();
+      setDepositDialogOpen(false);
 
     } catch (error: any) {
       toast.error(getErrorMessage(error));
@@ -168,7 +162,7 @@ export function AccountSettings() {
             </h3>
             <div className="flex items-center justify-between space-x-4">
               <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm truncate line-clamp-1">
-                {address ? accountName ?? address : "Not connected"}
+                {address ? truncateAddress(address) : "Not connected"}
               </code>
               <Button
                 variant="outline"
@@ -236,51 +230,15 @@ export function AccountSettings() {
                   </AlertDescription>
                 </Alert>
               )}
-            <div className="mt-2 space-y-2">
-              <div className="flex items-center space-x-2">
-                <div className="flex-1">
-                  <Label
-                    htmlFor="deposit-amount"
-                    className="text-sm font-medium text-muted-foreground"
-                  >
-                    Deposit Amount ({NATIVE_TOKEN_SYMBOL})
-                  </Label>
-                  <Input
-                    id="deposit-amount"
-                    type="number"
-                    min="0"
-                    step="0.001"
-                    value={depositAmount}
-                    onChange={(e) => setDepositAmount(e.target.value)}
-                    placeholder="0.1"
-                    disabled={isDepositing}
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="shrink-0 bg-zinc-700 hover:bg-zinc-700/80 text-white dark:bg-slate-200 dark:text-black dark:hover:bg-slate-200/80 cursor-pointer"
-                  onClick={handleDeposit}
-                  disabled={
-                    isDepositing ||
-                    !address ||
-                    !depositAmount ||
-                    parseFloat(depositAmount) <= 0
-                  }
-                >
-                  {isDepositing ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Wallet className="h-4 w-4" />
-                  )}
-                  {isDepositing
-                    ? "Depositing..."
-                    : `Deposit ${depositAmount} ${NATIVE_TOKEN_SYMBOL}`}
-                </Button>
-              </div>
+            <div className="mt-2 flex justify-end">
+              <Button
+                size="sm"
+                onClick={() => setDepositDialogOpen(true)}
+                disabled={!address}
+              >
+                <Wallet className="h-4 w-4" />
+                Deposit Token
+              </Button>
             </div>
           </div>
 
@@ -405,6 +363,47 @@ export function AccountSettings() {
             )}
         </CardContent>
       </Card>
+      <AlertDialog open={depositDialogOpen} onOpenChange={setDepositDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deposit Tokens</AlertDialogTitle>
+            <AlertDialogDescription>
+              Enter the amount of {NATIVE_TOKEN_SYMBOL} you want to deposit.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="deposit-amount-dialog">Amount ({NATIVE_TOKEN_SYMBOL})</Label>
+            <Input
+              id="deposit-amount-dialog"
+              type="number"
+              min="0"
+              step="0.001"
+              value={depositAmount}
+              onChange={(e) => setDepositAmount(e.target.value)}
+              disabled={isDepositing}
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDepositing}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeposit}
+              disabled={
+                isDepositing ||
+                !address ||
+                !depositAmount ||
+                parseFloat(depositAmount) <= 0
+              }
+            >
+              {isDepositing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Wallet className="h-4 w-4" />
+              )}
+              {isDepositing ? "Depositing..." : "Confirm"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

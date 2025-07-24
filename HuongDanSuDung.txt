@@ -1,0 +1,392 @@
+=== HƯỚNG DẪN SỬ DỤNG ===
+
+■ Tổng quan:
+
+Sau khi đã cài đặt xong theo hướng dẫn trong file HuongDanCaiDat.txt, bạn có thể bắt đầu sử dụng hệ thống SkillChain trên mạng local. 
+Hướng dẫn này sẽ giúp bạn khởi chạy và sử dụng hệ thống một cách hoàn chỉnh.
+
+────────────────────────────
+■ BƯỚC 1: KHỞI CHẠY HỆ THỐNG BACKEND
+
+➤ Mở terminal đầu tiên và di chuyển vào thư mục backend:
+  > cd src/backend
+
+➤ Tạo file cấu hình môi trường (nếu chưa có):
+  Tạo file `.env` với nội dung:
+  ```
+  NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_project_id
+  NEXT_PUBLIC_ALCHEMY_API_KEY=your_api_key
+  SKILLCHAIN_WALLET_PRIVATE_KEY=admin_private_key
+  POLYGON_AMOY_RPC_URL=https://api.zan.top/polygon-amoy
+  JAAS_API_KEY=your_jaas_api_key
+  ```
+  Tuy nhiên, nhóm đã cung cấp sẵn file '.env' local trong thư mục backend, bạn chỉ cần sao chép và chỉnh sửa nếu cần.
+
+➤ Làm sạch và biên dịch smart contracts:
+  > npx hardhat clean
+  > npx hardhat compile
+
+➤ Khởi động Hardhat node (mạng blockchain local):
+  > npx hardhat node
+
+  Lưu ý: Giữ terminal này chạy suốt quá trình sử dụng hệ thống.
+  Node sẽ chạy trên địa chỉ: http://127.0.0.1:8545
+
+➤ Mở terminal thứ hai và triển khai smart contracts:
+  > cd src/backend
+  > npm run deploy:local
+
+➤ Cấu hình các smart contracts:
+  > npm run configure:local
+
+────────────────────────────
+■ BƯỚC 2: TẠO DỮ LIỆU MẪU (OPTIONAL)
+
+Để có dữ liệu để thao tác, bạn có thể chạy các lệnh tạo dữ liệu mẫu:
+
+➤ Trước hết, Mở terminal mới và di chuyển vào thư mục backend:
+  > cd src/backend
+
+➤ Tạo thử thách đang hoạt động:
+  > npm run seed:challenge:local
+  📄 File dữ liệu: src/backend/scripts/data/challenge.csv
+     - Chứa thông tin các thử thách đã được duyệt và đang hoạt động
+     - Bao gồm: địa chỉ người tạo, ID nội dung, danh mục, timestamp, điểm chất lượng, độ khó, thời gian giải
+
+➤ Tạo thử thách chờ kiểm duyệt:
+  > npm run seed:pending_challenges:local
+  📄 File dữ liệu: src/backend/scripts/data/pending-challenges.csv
+     - Chứa thông tin các thử thách đang chờ được kiểm duyệt
+     - Có cấu trúc tương tự challenge.csv nhưng với trạng thái "pending"
+
+➤ Thêm đánh giá mẫu từ người kiểm duyệt:
+  > npm run seed:moderator_reviews:local
+  📄 File dữ liệu: src/backend/scripts/data/moderator_reviews.csv
+     - Chứa các đánh giá từ moderator cho thử thách
+     - Bao gồm: địa chỉ moderator, ID thử thách, các tiêu chí đánh giá (0-1), độ khó và thời gian đề xuất
+     - Mỗi lần chạy lệnh seed sẽ tạo thử thách mới, nên ID sẽ khác nhau. Bạn PHẢI chỉnh sửa trường "challenge_id" của file này để phù hợp với ID thử thách đã tạo.
+
+➤ Tạo và công khai bài đăng tuyển dụng:
+  > npm run seed:jobs:local
+  📄 File dữ liệu: src/backend/scripts/data/job.csv
+     - Chứa thông tin các bài đăng tuyển dụng
+     - Bao gồm: private key nhà tuyển dụng và ID nội dung công việc
+     - Nhóm đã tạo sẵn dữ liệu cho tài khoản #1 của mạng blockchain cục bộ hardhat (0x70997970C51812dc3A010C7d01b50e0d17dc79C8)
+     - Để chạy script thành công, bạn cần nạp tiền vào tài khoản này để có thể đăng tuyển dụng (tối thiểu 1 ETH)
+
+➤ Cập nhật thông tin cá nhân người dùng mẫu:
+  > npm run seed:user_profiles:local
+  📄 File dữ liệu: src/backend/scripts/data/user_profiles_id_only.csv
+     - Chứa ánh xạ giữa địa chỉ ví và ID hồ sơ người dùng trên Irys
+     - Nhóm đã tạo sẵn dữ liệu cho 10 tài khoản đầu tiên của mạng blockchain cục bộ hardhat
+     - Bao gồm: địa chỉ ví và transaction ID trên Irys
+
+➤ Cập nhật chỉ số uy tín người dùng mẫu:
+  > npm run seed:reputation:local
+  📄 File dữ liệu: src/backend/test/reputation_seeds.csv
+     - Chứa điểm uy tín của người dùng theo từng lĩnh vực kỹ năng
+     - Nhóm đã tạo sẵn dữ liệu cho 10 tài khoản đầu tiên của mạng blockchain cục bộ hardhat
+     - Bao gồm: địa chỉ ví và điểm số cho 14 lĩnh vực khác nhau (CS, Software Dev, Networking, etc.)
+
+➤ Gán vai trò cho người dùng:
+  > npm run grant:role:local
+  📄 File dữ liệu: src/backend/scripts/data/grant_roles.csv
+     - Chứa phân quyền vai trò cho người dùng
+     - Bao gồm: địa chỉ ví và quyền contributor, evaluator, moderator (1=có, 0=không)
+
+────────────────────────────
+■ BƯỚC 3: KHỞI CHẠY FRONTEND
+
+➤ Mở terminal thứ ba và di chuyển vào thư mục frontend:
+  > cd src/frontend
+
+➤ Tạo file cấu hình môi trường (nếu chưa có):
+  Tạo file `.env` với nội dung:
+  ```
+  NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_project_id
+  NEXT_PUBLIC_ALCHEMY_API_KEY=your_api_key
+  SKILLCHAIN_WALLET_PRIVATE_KEY=admin_private_key
+  POLYGON_AMOY_RPC_URL=https://api.zan.top/polygon-amoy
+  JAAS_API_KEY=your_jaas_api_key
+  ```
+  Tuy nhiên, nhóm đã cung cấp sẵn file '.env' local trong thư mục frontend, bạn chỉ cần sao chép và chỉnh sửa nếu cần.
+
+➤ Build và khởi chạy ứng dụng frontend:
+  > npm run build:local
+  > npm run start
+
+  Ứng dụng sẽ chạy trên: http://localhost:3000
+
+────────────────────────────
+■ BƯỚC 4: KẾT NỐI VÍ METAMASK
+
+➤ Mở trình duyệt và truy cập: http://localhost:3000
+
+➤ Kết nối MetaMask:
+  1. Nhấn nút "Connect Wallet" trên giao diện
+  2. Chọn MetaMask từ danh sách ví
+  3. Chấp nhận kết nối trong popup MetaMask
+  4. Đảm bảo đang chọn network "Hardhat Local" (Chain ID: 31337)
+
+➤ Import account test (nếu chưa làm):
+  1. Copy private key từ terminal chạy Hardhat node
+  2. Trong MetaMask: Account menu → Import Account → Private Key
+  3. Dán private key và nhấn Import
+
+────────────────────────────
+■ HƯỚNG DẪN SỬ DỤNG CÁC TÍNH NĂNG
+
+➤ Quản lý hồ sơ người dùng:
+  - Mở rộng mục Account trên thanh điều hướng
+  - Truy cập trang Profile xem thông tin cá nhân, thông tin điểm uy tín và các vai trò đã đạt trong từng lĩnh vực
+  - Truy cập trang Setting để cập nhật thông tin cá nhân
+    + Upload hình ảnh đại diện 
+      ⚠️ Chỉ sử dụng ảnh kích thước <= 100 KiB vì đây là hạn mức tối đa tải dữ liệu miến phí lên Irys
+    + Thêm các thông tin liên hệ cần thiết
+    + Bấm "Register Profile" để đăng ký thông tin
+      ⚠️ Trong lần đầu tiên đăng ký thông tin, bạn sẽ cần xác nhận giao dịch trên MetaMask để lưu tham chiếu của dữ liệu trên blockchain. Đối với những lần sau, bạn chỉ cần cập nhật thông tin và bấm "Update Profile" để lưu thay đổi, mọi thông tin sẽ được cập nhật trên Irys, tham chiếu trên blockchain không thay đổi nên không cần xác nhận giao dịch.
+
+  ℹ️ Lưu ý: 
+    - Để thêm thông tin cá nhân mẫu, hãy tham khảo hướng dẫn "Cập nhật thông tin cá nhân người dùng mẫu" trong Bước 2
+    - Để thêm điểm uy tín mẫu để cập nhật các vai trò, hãy tham khảo hướng dẫn "Cập nhật chỉ số uy tín người dùng mẫu" trong Bước 2
+
+➤ Tham gia thử thách và tạo giải pháp:
+  - Mở rộng mục Participation trên thanh điều hướng
+  - Duyệt danh sách thử thách đang mở
+  - Bấm vào một thử thách để đọc mô tả và yêu cầu chi tiết
+  - Nhân "Join Challenge" để tham gia
+  - Xuất hiện màn hình xác nhận trả phí cho thử thách
+  - Nhấn "Confirm" và xác nhận giao dịch trên MetaMask
+  - Sau khi tham gia, bấm vào nút "Go to Workspace" để truy cập không gian làm việc của thử thách
+  - Đọc thông tin trên các tab "Infomation", "Description", ghi giải pháp ở tab "Solution"
+  - Nhấn "Save Draft" để lưu giải pháp tạm thời trên Irys (chưa ghi vào blockchain)
+  - Nhấn "Submit" để gửi giải pháp chính thức, xác nhận giao dịch trên MetaMask
+  - Giải pháp sẽ ở trạng thái "Submitted", nhấn "Put Under Review" để xuất hiện cho người đánh giá
+  - Vào trang "Workspace" để xem các không gian làm việc khác của các thử thách đã tham gia
+
+  ℹ️ Lưu ý: 
+    - Để thêm các thử thách mẫu, hãy tham khảo hướng dẫn thêm dữ liệu mẫu trong Bước 2
+
+➤ Đánh giá giải pháp (Chỉ dành cho người đánh giá - Evaluator):
+  - Trong giao diện của Metamask, thay đổi sang tài khoản khác đã được gán vai trò "Evaluator" trong Bước 2
+  - Truy cập trang "Pending Solution" để xem danh sách các giải pháp cần đánh giá
+  - Chọn một giải pháp đang có trạng thái "Under Review" và còn vị trí trống
+  - Đọc kỹ thông tin thử thách và giải pháp trong tab "Challenge Information" và "Solution Information"
+  - Nhấn "Evaluate Solution" để thanh gia vào phiên đánh giá
+  - Sau khi tham gia, bấm vào nút "Go to My Evaluation" ở cuối trang để chuyển sang trang đánh giá giải pháp
+  - Xem nội dung thử thách trong tab "Challenge Information", xem nội dung giải pháp và thực hiện đánh giá trong tab "Solution Information"
+  - Đánh giá chất lượng giải pháp dựa trên các tiêu chí:
+    + Tính chính xác và đầy đủ của giải pháp
+    + Khả năng thực thi và hiệu quả
+    + Sự sáng tạo và tư duy độc đáo
+    + Chất lượng trình bày và giải thích
+  - Nhập điểm số từ 0-100 cho từng tiêu chí đánh giá
+  - Nhấn "Submit Evaluation" để gửi kết quả đánh giá
+  - Xác nhận giao dịch trên MetaMask để hoàn tất quá trình đánh giá
+  - Lặp lại thêm 2 lần nữa cho 2 tài khoản khác (đã được gán vai trò "Evaluator")
+  - Sau khi đủ 3 lượt đánh giá, giải pháp sẽ được tổng hợp, tính điểm cuối cùng và cập nhật trạng thái
+
+  ℹ️ Lưu ý: 
+    - Chỉ những người dùng có vai trò "Evaluator" mới có thể đánh giá giải pháp
+    - Để có vai trò "Evaluator", hãy tham khảo hướng dẫn seed điển uy tín trong Bước 2
+    - Mỗi giải pháp cần có 3 lượt đánh giá từ các Evaluator khác nhau để có thể tính điểm cuối cùng
+    - Điểm số cuối cùng được tính dựa trên trung bình của các lượt đánh giá
+
+➤ Tạo thử thách mới (dành cho người đóng góp - Contributor):
+  - Truy cập trang Contribution trên thanh điều hướng  
+  - Nhấn nút "Create Challenge" ở góc phải trên để tạo thử thách mới
+  - Điền thông tin thử thách trong form tạo mới:
+    + Title *: Nhập tiêu đề thử thách (10-100 ký tự)
+    + Domain *: Chọn lĩnh vực kỹ năng từ dropdown menu (Computer Science, Software Development, Networking, v.v.)
+    + Description: Viết mô tả chi tiết về thử thách, yêu cầu và mục tiêu (sử dụng Rich Text Editor)
+    + Bounty Amount (ETH) *: Nhập số tiền thưởng cho việc kiểm duyệt (tối thiểu 0.01 ETH)
+  - Nhấn "Create Challenge" để tạo thử thách dưới dạng bản nháp
+  - Thử thách được tạo sẽ có trạng thái "Draft" và hiển thị trong bảng điều khiển đóng góp.
+  - Nhấn vào thử thách vừa tạo (cột Action), chọn "View Challenge" để xem chi tiết. 
+  - Tại đây, bạn có thể chỉnh sửa thông tin thử thách và đóng góp thử thách (chuyển sang trạng thái "Pending" để chờ kiểm duyệt).
+  - Khi nhấn "Contribute Challenge", hệ thống sẽ:
+    + Hiển thị popup xác nhận thanh toán bounty amount
+    + Yêu cầu xác nhận giao dịch trên MetaMask
+    + Chuyển trạng thái thử thách từ "Draft" sang "Pending" để chờ kiểm duyệt
+    + Sau khi được kiểm duyệt và chấp nhận, thử thách sẽ chuyển sang trạng thái "Approved" và mở cho mọi người tham gia
+
+  ℹ️ Lưu ý: 
+    - Để có vai trò "Contributor", hãy tham khảo hướng dẫn "Cập nhật chỉ số uy tín người dùng mẫu" trong Bước 2
+    - Chỉ có thể chỉnh sửa thử thách khi ở trạng thái "Draft"
+    - Thử thách cần được kiểm duyệt bởi moderator trước khi mở cho người dùng tham gia
+    - Bounty amount sẽ được sử dụng để trả thưởng cho các moderator kiểm duyệt thử thách
+
+➤ Kiểm duyệt thử thách (dành cho người kiểm duyệt - Moderator):
+  - Trong giao diện của MetaMask, thay đổi sang tài khoản đã được gán vai trò "Moderator" trong Bước 2
+  - Mở rộng mục Moderation trên thanh điều hướng
+  - Truy cập trang "Pending Challenges" để xem danh sách các thử thách chờ kiểm duyệt
+  - Chọn một thử thách có trạng thái "Pending" từ danh sách để bắt đầu quá trình kiểm duyệt
+  - Bấm vào nút "Details" của một thử thách để đọc kỹ thông tin thử thách
+  - Nhận "Join Review Pool" để tham gia vào nhóm đánh giá thử thách
+  - Sau khi tham gia, truy cập trang "My Reviews" để xem danh sách các thử thách đã tham gia đánh giá
+  - Chọn một thử thách để bắt đầu quá trình kiểm duyệt, bấm vào dấu ba chấm ở cột Action và chọn "Show Review"
+  - Đọc kỹ thông tin thử thách trong các tab:
+    + "Information": Xem thông tin thử thách, thông tin bài đánh giá và thông tin thưởng (chỉ có sau khi có đủ 3 lượt đánh giá và thử thách đã được xử lý)
+    + "Description": Đọc mô tả chi tiết, yêu cầu và mục tiêu của thử thách
+    + "Review Form": Thực hiện đánh giá thử thách
+  - Trong tab "Review Form", đánh giá thử thách dựa trên các tiêu chí chất lượng, đồng thời đề xuất các thông tin độ khó (Difficulty Level), Thời gian giải ước tính (Estimated Solve Time)
+  - Nhấn "Save Draft" để lưu đánh giá tạm thời (chưa ghi vào blockchain)
+  - Nhấn "Submit Review" để gửi đánh giá chính thức, xác nhận giao dịch trên MetaMask
+  - Tiếp tục lặp lại cho 2 tài khoản khác (đã được gán vai trò "Moderator")
+  - Sau khi đủ 3 lượt đánh giá, thử thách sẽ được tổng hợp, tính điểm cuối cùng và cập nhật trạng thái
+  - Nếu điểm chất lượng >= 80, thử thách sẽ được chuyển sang trạng thái "Approved" và mở cho người dùng tham. Ngược lại, thử thách sẽ bị từ chối và chuyển sang trạng thái "Rejected", người dùng sẽ không thể tham gia thử thách này nữa.
+  - Sau khi thử thách xử lý xong, bạn sẽ nhận được phần thưởng từ bounty amount của thử thách (đã được chuyển vào tài khoản của bạn trong quá trình kiểm duyệt). Xem thông tin phần thưởng trong tab "Information" của thử thách.
+
+  ℹ️ Lưu ý: 
+    - Chỉ những người dùng có vai trò "Moderator" mới có thể kiểm duyệt thử thách
+    - Để có vai trò "Moderator", hãy tham khảo hướng dẫn "Cập nhật chỉ số uy tín người dùng mẫu" trong Bước 2
+    - Mỗi thử thách cần ít nhất 3 lượt kiểm duyệt từ 3 Moderator để được chấp nhận
+    - Moderator sẽ nhận được phần thưởng từ bounty amount khi kiểm duyệt thử thách
+    - Quyết định kiểm duyệt không thể thay đổi sau khi đã submit
+
+➤ Quản lý tuyển dụng (Chỉ dành cho nhà tuyển dụng - Recruiter):
+  Để thực hiện các chức năng của nhà tuyển dụng, bạn cần trở thành nhà tuyển dụng bằng cách nạp tiền vào tài khoản:
+
+  📝 BƯỚC 1: Trở thành nhà tuyển dụng
+  - Bấm vào mục có hình avatar góc bên trái dưới cùng trong thanh điều hướng, chọn "Switch to Recruiter"
+  - Truy cập trang "Account" trên thanh điều hướng của giao diện Recruiter
+  - Nếu tài khoản không đủ tiền, hệ thống sẽ hiển thị banner thông báo yêu cầu nạp tiền
+  - Nhấn nút "Deposit Tokens" để mở hộp thoại nạp tiền
+  - Nhập số lượng ETH muốn nạp (tối thiểu 1 ETH để trở thành recruiter)
+  - Nhấn "Confirm Deposit" và xác nhận giao dịch trên MetaMask
+  - Tải lại trang để cập nhật trạng thái
+  - Sau khi nạp tiền thành công, bạn sẽ được cấp vai trò "Recruiter" và có thể sử dụng các tính năng tuyển dụng
+
+  📝 BƯỚC 2: Cập nhật thông tin hồ sơ công ty
+  - Truy cập trang "Account", tab "Profile & Company" trong giao diện Recruiter
+  - Điền thông tin cá nhân và công ty:
+    + Thông tin cá nhân: Họ tên, email, số điện thoại, vị trí, tiểu sử, ảnh đại diện
+    + Thông tin công ty: Tên công ty, website, địa chỉ, ngành nghề, quy mô, mô tả công ty
+  - Nhấn "Register Profile" để đăng ký thông tin lần đầu (cần xác nhận giao dịch trên MetaMask)
+  - Hoặc nhấn "Update Profile" để cập nhật thông tin (chỉ cập nhật trên Irys, không cần xác nhận giao dịch)
+
+  📝 BƯỚC 3: Tạo tin tuyển dụng mới
+  - Truy cập trang "Jobs" trên thanh điều hướng
+  - Nhấn nút "Create New Job" ở góc phải trên
+  - Điền thông tin công việc trong form tạo mới:
+    + Title *: Nhập tiêu đề công việc (tối thiểu 5 ký tự)
+    + Description: Viết mô tả chi tiết về công việc, trách nhiệm và yêu cầu (tối thiểu 20 ký tự)
+    + Requirements: Mô tả các yêu cầu cụ thể cho ứng viên (tối thiểu 10 ký tự)
+    + Location: Nhập địa điểm làm việc (tùy chọn)
+    + Duration: Chọn thời gian làm việc (Full-time, Part-time, Contract, Internship, Freelance)
+    + Compensation: Nhập mức lương hoặc khoảng lương
+    + Application Deadline: Chọn ngày và giờ hết hạn ứng tuyển
+    + Skills Domains *: Chọn ít nhất một lĩnh vực kỹ năng liên quan đến công việc
+    + Domain Reputation Requirements: Đặt điểm uy tín tối thiểu cho từng lĩnh vực đã chọn (0-100)
+    + Global Reputation Requirement: Bật/tắt yêu cầu điểm uy tín tổng thể và đặt điểm tối thiểu
+  - Nhấn "Create Job" để tạo tin tuyển dụng
+  - Tin tuyển dụng sẽ được tạo với trạng thái "Draft" (bản nháp)
+
+  📝 BƯỚC 4: Chỉnh sửa và công khai tin tuyển dụng
+  - Trong danh sách Jobs, nhấn vào dấu ba chấm ở cột Action của tin tuyển dụng để xem các tùy chọn
+  - Chọn "View Job" để xem thông tin chi tiết của tin tuyển dụng
+  - Kiểm tra lại thông tin của công việc 
+  - Nếu cần chỉnh sửa, nhấn "Edit Job" để thay đổi thông tin
+  - Khi đã hài lòng với nội dung, nhấn vào dấu ba chấm bên cạnh badge trạng thái "Draft" và chọn "Open" để công khai tin tuyển dụng
+  - Xác nhận giao dịch trên MetaMask để lưu thông tin lên blockchain
+  - Tin tuyển dụng sẽ chuyển sang trạng thái "Open" và mở cho ứng viên ứng tuyển
+
+  📝 BƯỚC 5: Quản lý ứng viên và tuyển dụng
+  - Trong danh sách Jobs, nhấn vào số lượng "applicants" để xem danh sách ứng viên
+  - Xem thông tin tổng quan về các ứng viên: tổng số, đang chờ, đang xét duyệt, v.v.
+  - Nhấn vào từng ứng viên để xem chi tiết:
+    + Thông tin hồ sơ cá nhân và điểm uy tín
+    + Chi tiết đơn ứng tuyển và mức độ phù hợp với yêu cầu
+    + Lịch sử và trạng thái ứng tuyển
+  - Thay đổi trạng thái ứng viên qua các giai đoạn:
+    + Pending → Reviewing: Bắt đầu xem xét hồ sơ
+    + Reviewing → Shortlisted: Đưa vào danh sách ngắn
+    + Shortlisted → Interviewed: Mời phỏng vấn
+    + Interviewed → Hired: Tuyển dụng thành công
+    + Hoặc Rejected: Từ chối ở bất kỳ giai đoạn nào
+  - Khi tuyển dụng thành công (Hired), hệ thống sẽ tự động tính và trừ phí tuyển dụng từ budget
+
+  📝 BƯỚC 6: Quản lý phỏng vấn (nếu có)
+  - Trong chi tiết ứng viên, nếu trạng thái là "Shortlisted", có thể lên lịch phỏng vấn
+  - Nhấn "Schedule Interview" để tạo cuộc họp
+  - Nhập thông tin cuộc họp cần thiết
+  - Nhấn "Schedule" để lên lịch phỏng vấn
+  - Lịch phỏng vấn sẽ được hiển thị trong trang "My Applications" của ứng viên
+  - Nhà tuyển dụng có thể tất cả lịch phỏng vấn trong trang "Meetings"
+  - Nhấn vào dấu ba chấm ở cột Action của cuộc họp để xem chi tiết, chọn "View meeting" để xem thông tin cuộc họp
+  - Để bắt đầu cuộc họp, nhấn "Start Meeting"
+
+  ℹ️ Lưu ý quan trọng:
+    - Cần có tối thiểu 1 ETH trong budget để duy trì trạng thái recruiter
+    - Phí tuyển dụng sẽ được tính dựa trên điểm uy tín của ứng viên được tuyển
+    - Có thể xem lịch sử thanh toán và quản lý budget trong trang "Account"
+    - Tin tuyển dụng có thể được tạm dừng (Pause), tiếp tục (Resume), đóng (Close) hoặc lưu trữ (Archive)
+    - Để có dữ liệu mẫu, hãy tham khảo hướng dẫn "Tạo và công khai bài đăng tuyển dụng" trong Bước 2
+
+  📝 BƯỚC 7: Xem thống kê hoạt động tuyển dụng
+  - Truy cập trang "Insights" trên thanh điều hướng để xem dashboard thống kê toàn diện
+  - Trang Insights cung cấp các thông tin phân tích quan trọng về hoạt động tuyển dụng:
+    + Thống kê tổng quan (Overview)
+    + Các đơn ứng tuyển (Applications)
+    + Thống kê ứng viên (Applicants)
+    + Thống kê lịch phỏng vấn (Meetings)
+
+➤ Ứng tuyển công việc:
+  - Nếu đang ở giao diện recruiter, bạn cần chuyển về giao diện người dùng thông thường bằng cách bấm vào mục có hình avatar góc bên trái dưới cùng trong thanh điều hướng, chọn "Switch to User"
+  - Mở rộng mục "Career" trên thanh điều hướng
+  - Truy cập trang "Available Jobs" để xem danh sách các tin tuyển dụng
+  - Nhấn vào một tin tuyển dụng để xem chi tiết
+  - Đọc kỹ thông tin công việc, yêu cầu và mô tả
+  - Nhấn nút "Apply Now" để nộp đơn ứng tuyển
+  - Sau khi nộp đơn, chuyển đến trang "My Applications" để theo dõi trạng thái của đơn ứng tuyển
+  - Trong trang chi tiết của đơn ứng tuyển, bạn có thể:
+    + Xem thông tin công việc đã ứng tuyển
+    + Theo dõi trạng thái đơn (Pending, Reviewing, Shortlisted, Interviewed, Hired, Rejected)
+    + Nhấn "Withdraw Application" nếu muốn rút đơn ứng tuyển
+
+────────────────────────────
+■ QUẢN LÝ VÀ KIỂM SOÁT
+
+➤ Kiểm tra logs và trạng thái:
+  - Backend logs: Xem terminal chạy Hardhat node
+  - Frontend logs: Mở Developer Tools (F12) → Console tab
+  - Network requests: Developer Tools → Network tab
+
+➤ Restart hệ thống (khi cần):
+  1. Dừng tất cả terminal (Ctrl+C)
+  2. Khởi động lại theo thứ tự: Backend → Deploy → Build Frontend → Start Frontend
+
+➤ Reset dữ liệu blockchain:
+  - Dừng Hardhat node
+  - Xóa thư mục cache: `npx hardhat clean`
+  - Khởi động lại và deploy lại contracts
+
+────────────────────────────
+■ XỬ LÝ SỰ CỐ THƯỜNG GẶP
+
+➤ Không kết nối được MetaMask:
+  - Kiểm tra network đã chọn đúng "Hardhat Local"
+  - Refresh trang web và thử kết nối lại
+  - Kiểm tra Hardhat node vẫn đang chạy
+
+➤ Transaction bị lỗi:
+  - Kiểm tra số dư ETH trong ví (cần đủ để trả gas)
+  - Đảm bảo đã kết nối đúng account mặc định của hardhat local network
+  - Thử reset account trong MetaMask: Settings → Advanced → Reset Account
+
+➤ Frontend không load được:
+  - Kiểm tra port 3000 không bị xung đột
+  - Kiểm tra file .env. đã được tạo đúng
+  - Build lại: `npm run build:local` → `npm run start`
+
+➤ Smart contract không hoạt động:
+  - Kiểm tra contracts đã được deploy thành công
+  - Verify contract addresses trong frontend
+  - Chạy lại: `npm run deploy:local` và `npm run configure:local`
+
+────────────────────────────
+■ LƯU Ý QUAN TRỌNG
+
+⚠️  Luôn giữ terminal chạy Hardhat node mở trong suốt quá trình sử dụng
+⚠️  Dữ liệu sẽ bị mất khi restart Hardhat node (trừ khi dùng persistent storage)
+⚠️  Mỗi lần restart cần deploy lại contracts và tạo lại dữ liệu mẫu

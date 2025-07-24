@@ -1,0 +1,145 @@
+=== HƯỚNG DẪN CÀI ĐẶT ===
+
+■ Tổng quan:
+
+SkillChain là một hệ thống uy tín phi tập trung cho việc đánh giá kỹ năng và kết nối việc làm, được xây dựng trên blockchain. Dự án bao gồm:
+  - Frontend: Ứng dụng web Next.js với TypeScript
+  - Backend: Smart contracts trên Hardhat với Solidity
+
+■ Yêu cầu hệ thống:
+
+Phần mềm cần thiết:
+  - Node.js: Phiên bản 18.0.0 trở lên
+  - npm: Phiên bản 8.0.0 trở lên (hoặc yarn, pnpm)
+  - Visual Studio Code: IDE khuyến nghị
+  - MetaMask: Ví kỹ thuật số cho Web3
+
+Hệ điều hành hỗ trợ:
+  - Windows 10/11
+  - macOS 10.15+
+  - Linux (Ubuntu 18.04+)
+
+────────────────────────────
+■ BƯỚC 1: CÀI ĐẶT MÔI TRƯỜNG CƠ BẢN
+
+➤ Cài đặt Node.js:
+  Kiểm tra phiên bản hiện tại:
+  > node --version
+  > npm --version
+
+  Nếu chưa có hoặc phiên bản cũ, tải từ: https://nodejs.org/
+  Khuyến nghị sử dụng LTS version
+
+────────────────────────────
+■ BƯỚC 2: CÀI ĐẶT BACKEND (SMART CONTRACTS)
+
+➤ Mở một terminal và di chuyển vào thư mục backend:
+  > cd src/backend
+
+➤ Cài đặt dependencies:
+  > npm install
+
+────────────────────────────
+■ BƯỚC 3: CÀI ĐẶT FRONTEND (NEXT.JS APP)
+
+➤ Mở một terminal mới và di chuyển vào thư mục frontend:
+  > cd src/frontend
+
+➤ Cài đặt dependencies:
+  > npm install --legacy-peer-deps
+
+────────────────────────────
+■ BƯỚC 4: CÀI ĐẶT VÀ CẤU HÌNH METAMASK
+
+➤ Cài đặt tiện ích MetaMask trên trình duyệt:
+
+  1. Truy cập trực tiếp vào: https://metamask.io/download
+
+  2. Chọn trình duyệt bạn đang sử dụng (Chrome, Firefox, Edge, Brave,...) và nhấn "Install MetaMask" để cài đặt tiện ích mở rộng.
+
+  3. Nhấn "Add to Chrome" (hoặc tương tự với trình duyệt của bạn) để cài đặt tiện ích mở rộng.
+
+  4. Sau khi cài đặt xong, nhấn vào biểu tượng MetaMask trên thanh công cụ trình duyệt để bắt đầu tạo hoặc nhập ví.
+
+  5. Làm theo hướng dẫn trên màn hình để tạo ví mới hoặc nhập ví có sẵn (nếu đã có).
+
+  6. Lưu lại seed phrase (cụm từ khôi phục) ở nơi an toàn, tuyệt đối không chia sẻ cho người khác.
+
+➤ Khởi động Hardhat node (cần thiết cho việc thêm Hardhat local network ở bước sau):
+
+  1. Mở terminal mới và di chuyển vào thư mục backend:
+    > cd src/backend
+
+  2. Khởi động Hardhat node local:
+    > npx hardhat node
+
+  3. Giữ terminal này chạy (không đóng). Node sẽ:
+    - Chạy trên địa chỉ: http://127.0.0.1:8545
+    - Hiển thị danh sách 20 accounts test với private keys
+    - Mỗi account có sẵn 10,000 ETH test
+
+  4. Copy một số private key từ danh sách accounts để import vào MetaMask (khoảng 5 tài khoản đầu)
+
+➤ Cấu hình MetaMask:
+
+  1. Mở tiện ích MetaMask trên trình duyệt
+
+  2. Thêm network mới:
+    - Network Name: Hardhat Local
+    - RPC URL: http://127.0.0.1:8545
+    - Chain ID: 31337
+    - Currency Symbol: ETH
+
+  3. Import một số account test từ Hardhat (khoảng 5 tài khoản đầu):
+    - Copy private key từ terminal chạy Hardhat node
+    - Trên tiện ích Metamask, chọn Account -> Add account or hardhat wallet -> Private key
+    - Thêm account bằng private key đã copy vào MetaMask
+
+
+────────────────────────────
+■ CẤU TRÚC THỰ MỤC
+
+  SkillChain/
+  ├── src/
+  │   ├── README.md               (Source README)
+  │   │
+  │   ├── backend/                (Smart contracts)
+  │   │   ├── .env                (Environment variables)
+  │   │   ├── .gitignore          (Backend git ignore)
+  │   │   ├── contracts/          (Solidity contracts)
+  │   │   ├── ignition/           (Hardhat Ignition modules)
+  │   │   ├── scripts/            (Deploy & utility scripts)
+  │   │   ├── test/               (Contract tests)
+  │   │   ├── hardhat.config.ts   (Hardhat configuration)
+  │   │   ├── package.json        (Backend dependencies)
+  │   │   ├── package-lock.json   (Package lock file)
+  │   │   ├── README.md           (Backend README)
+  │   │   └── tsconfig.json       (TypeScript configuration)
+  │   │
+  │   └── frontend/               (Next.js application)
+  │       ├── .env                (Frontend environment variables)
+  │       ├── .gitignore          (Frontend git ignore)
+  │       ├── components.json     (Components configuration)
+  │       ├── DEPLOYMENT.md       (Deployment guide)
+  │       ├── eslint.config.mjs   (ESLint configuration)
+  │       ├── jest.config.js      (Jest test configuration)
+  │       ├── next-env.d.ts       (Next.js TypeScript definitions)
+  │       ├── next.config.ts      (Next.js configuration)
+  │       ├── package.json        (Frontend dependencies)
+  │       ├── package-lock.json   (Package lock file)
+  │       ├── postcss.config.mjs  (PostCSS configuration)
+  │       ├── README.md           (Frontend README)
+  │       ├── tsconfig.json       (TypeScript configuration)
+  │       ├── public/             (Static assets)
+  │       ├── types/              (TypeScript type definitions)
+  │       └── src/                (Source code)
+  │           ├── app/            (Next.js app router)
+  │           ├── components/     (React components)
+  │           ├── constants/      (Application constants)
+  │           ├── contexts/       (React contexts)
+  │           ├── features/       (Feature modules)
+  │           ├── hooks/          (Custom hooks)
+  │           └── lib/            (Utilities)
+  │
+  ├── HuongDanCaiDat.txt          (File này)
+  └── HuongDanSuDung.txt          (Hướng dẫn sử dụng)

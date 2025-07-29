@@ -84,8 +84,8 @@ contract RoleManager is AccessControl {
         for (uint256 i = 0; i < SystemConsts.N_DOMAIN; i++) {
             SystemEnums.Domain domain = SystemEnums.Domain(i);
             role_domain_reputation_requirements[CONTRIBUTOR_ROLE][domain] = 50;
-            role_domain_reputation_requirements[EVALUATOR_ROLE][domain] = 100;
-            role_domain_reputation_requirements[MODERATOR_ROLE][domain] = 200;
+            role_domain_reputation_requirements[EVALUATOR_ROLE][domain] = 70;
+            role_domain_reputation_requirements[MODERATOR_ROLE][domain] = 90;
         }
 
         // Grant admin role to deployer

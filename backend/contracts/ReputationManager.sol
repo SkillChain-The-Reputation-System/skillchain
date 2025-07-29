@@ -24,7 +24,7 @@ contract ReputationManager is AccessControl {
     mapping(address => mapping(SystemEnums.Domain => int256))
         public domain_reputation;
 
-    // global reputation = sum of all domainReputation
+    // global reputation = average of all domain reputations
     mapping(address => int256) public global_reputation;
 
     // Reference to RoleManager contract
@@ -87,9 +87,9 @@ contract ReputationManager is AccessControl {
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_user != address(0), "Invalid user address");
         require(_delta != 0, "Delta cannot be zero");
-        
+
         _applyReputationChange(_user, _domain, _delta);
-        
+
         console.log("Emergency reputation adjustment for user %s", _user);
         console.logInt(_delta);
     }
@@ -226,18 +226,24 @@ contract ReputationManager is AccessControl {
 
         int256 _old_domain = domain_reputation[_user][_domain];
         int256 _new_domain = _old_domain + _delta;
-        // Ensure domain reputation never goes below 0
+        // Clamp domain reputation within [0, MAX_REPUTATION_SCORE]
         if (_new_domain < 0) {
             _new_domain = 0;
+        } else if (_new_domain > int256(SystemConsts.MAX_REPUTATION_SCORE)) {
+            _new_domain = int256(SystemConsts.MAX_REPUTATION_SCORE);
         }
         domain_reputation[_user][_domain] = _new_domain;
 
-        // update global
-        int256 _old_global = global_reputation[_user];
-        int256 _new_global = _old_global + _delta;
-        // Ensure global reputation never goes below 0
+        // update global reputation as the average score across all domains
+        int256 total;
+        for (uint256 i = 0; i < N_DOMAIN; i++) {
+            total += domain_reputation[_user][SystemEnums.Domain(i)];
+        }
+        int256 _new_global = total / int256(N_DOMAIN);
         if (_new_global < 0) {
             _new_global = 0;
+        } else if (_new_global > int256(SystemConsts.MAX_REPUTATION_SCORE)) {
+            _new_global = int256(SystemConsts.MAX_REPUTATION_SCORE);
         }
         global_reputation[_user] = _new_global;
 
@@ -260,7 +266,7 @@ contract ReputationManager is AccessControl {
                 role_manager.EVALUATOR_ROLE(),
                 role_manager.MODERATOR_ROLE()
             ];
-            
+
             for (uint i = 0; i < roles.length; i++) {
                 // Check if user should be granted role for this domain
                 role_manager.checkAndGrantRole(_user, roles[i], _domain);
@@ -270,7 +276,6 @@ contract ReputationManager is AccessControl {
             }
         }
     }
-
 
     // ============================== GETTER FUNCTIONS ==============================
     function getDomainReputation(

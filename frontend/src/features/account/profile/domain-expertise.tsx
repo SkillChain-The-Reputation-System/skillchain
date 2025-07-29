@@ -88,7 +88,7 @@ export function DomainExpertise({
                         )}
                       >
                         <span className="relative z-10 font-extrabold text-sm">
-                          {score}
+                          {score}/100
                         </span>
                         <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-50" />
                       </Badge>

@@ -31,7 +31,7 @@ export default function JobReputationCard({ job }: JobReputationCardProps) {
             </div>
             <p className="text-sm text-slate-600 mb-2">
               Minimum score required:
-              <span className="font-medium"> {job.globalReputationScore}</span>
+              <span className="font-medium"> {job.globalReputationScore}/100</span>
             </p>
           </div>
         ) : (
@@ -56,7 +56,7 @@ export default function JobReputationCard({ job }: JobReputationCardProps) {
                     >
                       <span className="text-sm">{DomainLabels[domain]}</span>
                       <Badge variant="outline">
-                        {job.domainReputations[domain]}
+                        {job.domainReputations[domain]}/100
                       </Badge>
                     </div>
                   ))}

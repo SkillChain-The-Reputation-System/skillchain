@@ -382,12 +382,12 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
 
                 <div className="grid grid-cols-1 gap-2 max-w-full">
                   {meeting.application.job.domains.map((domain) =>
-                    <Badge key={domain} className="truncate text-xs">{DomainLabels[domain as Domain]} : {meeting.application.reputation_data.domain_reputation[domain]}</Badge>
+                    <Badge key={domain} className="truncate text-xs">{DomainLabels[domain as Domain]} : {meeting.application.reputation_data.domain_reputation[domain]}/100</Badge>
                   )}
                 </div>
 
                 {meeting.application.job.requireGlobalReputation &&
-                  <Badge className="mt-2 max-w-full truncate text-xs">Global Reputation : {meeting.application.reputation_data.global_reputation}</Badge>
+                  <Badge className="mt-2 max-w-full truncate text-xs">Global Reputation : {meeting.application.reputation_data.global_reputation}/100</Badge>
                 }
               </CardContent>
             </Card>
@@ -472,12 +472,12 @@ export default function MeetingRoom({ roomId }: MeetingRoomProps) {
                   <TabsContent value="reputation-requirements">
                     <div className="grid grid-cols-1 gap-2 max-w-full">
                       {meeting.application.job.domains.map((domain) =>
-                        <Badge key={domain} className="truncate text-xs">{DomainLabels[domain as Domain]} : {meeting.application.job.domainReputations[domain]}</Badge>
+                        <Badge key={domain} className="truncate text-xs">{DomainLabels[domain as Domain]} : {meeting.application.job.domainReputations[domain]}/100</Badge>
                       )}
                     </div>
 
                     {meeting.application.job.requireGlobalReputation &&
-                      <Badge className="mt-2 max-w-full truncate text-xs">Global Reputation : {meeting.application.job.globalReputationScore}</Badge>
+                      <Badge className="mt-2 max-w-full truncate text-xs">Global Reputation : {meeting.application.job.globalReputationScore}/100</Badge>
                     }
                   </TabsContent>
                 </Tabs>

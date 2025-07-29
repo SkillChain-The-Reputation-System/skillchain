@@ -58,7 +58,7 @@ export default function ApplicantProfileCard({
           <div className="flex justify-between text-sm">
             <span className="text-sm font-medium text-muted-foreground">Global Reputation:</span>
             <Badge variant="secondary">
-              {application.reputation_data?.global_reputation || 0}
+              {application.reputation_data?.global_reputation || 0}/100
             </Badge>
           </div>
           {/* Domain reputation for job-required domains */}
@@ -71,7 +71,7 @@ export default function ApplicantProfileCard({
                 <div key={domain} className="flex justify-between text-sm">
                   <span className="text-xs">{DomainLabels[domain]}:</span>
                   <Badge variant="secondary" className="text-xs">
-                    {application.reputation_data?.domain_reputation?.[domain] || 0}
+                    {application.reputation_data?.domain_reputation?.[domain] || 0}/100
                   </Badge>
                 </div>
               ))}

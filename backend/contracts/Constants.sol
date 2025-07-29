@@ -124,6 +124,7 @@ library SystemConsts {
     // ================= GENERAL =================
     uint256 public constant N_DOMAIN = 14; // Maximum number of domains
     uint256 public constant N_DIFFICULTY_LEVEL = 3; // Maximum number of difficulty levels
+    uint256 public constant MAX_REPUTATION_SCORE = 100; // Maximum reputation score
 
     // ================= SCORING CONSTANT =================
     uint256 public constant REPUTATION_WEIGHT_FOR_SCORING = 1; // Weight for reputation score

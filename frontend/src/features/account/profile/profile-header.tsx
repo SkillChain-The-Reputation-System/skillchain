@@ -104,7 +104,7 @@ export function ProfileHeader({
                     )}
                     className="font-bold"
                   >
-                    {reputationData.global_reputation}
+                    {reputationData.global_reputation} / 100
                   </Badge>
                 </div>
               </div>

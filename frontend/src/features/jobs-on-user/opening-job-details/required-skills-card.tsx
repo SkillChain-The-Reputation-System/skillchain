@@ -28,7 +28,7 @@ export default function RequiredSkillsCard({ job }: RequiredSkillsCardProps) {
                 <span className="font-medium">Global Reputation Required</span>
               </div>
               <span className="text-sm text-slate-600">
-                Minimum Score: {job.globalReputationScore}
+                Minimum Score: {job.globalReputationScore}/100
               </span>
             </div>
           )}
@@ -41,7 +41,7 @@ export default function RequiredSkillsCard({ job }: RequiredSkillsCardProps) {
                 {job.domainReputations &&
                   job.domainReputations[domain as Domain] >= 0 && (
                     <span className="text-sm text-slate-600">
-                      Min Score: {job.domainReputations[domain as Domain]}
+                      Min Score: {job.domainReputations[domain as Domain]}/100
                     </span>
                   )}
               </div>

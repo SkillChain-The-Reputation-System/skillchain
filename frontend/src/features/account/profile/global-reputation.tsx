@@ -39,18 +39,8 @@ export function GlobalReputation({
           <div className="text-center">
             <div className="relative">
               <div className="h-20 w-20 mx-auto rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg">
-                <span className={`font-bold text-white leading-none ${
-                  reputationData.global_reputation.toString().length > 4 
-                    ? 'text-xs' 
-                    : reputationData.global_reputation.toString().length > 3 
-                      ? 'text-sm' 
-                      : reputationData.global_reputation.toString().length > 2 
-                        ? 'text-lg' 
-                        : 'text-2xl'
-                }`}>
-                  {reputationData.global_reputation > 99999 
-                    ? `${Math.floor(reputationData.global_reputation / 1000)}k` 
-                    : reputationData.global_reputation}
+                <span className="font-bold text-white text-2xl">
+                  {reputationData.global_reputation}
                 </span>
               </div>
               <Star className="absolute -top-1 -right-1 h-6 w-6 text-primary fill-current" />

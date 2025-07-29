@@ -37,7 +37,7 @@ export default function JobDomainsCard({ job }: JobDomainsCardProps) {
                 </Badge>
                 {job.domainReputations ? (
                   <span className="text-sm text-slate-600">
-                    Min Score: {job.domainReputations[domain]}
+                    Min Score: {job.domainReputations[domain]}/100
                   </span>
                 ) : null}
               </div>
